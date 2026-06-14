@@ -348,8 +348,8 @@
     }
 
     .sp-alt-card img {
-        max-width: 180px;
-        max-height: 55px;
+        max-width: 280px;
+        max-height: 90px;
         object-fit: contain;
         position: relative;
         z-index: 2;
