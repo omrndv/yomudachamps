@@ -380,16 +380,16 @@
         position: relative;
         overflow: hidden;
         background: linear-gradient(135deg, rgba(255, 193, 7, 0.06) 0%, rgba(22, 25, 28, 0.7) 100%);
-        border: 1px solid rgba(255, 193, 7, 0.25);
-        border-radius: 32px;
-        padding: 50px 60px;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        border-radius: 24px;
+        padding: 30px 45px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 40px;
-        margin-top: 70px;
+        gap: 30px;
+        margin-top: 50px;
         box-shadow: 
-            0 30px 60px rgba(0, 0, 0, 0.3),
+            0 20px 40px rgba(0, 0, 0, 0.25),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
@@ -427,10 +427,10 @@
     }
 
     .sp-premium-text h4 {
-        font-size: 1.8rem;
+        font-size: 1.45rem;
         font-weight: 900;
         color: #ffffff;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         letter-spacing: -0.5px;
         line-height: 1.3;
     }
@@ -442,7 +442,7 @@
     }
 
     .sp-premium-text p {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         color: rgba(255, 255, 255, 0.65);
         margin: 0;
         line-height: 1.7;
@@ -454,23 +454,23 @@
         background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
         color: #000000;
         font-weight: 900;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 1.2px;
-        padding: 18px 40px;
-        border-radius: 20px;
+        padding: 14px 30px;
+        border-radius: 16px;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 12px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.25);
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.2);
         flex-shrink: 0;
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .sp-premium-btn i {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
         transition: transform 0.3s ease;
     }
 
@@ -519,11 +519,12 @@
         .sp-premium-cta {
             flex-direction: column;
             text-align: center;
-            padding: 40px 25px;
+            padding: 30px 20px;
+            gap: 20px;
         }
 
         .sp-premium-text h4 {
-            font-size: 1.35rem;
+            font-size: 1.25rem;
         }
 
         .sp-premium-btn {
