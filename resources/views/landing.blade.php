@@ -338,17 +338,15 @@
     .sp-alt-card {
         width: 220px;
         height: 120px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: #ffffff;
+        border: 2px solid rgba(255, 193, 7, 0.25);
         border-radius: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 20px;
         transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         position: relative;
         overflow: hidden;
     }
@@ -357,18 +355,18 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), transparent);
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), transparent);
         opacity: 0;
         transition: opacity 0.4s ease;
     }
 
     .sp-alt-card:hover {
         transform: translateY(-8px);
-        border-color: rgba(255, 193, 7, 0.5);
+        border-color: rgba(255, 193, 7, 0.8);
         box-shadow: 
             0 20px 40px rgba(0, 0, 0, 0.35),
-            0 0 25px rgba(255, 193, 7, 0.18);
-        background: rgba(255, 255, 255, 0.04);
+            0 0 25px rgba(255, 193, 7, 0.25);
+        background: #ffffff;
     }
 
     .sp-alt-card:hover::before {
@@ -740,9 +738,9 @@
                     onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.classList.add('d-flex');"
                 >
 
-                <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center text-white" style="position: relative; z-index: 2;">
+                <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center text-dark" style="position: relative; z-index: 2;">
                     <i class="bi bi-trophy text-warning fs-3 mb-2"></i>
-                    <span class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1.5px; color: rgba(255,255,255,0.9);">
+                    <span class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1.5px; color: #16191c;">
                         Getuk Goreng ASRI
                     </span>
                 </div>
