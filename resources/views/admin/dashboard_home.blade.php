@@ -29,7 +29,7 @@
     {{-- Stats Cards Grid --}}
     <div class="row g-3 mb-4">
         {{-- Card 1: Total Pendapatan --}}
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -50,7 +50,7 @@
         </div>
 
         {{-- Card 2: Tim Lunas --}}
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -64,38 +64,14 @@
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-top border-light d-flex align-items-center" style="font-size: 0.75rem;">
-                    @php
-                        $paid_ratio = $total_registered_teams > 0 ? round(($total_paid_teams / $total_registered_teams) * 100) : 0;
-                    @endphp
-                    <span class="text-primary fw-bold me-1">{{ $paid_ratio }}%</span>
-                    <span class="text-muted">Dari total pendaftar</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 3: Total Pendaftar --}}
-        <div class="col-md-6 col-lg-3">
-            <div class="card card-stats border-0 p-3 h-100">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Total Pendaftar</p>
-                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
-                            {{ $total_registered_teams }} <span class="fs-6 fw-normal text-muted">Tim</span>
-                        </h3>
-                    </div>
-                    <div class="icon-shape text-white shadow-sm" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
-                        <i class="bi bi-people fs-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-top border-light d-flex align-items-center" style="font-size: 0.75rem;">
-                    <span class="text-purple fw-bold me-1"><i class="bi bi-graph-up-arrow"></i></span>
-                    <span class="text-muted">Pendaftar Terdaftar</span>
+                    <span class="text-primary fw-bold me-1"><i class="bi bi-shield-check"></i></span>
+                    <span class="text-muted">Pendaftar Terverifikasi (PAID)</span>
                 </div>
             </div>
         </div>
 
         {{-- Card 4: Turnamen Aktif --}}
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -317,9 +293,6 @@
         // Area Chart: Tren Pendaftaran & Pembayaran
         var trendOptions = {
             series: [{
-                name: 'Total Pendaftar',
-                data: @json($chart_registered)
-            }, {
                 name: 'Lunas (PAID)',
                 data: @json($chart_paid)
             }],
@@ -330,7 +303,7 @@
                 toolbar: { show: false },
                 zoom: { enabled: false }
             },
-            colors: ['#8b5cf6', '#10b981'], // Violet, Emerald
+            colors: ['#10b981'], // Emerald
             dataLabels: { enabled: false },
             stroke: {
                 curve: 'smooth',

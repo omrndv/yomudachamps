@@ -93,36 +93,30 @@
 
     {{-- Stats Cards Row --}}
     <div class="row g-3 mb-4">
-        {{-- Card 1: Total Pendaftar & Slot --}}
+        {{-- Card 1: Tim Lunas & Slot --}}
         <div class="col-md-6">
             <div class="card card-custom border-0 p-4 bg-white shadow-sm rounded-4 h-100">
                 <div class="d-flex justify-content-between mb-3">
                     <div>
-                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Pendaftar / Slot</p>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Tim Lunas / Slot</p>
                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem; letter-spacing: -0.5px;">
-                            {{ $total_pendaftar }} <span class="fs-6 text-muted fw-normal">/ {{ $total_slot }} Slot</span>
+                            {{ $total_paid }} <span class="fs-6 text-muted fw-normal">/ {{ $total_slot }} Slot</span>
                         </h3>
                     </div>
-                    <div class="icon-shape text-warning bg-warning-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
-                        <i class="bi bi-people-fill fs-5"></i>
+                    <div class="icon-shape text-success bg-success-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                        <i class="bi bi-shield-check fs-5"></i>
                     </div>
                 </div>
                 
-                {{-- Stacked Progress Bar --}}
+                {{-- Progress Bar Lunas --}}
                 <div class="progress shadow-none bg-light-subtle rounded-pill mb-3" style="height: 8px; background-color: #f1f5f9;">
                     <div class="progress-bar bg-success" role="progressbar" style="width: {{ $persen_paid }}%;" title="Lunas: {{ $total_paid }}"></div>
-                    <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated opacity-75" role="progressbar" style="width: {{ $persen_pending }}%;" title="Pending: {{ $total_pending }}"></div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem;">
-                    <div>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
-                            Lunas: <strong>{{ $total_paid }}</strong>
-                        </span>
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-pill ms-1">
-                            Pending: <strong>{{ $total_pending }}</strong>
-                        </span>
-                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                        Lunas: <strong>{{ $total_paid }} Tim</strong>
+                    </span>
                     <span class="fw-bold {{ ($total_slot - $total_paid) <= 5 ? 'text-danger animate-pulse' : 'text-muted' }}">
                         Sisa Slot Lunas: {{ max(0, $total_slot - $total_paid) }}
                     </span>
