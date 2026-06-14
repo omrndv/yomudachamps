@@ -301,102 +301,135 @@
 
     .sponsor-alt-section {
         position: relative;
-        padding: 60px 0;
-        background: linear-gradient(
-            180deg,
-            rgba(22, 25, 28, 0) 0%,
-            rgba(255, 193, 7, 0.03) 50%,
-            rgba(22, 25, 28, 0) 100%
-        );
-        border-top: 1px solid rgba(255, 193, 7, 0.1);
-        border-bottom: 1px solid rgba(255, 193, 7, 0.1);
+        padding: 80px 0;
+        background: radial-gradient(circle at center, rgba(255, 193, 7, 0.05) 0%, transparent 75%);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .sp-alt-header {
-        margin-bottom: 40px;
+        margin-bottom: 50px;
     }
 
     .sp-alt-badge {
         display: inline-block;
-        background: rgba(255, 193, 7, 0.15);
+        background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.2) 100%);
         color: #ffc107;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 800;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
         text-transform: uppercase;
-        padding: 8px 24px;
+        padding: 10px 28px;
         border-radius: 50px;
         border: 1px solid rgba(255, 193, 7, 0.3);
-        margin-bottom: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.1);
+        text-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
     }
 
     .sp-alt-grid {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 20px;
-        margin-bottom: 40px;
+        gap: 24px;
+        margin-bottom: 50px;
     }
 
     .sp-alt-card {
-        width: 180px;
-        height: 100px;
-        background: #ffffff;
-        border-radius: 16px;
+        width: 220px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 15px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sp-alt-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.4s ease;
     }
 
     .sp-alt-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 12px 30px rgba(255, 193, 7, 0.3);
+        transform: translateY(-8px);
+        border-color: rgba(255, 193, 7, 0.5);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.35),
+            0 0 25px rgba(255, 193, 7, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .sp-alt-card:hover::before {
+        opacity: 1;
     }
 
     .sp-alt-card img {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        transition: transform 0.4s ease;
+    }
+
+    .sp-alt-card:hover img {
+        transform: scale(1.06);
     }
 
     .sp-premium-cta {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(22, 25, 28, 0.6) 100%);
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.06) 0%, rgba(22, 25, 28, 0.7) 100%);
         border: 1px solid rgba(255, 193, 7, 0.25);
-        border-radius: 28px;
-        padding: 45px 50px;
+        border-radius: 32px;
+        padding: 50px 60px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 30px;
-        margin-top: 60px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        gap: 40px;
+        margin-top: 70px;
+        box-shadow: 
+            0 30px 60px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
     }
 
     .sp-premium-cta::before {
         content: '';
         position: absolute;
         inset: 0;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-        background-size: 24px 24px;
+        background-image: 
+            linear-gradient(rgba(255, 193, 7, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 193, 7, 0.03) 1px, transparent 1px);
+        background-size: 20px 20px;
+        mask-image: radial-gradient(circle at center, black, transparent);
         pointer-events: none;
     }
 
     .sp-premium-cta::after {
         content: '';
         position: absolute;
-        top: -100px;
-        right: -50px;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(255, 193, 7, 0.15) 0%, transparent 70%);
+        top: -120px;
+        right: -80px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 193, 7, 0.18) 0%, transparent 70%);
         border-radius: 50%;
+        filter: blur(20px);
         pointer-events: none;
     }
 
@@ -407,7 +440,7 @@
     }
 
     .sp-premium-text h4 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
         font-weight: 900;
         color: #ffffff;
         margin-bottom: 12px;
@@ -425,20 +458,20 @@
         font-size: 1.05rem;
         color: rgba(255, 255, 255, 0.65);
         margin: 0;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
     .sp-premium-btn {
         position: relative;
         z-index: 2;
-        background: linear-gradient(to right, #ffc107, #ffca2c);
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
         color: #000000;
         font-weight: 900;
         font-size: 0.95rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 16px 36px;
-        border-radius: 18px;
+        letter-spacing: 1.2px;
+        padding: 18px 40px;
+        border-radius: 20px;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -446,17 +479,17 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 10px 30px rgba(255, 193, 7, 0.25);
         flex-shrink: 0;
-        border: 2px solid transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .sp-premium-btn i {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         transition: transform 0.3s ease;
     }
 
     .sp-premium-btn:hover {
         transform: translateY(-4px);
-        box-shadow: 0 15px 35px rgba(255, 193, 7, 0.4);
+        box-shadow: 0 15px 35px rgba(255, 193, 7, 0.45);
         background: #ffffff;
         color: #000000;
         border-color: #ffc107;
@@ -687,50 +720,50 @@
         </div>
     </section>
 
-    <!--<section class="sponsor-alt-section my-5">-->
-    <!--    <div class="text-center sp-alt-header">-->
-    <!--        <h3 class="section-title text-white text-uppercase d-block mb-3">Official Sponsors</h3>-->
-    <!--        <p class="text-white-50 mb-0 px-3">-->
-    <!--            Partner yang mendukung perjalanan kompetitif Yomuda Championship.-->
-    <!--        </p>-->
-    <!--    </div>-->
+    <section class="sponsor-alt-section my-5">
+        <div class="text-center sp-alt-header">
+            <h3 class="section-title text-white text-uppercase d-block mb-3">Official Sponsors</h3>
+            <p class="text-white-50 mb-0 px-3">
+                Partner yang mendukung perjalanan kompetitif Yomuda Championship.
+            </p>
+        </div>
 
-    <!--    <div class="text-center">-->
-    <!--        <div class="sp-alt-badge">Gold Partner</div>-->
-    <!--    </div>-->
+        <div class="text-center">
+            <div class="sp-alt-badge">Gold Partner</div>
+        </div>
 
-    <!--    <div class="sp-alt-grid">-->
-    <!--        <div class="sp-alt-card">-->
-    <!--            <img-->
-    <!--                src="{{ asset('images/getuklogo.png') }}"-->
-    <!--                alt="Getuk Goreng ASRI"-->
-    <!--                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.classList.add('d-flex');"-->
-    <!--            >-->
+        <div class="sp-alt-grid">
+            <div class="sp-alt-card">
+                <img
+                    src="{{ asset('images/getuklogo.png') }}"
+                    alt="Getuk Goreng ASRI"
+                    onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.classList.add('d-flex');"
+                >
 
-    <!--            <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center">-->
-    <!--                <i class="bi bi-trophy text-warning fs-4 mb-1"></i>-->
-    <!--                <span class="text-dark fw-bold" style="font-size: 10px; text-transform: uppercase;">-->
-    <!--                    Getuk Goreng ASRI-->
-    <!--                </span>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
+                <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center text-white" style="position: relative; z-index: 2;">
+                    <i class="bi bi-trophy text-warning fs-3 mb-2"></i>
+                    <span class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1.5px; color: rgba(255,255,255,0.9);">
+                        Getuk Goreng ASRI
+                    </span>
+                </div>
+            </div>
+        </div>
 
-    <!--    <div class="sp-premium-cta">-->
-    <!--        <div class="sp-premium-text">-->
-    <!--            <h4>Tertarik menjadi bagian dari <span>Yomuda Championship?</span></h4>-->
-    <!--            <p>-->
-    <!--                Dapatkan eksposur maksimal untuk brand Anda dan jangkau ribuan audiens-->
-    <!--                di komunitas esports kami yang terus berkembang.-->
-    <!--            </p>-->
-    <!--        </div>-->
+        <div class="sp-premium-cta">
+            <div class="sp-premium-text">
+                <h4>Tertarik menjadi bagian dari <span>Yomuda Championship?</span></h4>
+                <p class="mb-0">
+                    Dapatkan eksposur maksimal untuk brand Anda dan jangkau ribuan audiens
+                    di komunitas esports kami yang terus berkembang.
+                </p>
+            </div>
 
-    <!--        <a href="https://wa.me/6285122616191" class="sp-premium-btn" target="_blank" rel="noopener noreferrer">-->
-    <!--            <i class="bi bi-whatsapp"></i>-->
-    <!--            Hubungi Kami-->
-    <!--        </a>-->
-    <!--    </div>-->
-    <!--</section>-->
+            <a href="https://wa.me/6285122616191" class="sp-premium-btn" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-whatsapp"></i>
+                Hubungi Kami
+            </a>
+        </div>
+    </section>
 
 </div>
 @endsection
