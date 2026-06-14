@@ -353,26 +353,27 @@
         object-fit: contain;
         position: relative;
         z-index: 2;
-        filter: brightness(0) invert(1);
-        opacity: 0.6;
+        filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
+        opacity: 0.95;
         transition: all 0.3s ease;
     }
 
     .sp-alt-card:hover img {
         opacity: 1;
         transform: scale(1.08);
-        filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+        filter: brightness(0) invert(1) drop-shadow(0 0 16px rgba(255, 255, 255, 0.65));
     }
 
     .sp-alt-card .sp-fallback {
-        opacity: 0.6;
+        opacity: 0.95;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
         transition: all 0.3s ease;
     }
 
     .sp-alt-card:hover .sp-fallback {
         opacity: 1;
         transform: scale(1.08);
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        text-shadow: 0 0 16px rgba(255, 255, 255, 0.65);
     }
 
     .sp-premium-cta {
