@@ -336,55 +336,43 @@
     }
 
     .sp-alt-card {
-        width: 220px;
-        height: 120px;
-        background: #ffffff;
-        border: 2px solid rgba(255, 193, 7, 0.25);
-        border-radius: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        padding: 15px 30px;
+        transition: all 0.3s ease;
         position: relative;
-        overflow: hidden;
-    }
-
-    .sp-alt-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), transparent);
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-
-    .sp-alt-card:hover {
-        transform: translateY(-8px);
-        border-color: rgba(255, 193, 7, 0.8);
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.35),
-            0 0 25px rgba(255, 193, 7, 0.25);
-        background: #ffffff;
-    }
-
-    .sp-alt-card:hover::before {
-        opacity: 1;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
 
     .sp-alt-card img {
-        max-width: 100%;
-        max-height: 100%;
+        max-width: 180px;
+        max-height: 55px;
         object-fit: contain;
         position: relative;
         z-index: 2;
-        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-        transition: transform 0.4s ease;
+        filter: brightness(0) invert(1);
+        opacity: 0.6;
+        transition: all 0.3s ease;
     }
 
     .sp-alt-card:hover img {
-        transform: scale(1.06);
+        opacity: 1;
+        transform: scale(1.08);
+        filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+    }
+
+    .sp-alt-card .sp-fallback {
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+
+    .sp-alt-card:hover .sp-fallback {
+        opacity: 1;
+        transform: scale(1.08);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
     }
 
     .sp-premium-cta {
@@ -738,9 +726,9 @@
                     onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.classList.add('d-flex');"
                 >
 
-                <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center text-dark" style="position: relative; z-index: 2;">
+                <div class="d-none flex-column align-items-center justify-content-center w-100 h-100 text-center text-white sp-fallback" style="position: relative; z-index: 2;">
                     <i class="bi bi-trophy text-warning fs-3 mb-2"></i>
-                    <span class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1.5px; color: #16191c;">
+                    <span class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1.5px; color: #ffffff;">
                         Getuk Goreng ASRI
                     </span>
                 </div>
