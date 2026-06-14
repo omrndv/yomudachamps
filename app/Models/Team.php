@@ -14,7 +14,10 @@ class Team extends Model
         'status', 
         'tripay_reference', // Referensi unik dari Tripay
         'status_tripay',    // Status asli dari Tripay (PAID, UNPAID, EXPIRED)
-        'payment_method'    // Metode yang dipilih (QRIS, BRIVA, dll)
+        'payment_method',    // Metode yang dipilih (QRIS, BRIVA, dll)
+        'amount',        
+        'fee',           
+        'net_amount'
     ];
 
     public function season()

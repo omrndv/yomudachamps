@@ -3,22 +3,26 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TripayController;
 use App\Http\Controllers\TripayCallbackController;
 
-// Rute untuk proses memilih metode & bayar
 Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name('payment.confirm');
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
 
+Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
+    ->name('payment.check.status');
+    
 Route::post('/api/callback', [TripayCallbackController::class, 'handle']);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::post('/register', [HomeController::class, 'storeRegistration'])->name('register.store');
-Route::get('/payment/{id}', [HomeController::class, 'paymentConfirm'])->name('payment.confirm');
+Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');
+Route::post('/register/store', [HomeController::class, 'storeRegistration'])->name('register.store');
 Route::get('/success/{trx_id}', [HomeController::class, 'successPage'])->name('payment.success');
 
 Route::get('/download-qris', [HomeController::class, 'downloadQris'])->name('qris.download');
+
+Route::get('/cek-tim', [HomeController::class, 'checkPage'])->name('check.team');
+Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->name('check.team.search');
 
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
@@ -30,8 +34,28 @@ Route::post('/admin/seasons/store', [AdminController::class, 'storeSeason'])->na
 Route::post('/admin/seasons/update/{id}', [AdminController::class, 'updateSeason'])->name('admin.seasons.update');
 Route::get('/admin/seasons/delete/{id}', [AdminController::class, 'deleteSeason'])->name('admin.seasons.delete');
 Route::post('/admin/team/update/{id}', [AdminController::class, 'updateTeam'])->name('admin.team.update');
+Route::post('/admin/team/bulk-delete', [AdminController::class, 'bulkDelete'])->name('admin.team.bulkDelete');
+Route::get('/admin/payments/sync', [AdminController::class, 'syncPayments'])->name('admin.payments.sync');
 
 Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
     Route::get('/seasons', [AdminController::class, 'seasons'])->name('admin.seasons');
+    Route::get('/teams', [AdminController::class, 'teams'])->name('admin.teams');
     Route::get('/dashboard/{season_id}', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    
+    Route::get('/payment-history', [AdminController::class, 'paymentHistory'])->name('admin.payments');
+    
+    Route::get('/notes', [AdminController::class, 'showNotes'])->name('admin.notes.index');
+    Route::get('/notes/create', [AdminController::class, 'storeNote'])->name('admin.notes.store');
+    Route::get('/notes/delete/{id}', [AdminController::class, 'deleteNote'])->name('admin.notes.delete');
+    Route::post('/notes/update/{id}', [AdminController::class, 'updateNotes'])->name('admin.notes.update');
+    
+    Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
 });
+
+Route::view('/privacy-policy', 'pages.privacy')->name('privacy');
+Route::view('/terms-conditions', 'pages.terms')->name('terms');
+Route::view('/contact-us', 'pages.contact')->name('contact');
+
+Route::redirect('/register/{id}', '/daftar', 301);

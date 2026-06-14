@@ -15,17 +15,9 @@
     }
 
     @keyframes gradient-animation {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
 
     .success-card {
@@ -33,14 +25,6 @@
         border-radius: 22px;
         padding: 40px 30px;
         color: #fff;
-    }
-
-    .check-icon {
-        font-size: 4rem;
-        color: #28a745;
-        text-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
-        display: block;
-        margin-bottom: 15px;
     }
 
     .status-box {
@@ -94,8 +78,7 @@
         </p>
 
         @if($team->season->wa_link)
-        <a href="{{ $team->season->wa_link }}" target="_blank" class="btn btn-wa text-decoration-none d-block text-center"
-            style="background: #25d366; color: #fff; width: 100%; border-radius: 12px; padding: 15px; font-weight: bold; border: none;">
+        <a href="{{ $team->season->wa_link }}" target="_blank" class="btn btn-wa text-decoration-none d-block text-center">
             <i class="bi bi-whatsapp me-2"></i> GABUNG GRUP WHATSAPP
         </a>
         @else
@@ -104,9 +87,20 @@
         </div>
         @endif
 
-        <p class="text-secondary mt-4 mb-0" style="font-size: 0.7rem; letter-spacing: 1px;">
-            ID PENDAFTARAN: #{{ $team->trx_id }}
-        </p>
+        <div class="mt-4">
+            <p class="text-secondary mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">
+                ID PENDAFTARAN: #{{ $team->trx_id }}
+            </p>
+            <button onclick="daftarLagi()" class="btn btn-sm btn-outline-secondary border-0" style="font-size: 0.65rem; opacity: 0.6;">
+                <i class="bi bi-plus-circle me-1"></i> Daftar Tim Lainnya
+            </button>
+        </div>
     </div>
 </div>
+
+<script>
+    function daftarLagi() {
+        window.location.href = "{{ route('register.form') }}";
+    }
+</script>
 @endsection

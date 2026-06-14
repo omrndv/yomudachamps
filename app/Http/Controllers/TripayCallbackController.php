@@ -8,12 +8,13 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\NewRegistration;
 use Illuminate\Support\Facades\Notification;
+use App\Models\Setting;
 
 class TripayCallbackController extends Controller
 {
     public function handle(Request $request)
     {
-        $privateKey = env('TRIPAY_PRIVATE_KEY');
+        $privateKey = Setting::getVal('tripay_private_key', env('TRIPAY_PRIVATE_KEY'));
         $callbackSignature = $request->server('HTTP_X_CALLBACK_SIGNATURE');
         $json = $request->getContent();
         $signature = hash_hmac('sha256', $json, $privateKey);
@@ -31,6 +32,7 @@ class TripayCallbackController extends Controller
             return Response::json(['success' => false, 'message' => 'Invalid data sent by tripay']);
         }
 
+        // Cari tim berdasarkan trx_id dan reference
         $team = Team::with('season')->where('trx_id', $data->merchant_ref)
             ->where('tripay_reference', $data->reference)
             ->first();
@@ -59,10 +61,17 @@ class TripayCallbackController extends Controller
                         } catch (\Exception $e) {
                             Log::error('Gagal kirim email: ' . $e->getMessage());
                         }
+
+                        // Kirim WhatsApp otomatis ke perwakilan tim
+                        try {
+                            \App\Services\WhatsappService::sendPaidNotification($team);
+                        } catch (\Exception $e) {
+                            Log::error('Gagal kirim WhatsApp otomatis: ' . $e->getMessage());
+                        }
                     }
                 } else {                
                     $team->status = 'FAILED'; 
-                    Log::warning("OVER-SLOT: Tim {$team->name} bayar tapi slot penuh. Refund manual!");
+                    Log::warning("OVER-SLOT: Tim {$team->name} bayar tapi slot penuh.");
                 }
                 break;
 

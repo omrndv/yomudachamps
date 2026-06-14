@@ -11,9 +11,26 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $active_season = Season::where('status', 'ACTIVE')->withCount(['teams' => function ($q) {
-            $q->where('status', 'PAID'); 
-        }])->first();
+        $active_seasons = Season::where('status', 'ACTIVE')
+            ->withCount(['teams' => function ($q) {
+                $q->where('status', 'PAID');
+            }])->get();
+
+        return view('landing', compact('active_seasons'));
+    }
+
+    public function registerForm()
+    {
+        $active_season = Season::where('status', 'ACTIVE')
+            ->withCount(['teams' => function ($q) {
+                $q->where('status', 'PAID');
+            }])
+            ->first();
+    
+        if (!$active_season) {
+            return redirect('/')->with('error', 'Tidak ada tournament aktif saat ini.');
+        }
+    
         return view('register', compact('active_season'));
     }
 
@@ -24,6 +41,20 @@ class HomeController extends Controller
             'wa_number' => 'required|min:10',
             'season_id' => 'required'
         ]);
+
+        $existingTeam = Team::where('season_id', $request->season_id)
+            ->where('wa_number', $request->wa_number)
+            ->where('name', $request->name)
+            ->first();
+
+        if ($existingTeam) {
+            if ($existingTeam->status == 'PAID') {
+                return back()->with('error', 'Tim ini sudah terdaftar dan lunas! Silakan cek status untuk link grup.');
+            } else {
+                return redirect()->route('payment.confirm', $existingTeam->trx_id)
+                    ->with('info', 'Pendaftaran tim ini sudah ada sebelumnya. Silakan lanjutkan pembayaran.');
+            }
+        }
 
         $season = Season::withCount(['teams' => function ($q) {
             $q->where('status', 'PAID');
@@ -36,7 +67,7 @@ class HomeController extends Controller
         $team = Team::create([
             'season_id' => $request->season_id,
             'trx_id'    => 'YMD' . $request->season_id . '-' . strtoupper(Str::random(5)),
-            'name'      => strtoupper($request->name),
+            'name'      => $request->name,
             'wa_number' => $request->wa_number,
             'status'    => 'PENDING'
         ]);
@@ -59,15 +90,15 @@ class HomeController extends Controller
         return view('payment', compact('team', 'channels'));
     }
 
-    public function checkout(Request $request, $id)
+    public function checkout(Request $request, $trx_id)
     {
-        $team = Team::with('season')->findOrFail($id);
+        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
         $method = $request->payment_method;
 
         $tripay = new TripayController();
         $transaction = $tripay->requestTransaction($method, $team);
 
-        if ($transaction->success) {
+        if ($transaction && $transaction->success) {
             $team->update([
                 'tripay_reference' => $transaction->data->reference,
                 'payment_method' => $method,
@@ -76,7 +107,7 @@ class HomeController extends Controller
             return redirect()->route('payment.detail', $team->trx_id);
         }
 
-        return back()->with('error', 'Tripay Error: ' . $transaction->message);
+        return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
     }
 
     public function paymentDetail($trx_id)
@@ -101,11 +132,63 @@ class HomeController extends Controller
 
     public function downloadQris(Request $request)
     {
-        $url = $request->url;
-        $name = 'QRIS_YOMUDA_' . time() . '.png';
-        $content = file_get_contents($url);
-        return response($content)
-            ->header('Content-Type', 'image/png')
-            ->header('Content-Disposition', "attachment; filename=$name");
+        $url = $request->query('url');
+
+        if (!$url) {
+            return back()->with('error', 'URL QRIS tidak ditemukan.');
+        }
+
+        try {
+            $name = 'QRIS_YOMUDA_' . time() . '.png';
+            $content = file_get_contents($url);
+
+            if ($content === false) {
+                throw new \Exception("Gagal mengambil gambar.");
+            }
+
+            return response($content)
+                ->header('Content-Type', 'image/png')
+                ->header('Content-Disposition', "attachment; filename=$name");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengunduh QRIS: ' . $e->getMessage());
+        }
+    }
+
+    public function checkPage()
+    {
+        return view('check_team');
+    }
+
+    public function searchTeam(Request $request)
+    {
+        $request->validate([
+            'wa_number' => 'required'
+        ]);
+        
+        $wa = $request->wa_number;
+    
+        $teams = Team::with('season')
+            ->where('wa_number', 'LIKE', '%' . $wa . '%')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    
+        if ($teams->isEmpty()) {
+            return back()->with('error', 'Nomor WhatsApp tidak ditemukan. Pastikan nomornya benar ya!');
+        }
+    
+        return back()->with('teams', $teams);
+    }
+
+    public function checkStatusAjax($trx_id)
+    {
+        $team = Team::where('trx_id', $trx_id)->first();
+        
+        if (!$team) {
+            return response()->json(['error' => 'Not Found'], 404);
+        }
+    
+        return response()->json([
+            'status' => $team->status
+        ]);
     }
 }

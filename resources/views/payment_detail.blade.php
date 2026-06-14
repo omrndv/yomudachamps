@@ -15,17 +15,9 @@
     }
 
     @keyframes gradient-animation {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
 
     .detail-card {
@@ -106,6 +98,61 @@
         background: #ffc107;
         color: #000;
     }
+
+    .btn-download-qris {
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-top: 10px;
+        transition: 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-download-qris:hover {
+        background: #218838;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+    
+    .payment-alert {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: pulse-border 2s infinite;
+    }
+
+    .payment-alert i {
+        font-size: 1.5rem;
+        color: #ffc107;
+    }
+
+    .payment-alert p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #fff;
+        line-height: 1.4;
+        text-align: left;
+    }
+
+    .payment-alert b {
+        color: #ffc107;
+    }
+
+    @keyframes pulse-border {
+        0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+    }
 </style>
 
 <div class="detail-container mx-auto">
@@ -126,9 +173,16 @@
 
         <div class="text-center mb-4">
             <span class="text-secondary small d-block mb-2">Total Pembayaran:</span>
-            <h3 class="fw-bold text-warning" style="font-family: 'Arial Black';">Rp {{ number_format($detail->amount, 0, ',', '.') }}</h3>
+            <h3 class="fw-bold text-warning" style="font-family: 'Arial Black';">Rp {{ number_format($detail->amount, 0, ',', '.') }} <br> (+Biaya Admin)</h3>
         </div>
-
+        
+        <div class="payment-alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <p>
+                <b>PENTING:</b> Setelah transfer, silakan <b>tunggu 5-10 detik</b> atau <b>refresh halaman</b> ini untuk mendapatkan link grup tournament secara otomatis.
+            </p>
+        </div>
+        
         <div class="text-center mb-4">
             @if($detail->payment_method === 'DANA')
             <p class="text-secondary small mb-3">Klik tombol di bawah untuk bayar pakai DANA:</p>
@@ -137,22 +191,23 @@
                 BAYAR SEKARANG
             </a>
             <p class="small text-info"><i class="bi bi-info-circle me-1"></i> Kamu akan diarahkan ke aplikasi/web DANA</p>
-            @elseif(in_array($detail->payment_method, ['QRIS', 'QRISC', 'QRIS2']))
+            @elseif(Str::contains($detail->payment_method, 'QRIS'))
             <p class="text-secondary small mb-1">Scan QRIS di bawah ini:</p>
             <div class="qris-container">
-                @if(isset($detail->qr_url))
-                <img src="{{ $detail->qr_url }}" alt="QRIS" style="width: 200px; height: 200px;">
-                @elseif(isset($detail->qr_content))
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ $detail->qr_content }}" alt="QRIS">
-                @else
-                <p class="text-dark small">QRIS tidak tersedia, silakan hubungi admin.</p>
-                @endif
+                @php
+                    $qrisUrl = $detail->qr_url ?? 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . $detail->qr_content;
+                @endphp
+                <img src="{{ $qrisUrl }}" alt="QRIS" style="width: 200px; height: 200px;">
+                <br>
+                <a href="{{ route('qris.download', ['url' => $qrisUrl]) }}" class="btn-download-qris">
+                    <i class="bi bi-download me-1"></i> DOWNLOAD QRIS
+                </a>
             </div>
             <p class="small text-info"><i class="bi bi-info-circle me-1"></i> Bisa pakai Dana, OVO, GoPay, ShopeePay, dll.</p>
             @else
             <p class="text-secondary small mb-2">Kode Bayar / Nomor VA:</p>
             <div class="pay-code d-inline-block">{{ $detail->pay_code }}</div>
-            <button class="btn btn-sm btn-dark ms-2" onclick="navigator.clipboard.writeText('{{ $detail->pay_code }}')">
+            <button class="btn btn-sm btn-dark ms-2" onclick="copyToClipboard('{{ $detail->pay_code }}')">
                 <i class="bi bi-clipboard"></i>
             </button>
             <p class="small text-secondary mt-2">Salin kode di atas ke aplikasi bank kamu</p>
@@ -228,11 +283,51 @@
             }
         }, 1000);
     }
-    document.addEventListener('DOMContentLoaded', startCountdown);
+
+    function autoCheckStatus() {
+        const checkInterval = setInterval(function() {
+            fetch("{{ route('payment.check.status', $team->trx_id) }}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'PAID') {
+                        clearInterval(checkInterval);
+                        Swal.fire({
+                            title: 'PEMBAYARAN BERHASIL!',
+                            text: 'Sistem telah memverifikasi pembayaran tim kamu.',
+                            icon: 'success',
+                            background: '#121417',
+                            color: '#fff',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            allowOutsideClick: false,
+                            willClose: () => {
+                                window.location.href = "{{ route('payment.success', $team->trx_id) }}";
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.error('Error checking status:', error));
+        }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startCountdown();
+        autoCheckStatus();
+    });
 
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
-        alert('Kode bayar disalin!');
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Berhasil disalin!',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#1a1d21',
+            color: '#ffc107'
+        });
     }
 </script>
 @endsection

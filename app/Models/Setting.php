@@ -12,9 +12,9 @@ class Setting extends Model
     /**
      * Helper untuk mengambil nilai setting berdasarkan key
      */
-    public static function getVal($key)
+    public static function getVal($key, $default = null)
     {
         $setting = self::where('key', $key)->first();
-        return $setting ? $setting->value : null;
+        return ($setting && $setting->value !== null) ? $setting->value : $default;
     }
 }

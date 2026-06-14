@@ -7,7 +7,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Season extends Model
 {
-    protected $fillable = ['name', 'status', 'date_info', 'wa_link', 'price', 'slot', 'is_open'];
+    protected $fillable = [
+        'name', 
+        'status', 
+        'date_info', 
+        'wa_link', 
+        'price', 
+        'slot', 
+        'is_open',
+        'poster',     
+        'prize_pool'
+    ];
 
     public function teams(): HasMany
     {

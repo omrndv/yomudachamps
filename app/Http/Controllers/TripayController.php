@@ -6,14 +6,15 @@ use Illuminate\Http\Request;
 use Exception;
 use App\Models\Team;
 use Illuminate\Support\Facades\Log;
+use App\Models\Setting;
 
 class TripayController extends Controller
 {
     public function getPaymentChannels()
     {
         try {
-            $apiKey = env('TRIPAY_API_KEY');
-            $url = env('TRIPAY_MODE') === 'sandbox'
+            $apiKey = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
+            $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE')) === 'sandbox'
                 ? 'https://tripay.co.id/api-sandbox/merchant/payment-channel'
                 : 'https://tripay.co.id/api/merchant/payment-channel';
 
@@ -44,9 +45,9 @@ class TripayController extends Controller
 
     public function requestTransaction($method, $team)
     {
-        $apiKey       = env('TRIPAY_API_KEY');
-        $privateKey   = env('TRIPAY_PRIVATE_KEY');
-        $merchantCode = env('TRIPAY_MERCHANT_CODE');
+        $apiKey       = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
+        $privateKey   = Setting::getVal('tripay_private_key', env('TRIPAY_PRIVATE_KEY'));
+        $merchantCode = Setting::getVal('tripay_merchant_code', env('TRIPAY_MERCHANT_CODE'));
 
         $merchantRef  = $team->trx_id;
         $amount       = (int) $team->season->price;
@@ -65,7 +66,7 @@ class TripayController extends Controller
             'signature'      => $signature,
         ];
 
-        $url = env('TRIPAY_MODE') === 'sandbox'
+        $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE')) === 'sandbox'
             ? 'https://tripay.co.id/api-sandbox/transaction/create'
             : 'https://tripay.co.id/api/transaction/create';
 
@@ -87,8 +88,8 @@ class TripayController extends Controller
 
     public function getDetailTransaction($reference)
     {
-        $apiKey = env('TRIPAY_API_KEY');
-        $url = env('TRIPAY_MODE') === 'sandbox'
+        $apiKey = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
+        $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE')) === 'sandbox'
             ? 'https://tripay.co.id/api-sandbox/transaction/detail?'
             : 'https://tripay.co.id/api/transaction/detail?';
 

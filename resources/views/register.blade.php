@@ -1,17 +1,131 @@
 @extends('layouts.app')
-@section('title', 'Pendaftaran Tim')
 
-@section('content')
+@section('title', 'Pendaftaran Turnamen Mobile Legends - Yomuda Championship')
+@section('meta_description', 'Ikuti ' . $active_season->name . '. Prize Pool ' . ($active_season->prize_pool ?? 'Menarik') . '. Daftarkan timmu sekarang, slot terbatas!')
+@section('meta_keywords', 'pendaftaran turnamen mlbb, turnamen mobile legends nasional, yomuda championship')
+@section('og_title', 'Registrasi Turnamen ' . $active_season->name)
+@section('og_image', asset('storage/posters/' . $active_season->poster))
+
+@push('styles')
 <style>
-    .card-container {
+    .register-wrapper {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        color: #ffffff;
+        padding: 0 16px;
+    }
+
+    .register-grid {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 32px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .poster-section {
+        width: 100%;
+        max-width: 520px;
+        overflow: hidden;
+        background: #121417;
+        border: 1px solid #2d3238;
+        border-radius: 26px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    }
+
+    .poster-img-wrapper {
         position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        min-height: 520px;
+        overflow: hidden;
+        background: #050505;
+    }
+
+    .poster-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .poster-placeholder {
+        width: 100%;
+        height: 100%;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+            radial-gradient(circle at top, rgba(255, 193, 7, 0.18), transparent 50%),
+            linear-gradient(135deg, #111418, #050505);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 3rem;
+    }
+
+    .tournament-info {
+        padding: 22px;
+    }
+
+    .tournament-title {
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 6px;
+        letter-spacing: -0.4px;
+    }
+
+    .sub-text {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.86rem;
+        line-height: 1.7;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .info-item {
+        background: rgba(255, 255, 255, 0.035);
+        padding: 13px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-left: 3px solid #ffc107;
+    }
+
+    .info-item label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .info-item span {
+        display: block;
+        font-weight: 600;
+        color: #ffc107;
+        font-size: 0.86rem;
+        line-height: 1.35;
+    }
+
+    .form-shell {
+        width: 100%;
+        max-width: 460px;
         padding: 3px;
+        border-radius: 26px;
         background: linear-gradient(45deg, #ffc107, #343a40, #ffc107);
         background-size: 400% 400%;
         animation: gradient-animation 5s ease infinite;
-        border-radius: 24px;
-        max-width: 420px;
-        width: 100%;
+        box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
     }
 
     @keyframes gradient-animation {
@@ -28,136 +142,422 @@
         }
     }
 
-    .gaming-card-v2 {
-        background: #121417;
-        border-radius: 22px;
+    .form-card {
+        background:
+            radial-gradient(circle at top, rgba(255, 193, 7, 0.08), transparent 42%),
+            #121417;
+        border-radius: 24px;
         padding: 40px 30px;
-        color: #fff;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.66rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+    }
+
+    .status-pill.open {
+        background: #ffc107;
+        color: #000000;
+    }
+
+    .status-pill.closed {
+        background: rgba(220, 53, 69, 0.14);
+        color: #ff6b7a;
+        border: 1px solid rgba(255, 107, 122, 0.25);
+    }
+
+    .form-heading {
+        color: #ffffff;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 0;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+
+    .form-heading-sub {
+        font-size: 0.88em;
+        letter-spacing: 0.5px;
+    }
+
+    .limited-alert {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 10px 14px;
+        margin-bottom: 24px;
+        border-radius: 14px;
+        background: rgba(220, 53, 69, 0.12);
+        border: 1px solid rgba(220, 53, 69, 0.32);
+        color: #ff5d5d;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .limited-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #ff4d4d;
+        box-shadow: 0 0 14px rgba(255, 77, 77, 0.75);
+        flex: 0 0 auto;
     }
 
     .form-group-custom {
-        position: relative;
-        margin-bottom: 25px;
-    }
-
-    .form-control-v2 {
-        background: #1b1f23;
-        border: 2px solid #2d3238;
-        border-radius: 12px;
-        color: #fff !important;
-        padding: 14px 18px;
-        font-size: 0.95rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .form-control-v2:focus {
-        background: #1b1f23;
-        border-color: #ffc107;
-        box-shadow: 0 0 15px rgba(255, 193, 7, 0.15);
-        outline: none;
-        transform: translateY(-2px);
+        margin-bottom: 22px;
     }
 
     .label-v2 {
         display: block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #ffc107;
         margin-bottom: 8px;
-        margin-left: 4px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #ffc107;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+
+    .form-control-v2 {
+        width: 100%;
+        background: #1b1f23;
+        border: 2px solid #2d3238;
+        border-radius: 14px;
+        color: #ffffff;
+        padding: 15px 18px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: 0.25s ease;
+    }
+
+    .form-control-v2::placeholder {
+        color: rgba(255, 255, 255, 0.32);
+    }
+
+    .form-control-v2:focus {
+        background: #1d2227;
+        border-color: #ffc107;
+        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.12);
+    }
+
+    .price-text {
+        color: #ffc107;
+        font-size: 0.86rem;
     }
 
     .btn-ultra {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
         background: #ffc107;
-        color: #000;
+        color: #000000;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 16px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 0.5px;
+        transition: 0.25s ease;
+    }
+
+    .btn-ultra:hover:not(:disabled) {
+        background: #ffffff;
+        color: #000000;
+        transform: translateY(-2px);
+    }
+
+    .btn-ultra:disabled {
+        background: #6c757d !important;
+        color: #ffffff;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .spinner-registration {
+        display: none;
+    }
+
+    .btn-ultra.loading .spinner-registration {
+        display: inline-flex;
+    }
+
+    .closed-button {
         width: 100%;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s;
+        border-radius: 14px;
+        padding: 16px;
+        font-weight: 800;
+        opacity: 0.55;
+        cursor: not-allowed;
     }
 
-    .btn-ultra:hover {
-        background: #fff;
-        box-shadow: 0 0 30px rgba(255, 193, 7, 0.5);
-        transform: scale(1.02);
+    .divider-dashed {
+        margin-top: 34px;
+        padding-top: 18px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.18);
     }
 
-    .btn-ultra::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        transition: 0.5s;
+    .empty-season-card {
+        display: inline-block;
+        background: #121417;
+        border: 1px solid #2d3238;
+        border-radius: 26px;
+        padding: 45px 34px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
     }
 
-    .btn-ultra:hover::after {
-        left: 100%;
+    @media (min-width: 768px) {
+        .register-grid {
+            flex-direction: row;
+            align-items: flex-start;
+        }
     }
 
-    .sub-text {
-        color: #6c757d;
-        font-size: 0.8rem;
-        line-height: 1.5;
+    @media (max-width: 576px) {
+        .register-wrapper {
+            padding: 0 8px;
+        }
+
+        .register-grid {
+            gap: 24px;
+        }
+
+        .poster-img-wrapper,
+        .poster-placeholder {
+            min-height: 390px;
+        }
+
+        .form-card {
+            padding: 32px 22px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-heading {
+            font-size: 1.65rem;
+        }
     }
 </style>
+@endpush
 
-<div class="card-container mx-auto">
-    <div class="gaming-card-v2">
-        <div class="text-center mb-5">
-            <span class="badge bg-warning text-dark mb-2 px-3 py-2" style="border-radius: 50px; font-size: 0.65rem; font-weight: 800;">REGISTRATION OPEN</span>
-            <h2 class="fw-black mb-0" style="font-family: 'Arial Black', sans-serif; letter-spacing: -1px;">
-                YOMUDA <span class="text-warning">CHAMPIONSHIP</span>
-            </h2>
-            <p class="sub-text mt-2">Daftarkan skuad terbaikmu dan jadilah juara!</p>
+@section('content')
+<div class="register-wrapper">
+    @if($active_season)
+        @php
+            $remaining = $active_season->slot - $active_season->teams_count;
+            $isAvailable = $active_season->is_open && $remaining > 0;
+
+            $formattedPrizePool = trim($active_season->prize_pool ?? '') !== ''
+                ? $active_season->prize_pool
+                : 'TBA';
+        @endphp
+
+        <div class="register-grid">
+            <div class="poster-section">
+                <div class="poster-img-wrapper">
+                    @if($active_season->poster)
+                        <img
+                            src="{{ asset('storage/posters/' . $active_season->poster) }}"
+                            alt="Poster {{ $active_season->name }}"
+                            class="poster-img"
+                        >
+                    @else
+                        <div class="poster-placeholder">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="tournament-info">
+                    <h4 class="tournament-title">
+                        Yomuda Championship
+                        <span class="text-warning">{{ $active_season->name }}</span>
+                    </h4>
+
+                    <p class="sub-text mb-0">
+                        Platform pendaftaran turnamen Mobile Legends tingkat Nasional.
+                    </p>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Prize Pool</label>
+                            <span>{{ $formattedPrizePool }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Jadwal Main</label>
+                            <span>{{ $active_season->date_info ?? 'Segera Diumumkan' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Mode Turnamen</label>
+                            <span>Custom Draft Pick</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Lokasi</label>
+                            <span>Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-shell">
+                <div class="form-card">
+                    @if($active_season->is_open && $remaining <= 5 && $remaining > 0)
+                        <div class="limited-alert">
+                            <span class="limited-dot"></span>
+                            <span>BURUAN! Slot hampir penuh.</span>
+                        </div>
+                    @endif
+
+                    <div class="text-center mb-5">
+                        @if($active_season->is_open)
+                            <span class="status-pill open mb-3">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                Registration Open
+                            </span>
+                        @else
+                            <span class="status-pill closed mb-3">
+                                <i class="bi bi-x-circle-fill"></i>
+                                Registration Closed
+                            </span>
+                        @endif
+
+                        <h2 class="form-heading">
+                            <span class="d-block">YOMUDA</span>
+                            <span class="d-block text-warning form-heading-sub">CHAMPIONSHIP</span>
+                        </h2>
+
+                        <p class="sub-text mt-2 mb-0">
+                            Daftarkan skuad terbaikmu dan jadilah juara!
+                        </p>
+                    </div>
+
+                    <form id="regForm" action="{{ route('register.store') }}" method="POST">
+                        @csrf
+
+                        <input type="hidden" name="season_id" value="{{ $active_season->id }}">
+
+                        <div class="form-group-custom">
+                            <label class="label-v2" for="teamName">Nama Team</label>
+                            <input
+                                type="text"
+                                id="teamName"
+                                name="name"
+                                class="form-control-v2"
+                                placeholder="Masukkan nama tim..."
+                                value="{{ old('name') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label class="label-v2" for="waNumber">Nomor WA Perwakilan</label>
+                            <input
+                                type="tel"
+                                id="waNumber"
+                                name="wa_number"
+                                class="form-control-v2"
+                                placeholder="08xxxxxxxxxx"
+                                value="{{ old('wa_number') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="text-center mb-3">
+                            @if($isAvailable)
+                                <p class="price-text mb-0">
+                                    Biaya Pendaftaran:
+                                    <strong>Rp {{ number_format($active_season->price, 0, ',', '.') }}/team</strong>
+                                </p>
+
+                                <button type="submit" id="submitBtn" class="btn-ultra mt-3">
+                                    <span class="spinner-registration">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </span>
+                                    <span class="btn-text">Daftar Tournament</span>
+                                </button>
+                            @else
+                                <p class="text-danger small fw-bold mb-3">
+                                    {{ !$active_season->is_open ? 'PENDAFTARAN SUDAH DITUTUP' : 'SLOT PENDAFTARAN SUDAH PENUH' }}
+                                </p>
+
+                                <button type="button" class="btn btn-secondary closed-button" disabled>
+                                    SLOT PENUH / TUTUP
+                                </button>
+                            @endif
+                        </div>
+                    </form>
+
+                    <div class="divider-dashed"></div>
+
+                    <p class="text-center sub-text mt-3 mb-0">
+                        Sistem akan mengarahkanmu ke pembayaran otomatis.
+                    </p>
+                </div>
+            </div>
         </div>
+    @else
+        <div class="text-center py-5">
+            <div class="empty-season-card">
+                <i class="bi bi-trophy-fill text-warning mb-3" style="font-size: 3rem;"></i>
 
-        @if($active_season)
-        <form action="{{ route('register.store') }}" method="POST">
-            @csrf
-            <input type="hidden" name="season_id" value="{{ $active_season->id }}">
+                <h3 class="fw-bold text-white">
+                    Belum Ada Season Aktif
+                </h3>
 
-            <div class="form-group-custom">
-                <label class="label-v2">Nama Team</label>
-                <input type="text" name="name" class="form-control-v2 w-100" placeholder="Masukkan nama tim..." required>
+                <p class="sub-text">
+                    Nantikan info turnamen selanjutnya di sosial media kami!
+                </p>
+
+                <a href="{{ route('home') }}" class="btn btn-warning mt-3 px-4 fw-bold">
+                    Kembali ke Home
+                </a>
             </div>
-
-            <div class="form-group-custom">
-                <label class="label-v2">Nomor Perwakilan Team (WA)</label>
-                <input type="tel" name="wa_number" class="form-control-v2 w-100" placeholder="08xxxxxxxxxx" required>
-            </div>
-
-            <p class="text-center small mb-3" style="color: #ffc107;">
-                @if($active_season->is_open)
-                Biaya Pendaftaran: <strong>Rp {{ number_format($active_season->price, 0, ',', '.') }}</strong><br>
-                <!-- Slot Tersisa: <strong>{{ $active_season->slot - $active_season->teams_count }} / {{ $active_season->slot }}</strong> -->
-                @else
-                <span class="text-danger">PENDAFTARAN SUDAH DITUTUP</span>
-                @endif
-            </p>
-
-            @if($active_season->is_open && ($active_season->slot - $active_season->teams_count) > 0)
-            <button type="submit" class="btn-ultra mt-2">Daftar Tournament</button>
-            @else
-            <button type="button" class="btn btn-secondary w-100 p-3" disabled>SLOT PENUH / TUTUP</button>
-            @endif
-        </form>
-        @else
-        <div class="alert alert-danger text-center small fw-bold">BELUM ADA SEASON AKTIF</div>
-        @endif
-
-        <div class="mt-5 pt-3 border-top border-secondary" style="border-style: dashed !important; opacity: 0.3;"></div>
-        <p class="text-center sub-text mt-3 mb-0">Sistem akan mengarahkanmu ke pembayaran.</p>
-    </div>
+        </div>
+    @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('regForm');
+
+        if (!form) {
+            return;
+        }
+
+        form.addEventListener('submit', function () {
+            const btn = document.getElementById('submitBtn');
+
+            if (!btn) {
+                return true;
+            }
+
+            const btnText = btn.querySelector('.btn-text');
+
+            btn.disabled = true;
+            btn.classList.add('loading');
+
+            if (btnText) {
+                btnText.innerText = 'Sedang Memproses...';
+            }
+
+            return true;
+        });
+    });
+</script>
+@endpush

@@ -15,9 +15,17 @@
     }
 
     @keyframes gradient-animation {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
     }
 
     .payment-card {
@@ -137,17 +145,29 @@
     <div class="payment-card">
         <div class="text-center mb-4">
             <div class="badge bg-warning text-dark mb-2 px-3 py-2" style="border-radius: 50px; font-size: 0.6rem; font-weight: 800;">STEP 2: PAYMENT METHOD</div>
-            <h3 class="fw-bold mb-0">KONFIRMASI</h3>
+            <h3 class="fw-bold mb-0">KONFIRMASI <br> PEMBAYARAN</h3>
         </div>
 
         <div class="info-box mb-4">
             <div class="d-flex justify-content-between mb-1">
-                <span class="small text-secondary fw-bold">TEAM</span>
+                <span class="small text-secondary fw-bold">Nama Team</span>
                 <span class="small fw-bold text-white">{{ $team->name }}</span>
             </div>
-            <div class="d-flex justify-content-between">
-                <span class="small text-secondary fw-bold">TOTAL</span>
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small text-secondary fw-bold">Total</span>
                 <span class="small fw-bold text-warning">Rp {{ number_format($team->season->price, 0, ',', '.') }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small text-secondary fw-bold">Tanggal Main</span>
+                <span class="small fw-bold text-warning">
+                    {{ $team->season->date_info ?? 'Belum ditentukan' }}
+                </span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small text-secondary fw-bold">Keterangan</span>
+                <span class="small fw-bold text-warning">
+                    Pembayaran Tour S{{ preg_replace('/\D/', '', $team->season->name) }}
+                </span>
             </div>
         </div>
 
