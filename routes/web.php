@@ -13,6 +13,7 @@ Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController:
     ->name('payment.check.status');
     
 Route::post('/api/callback', [TripayCallbackController::class, 'handle']);
+Route::post('/api/ipaymu/callback', [\App\Http\Controllers\IPaymuCallbackController::class, 'handle']);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');

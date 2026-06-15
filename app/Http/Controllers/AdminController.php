@@ -161,9 +161,13 @@ class AdminController extends Controller
             'tripay_private_key',
             'tripay_merchant_code',
             'tripay_mode',
+            'ipaymu_va',
+            'ipaymu_api_key',
+            'ipaymu_mode',
             'social_instagram',
             'social_tiktok',
-            'social_youtube'
+            'social_youtube',
+            'maintenance_secret'
         ];
 
         foreach ($keys as $key) {
@@ -199,7 +203,25 @@ class AdminController extends Controller
             $file->move($publicPath, 'favicon.ico');
         }
 
-        return back()->with('success', 'Pengaturan berhasil diperbarui!');
+        $secret = $request->input('maintenance_secret', 'yomudasecret');
+
+        if ($request->has('maintenance_mode')) {
+            if (!app()->isDownForMaintenance()) {
+                \Illuminate\Support\Facades\Artisan::call('down', [
+                    '--secret' => $secret
+                ]);
+            }
+            $response = redirect()->back()->with('success', 'Pengaturan berhasil diperbarui dan Mode Maintenance telah AKTIF.');
+            $response->withCookie(cookie('laravel_maintenance', $secret, 2628000));
+        } else {
+            if (app()->isDownForMaintenance()) {
+                \Illuminate\Support\Facades\Artisan::call('up');
+            }
+            $response = redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
+            $response->withCookie(cookie()->forget('laravel_maintenance'));
+        }
+
+        return $response;
     }
 
     public function bulkStore(Request $request, $season_id)
@@ -467,53 +489,59 @@ class AdminController extends Controller
     // FUNGSI SINKRONISASI (MAGIC BUTTON)
     public function syncPayments()
     {
-        $apiKey = \App\Models\Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
-        $mode = \App\Models\Setting::getVal('tripay_mode', env('TRIPAY_MODE'));
-        
-        $url = ($mode === 'sandbox' 
-                ? 'https://tripay.co.id/api-sandbox/merchant/transactions' 
-                : 'https://tripay.co.id/api/merchant/transactions');
-    
         try {
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_URL => $url . '?status=PAID&per_page=50', // Cek 50 transaksi terakhir yang PAID
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $apiKey],
-                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
-            ]);
-            $response = curl_exec($curl);
-            curl_close($curl);
-            $res = json_decode($response);
-    
-            if ($res && $res->success) {
-                $countUpdated = 0;
-                foreach ($res->data as $trx) {
-                    // Cari tim di DB yang trx_id-nya cocok tapi statusnya masih PENDING
-                    $team = Team::where('trx_id', $trx->merchant_ref)
-                                ->where('status', 'PENDING')
-                                ->first();
+            $pendingTeams = Team::where('status', 'PENDING')
+                ->whereNotNull('tripay_reference')
+                ->get();
+
+            $countUpdated = 0;
+            $ipaymu = new IPaymuController();
+
+            foreach ($pendingTeams as $team) {
+                $res = $ipaymu->checkTransactionStatus($team->tripay_reference);
+
+                if ($res && isset($res->Status) && $res->Status == 200 && isset($res->Data)) {
+                    $statusIPaymu = (int) ($res->Data->Status ?? 0);
                     
-                    if ($team) {
-                        $team->update([
-                            'status' => 'PAID',
-                            'payment_method' => $trx->payment_method,
-                            'tripay_reference' => $trx->reference,
-                            'amount' => $trx->amount, // Simpan nominal real dari Tripay
-                            'updated_at' => date('Y-m-d H:i:s', $trx->paid_at) // Pakai waktu bayar asli
-                        ]);
-                        $countUpdated++;
- 
-                        // Kirim WhatsApp otomatis ke perwakilan tim saat disinkronkan
-                        try {
-                            \App\Services\WhatsappService::sendPaidNotification($team);
-                        } catch (\Exception $e) {
-                            \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp saat sync: ' . $e->getMessage());
+                    if ($statusIPaymu === 1) { // PAID / SUCCESS
+                        $currentPaidCount = Team::where('season_id', $team->season_id)
+                                            ->where('status', 'PAID')
+                                            ->count();
+
+                        if ($currentPaidCount < $team->season->slot) {
+                            $team->update([
+                                'status' => 'PAID',
+                                'status_tripay' => 'SUCCESS',
+                                'amount' => $res->Data->Amount ?? $team->season->price,
+                            ]);
+                            $countUpdated++;
+
+                            // Kirim WhatsApp otomatis ke perwakilan tim saat disinkronkan
+                            try {
+                                \App\Services\WhatsappService::sendPaidNotification($team);
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp saat sync: ' . $e->getMessage());
+                            }
+
+                            // Kirim email notification
+                            try {
+                                $adminEmail = 'monotp94@gmail.com';
+                                \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::error('Gagal kirim email saat sync: ' . $e->getMessage());
+                            }
+                        } else {
+                            $team->update([
+                                'status' => 'FAILED',
+                                'status_tripay' => 'SUCCESS',
+                            ]);
+                            \Illuminate\Support\Facades\Log::warning("OVER-SLOT: Tim {$team->name} bayar tapi slot penuh saat sync.");
                         }
                     }
                 }
-                return back()->with('success', "Mantap! $countUpdated transaksi berhasil disinkronkan.");
             }
+
+            return back()->with('success', "Mantap! $countUpdated transaksi iPaymu berhasil disinkronkan.");
         } catch (\Exception $e) {
             return back()->with('error', "Gagal sinkron: " . $e->getMessage());
         }

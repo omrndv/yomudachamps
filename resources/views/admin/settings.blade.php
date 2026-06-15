@@ -111,51 +111,76 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Card 5: Maintenance Mode --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-tools text-danger me-2"></i> Mode Pemeliharaan (Maintenance Mode)
+                </h5>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center bg-light-subtle p-3 rounded-3 border border-light-subtle" style="background-color: #f8fafc;">
+                        <label class="form-check-label fw-bold text-dark mb-0 ps-1" for="maintenance_mode" style="font-size: 0.85rem;">
+                            <i class="bi bi-power text-danger me-2"></i> Aktifkan Mode Maintenance
+                        </label>
+                        <input class="form-check-input ms-0 shadow-none" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode" value="true" style="cursor: pointer;"
+                            {{ app()->isDownForMaintenance() ? 'checked' : '' }}>
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                        Jika diaktifkan, pengunjung biasa akan diarahkan ke halaman maintenance. Anda tetap dapat mengakses web karena sistem akan otomatis memberikan cookie bypass.
+                    </small>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Bypass Token / Secret URL</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-shield-lock-fill text-secondary"></i></span>
+                        <input type="text" name="maintenance_secret" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="yomudasecret" value="{{ \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret') }}" required>
+                    </div>
+                    @if(app()->isDownForMaintenance())
+                        <div class="alert alert-info border-0 rounded-3 mt-3 p-3 mb-0" style="font-size: 0.8rem; background-color: #f0f9ff; border: 1px solid #e0f2fe; color: #0369a1;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Link Bypass: <a href="{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}" target="_blank" class="fw-bold" style="color: #0369a1; text-decoration: underline;">{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
         {{-- Kanan: Pengaturan Tripay & Upload Aset --}}
         <div class="col-lg-6">
-            {{-- Card 3: Tripay Gateway --}}
+            {{-- Card 3: iPaymu Gateway --}}
             <div class="card card-settings border-0 p-4 mb-4 bg-white">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
-                    <i class="bi bi-credit-card-2-back text-primary me-2"></i> Tripay Gateway Settings
+                    <i class="bi bi-credit-card-2-back text-primary me-2"></i> iPaymu Gateway Settings
                 </h5>
 
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Mode Tripay</label>
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Mode iPaymu</label>
                     <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-shield-fill text-secondary"></i></span>
-                        <select name="tripay_mode" class="form-select border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem; cursor: pointer;">
-                            <option value="sandbox" {{ \App\Models\Setting::getVal('tripay_mode', env('TRIPAY_MODE')) == 'sandbox' ? 'selected' : '' }}>Sandbox / Development (Testing)</option>
-                            <option value="live" {{ \App\Models\Setting::getVal('tripay_mode', env('TRIPAY_MODE')) == 'live' ? 'selected' : '' }}>Live / Production (Asli)</option>
+                        <select name="ipaymu_mode" class="form-select border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem; cursor: pointer;">
+                            <option value="sandbox" {{ \App\Models\Setting::getVal('ipaymu_mode', env('IPAYMU_MODE')) == 'sandbox' ? 'selected' : '' }}>Sandbox / Development (Testing)</option>
+                            <option value="live" {{ \App\Models\Setting::getVal('ipaymu_mode', env('IPAYMU_MODE')) == 'live' ? 'selected' : '' }}>Live / Production (Asli)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Tripay Merchant Code</label>
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">iPaymu Virtual Account (VA)</label>
                     <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-hash text-secondary"></i></span>
-                        <input type="text" name="tripay_merchant_code" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="Contoh: T12345..." value="{{ \App\Models\Setting::getVal('tripay_merchant_code', env('TRIPAY_MERCHANT_CODE')) }}">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Tripay API Key</label>
-                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-secondary"></i></span>
-                        <input type="text" name="tripay_api_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="Tripay API Key..." value="{{ \App\Models\Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY')) }}">
+                        <input type="text" name="ipaymu_va" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="Virtual Account iPaymu..." value="{{ \App\Models\Setting::getVal('ipaymu_va', env('IPAYMU_VA')) }}">
                     </div>
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Tripay Private Key</label>
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">iPaymu API Key</label>
                     <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-lock-fill text-secondary"></i></span>
-                        <input type="text" name="tripay_private_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="Tripay Private Key..." value="{{ \App\Models\Setting::getVal('tripay_private_key', env('TRIPAY_PRIVATE_KEY')) }}">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-secondary"></i></span>
+                        <input type="text" name="ipaymu_api_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="iPaymu API Key..." value="{{ \App\Models\Setting::getVal('ipaymu_api_key', env('IPAYMU_API_KEY')) }}">
                     </div>
                 </div>
             </div>

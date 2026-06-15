@@ -79,46 +79,63 @@ class HomeController extends Controller
     {
         $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
 
+        if ($team->status === 'PAID') {
+            return redirect()->route('payment.success', $team->trx_id);
+        }
+
         $currentPaid = Team::where('season_id', $team->season_id)->where('status', 'PAID')->count();
         if ($currentPaid >= $team->season->slot) {
             return redirect('/')->with('error', 'Waduh telat! Slot baru saja penuh oleh pendaftar lain.');
         }
 
-        $tripay = new TripayController();
-        $channels = $tripay->getPaymentChannels();
-
-        return view('payment', compact('team', 'channels'));
+        return view('payment', compact('team'));
     }
 
     public function checkout(Request $request, $trx_id)
     {
         $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
-        $method = $request->payment_method;
 
-        $tripay = new TripayController();
-        $transaction = $tripay->requestTransaction($method, $team);
+        if ($team->status === 'PAID') {
+            return redirect()->route('payment.success', $team->trx_id);
+        }
+
+        $currentPaid = Team::where('season_id', $team->season_id)->where('status', 'PAID')->count();
+        if ($currentPaid >= $team->season->slot) {
+            return redirect('/')->with('error', 'Slot turnamen sudah penuh.');
+        }
+
+        $ipaymu = new IPaymuController();
+        $transaction = $ipaymu->requestTransaction($team);
 
         if ($transaction && $transaction->success) {
+            $qrCodeUrl = !empty($transaction->qr_string)
+                ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($transaction->qr_string)
+                : $transaction->qr_image;
+
             $team->update([
-                'tripay_reference' => $transaction->data->reference,
-                'payment_method' => $method,
+                'tripay_reference' => $transaction->transaction_id,
+                'payment_method' => $qrCodeUrl,
             ]);
 
             return redirect()->route('payment.detail', $team->trx_id);
         }
 
-        return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+        return back()->with('error', 'iPaymu Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
     }
 
     public function paymentDetail($trx_id)
     {
-        $team = Team::where('trx_id', $trx_id)->firstOrFail();
-        $tripay = new TripayController();
-        $detail = $tripay->getDetailTransaction($team->tripay_reference);
+        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
 
-        if (!$detail) return redirect()->route('index');
+        if ($team->status === 'PAID') {
+            return redirect()->route('payment.success', $team->trx_id);
+        }
 
-        return view('payment_detail', compact('team', 'detail'));
+        if (!$team->payment_method) {
+            return redirect()->route('payment.confirm', $team->trx_id);
+        }
+
+        return view('payment_detail', compact('team'));
     }
 
     public function successPage($trx_id)
