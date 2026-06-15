@@ -183,7 +183,7 @@ class AdminController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            $publicPath = is_dir(base_path('../public_html')) 
+            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
                 ? base_path('../public_html') 
                 : public_path();
             $logoPath = $publicPath . '/images';
@@ -196,7 +196,7 @@ class AdminController extends Controller
 
         // Handle favicon upload
         if ($request->hasFile('favicon')) {
-            $publicPath = is_dir(base_path('../public_html')) 
+            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
                 ? base_path('../public_html') 
                 : public_path();
             $file = $request->file('favicon');
@@ -288,7 +288,7 @@ class AdminController extends Controller
         if ($request->hasFile('poster')) {
             $file = $request->file('poster');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $destination = is_dir(base_path('../public_html')) 
+            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
                 ? base_path('../public_html/storage/posters') 
                 : public_path('storage/posters');
             
@@ -321,7 +321,7 @@ class AdminController extends Controller
         ];
 
         if ($request->hasFile('poster')) {
-            $destination = is_dir(base_path('../public_html')) 
+            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
                 ? base_path('../public_html/storage/posters') 
                 : public_path('storage/posters');
 
@@ -353,7 +353,7 @@ class AdminController extends Controller
 
         $season = Season::findOrFail($id);
         if ($season->poster) {
-            $destination = is_dir(base_path('../public_html')) 
+            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
                 ? base_path('../public_html/storage/posters') 
                 : public_path('storage/posters');
             $path = $destination . '/' . $season->poster;
