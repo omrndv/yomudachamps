@@ -17,15 +17,58 @@ Route::get('/run-symlink', function () {
         return "Link/folder already exists at: " . $link . ". Please delete it first if it is broken.";
     }
     
-    try {
-        if (symlink($target, $link)) {
-            return "Symlink created successfully from " . $target . " to " . $link;
-        } else {
-            return "Failed to create symlink.";
+    // Method 1: Native PHP symlink
+    if (function_exists('symlink')) {
+        try {
+            if (symlink($target, $link)) {
+                return "Symlink created successfully using native PHP symlink()!";
+            }
+        } catch (\Throwable $e) {
+            // Proceed to other methods
         }
-    } catch (\Throwable $e) {
-        return "Error creating symlink: " . $e->getMessage();
     }
+    
+    // Method 2: shell_exec (ln -s)
+    if (function_exists('shell_exec')) {
+        try {
+            $output = shell_exec("ln -s " . escapeshellarg($target) . " " . escapeshellarg($link));
+            if (file_exists($link)) {
+                return "Symlink created successfully using shell_exec('ln -s')! Output: " . $output;
+            }
+        } catch (\Throwable $e) {
+            // Proceed to other methods
+        }
+    }
+    
+    // Method 3: exec (ln -s)
+    if (function_exists('exec')) {
+        try {
+            $output = [];
+            $resultCode = null;
+            exec("ln -s " . escapeshellarg($target) . " " . escapeshellarg($link), $output, $resultCode);
+            if (file_exists($link)) {
+                return "Symlink created successfully using exec('ln -s')!";
+            }
+        } catch (\Throwable $e) {
+            // Proceed to other methods
+        }
+    }
+    
+    // Method 4: system (ln -s)
+    if (function_exists('system')) {
+        try {
+            ob_start();
+            $result = system("ln -s " . escapeshellarg($target) . " " . escapeshellarg($link));
+            ob_end_clean();
+            if (file_exists($link)) {
+                return "Symlink created successfully using system('ln -s')!";
+            }
+        } catch (\Throwable $e) {
+            // Proceed to other methods
+        }
+    }
+
+    return "Failed to create symlink. All methods (native symlink, shell_exec, exec, system) are either disabled or failed.";
 });
 
 Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
