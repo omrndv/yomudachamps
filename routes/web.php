@@ -71,6 +71,19 @@ Route::get('/run-symlink', function () {
     return "Failed to create symlink. All methods (native symlink, shell_exec, exec, system) are either disabled or failed.";
 });
 
+Route::get('/storage/posters/{filename}', function ($filename) {
+    $path = storage_path('app/public/posters/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    $file = file_get_contents($path);
+    $type = mime_content_type($path);
+    
+    return response($file)->header('Content-Type', $type);
+});
+
 Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
     ->name('payment.check.status');
     

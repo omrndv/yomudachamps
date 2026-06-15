@@ -288,9 +288,7 @@ class AdminController extends Controller
         if ($request->hasFile('poster')) {
             $file = $request->file('poster');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html/storage/posters') 
-                : public_path('storage/posters');
+            $destination = storage_path('app/public/posters');
             
             if (!file_exists($destination)) {
                 mkdir($destination, 0755, true);
@@ -321,9 +319,7 @@ class AdminController extends Controller
         ];
 
         if ($request->hasFile('poster')) {
-            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html/storage/posters') 
-                : public_path('storage/posters');
+            $destination = storage_path('app/public/posters');
 
             if ($season->poster) {
                 $oldPath = $destination . '/' . $season->poster;
@@ -353,9 +349,7 @@ class AdminController extends Controller
 
         $season = Season::findOrFail($id);
         if ($season->poster) {
-            $destination = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html/storage/posters') 
-                : public_path('storage/posters');
+            $destination = storage_path('app/public/posters');
             $path = $destination . '/' . $season->poster;
             if (file_exists($path)) {
                 unlink($path);
