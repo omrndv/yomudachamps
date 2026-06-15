@@ -71,7 +71,13 @@ class IPaymuCallbackController extends Controller
 
         if (empty($receivedSignature) || !hash_equals($calculatedSignature, $receivedSignature)) {
             Log::warning('IPaymu Callback Signature Mismatch. Received: ' . $receivedSignature . ' Expected: ' . $calculatedSignature . ' VA used: ' . $va);
-            return Response::json(['success' => false, 'message' => 'Invalid signature']);
+            return Response::json([
+                'success' => false, 
+                'message' => 'Invalid signature',
+                'expected' => $calculatedSignature,
+                'received' => $receivedSignature,
+                'json_used' => $jsonBody
+            ]);
         }
 
         // Konversi kembali ke object untuk kompatibilitas kode di bawah
