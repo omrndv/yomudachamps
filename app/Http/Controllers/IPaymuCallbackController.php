@@ -64,12 +64,13 @@ class IPaymuCallbackController extends Controller
 
         // Encode ke JSON (dengan default escaping slashes)
         $jsonBody = json_encode($data);
+        Log::warning('IPaymu Callback JSON body for signature: ' . $jsonBody);
 
         // Hitung signature dengan Secret Key berupa nomor VA iPaymu
         $calculatedSignature = hash_hmac('sha256', $jsonBody, $va);
 
         if (empty($receivedSignature) || !hash_equals($calculatedSignature, $receivedSignature)) {
-            Log::warning('IPaymu Callback Signature Mismatch. Received: ' . $receivedSignature . ' Expected: ' . $calculatedSignature);
+            Log::warning('IPaymu Callback Signature Mismatch. Received: ' . $receivedSignature . ' Expected: ' . $calculatedSignature . ' VA used: ' . $va);
             return Response::json(['success' => false, 'message' => 'Invalid signature']);
         }
 
