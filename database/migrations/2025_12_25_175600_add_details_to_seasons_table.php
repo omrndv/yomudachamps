@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('seasons', function (Blueprint $table) {
-            $table->string('poster')->nullable(); // Untuk simpan nama file gambar
-            $table->string('prize_pool')->default('Rp 400.000'); // Untuk teks prize pool
+            if (!Schema::hasColumn('seasons', 'poster')) {
+                $table->string('poster')->nullable(); // Untuk simpan nama file gambar
+            }
+            if (!Schema::hasColumn('seasons', 'prize_pool')) {
+                $table->string('prize_pool')->default('Rp 400.000'); // Untuk teks prize pool
+            }
         });
     }
 
@@ -23,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('seasons', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('seasons', 'poster')) {
+                $table->dropColumn('poster');
+            }
+            if (Schema::hasColumn('seasons', 'prize_pool')) {
+                $table->dropColumn('prize_pool');
+            }
         });
     }
 };
