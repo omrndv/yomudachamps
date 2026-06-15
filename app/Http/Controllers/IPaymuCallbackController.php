@@ -29,6 +29,13 @@ class IPaymuCallbackController extends Controller
             $data = $request->all();
         }
 
+        // Convert null values back to empty strings (to reverse Laravel's ConvertEmptyStringsToNull middleware)
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                $data[$key] = '';
+            }
+        }
+
         // Ambil signature yang diterima
         $receivedSignature = $signatureHeader ?: ($data['signature'] ?? '');
 
