@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('admin_notes', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('content')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('admin_notes')) {
+            Schema::create('admin_notes', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->text('content')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

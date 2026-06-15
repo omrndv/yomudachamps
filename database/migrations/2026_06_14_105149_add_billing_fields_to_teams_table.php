@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->integer('amount')->nullable()->after('payment_method');
-            $table->integer('fee')->nullable()->after('amount');
-            $table->integer('net_amount')->nullable()->after('fee');
+            if (!Schema::hasColumn('teams', 'amount')) {
+                $table->integer('amount')->nullable()->after('payment_method');
+            }
+            if (!Schema::hasColumn('teams', 'fee')) {
+                $table->integer('fee')->nullable()->after('amount');
+            }
+            if (!Schema::hasColumn('teams', 'net_amount')) {
+                $table->integer('net_amount')->nullable()->after('fee');
+            }
         });
     }
 
@@ -24,7 +30,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->dropColumn(['amount', 'fee', 'net_amount']);
+            if (Schema::hasColumn('teams', 'amount')) {
+                $table->dropColumn('amount');
+            }
+            if (Schema::hasColumn('teams', 'fee')) {
+                $table->dropColumn('fee');
+            }
+            if (Schema::hasColumn('teams', 'net_amount')) {
+                $table->dropColumn('net_amount');
+            }
         });
     }
 };
