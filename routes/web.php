@@ -9,6 +9,25 @@ Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
 
+Route::get('/run-symlink', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+    
+    if (file_exists($link)) {
+        return "Link/folder already exists at: " . $link . ". Please delete it first if it is broken.";
+    }
+    
+    try {
+        if (symlink($target, $link)) {
+            return "Symlink created successfully from " . $target . " to " . $link;
+        } else {
+            return "Failed to create symlink.";
+        }
+    } catch (\Throwable $e) {
+        return "Error creating symlink: " . $e->getMessage();
+    }
+});
+
 Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
     ->name('payment.check.status');
     
