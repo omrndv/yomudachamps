@@ -97,10 +97,19 @@
         {{-- Tren Registrasi & Pembayaran (Area Chart) --}}
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <div>
-                        <h5 class="fw-bold text-dark mb-1">Tren Aktivitas Turnamen</h5>
-                        <p class="text-muted mb-0" style="font-size: 0.8rem;">Statistik registrasi tim dan pelunasan pembayaran (7 hari terakhir).</p>
+                        <h5 class="fw-bold text-dark mb-1" id="chartTitle">Tren Aktivitas Turnamen</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.8rem;" id="chartSubTitle">Statistik registrasi tim dan pelunasan pembayaran (7 hari terakhir).</p>
+                    </div>
+                    {{-- Chart Toggle Buttons --}}
+                    <div class="btn-group btn-group-sm bg-light p-1 rounded-pill" role="group">
+                        <button type="button" class="btn btn-warning rounded-pill px-3 py-1 fw-bold text-dark shadow-sm transition-all" id="btnShowActivity" onclick="switchChart('activity')">
+                            Aktivitas Tim
+                        </button>
+                        <button type="button" class="btn text-secondary rounded-pill px-3 py-1 fw-bold transition-all" id="btnShowIncome" onclick="switchChart('income')">
+                            Pendapatan (Rp)
+                        </button>
                     </div>
                 </div>
                 <div id="trendChart" style="min-height: 320px;"></div>
@@ -325,6 +334,9 @@
         // Area Chart: Tren Pendaftaran & Pembayaran
         var trendOptions = {
             series: [{
+                name: 'Pendaftar (Baru)',
+                data: @json($chart_registered)
+            }, {
                 name: 'Lunas (PAID)',
                 data: @json($chart_paid)
             }],
@@ -335,7 +347,7 @@
                 toolbar: { show: false },
                 zoom: { enabled: false }
             },
-            colors: ['#10b981'], // Emerald
+            colors: ['#3b82f6', '#10b981'], // Blue, Emerald
             dataLabels: { enabled: false },
             stroke: {
                 curve: 'smooth',
@@ -366,6 +378,9 @@
                     style: {
                         colors: '#64748b',
                         fontSize: '11px'
+                    },
+                    formatter: function(val) {
+                        return Math.round(val) + ' Tim';
                     }
                 }
             },
@@ -404,6 +419,85 @@
 
         var trendChart = new ApexCharts(document.querySelector("#trendChart"), trendOptions);
         trendChart.render();
+
+        // Switch chart logic
+        let chartMode = 'activity';
+        const dataActivity = [
+            {
+                name: 'Pendaftar (Baru)',
+                data: @json($chart_registered)
+            },
+            {
+                name: 'Lunas (PAID)',
+                data: @json($chart_paid)
+            }
+        ];
+        const dataIncome = [
+            {
+                name: 'Pendapatan (Rp)',
+                data: @json($chart_income)
+            }
+        ];
+
+        window.switchChart = function(mode) {
+            if (mode === chartMode) return;
+            chartMode = mode;
+
+            const btnActivity = document.getElementById('btnShowActivity');
+            const btnIncome = document.getElementById('btnShowIncome');
+            const title = document.getElementById('chartTitle');
+            const subTitle = document.getElementById('chartSubTitle');
+
+            if (mode === 'activity') {
+                btnActivity.className = "btn btn-warning rounded-pill px-3 py-1 fw-bold text-dark shadow-sm transition-all";
+                btnIncome.className = "btn text-secondary rounded-pill px-3 py-1 fw-bold transition-all";
+                title.innerText = "Tren Aktivitas Turnamen";
+                subTitle.innerText = "Statistik registrasi tim dan pelunasan pembayaran (7 hari terakhir).";
+                
+                trendChart.updateOptions({
+                    colors: ['#3b82f6', '#10b981'], // Blue, Emerald
+                    yaxis: {
+                        labels: {
+                            formatter: function(val) {
+                                return Math.round(val) + ' Tim';
+                            }
+                        }
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val + ' Tim';
+                            }
+                        }
+                    }
+                });
+                trendChart.updateSeries(dataActivity);
+            } else {
+                btnIncome.className = "btn btn-warning rounded-pill px-3 py-1 fw-bold text-dark shadow-sm transition-all";
+                btnActivity.className = "btn text-secondary rounded-pill px-3 py-1 fw-bold transition-all";
+                title.innerText = "Tren Pendapatan Harian";
+                subTitle.innerText = "Grafik total nominal pembayaran lunas yang masuk per hari (7 hari terakhir).";
+
+                trendChart.updateOptions({
+                    colors: ['#10b981'], // Emerald
+                    yaxis: {
+                        labels: {
+                            formatter: function(val) {
+                                return 'Rp ' + val.toLocaleString('id-ID');
+                            }
+                        }
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return 'Rp ' + val.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                });
+                trendChart.updateSeries(dataIncome);
+            }
+        };
 
         // Doughnut Chart: Rasio Status Pembayaran
         @if($total_registered_teams > 0)

@@ -71,10 +71,11 @@ class AdminController extends Controller
             return strnatcasecmp($a->name, $b->name);
         });
 
-        // Trend Registrasi 7 Hari Terakhir
+        // Trend Registrasi & Pendapatan Harian 7 Hari Terakhir
         $chart_labels = [];
         $chart_registered = [];
         $chart_paid = [];
+        $chart_income = [];
 
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
@@ -85,6 +86,14 @@ class AdminController extends Controller
             
             $chart_registered[] = Team::whereBetween('created_at', [$start, $end])->count();
             $chart_paid[] = Team::where('status', 'PAID')->whereBetween('created_at', [$start, $end])->count();
+            
+            $chart_income[] = Team::where('status', 'PAID')
+                ->whereBetween('created_at', [$start, $end])
+                ->with('season')
+                ->get()
+                ->sum(function($t) {
+                    return $t->season->price ?? 0;
+                });
         }
 
         return view('admin.dashboard_home', compact(
@@ -96,7 +105,8 @@ class AdminController extends Controller
             'seasons',
             'chart_labels',
             'chart_registered',
-            'chart_paid'
+            'chart_paid',
+            'chart_income'
         ));
     }
 
