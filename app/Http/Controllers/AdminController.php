@@ -100,9 +100,15 @@ class AdminController extends Controller
         }
 
         $seasons = Season::withCount('teams')
-            ->orderBy('status', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
+            ->get()
+            ->sort(function ($a, $b) {
+                // Tampilkan yang ACTIVE terlebih dahulu
+                if ($a->status !== $b->status) {
+                    return $a->status === 'ACTIVE' ? -1 : 1;
+                }
+                // Urutkan nama secara alami (natural sorting)
+                return strnatcasecmp($a->name, $b->name);
+            });
 
         return view('admin.seasons', compact('seasons'));
     }
