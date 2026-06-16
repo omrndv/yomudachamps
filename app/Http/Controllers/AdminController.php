@@ -659,4 +659,62 @@ class AdminController extends Controller
 
         return view('admin.teams_directory', compact('teams', 'seasons', 'season_id', 'status', 'search'));
     }
+
+    public function backupDatabase()
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        try {
+            $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+            $dbName = config('database.connections.mysql.database');
+            $dbNameKey = 'Tables_in_' . $dbName;
+            
+            $sqlDump = "-- Yomuda Championship Database Backup\n";
+            $sqlDump .= "-- Generated: " . now()->toDateTimeString() . " WIB\n";
+            $sqlDump .= "-- Project URL: " . url('/') . "\n\n";
+            $sqlDump .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
+
+            foreach ($tables as $tableObj) {
+                // Handle different keys representing the table name
+                $tableObjArray = (array)$tableObj;
+                $tableName = $tableObj->$dbNameKey ?? reset($tableObjArray);
+                
+                if (empty($tableName)) continue;
+
+                // Get CREATE TABLE
+                $createTable = \Illuminate\Support\Facades\DB::select("SHOW CREATE TABLE `{$tableName}`");
+                $sqlDump .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                $sqlDump .= ((array)$createTable[0])['Create Table'] . ";\n\n";
+                
+                // Get rows
+                $rows = \Illuminate\Support\Facades\DB::table($tableName)->get();
+                foreach ($rows as $row) {
+                    $rowArray = (array)$row;
+                    $escapedValues = array_map(function($val) {
+                        if ($val === null) return 'NULL';
+                        return \Illuminate\Support\Facades\DB::getPdo()->quote($val);
+                    }, $rowArray);
+                    
+                    $columns = array_keys($rowArray);
+                    $columnsStr = implode('`, `', $columns);
+                    $valuesStr = implode(', ', $escapedValues);
+                    
+                    $sqlDump .= "INSERT INTO `{$tableName}` (`{$columnsStr}`) VALUES ({$valuesStr});\n";
+                }
+                $sqlDump .= "\n";
+            }
+            
+            $sqlDump .= "SET FOREIGN_KEY_CHECKS=1;\n";
+            
+            $filename = 'backup_yomudachamps_' . now()->format('Y-m-d_H-i-s') . '.sql';
+            
+            return response($sqlDump)
+                ->header('Content-Type', 'application/sql')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal backup database: ' . $e->getMessage());
+        }
+    }
 }

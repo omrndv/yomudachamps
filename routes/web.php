@@ -128,6 +128,7 @@ Route::prefix('admin')->group(function () {
     
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+    Route::get('/backup', [AdminController::class, 'backupDatabase'])->name('admin.backup');
 });
 
 Route::view('/privacy-policy', 'pages.privacy')->name('privacy');
