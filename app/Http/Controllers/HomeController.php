@@ -22,11 +22,6 @@ class HomeController extends Controller
         return view('landing', compact('active_seasons', 'faqs'));
     }
 
-    public function media()
-    {
-        return view('media');
-    }
-
     public function registerForm()
     {
         $active_season = Season::where('status', 'ACTIVE')
