@@ -67,7 +67,7 @@
                     <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Nomor ini akan tertera di template WhatsApp otomatis dan halaman kontak.</small>
                 </div>
 
-                <div class="mb-0">
+                <div class="mb-3">
                     <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Email Support Turnamen</label>
                     <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-envelope-fill text-secondary"></i></span>
@@ -75,6 +75,21 @@
                             placeholder="Contoh: support@yomuda.com..." value="{{ \App\Models\Setting::getVal('admin_email', 'yomudachampionship@gmail.com') }}" required>
                     </div>
                     <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Email resmi turnamen yang ditampilkan di halaman bantuan.</small>
+                </div>
+
+                <div class="mb-0 pt-2 border-top border-light mt-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Template WhatsApp (Status PAID)</label>
+                    <textarea name="wa_template_paid" class="form-control rounded-3 shadow-none border border-light-subtle p-2.5 bg-light" rows="8" style="font-size: 0.85rem;" placeholder="Template pesan WhatsApp otomatis ketika status PAID...">{{ \App\Models\Setting::getVal('wa_template_paid', "Halo *{nama_tim}*! 🎮\n\nPembayaran pendaftaran turnamen *Yomuda Championship {nama_season}* telah *BERHASIL DIVERIFIKASI* (Lunas) dengan ID Transaksi: {id_transaksi}.\n\n{grup_info}Terima kasih telah bergabung, siapkan squad terbaikmu! 🔥\n\nKalau mau tanya-tanya bisa hubungi admin ke {nomor_admin} yaa.\n\n-- Yomuda Championship --") }}</textarea>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.73rem; line-height: 1.4;">
+                        <strong>Placeholder dinamis:</strong><br>
+                        <code>{nama_tim}</code> : Nama tim pendaftar<br>
+                        <code>{nama_season}</code> : Nama season turnamen<br>
+                        <code>{id_transaksi}</code> : Kode / ID Transaksi<br>
+                        <code>{link_grup}</code> : Link grup WA koordinasi<br>
+                        <code>{grup_info}</code> : Kalimat ajakan join grup WA otomatis<br>
+                        <code>{nomor_admin}</code> : Nomor WA admin support<br>
+                        <code>{harga}</code> : Harga tiket / biaya pendaftaran
+                    </small>
                 </div>
             </div>
 

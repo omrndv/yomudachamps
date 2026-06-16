@@ -227,6 +227,7 @@ class AdminController extends Controller
             'admin_email',
             'fonnte_token',
             'wa_notification_enabled',
+            'wa_template_paid',
             'tripay_api_key',
             'tripay_private_key',
             'tripay_merchant_code',

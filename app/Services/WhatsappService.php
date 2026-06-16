@@ -66,20 +66,36 @@ class WhatsappService
     public static function sendPaidNotification($team)
     {
         $waLink = $team->season->wa_link;
-        
-        $message = "Halo *" . $team->name . "*! 🎮\n\n";
-        $message .= "Pembayaran pendaftaran turnamen *Yomuda Championship " . $team->season->name . "* telah *BERHASIL DIVERIFIKASI* (Lunas) dengan ID Transaksi: " . $team->trx_id . ".\n\n";
-        
-        if ($waLink) {
-            $message .= "Silakan bergabung ke Grup Koordinasi WhatsApp peserta untuk info bagan dan jadwal tanding:\n👉 " . $waLink . "\n\n";
-        } else {
-            $message .= "Grup koordinasi turnamen sedang dipersiapkan. Admin kami akan segera menghubungimu.\n\n";
-        }
-        
         $adminWa = Setting::getVal('admin_wa', '0851-2261-6191');
-        $message .= "Terima kasih telah bergabung, siapkan squad terbaikmu! 🔥\n\n";
-        $message .= "Kalau mau tanya-tanya bisa hubungi admin ke " . $adminWa . " yaa.\n\n";
-        $message .= "-- Yomuda Championship --";
+
+        $defaultTemplate = "Halo *{nama_tim}*! 🎮\n\n"
+            . "Pembayaran pendaftaran turnamen *Yomuda Championship {nama_season}* telah *BERHASIL DIVERIFIKASI* (Lunas) dengan ID Transaksi: {id_transaksi}.\n\n"
+            . "{grup_info}"
+            . "Terima kasih telah bergabung, siapkan squad terbaikmu! 🔥\n\n"
+            . "Kalau mau tanya-tanya bisa hubungi admin ke {nomor_admin} yaa.\n\n"
+            . "-- Yomuda Championship --";
+
+        $template = Setting::getVal('wa_template_paid', $defaultTemplate);
+
+        // Build default {grup_info} text
+        if ($waLink) {
+            $grupInfo = "Silakan bergabung ke Grup Koordinasi WhatsApp peserta untuk info bagan dan jadwal tanding:\n👉 " . $waLink . "\n\n";
+        } else {
+            $grupInfo = "Grup koordinasi turnamen sedang dipersiapkan. Admin kami akan segera menghubungimu.\n\n";
+        }
+
+        // Replacements dictionary
+        $replacements = [
+            '{nama_tim}' => $team->name,
+            '{nama_season}' => $team->season->name,
+            '{id_transaksi}' => $team->trx_id,
+            '{link_grup}' => $waLink ?? '-',
+            '{nomor_admin}' => $adminWa,
+            '{grup_info}' => $grupInfo,
+            '{harga}' => number_format($team->season->price, 0, ',', '.')
+        ];
+
+        $message = str_replace(array_keys($replacements), array_values($replacements), $template);
         
         return self::sendMessage($team->wa_number, $message);
     }
