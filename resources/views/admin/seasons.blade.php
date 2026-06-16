@@ -8,14 +8,37 @@
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">Manajemen Season</h2>
             <p class="text-secondary mb-0" style="font-size: 0.9rem;">Kelola poster, hadiah, harga pendaftaran, slot, dan status pendaftaran turnamen.</p>
         </div>
-        <div class="col-md-6 text-md-end d-flex justify-content-center justify-content-md-end gap-3 flex-wrap">
-            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-light-subtle" style="max-width: 320px;">
-                <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" id="searchSeason" class="form-control border-0 ps-0 shadow-none" placeholder="Cari nama season..." style="font-size: 0.85rem;">
+    </div>
+
+    {{-- Filters Bar --}}
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group rounded-3 border border-light-subtle overflow-hidden bg-light">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchSeason" class="form-control border-0 ps-0 shadow-none bg-light" placeholder="Cari nama season..." style="font-size: 0.85rem;">
+                </div>
             </div>
-            <button class="btn btn-warning fw-bold text-dark px-4 shadow-sm rounded-pill d-flex align-items-center gap-2" style="font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#modalTambahSeason">
-                <i class="bi bi-plus-lg"></i> Tambah Season
-            </button>
+            <div class="col-md-3">
+                <select id="filterStatus" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;">
+                    <option value="ACTIVE" selected>Status: Aktif</option>
+                    <option value="FINISHED">Status: Selesai</option>
+                    <option value="ALL">Status: Semua</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="filterSeasonSelect" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;">
+                    <option value="ALL" selected>Pilih Season: Semua</option>
+                    @foreach($seasons as $s)
+                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-warning fw-bold text-dark w-100 rounded-3 d-flex align-items-center justify-content-center gap-2" style="font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#modalTambahSeason">
+                    <i class="bi bi-plus-lg"></i> Tambah Season
+                </button>
+            </div>
         </div>
     </div>
 
@@ -29,7 +52,7 @@
     <div class="row g-4" id="seasonContainer">
         {{-- 1. LOOPING DAFTAR SEASON --}}
         @forelse($seasons as $season)
-        <div class="col-md-6 col-lg-4 col-xl-3 season-card-item">
+        <div class="col-md-6 col-lg-4 col-xl-3 season-card-item" data-id="{{ $season->id }}" data-status="{{ $season->status }}">
             <div class="card h-100 season-card {{ $season->status == 'FINISHED' ? 'finished-season' : '' }}">
                 
                 {{-- Action Dropdown (Absolute) --}}
@@ -341,15 +364,24 @@
         }
     }
 
-    // Instan Search with Empty State Feedback
-    document.getElementById('searchSeason').addEventListener('keyup', function() {
-        let filter = this.value.toLowerCase();
+    // Instan Search with Empty State Feedback & Multi-criteria Filtering
+    function filterSeasons() {
+        let searchQuery = document.getElementById('searchSeason').value.toLowerCase();
+        let selectedStatus = document.getElementById('filterStatus').value;
+        let selectedSeasonId = document.getElementById('filterSeasonSelect').value;
         let seasonCards = document.querySelectorAll('.season-card-item');
         let visibleCount = 0;
 
         seasonCards.forEach(item => {
             let title = item.querySelector('.season-title').innerText.toLowerCase();
-            if (title.includes(filter)) {
+            let status = item.getAttribute('data-status');
+            let id = item.getAttribute('data-id');
+
+            let matchesSearch = title.includes(searchQuery);
+            let matchesStatus = (selectedStatus === 'ALL' || status === selectedStatus);
+            let matchesSeason = (selectedSeasonId === 'ALL' || id === selectedSeasonId);
+
+            if (matchesSearch && matchesStatus && matchesSeason) {
                 item.style.display = "";
                 visibleCount++;
             } else {
@@ -363,6 +395,19 @@
         } else {
             noResult.classList.add('d-none');
         }
-    });
+    }
+
+    // Attach event listeners
+    document.getElementById('searchSeason').addEventListener('keyup', filterSeasons);
+    document.getElementById('filterStatus').addEventListener('change', filterSeasons);
+    document.getElementById('filterSeasonSelect').addEventListener('change', filterSeasons);
+
+    // Run filter on initial page load to only show ACTIVE seasons by default
+    document.addEventListener('DOMContentLoaded', filterSeasons);
+    
+    // Fallback trigger in case DOMContentLoaded has already fired
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        filterSeasons();
+    }
 </script>
 @endsection
