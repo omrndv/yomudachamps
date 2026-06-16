@@ -26,6 +26,37 @@
         </div>
     </div>
 
+    {{-- Date Filter Bar --}}
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+        <form action="{{ route('admin.dashboard.home') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-md-auto text-center text-md-start mb-2 mb-md-0">
+                <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-calendar3 me-1 text-warning"></i> Rentang Waktu:
+                </span>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="input-group input-group-sm rounded-3 overflow-hidden border border-light-subtle bg-light">
+                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.75rem;">Mulai</span>
+                    <input type="date" name="start_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $start_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px;">
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="input-group input-group-sm rounded-3 overflow-hidden border border-light-subtle bg-light">
+                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.75rem;">Selesai</span>
+                    <input type="date" name="end_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $end_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px;">
+                </div>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2 justify-content-center justify-content-md-start mt-2 mt-md-0">
+                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-3 px-3 shadow-sm" style="height: 34px; font-size: 0.8rem;">
+                    Filter Harian
+                </button>
+                <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-3 px-3 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem;">
+                    Reset (7 Hari)
+                </a>
+            </div>
+        </form>
+    </div>
+
     {{-- Stats Cards Grid --}}
     <div class="row g-3 mb-4">
         {{-- Card 1: Total Pendapatan --}}
@@ -33,8 +64,8 @@
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Total Pendapatan</p>
-                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
+                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Pendapatan Rentang Tanggal</p>
+                        <h3 class="fw-bold text-success mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
                             Rp {{ number_format($total_income, 0, ',', '.') }}
                         </h3>
                     </div>
@@ -42,9 +73,9 @@
                         <i class="bi bi-wallet2 fs-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 pt-2 border-top border-light d-flex align-items-center" style="font-size: 0.75rem;">
-                    <span class="text-success fw-bold me-1"><i class="bi bi-arrow-up-short"></i>100%</span>
-                    <span class="text-muted">Pembayaran Lunas</span>
+                <div class="mt-3 pt-2 border-top border-light d-flex align-items-center justify-content-between" style="font-size: 0.75rem;">
+                    <span class="text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i>Pembayaran Lunas</span>
+                    <span class="text-secondary fw-bold">Global: Rp {{ number_format($global_income, 0, ',', '.') }}</span>
                 </div>
             </div>
         </div>
@@ -54,7 +85,7 @@
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Tim Lunas (PAID)</p>
+                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Tim Lunas Rentang Tanggal</p>
                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
                             {{ $total_paid_teams }} <span class="fs-6 fw-normal text-muted">Tim</span>
                         </h3>
@@ -63,9 +94,9 @@
                         <i class="bi bi-shield-check fs-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 pt-2 border-top border-light d-flex align-items-center" style="font-size: 0.75rem;">
-                    <span class="text-primary fw-bold me-1"><i class="bi bi-shield-check"></i></span>
-                    <span class="text-muted">Pendaftar Terverifikasi (PAID)</span>
+                <div class="mt-3 pt-2 border-top border-light d-flex align-items-center justify-content-between" style="font-size: 0.75rem;">
+                    <span class="text-muted"><i class="bi bi-info-circle text-primary me-1"></i>Status PAID</span>
+                    <span class="text-secondary fw-bold">Global: {{ $global_paid_teams }} / {{ $global_registered_teams }} Tim</span>
                 </div>
             </div>
         </div>
@@ -75,7 +106,7 @@
             <div class="card card-stats border-0 p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Turnamen Aktif</p>
+                        <p class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.7px;">Turnamen Aktif Saat Ini</p>
                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
                             {{ $total_active_seasons }} <span class="fs-6 fw-normal text-muted">Season</span>
                         </h3>

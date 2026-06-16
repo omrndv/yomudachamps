@@ -36,23 +36,63 @@ class AdminController extends Controller
         return redirect()->route('admin.login');
     }
 
-    public function dashboardHome()
+    public function dashboardHome(Request $request)
     {
         if (!session('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        // Statistik Global
-        $total_registered_teams = Team::count();
-        $total_paid_teams = Team::where('status', 'PAID')->count();
-        $total_active_seasons = Season::where('status', 'ACTIVE')->count();
-        
-        // Pendapatan Global
-        $total_income = Team::where('status', 'PAID')->with('season')->get()->sum(function($t) {
-            return $t->season->price;
+        // Tentukan rentang tanggal (default 7 hari terakhir)
+        $startDateInput = $request->input('start_date');
+        $endDateInput = $request->input('end_date');
+
+        if ($startDateInput && $endDateInput) {
+            try {
+                $start_date = \Carbon\Carbon::parse($startDateInput)->startOfDay();
+                $end_date = \Carbon\Carbon::parse($endDateInput)->endOfDay();
+            } catch (\Exception $e) {
+                $start_date = now()->subDays(6)->startOfDay();
+                $end_date = now()->endOfDay();
+            }
+        } else {
+            $start_date = now()->subDays(6)->startOfDay();
+            $end_date = now()->endOfDay();
+        }
+
+        // Validasi urutan tanggal
+        if ($start_date->gt($end_date)) {
+            $temp = $start_date;
+            $start_date = $end_date->copy()->startOfDay();
+            $end_date = $temp->copy()->endOfDay();
+        }
+
+        // Batasi rentang maksimal 90 hari demi performa grafik
+        $diffInDays = $start_date->diffInDays($end_date);
+        if ($diffInDays > 90) {
+            $start_date = $end_date->copy()->subDays(90)->startOfDay();
+        }
+
+        // Statistik Global (Keseluruhan)
+        $global_registered_teams = Team::count();
+        $global_paid_teams = Team::where('status', 'PAID')->count();
+        $global_income = Team::where('status', 'PAID')->with('season')->get()->sum(function($t) {
+            return $t->season->price ?? 0;
         });
 
-        // 5 Transaksi Lunas Terbaru
+        // Statistik Filtered (Sesuai Rentang Tanggal)
+        $total_registered_teams = Team::whereBetween('created_at', [$start_date, $end_date])->count();
+        $total_paid_teams = Team::where('status', 'PAID')->whereBetween('created_at', [$start_date, $end_date])->count();
+        $total_active_seasons = Season::where('status', 'ACTIVE')->count(); // Tetap global karena status season saat ini
+        
+        $total_income = Team::where('status', 'PAID')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->with('season')
+            ->get()
+            ->sum(function($t) {
+                return $t->season->price ?? 0;
+            });
+
+        // 5 Transaksi Lunas Terbaru (Tetap global atau dalam rentang? Kita buat global karena ini riwayat terbaru sistem)
         $recent_payments = Team::with('season')
             ->where('status', 'PAID')
             ->orderBy('updated_at', 'desc')
@@ -71,18 +111,18 @@ class AdminController extends Controller
             return strnatcasecmp($a->name, $b->name);
         });
 
-        // Trend Registrasi & Pendapatan Harian 7 Hari Terakhir
+        // Trend Registrasi & Pendapatan Harian Sesuai Rentang Tanggal
         $chart_labels = [];
         $chart_registered = [];
         $chart_paid = [];
         $chart_income = [];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $chart_labels[] = $date->format('d M');
+        $currentDate = $start_date->copy();
+        while ($currentDate->lte($end_date)) {
+            $chart_labels[] = $currentDate->format('d M');
             
-            $start = $date->copy()->startOfDay();
-            $end = $date->copy()->endOfDay();
+            $start = $currentDate->copy()->startOfDay();
+            $end = $currentDate->copy()->endOfDay();
             
             $chart_registered[] = Team::whereBetween('created_at', [$start, $end])->count();
             $chart_paid[] = Team::where('status', 'PAID')->whereBetween('created_at', [$start, $end])->count();
@@ -94,6 +134,8 @@ class AdminController extends Controller
                 ->sum(function($t) {
                     return $t->season->price ?? 0;
                 });
+
+            $currentDate->addDay();
         }
 
         return view('admin.dashboard_home', compact(
@@ -101,12 +143,17 @@ class AdminController extends Controller
             'total_paid_teams',
             'total_active_seasons',
             'total_income',
+            'global_registered_teams',
+            'global_paid_teams',
+            'global_income',
             'recent_payments',
             'seasons',
             'chart_labels',
             'chart_registered',
             'chart_paid',
-            'chart_income'
+            'chart_income',
+            'start_date',
+            'end_date'
         ));
     }
 
