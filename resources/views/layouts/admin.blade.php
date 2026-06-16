@@ -131,7 +131,7 @@
         }
 
         /* Collapsed Sidebar State Rules (Desktop Only) */
-        @media (min-width: 992px) {
+        @media (min-width: 1200px) {
             body.sidebar-collapsed .sidebar {
                 width: 80px;
                 padding: 24px 12px;
@@ -165,7 +165,7 @@
             }
         }
 
-        @media (max-width: 991.98px) {
+        @media (max-width: 1199.98px) {
             .sidebar {
                 display: none;
             }
@@ -195,7 +195,7 @@
         }
     </script>
     {{-- Mobile Header --}}
-    <nav class="navbar navbar-mobile d-lg-none shadow-sm sticky-top">
+    <nav class="navbar navbar-mobile d-xl-none shadow-sm sticky-top">
         <div class="container-fluid p-0">
             <div class="d-flex align-items-center gap-2">
                 <span class="brand-icon">
@@ -212,7 +212,7 @@
     </nav>
 
     {{-- Desktop Sidebar --}}
-    <aside class="sidebar d-none d-lg-block">
+    <aside class="sidebar d-none d-xl-block">
         {{-- Floating Toggle Button --}}
         <button class="btn btn-warning btn-sm position-absolute rounded-circle shadow-sm border border-light-subtle d-flex align-items-center justify-content-center" 
                 id="toggleSidebar" style="right: -12px; top: 32px; width: 24px; height: 24px; z-index: 1100; padding: 0; transition: transform 0.2s ease;">
