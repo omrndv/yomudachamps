@@ -31,8 +31,8 @@
             --border-color: rgba(255, 255, 255, 0.08);
             --text-dark: #f8fafc;
             --text-muted: #94a3b8;
-            --bg-light: #1e293b;
-            --bg-input: #1e293b;
+            --bg-light: #161f30;
+            --bg-input: #161f30;
             --border-input: rgba(255, 255, 255, 0.1);
             --text-input: #f8fafc;
             --bg-modal: #0f172a;
@@ -62,6 +62,30 @@
             color: var(--text-muted) !important;
         }
 
+        /* Dark mode generic selector overrides for inline helper classes */
+        body.dark-mode .bg-white,
+        body.dark-mode .card-stats {
+            background-color: var(--bg-card) !important;
+        }
+        
+        body.dark-mode .container-fluid,
+        body.dark-mode div[style*="background-color: #f8fafc"],
+        body.dark-mode div[style*="background-color:#f8fafc"] {
+            background-color: var(--bg-body) !important;
+        }
+
+        body.dark-mode .text-dark,
+        body.dark-mode .text-slate-800,
+        body.dark-mode .text-slate-700,
+        body.dark-mode .text-slate-900 {
+            color: var(--text-dark) !important;
+        }
+
+        body.dark-mode .text-secondary,
+        body.dark-mode .text-muted {
+            color: var(--text-muted) !important;
+        }
+
         /* Input fields and selects */
         .form-control, .form-select {
             background-color: var(--bg-input) !important;
@@ -71,6 +95,10 @@
         .form-control:focus, .form-select:focus {
             background-color: var(--bg-input) !important;
             color: var(--text-input) !important;
+        }
+        body.dark-mode .form-control::placeholder {
+            color: var(--text-muted) !important;
+            opacity: 0.6;
         }
         
         /* Modal backgrounds */
@@ -136,6 +164,16 @@
         body.dark-mode .apexcharts-tooltip-title {
             background: #1e293b !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* Sidebar Backup item special override */
+        .sidebar-nav .nav-link.backup-link {
+            color: #f87171 !important;
+        }
+        .sidebar-nav .nav-link.backup-link:hover {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            color: #fca5a5 !important;
+            transform: translateX(4px);
         }
 
         /* Desktop Sidebar Stylings */
@@ -370,7 +408,7 @@
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
 
-            <a href="{{ route('admin.backup') }}" class="nav-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+            <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
                 <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
 
@@ -425,7 +463,7 @@
                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
                 </a>
 
-                <a href="{{ route('admin.backup') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+                <a href="{{ route('admin.backup') }}" class="nav-link backup-link text-white mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
                     <i class="bi bi-database-down me-2"></i> <span>Backup Database</span>
                 </a>
 
