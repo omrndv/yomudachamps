@@ -126,40 +126,6 @@
                     </div>
                 </div>
             </div>
-
-            {{-- Card 5: Maintenance Mode --}}
-            <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
-                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
-                    <i class="bi bi-tools text-danger me-2"></i> Mode Pemeliharaan (Maintenance Mode)
-                </h5>
-
-                <div class="mb-4">
-                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center bg-light-subtle p-3 rounded-3 border border-light-subtle" style="background-color: #f8fafc;">
-                        <label class="form-check-label fw-bold text-dark mb-0 ps-1" for="maintenance_mode" style="font-size: 0.85rem;">
-                            <i class="bi bi-power text-danger me-2"></i> Aktifkan Mode Maintenance
-                        </label>
-                        <input class="form-check-input ms-0 shadow-none" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode" value="true" style="cursor: pointer;"
-                            {{ app()->isDownForMaintenance() ? 'checked' : '' }}>
-                    </div>
-                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
-                        Jika diaktifkan, pengunjung biasa akan diarahkan ke halaman maintenance. Anda tetap dapat mengakses web karena sistem akan otomatis memberikan cookie bypass.
-                    </small>
-                </div>
-
-                <div class="mb-0">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Bypass Token / Secret URL</label>
-                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-shield-lock-fill text-secondary"></i></span>
-                        <input type="text" name="maintenance_secret" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="yomudasecret" value="{{ \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret') }}" required>
-                    </div>
-                    @if(app()->isDownForMaintenance())
-                        <div class="alert alert-info border-0 rounded-3 mt-3 p-3 mb-0" style="font-size: 0.8rem; background-color: #f0f9ff; border: 1px solid #e0f2fe; color: #0369a1;">
-                            <i class="bi bi-info-circle-fill me-1"></i> Link Bypass: <a href="{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}" target="_blank" class="fw-bold" style="color: #0369a1; text-decoration: underline;">{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}</a>
-                        </div>
-                    @endif
-                </div>
-            </div>
         </div>
 
         {{-- Kanan: Pengaturan Tripay & Upload Aset --}}
@@ -226,6 +192,40 @@
                     <div class="mt-3 text-center">
                         <img id="faviconPreview" src="{{ asset('favicon.ico') }}" class="img-thumbnail p-2 border-0 rounded-3 shadow-sm" style="max-height: 40px; max-width: 40px;">
                     </div>
+                </div>
+            </div>
+
+            {{-- Card 5: Maintenance Mode --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-tools text-danger me-2"></i> Mode Pemeliharaan (Maintenance Mode)
+                </h5>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center bg-light-subtle p-3 rounded-3 border border-light-subtle" style="background-color: #f8fafc;">
+                        <label class="form-check-label fw-bold text-dark mb-0 ps-1" for="maintenance_mode" style="font-size: 0.85rem;">
+                            <i class="bi bi-power text-danger me-2"></i> Aktifkan Mode Maintenance
+                        </label>
+                        <input class="form-check-input ms-0 shadow-none" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode" value="true" style="cursor: pointer;"
+                            {{ app()->isDownForMaintenance() ? 'checked' : '' }}>
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                        Jika diaktifkan, pengunjung biasa akan diarahkan ke halaman maintenance. Anda tetap dapat mengakses web karena sistem akan otomatis memberikan cookie bypass.
+                    </small>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Bypass Token / Secret URL</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-shield-lock-fill text-secondary"></i></span>
+                        <input type="text" name="maintenance_secret" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="yomudasecret" value="{{ \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret') }}" required>
+                    </div>
+                    @if(app()->isDownForMaintenance())
+                        <div class="alert alert-info border-0 rounded-3 mt-3 p-3 mb-0" style="font-size: 0.8rem; background-color: #f0f9ff; border: 1px solid #e0f2fe; color: #0369a1;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Link Bypass: <a href="{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}" target="_blank" class="fw-bold" style="color: #0369a1; text-decoration: underline;">{{ url('/' . \App\Models\Setting::getVal('maintenance_secret', 'yomudasecret')) }}</a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
