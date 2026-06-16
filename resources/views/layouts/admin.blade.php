@@ -46,14 +46,15 @@
         }
 
         /* Card custom overrides */
-        .card, .card-custom, .card-stats {
+        .card,
+        [class*="card"] {
             background-color: var(--bg-card) !important;
             border-color: var(--border-color) !important;
             color: var(--color-body) !important;
         }
         
         .card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
-        .card-custom h1, .card-custom h2, .card-custom h3, .card-custom h4, .card-custom h5, .card-custom h6,
+        [class*="card"] h1, [class*="card"] h2, [class*="card"] h3, [class*="card"] h4, [class*="card"] h5, [class*="card"] h6,
         .text-dark, .text-slate-800, .text-slate-700, .fw-bold {
             color: var(--text-dark) !important;
         }
@@ -65,6 +66,8 @@
         /* Dark mode generic selector overrides for inline helper classes and third-party classes */
         body.dark-mode .bg-white,
         body.dark-mode .card-stats,
+        body.dark-mode .card-settings,
+        body.dark-mode .season-card,
         body.dark-mode .list-group-item,
         body.dark-mode .dropdown-menu {
             background-color: var(--bg-card) !important;
@@ -88,6 +91,11 @@
             background-color: var(--bg-body) !important;
         }
 
+        body.dark-mode [style*="background-color: #ffffff"],
+        body.dark-mode [style*="background-color:#ffffff"] {
+            background-color: var(--bg-card) !important;
+        }
+
         body.dark-mode .text-dark,
         body.dark-mode .text-slate-800,
         body.dark-mode .text-slate-700,
@@ -102,7 +110,27 @@
         body.dark-mode .text-secondary,
         body.dark-mode .text-muted,
         body.dark-mode small.text-muted,
-        body.dark-mode .text-slate-500 {
+        body.dark-mode .text-slate-500,
+        body.dark-mode .text-slate-600 {
+            color: var(--text-muted) !important;
+        }
+
+        /* Match specific hardcoded dark text inline colors in dark mode */
+        body.dark-mode [style*="color: #1e293b"],
+        body.dark-mode [style*="color:#1e293b"],
+        body.dark-mode [style*="color: #0f172a"],
+        body.dark-mode [style*="color:#0f172a"],
+        body.dark-mode [style*="color: #334155"],
+        body.dark-mode [style*="color:#334155"],
+        body.dark-mode [style*="color: #212529"],
+        body.dark-mode [style*="color:#212529"],
+        body.dark-mode [style*="color: #475569"],
+        body.dark-mode [style*="color:#475569"] {
+            color: var(--text-dark) !important;
+        }
+
+        body.dark-mode [style*="color: #64748b"],
+        body.dark-mode [style*="color:#64748b"] {
             color: var(--text-muted) !important;
         }
 
@@ -127,6 +155,13 @@
             border-color: var(--border-input) !important;
             color: var(--text-input) !important;
         }
+        
+        /* Ensure dropdown option text is white on dark background in chrome/safari */
+        body.dark-mode select option {
+            background-color: var(--bg-card) !important;
+            color: var(--text-dark) !important;
+        }
+
         .form-control:focus, .form-select:focus {
             background-color: var(--bg-input) !important;
             border-color: #f59e0b !important; /* Warning highlight */
@@ -206,6 +241,25 @@
             background-color: var(--border-color) !important;
             color: var(--text-dark) !important;
         }
+
+        /* Force warning button text to stay dark for visibility */
+        body.dark-mode .btn-warning,
+        body.dark-mode .btn-warning * {
+            color: #0f172a !important;
+        }
+        
+        /* Convert btn-dark to bright warning button in dark mode for contrast */
+        body.dark-mode .btn-dark {
+            background-color: #f59e0b !important;
+            border-color: #f59e0b !important;
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        body.dark-mode .btn-dark:hover {
+            background-color: #d97706 !important;
+            border-color: #d97706 !important;
+            color: #ffffff !important;
+        }
         
         /* Badges design system adaptation in dark mode */
         body.dark-mode .bg-success-subtle {
@@ -227,6 +281,25 @@
         body.dark-mode .bg-primary-subtle {
             background-color: rgba(59, 130, 246, 0.15) !important;
             color: #93c5fd !important;
+        }
+
+        /* Info alerts overrides */
+        body.dark-mode .alert-info,
+        body.dark-mode [style*="background-color: #f0f9ff"],
+        body.dark-mode [style*="background-color:#f0f9ff"] {
+            background-color: rgba(14, 165, 233, 0.15) !important;
+            border-color: rgba(14, 165, 233, 0.3) !important;
+            color: #38bdf8 !important;
+        }
+        
+        /* Whatsapp link action icon in dark mode */
+        body.dark-mode .btn-light-success {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+            color: #34d399 !important;
+        }
+        body.dark-mode .btn-light-success:hover {
+            background-color: rgba(16, 185, 129, 0.25) !important;
         }
         
         /* SweetAlert popup overrides in dark mode */
