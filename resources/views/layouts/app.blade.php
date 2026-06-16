@@ -171,27 +171,21 @@
                 <i class="bi bi-list text-white fs-1"></i>
             </button>
 
-            <!-- Menu Tengah dan Kanan -->
+            <!-- Menu dan Tombol -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Tengah: Menu -->
-                <ul class="navbar-nav mx-auto align-items-center mt-3 mt-lg-0">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link px-3 {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link px-3 {{ request()->routeIs('media') ? 'active' : '' }}" href="{{ route('media') }}">Live & Media</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ request()->routeIs('home') ? '#faq' : url('/#faq') }}">FAQ</a>
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <a href="{{ route('check.team') }}" class="btn btn-warning rounded-pill fw-bold text-dark px-4 py-2" style="font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);">
+                            <i class="bi bi-search me-1"></i> CEK STATUS TIM
+                        </a>
                     </li>
                 </ul>
-
-                <!-- Kanan: Tombol Aksi -->
-                <div class="d-flex align-items-center mt-3 mt-lg-0">
-                    <a href="{{ route('check.team') }}" class="btn btn-warning rounded-pill fw-bold text-dark px-4 py-2 w-100" style="font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);">
-                        <i class="bi bi-search me-1"></i> CEK STATUS TIM
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
