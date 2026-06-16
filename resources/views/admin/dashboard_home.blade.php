@@ -141,6 +141,31 @@
                     </a>
                 </div>
 
+                {{-- Filters Bar --}}
+                <div class="row g-2 mb-4 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group input-group-sm rounded-3 border border-light-subtle overflow-hidden bg-light">
+                            <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" id="searchSeasonHome" class="form-control border-0 ps-0 shadow-none bg-light text-dark" placeholder="Cari nama season..." style="font-size: 0.85rem; height: 38px;">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filterStatusHome" class="form-select form-select-sm rounded-3 border-light-subtle shadow-none bg-white" style="font-size: 0.85rem; height: 38px;">
+                            <option value="ACTIVE" selected>Status: Aktif</option>
+                            <option value="FINISHED">Status: Selesai</option>
+                            <option value="ALL">Status: Semua</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="filterSelectSeasonHome" class="form-select form-select-sm rounded-3 border-light-subtle shadow-none bg-white" style="font-size: 0.85rem; height: 38px;">
+                            <option value="ALL" selected>Pilih Season: Semua</option>
+                            @foreach($seasons as $s)
+                            <option value="{{ $s->id }}">{{ $s->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
                         <thead class="bg-light">
@@ -154,7 +179,7 @@
                         </thead>
                         <tbody>
                             @forelse($seasons as $season)
-                            <tr style="border-bottom: 1px solid #f8fafc;">
+                            <tr class="season-row" data-id="{{ $season->id }}" data-status="{{ $season->status }}" data-name="{{ strtolower($season->name) }}" style="border-bottom: 1px solid #f8fafc;">
                                 <td class="ps-3 fw-bold text-dark py-3">
                                     {{ $season->name }}
                                 </td>
@@ -192,6 +217,13 @@
                                 <td colspan="5" class="text-center py-4 text-muted">Belum ada data season dibuat.</td>
                             </tr>
                             @endforelse
+                            <tr id="noSearchResultHome" class="d-none">
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-search fs-3 d-block mb-2 text-warning opacity-75"></i>
+                                    <span class="fw-bold">Tidak ada season yang cocok</span>
+                                    <p class="text-secondary mb-0 small mt-1">Silakan sesuaikan kata kunci pencarian atau pilihan filter Anda.</p>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -427,6 +459,55 @@
         var statusChart = new ApexCharts(document.querySelector("#statusChart"), statusOptions);
         statusChart.render();
         @endif
+
+        // Client-Side Season Filtering for Dashboard Home Table
+        function filterSeasonsHome() {
+            let searchQuery = document.getElementById('searchSeasonHome').value.toLowerCase();
+            let selectedStatus = document.getElementById('filterStatusHome').value;
+            let selectedSeasonId = document.getElementById('filterSelectSeasonHome').value;
+            let seasonRows = document.querySelectorAll('.season-row');
+            let visibleCount = 0;
+
+            seasonRows.forEach(row => {
+                let name = row.getAttribute('data-name');
+                let status = row.getAttribute('data-status');
+                let id = row.getAttribute('data-id');
+
+                let matchesSearch = name.includes(searchQuery);
+                let matchesStatus = (selectedStatus === 'ALL' || status === selectedStatus);
+                let matchesSeason = (selectedSeasonId === 'ALL' || id === selectedSeasonId);
+
+                if (matchesSearch && matchesStatus && matchesSeason) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            let noResultRow = document.getElementById('noSearchResultHome');
+            if (noResultRow) {
+                if (visibleCount === 0) {
+                    noResultRow.classList.remove('d-none');
+                } else {
+                    noResultRow.classList.add('d-none');
+                }
+            }
+        }
+
+        // Attach event listeners for dashboard home
+        const searchInput = document.getElementById('searchSeasonHome');
+        const statusSelect = document.getElementById('filterStatusHome');
+        const seasonSelect = document.getElementById('filterSelectSeasonHome');
+
+        if (searchInput && statusSelect && seasonSelect) {
+            searchInput.addEventListener('keyup', filterSeasonsHome);
+            statusSelect.addEventListener('change', filterSeasonsHome);
+            seasonSelect.addEventListener('change', filterSeasonsHome);
+            
+            // Run filter on initial page load to only show ACTIVE seasons by default
+            filterSeasonsHome();
+        }
     });
 </script>
 @endsection
