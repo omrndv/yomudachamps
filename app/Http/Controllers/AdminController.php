@@ -62,7 +62,14 @@ class AdminController extends Controller
         // Semua Season beserta sisa slot terisi
         $seasons = Season::withCount(['teams' => function($q) {
             $q->where('status', 'PAID');
-        }])->orderBy('created_at', 'desc')->get();
+        }])->get()->sort(function ($a, $b) {
+            // Tampilkan yang ACTIVE terlebih dahulu
+            if ($a->status !== $b->status) {
+                return $a->status === 'ACTIVE' ? -1 : 1;
+            }
+            // Urutkan nama secara alami (natural sorting)
+            return strnatcasecmp($a->name, $b->name);
+        });
 
         // Trend Registrasi 7 Hari Terakhir
         $chart_labels = [];
