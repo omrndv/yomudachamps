@@ -129,6 +129,15 @@ Route::prefix('admin')->group(function () {
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
     Route::get('/backup', [AdminController::class, 'backupDatabase'])->name('admin.backup');
+    
+    // Activity Log
+    Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('admin.activity-log');
+
+    // FAQ Management
+    Route::get('/faqs', [AdminController::class, 'faqs'])->name('admin.faqs.index');
+    Route::post('/faqs/store', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
+    Route::post('/faqs/update/{id}', [AdminController::class, 'updateFaq'])->name('admin.faqs.update');
+    Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
 });
 
 Route::view('/privacy-policy', 'pages.privacy')->name('privacy');

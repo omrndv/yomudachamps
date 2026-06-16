@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Season;
 use App\Models\Team;
+use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,7 +17,9 @@ class HomeController extends Controller
                 $q->where('status', 'PAID');
             }])->get();
 
-        return view('landing', compact('active_seasons'));
+        $faqs = Faq::orderBy('order', 'asc')->get();
+
+        return view('landing', compact('active_seasons', 'faqs'));
     }
 
     public function registerForm()

@@ -255,6 +255,14 @@
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
 
+            <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                <i class="bi bi-question-circle"></i> <span>Kelola FAQ</span>
+            </a>
+
+            <a href="{{ route('admin.activity-log') }}" class="nav-link {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> <span>Log Aktivitas</span>
+            </a>
+
             <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
                 <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
@@ -305,6 +313,14 @@
 
                 <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
+                </a>
+
+                <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                    <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
+                </a>
+
+                <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
                 </a>
 
                 <a href="{{ route('admin.backup') }}" class="nav-link backup-link mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">

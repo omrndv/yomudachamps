@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Season;
 use App\Models\Team;
+use App\Models\AdminActivity;
+use App\Models\Faq;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -24,14 +26,17 @@ class AdminController extends Controller
 
         if ($request->username === $admin_user && $request->password === $admin_pass) {
             session(['admin_logged_in' => true]);
+            AdminActivity::log('Login admin berhasil');
             return redirect()->route('admin.dashboard.home');
         }
 
+        AdminActivity::log('Gagal login admin: Percobaan masuk dengan username "' . $request->username . '"');
         return back()->with('error', 'Username atau Password salah!');
     }
 
     public function logout()
     {
+        AdminActivity::log('Logout dari panel admin');
         session()->forget('admin_logged_in');
         return redirect()->route('admin.login');
     }
@@ -292,6 +297,8 @@ class AdminController extends Controller
             $response->withCookie(cookie()->forget('laravel_maintenance'));
         }
 
+        AdminActivity::log('Mengubah pengaturan sistem');
+
         return $response;
     }
 
@@ -330,14 +337,19 @@ class AdminController extends Controller
     public function deleteTeam($id)
     {
         if (!session('admin_logged_in')) return redirect()->route('admin.login');
-        Team::findOrFail($id)->delete();
+        $team = Team::findOrFail($id);
+        $teamName = $team->name;
+        $team->delete();
+        AdminActivity::log('Menghapus tim: ' . $teamName);
         return back()->with('success', 'Tim berhasil dihapus!');
     }
 
     public function deleteAllTeams($season_id)
     {
         if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        $season = Season::findOrFail($season_id);
         Team::where('season_id', $season_id)->delete();
+        AdminActivity::log('Menghapus semua tim di season: ' . $season->name);
         return back()->with('success', 'Semua tim berhasil dihapus!');
     }
 
@@ -369,7 +381,8 @@ class AdminController extends Controller
             $data['poster'] = $filename;
         }
 
-        Season::create($data);
+        $season = Season::create($data);
+        AdminActivity::log('Membuat season baru: ' . $season->name);
         return back()->with('success', 'Season baru berhasil dibuat!');
     }
 
@@ -411,6 +424,7 @@ class AdminController extends Controller
         }
 
         $season->update($data);
+        AdminActivity::log('Memperbarui season: ' . $season->name);
         return back()->with('success', 'Season berhasil diperbarui!');
     }
 
@@ -427,7 +441,9 @@ class AdminController extends Controller
             }
         }
 
+        $seasonName = $season->name;
         $season->delete();
+        AdminActivity::log('Menghapus season: ' . $seasonName);
         return back()->with('success', 'Season berhasil dihapus!');
     }
 
@@ -442,6 +458,8 @@ class AdminController extends Controller
             'wa_number' => $request->wa_number,
             'status'    => $request->status,
         ]);
+
+        AdminActivity::log('Memperbarui data tim: ' . $team->name . ' (Status: ' . $request->status . ')');
 
         if ($statusLama !== 'PAID' && $request->status === 'PAID') {
             try {
@@ -479,6 +497,8 @@ class AdminController extends Controller
             'content' => ''
         ]);
 
+        AdminActivity::log('Membuat catatan baru: ' . $note->title);
+
         return redirect()->route('admin.notes.index', ['id' => $note->id])
                          ->with('success', 'Catatan baru berhasil dibuat!');
     }
@@ -493,6 +513,8 @@ class AdminController extends Controller
             'content' => $request->content
         ]);
 
+        AdminActivity::log('Memperbarui catatan: ' . $note->title);
+
         return response()->json([
             'status'     => 'success',
             'updated_at' => $note->updated_at->format('H:i:s, d M Y')
@@ -502,7 +524,10 @@ class AdminController extends Controller
     public function deleteNote($id)
     {
         if (!session('admin_logged_in')) return redirect()->route('admin.login');
-        \App\Models\AdminNote::findOrFail($id)->delete();
+        $note = \App\Models\AdminNote::findOrFail($id);
+        $noteTitle = $note->title;
+        $note->delete();
+        AdminActivity::log('Menghapus catatan: ' . $noteTitle);
         return redirect()->route('admin.notes.index')->with('success', 'Catatan berhasil dihapus!');
     }
     
@@ -511,6 +536,7 @@ class AdminController extends Controller
         $ids = json_decode($request->team_ids);
         if ($ids) {
             Team::whereIn('id', $ids)->delete();
+            AdminActivity::log('Menghapus massal ' . count($ids) . ' tim');
             return back()->with('success', count($ids) . ' tim berhasil dihapus.');
         }
         return back()->with('error', 'Tidak ada tim yang dipilih.');
@@ -711,11 +737,95 @@ class AdminController extends Controller
             
             $filename = 'backup_yomudachamps_' . now()->format('Y-m-d_H-i-s') . '.sql';
             
+            AdminActivity::log('Melakukan backup database');
+
             return response($sqlDump)
                 ->header('Content-Type', 'application/sql')
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal backup database: ' . $e->getMessage());
         }
+    }
+
+    public function activityLog()
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $activities = AdminActivity::orderBy('created_at', 'desc')->paginate(30);
+        return view('admin.activity_log', compact('activities'));
+    }
+
+    public function faqs()
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $faqs = Faq::orderBy('order', 'asc')->get();
+        return view('admin.faqs', compact('faqs'));
+    }
+
+    public function storeFaq(Request $request)
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'question' => 'required',
+            'answer' => 'required',
+            'order' => 'integer'
+        ]);
+
+        $faq = Faq::create([
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'order' => $request->order ?? 0
+        ]);
+
+        AdminActivity::log('Menambahkan FAQ baru: "' . Str::limit($faq->question, 40) . '"');
+
+        return back()->with('success', 'FAQ baru berhasil ditambahkan!');
+    }
+
+    public function updateFaq(Request $request, $id)
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'question' => 'required',
+            'answer' => 'required',
+            'order' => 'integer'
+        ]);
+
+        $faq = Faq::findOrFail($id);
+        $faq->update([
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'order' => $request->order ?? 0
+        ]);
+
+        AdminActivity::log('Memperbarui FAQ: "' . Str::limit($faq->question, 40) . '"');
+
+        return back()->with('success', 'FAQ berhasil diperbarui!');
+    }
+
+    public function deleteFaq($id)
+    {
+        if (!session('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $faq = Faq::findOrFail($id);
+        $faqQuestion = $faq->question;
+        $faq->delete();
+
+        AdminActivity::log('Menghapus FAQ: "' . Str::limit($faqQuestion, 40) . '"');
+
+        return back()->with('success', 'FAQ berhasil dihapus!');
     }
 }
