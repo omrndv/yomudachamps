@@ -62,13 +62,27 @@
             color: var(--text-muted) !important;
         }
 
-        /* Dark mode generic selector overrides for inline helper classes */
+        /* Dark mode generic selector overrides for inline helper classes and third-party classes */
         body.dark-mode .bg-white,
-        body.dark-mode .card-stats {
+        body.dark-mode .card-stats,
+        body.dark-mode .list-group-item,
+        body.dark-mode .dropdown-menu {
             background-color: var(--bg-card) !important;
+            border-color: var(--border-color) !important;
+            color: var(--color-body) !important;
+        }
+
+        body.dark-mode .dropdown-item {
+            color: var(--color-body) !important;
+        }
+        body.dark-mode .dropdown-item:hover {
+            background-color: var(--bg-light) !important;
+            color: var(--text-dark) !important;
         }
         
         body.dark-mode .container-fluid,
+        body.dark-mode .main-content div[style*="background-color: #f8fafc"],
+        body.dark-mode .main-content div[style*="background-color:#f8fafc"],
         body.dark-mode div[style*="background-color: #f8fafc"],
         body.dark-mode div[style*="background-color:#f8fafc"] {
             background-color: var(--bg-body) !important;
@@ -77,24 +91,47 @@
         body.dark-mode .text-dark,
         body.dark-mode .text-slate-800,
         body.dark-mode .text-slate-700,
-        body.dark-mode .text-slate-900 {
+        body.dark-mode .text-slate-900,
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, 
+        body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+        body.dark-mode .h1, body.dark-mode .h2, body.dark-mode .h3,
+        body.dark-mode .h4, body.dark-mode .h5, body.dark-mode .h6 {
             color: var(--text-dark) !important;
         }
 
         body.dark-mode .text-secondary,
-        body.dark-mode .text-muted {
+        body.dark-mode .text-muted,
+        body.dark-mode small.text-muted,
+        body.dark-mode .text-slate-500 {
             color: var(--text-muted) !important;
         }
 
+        /* Scrollbar styling in Dark Mode */
+        body.dark-mode::-webkit-scrollbar {
+            width: 10px;
+        }
+        body.dark-mode::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        body.dark-mode::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 5px;
+        }
+        body.dark-mode::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
         /* Input fields and selects */
-        .form-control, .form-select {
+        .form-control, .form-select, .input-group-text {
             background-color: var(--bg-input) !important;
             border-color: var(--border-input) !important;
             color: var(--text-input) !important;
         }
         .form-control:focus, .form-select:focus {
             background-color: var(--bg-input) !important;
+            border-color: #f59e0b !important; /* Warning highlight */
             color: var(--text-input) !important;
+            box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
         }
         body.dark-mode .form-control::placeholder {
             color: var(--text-muted) !important;
@@ -111,13 +148,13 @@
             border-color: var(--border-color) !important;
         }
 
-        /* Tables */
+        /* Tables & rows override */
         .table {
             color: var(--color-body) !important;
         }
         .table th {
             background-color: var(--bg-light) !important;
-            color: var(--text-muted) !important;
+            color: var(--text-dark) !important;
             border-color: var(--border-color) !important;
         }
         .table td {
@@ -131,6 +168,11 @@
         .table-responsive {
             border-color: var(--border-color) !important;
         }
+        body.dark-mode tr, 
+        body.dark-mode td,
+        body.dark-mode th {
+            border-bottom-color: var(--border-color) !important;
+        }
 
         /* List groups */
         .list-group-item {
@@ -143,13 +185,59 @@
         .breadcrumb-item.active {
             color: var(--text-muted) !important;
         }
+        body.dark-mode .breadcrumb-item a {
+            color: #fbbf24 !important; /* Warning gold link */
+        }
 
-        /* Miscellaneous utilities */
+        /* Miscellaneous utilities & Buttons */
         .bg-light {
             background-color: var(--bg-light) !important;
         }
         .border-light, .border-light-subtle {
             border-color: var(--border-color) !important;
+        }
+
+        body.dark-mode .btn-light {
+            background-color: var(--bg-light) !important;
+            color: var(--color-body) !important;
+            border-color: var(--border-color) !important;
+        }
+        body.dark-mode .btn-light:hover {
+            background-color: var(--border-color) !important;
+            color: var(--text-dark) !important;
+        }
+        
+        /* Badges design system adaptation in dark mode */
+        body.dark-mode .bg-success-subtle {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            color: #34d399 !important;
+        }
+        body.dark-mode .bg-secondary-subtle {
+            background-color: rgba(148, 163, 184, 0.15) !important;
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode .bg-warning-subtle {
+            background-color: rgba(245, 158, 11, 0.15) !important;
+            color: #fbbf24 !important;
+        }
+        body.dark-mode .bg-danger-subtle {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            color: #fca5a5 !important;
+        }
+        body.dark-mode .bg-primary-subtle {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            color: #93c5fd !important;
+        }
+        
+        /* SweetAlert popup overrides in dark mode */
+        body.dark-mode .swal2-popup {
+            background-color: var(--bg-card) !important;
+            color: var(--color-body) !important;
+        }
+        body.dark-mode .swal2-title,
+        body.dark-mode .swal2-content,
+        body.dark-mode .swal2-html-container {
+            color: var(--text-dark) !important;
         }
         
         /* ApexCharts labels adjustments dynamically in dark mode */
