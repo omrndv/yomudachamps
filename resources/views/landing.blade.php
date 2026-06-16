@@ -761,7 +761,7 @@
 
     @if(isset($faqs) && count($faqs) > 0)
     {{-- FAQ Section --}}
-    <section class="faq-section my-5">
+    <section id="faq" class="faq-section my-5">
         <div class="text-center mb-5">
             <h3 class="section-title text-white text-uppercase d-block mb-3">Frequently Asked Questions</h3>
             <p class="text-white-50 mb-0 px-3">
