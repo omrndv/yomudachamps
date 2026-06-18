@@ -92,8 +92,12 @@
                 </h5>
             </a>
 
-            <p class="small text-white-50 mb-4 px-3" style="line-height: 1.8;">
+            <p class="small text-white-50 mb-3 px-3" style="line-height: 1.8;">
                 Platform pendaftaran turnamen E-sports otomatis dengan sistem pembayaran digital terintegrasi.
+            </p>
+
+            <p class="small text-white-50 mb-4 px-3" style="line-height: 1.8; font-size: 0.75rem;">
+                <i class="bi bi-geo-alt-fill text-warning me-1"></i> G7VR+227, Dusun I, Sokaraja Kulon, Kec. Sokaraja, Kabupaten Banyumas, Jawa Tengah 53181
             </p>
 
             <div class="nav-pills-custom mb-3">
