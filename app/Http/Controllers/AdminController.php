@@ -307,6 +307,7 @@ class AdminController extends Controller
     {
         $rawData = $request->input('bulk_data');
         $lines = explode("\n", str_replace("\r", "", $rawData));
+        $importedCount = 0;
     
         foreach ($lines as $line) {
             if (!trim($line)) continue;
@@ -329,8 +330,13 @@ class AdminController extends Controller
                     'wa_number' => $wa_raw, 
                     'status'    => 'PAID'
                 ]);
+                $importedCount++;
             }
         }
+    
+        $season = Season::find($season_id);
+        $seasonName = $season ? $season->name : "ID: $season_id";
+        AdminActivity::log('Mengimport massal ' . $importedCount . ' tim untuk season: ' . $seasonName);
     
         return back()->with('success', 'Data berhasil diimport ke Database!');
     }
