@@ -320,21 +320,22 @@ class AdminController extends Controller
     
             if (count($data) >= 2) {
                 $wa_raw = trim($data[1]);
-                // Clean all non-numeric characters
-                $wa_raw = preg_replace('/[^0-9]/', '', $wa_raw);
                 
-                // Normalize Indonesian numbers (+62 / 62 / 8 -> 08)
-                if (str_starts_with($wa_raw, '628')) {
-                    $wa_raw = '08' . substr($wa_raw, 3);
-                } elseif (str_starts_with($wa_raw, '6208')) {
-                    $wa_raw = '08' . substr($wa_raw, 4);
-                } elseif (str_starts_with($wa_raw, '8')) {
-                    $wa_raw = '0' . $wa_raw;
-                }
+                // 1. Bersihkan semua karakter non-digit kecuali tanda plus (+) di awal
+                $wa_clean = preg_replace('/[^0-9+]/', '', $wa_raw);
                 
-                // Normalize Malaysian numbers (01 -> 601) to keep international prefix
-                if (str_starts_with($wa_raw, '01')) {
-                    $wa_raw = '601' . substr($wa_raw, 2);
+                // 2. Normalisasi format nomor WA
+                if (str_starts_with($wa_clean, '+62')) {
+                    $wa_clean = '0' . substr($wa_clean, 3);
+                } elseif (str_starts_with($wa_clean, '628')) {
+                    $wa_clean = '0' . substr($wa_clean, 2);
+                } elseif (str_starts_with($wa_clean, '+60')) {
+                    $wa_clean = '60' . substr($wa_clean, 3);
+                } elseif (str_starts_with($wa_clean, '60')) {
+                    // Sudah menggunakan kode negara Malaysia (60)
+                } elseif (!str_starts_with($wa_clean, '0') && !str_starts_with($wa_clean, '60')) {
+                    // Jika tidak dimulai dengan 0 atau 60 (misal 853...), tambahkan 0 di depan (asumsi nomor Indo)
+                    $wa_clean = '0' . $wa_clean;
                 }
     
                 $teamName = trim($data[0]);
@@ -342,7 +343,7 @@ class AdminController extends Controller
                     'season_id' => $season_id,
                     'trx_id'    => 'YMD' . $season_id . '-' . strtoupper(Str::random(4)),
                     'name'      => $teamName,
-                    'wa_number' => $wa_raw, 
+                    'wa_number' => $wa_clean, 
                     'status'    => 'PAID'
                 ]);
                 $lastImportedName = $teamName;
