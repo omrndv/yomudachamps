@@ -308,6 +308,7 @@ class AdminController extends Controller
         $rawData = $request->input('bulk_data');
         $lines = explode("\n", str_replace("\r", "", $rawData));
         $importedCount = 0;
+        $lastImportedName = '';
     
         foreach ($lines as $line) {
             if (!trim($line)) continue;
@@ -323,20 +324,27 @@ class AdminController extends Controller
                     $wa_raw = '0' . $wa_raw;
                 }
     
+                $teamName = trim($data[0]);
                 Team::create([
                     'season_id' => $season_id,
                     'trx_id'    => 'YMD' . $season_id . '-' . strtoupper(Str::random(4)),
-                    'name'      => trim($data[0]),
+                    'name'      => $teamName,
                     'wa_number' => $wa_raw, 
                     'status'    => 'PAID'
                 ]);
+                $lastImportedName = $teamName;
                 $importedCount++;
             }
         }
     
         $season = Season::find($season_id);
         $seasonName = $season ? $season->name : "ID: $season_id";
-        AdminActivity::log('Mengimport massal ' . $importedCount . ' tim untuk season: ' . $seasonName);
+    
+        if ($importedCount === 1) {
+            AdminActivity::log('Menambahkan tim "' . $lastImportedName . '" secara manual untuk season: ' . $seasonName);
+        } elseif ($importedCount > 1) {
+            AdminActivity::log('Mengimport massal ' . $importedCount . ' tim untuk season: ' . $seasonName);
+        }
     
         return back()->with('success', 'Data berhasil diimport ke Database!');
     }
