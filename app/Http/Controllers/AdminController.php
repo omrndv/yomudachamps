@@ -330,11 +330,18 @@ class AdminController extends Controller
                 } elseif (str_starts_with($wa_clean, '628')) {
                     $wa_clean = '0' . substr($wa_clean, 2);
                 } elseif (str_starts_with($wa_clean, '+60')) {
-                    $wa_clean = '60' . substr($wa_clean, 3);
+                    // Tetap menggunakan +60 di awal
                 } elseif (str_starts_with($wa_clean, '60')) {
-                    // Sudah menggunakan kode negara Malaysia (60)
-                } elseif (!str_starts_with($wa_clean, '0') && !str_starts_with($wa_clean, '60')) {
-                    // Jika tidak dimulai dengan 0 atau 60 (misal 853...), tambahkan 0 di depan (asumsi nomor Indo)
+                    // Tambahkan tanda + di depan jika sudah berawalan 60
+                    $wa_clean = '+' . $wa_clean;
+                } elseif (str_starts_with($wa_clean, '01')) {
+                    // Jika diawali 01 (nomor Malaysia format lokal seperti 011..., 012...), ubah menjadi +601...
+                    $wa_clean = '+60' . substr($wa_clean, 1);
+                } elseif (str_starts_with($wa_clean, '1')) {
+                    // Jika diawali langsung angka 1 (format lokal tanpa 0, misal 11...), ubah menjadi +601...
+                    $wa_clean = '+60' . $wa_clean;
+                } elseif (!str_starts_with($wa_clean, '0') && !str_starts_with($wa_clean, '+')) {
+                    // Jika tidak dimulai dengan 0 atau + (misal langsung 853...), tambahkan 0 di depan (asumsi nomor Indo)
                     $wa_clean = '0' . $wa_clean;
                 }
     
