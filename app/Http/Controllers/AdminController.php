@@ -194,6 +194,7 @@ class AdminController extends Controller
         $filtered_teams = $teams->map(function ($team) use ($season_id) {
             $history = \App\Models\Team::where('wa_number', $team->wa_number)
                 ->where('season_id', '!=', $season_id) // Kecuali season sekarang
+                ->where('status', 'PAID') // Hanya yang sudah PAID/bayar
                 ->with('season') // Asumsi ada relasi 'season' di Model Team
                 ->get();
     
