@@ -320,8 +320,21 @@ class AdminController extends Controller
     
             if (count($data) >= 2) {
                 $wa_raw = trim($data[1]);
-                if (!str_starts_with($wa_raw, '0') && !str_starts_with($wa_raw, '62') && !str_starts_with($wa_raw, '+')) {
+                // Clean all non-numeric characters
+                $wa_raw = preg_replace('/[^0-9]/', '', $wa_raw);
+                
+                // Normalize Indonesian numbers (+62 / 62 / 8 -> 08)
+                if (str_starts_with($wa_raw, '628')) {
+                    $wa_raw = '08' . substr($wa_raw, 3);
+                } elseif (str_starts_with($wa_raw, '6208')) {
+                    $wa_raw = '08' . substr($wa_raw, 4);
+                } elseif (str_starts_with($wa_raw, '8')) {
                     $wa_raw = '0' . $wa_raw;
+                }
+                
+                // Normalize Malaysian numbers (01 -> 601) to keep international prefix
+                if (str_starts_with($wa_raw, '01')) {
+                    $wa_raw = '601' . substr($wa_raw, 2);
                 }
     
                 $teamName = trim($data[0]);
