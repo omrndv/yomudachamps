@@ -23,7 +23,10 @@ class AdminActivity extends Model
     public static function log($activity)
     {
         $userAgent = request()->userAgent();
-        $ip = request()->ip();
+        $ip = request()->header('X-Forwarded-For') ?? request()->ip();
+        if (strpos($ip, ',') !== false) {
+            $ip = trim(explode(',', $ip)[0]);
+        }
         
         $device = self::parseUserAgent($userAgent);
 

@@ -239,6 +239,7 @@
                 <i class="bi bi-trophy"></i> <span>Daftar Season</span>
             </a>
 
+            @if(Auth::check() && Auth::user()->role === 'superadmin')
             <a href="{{ route('admin.teams') }}" class="nav-link {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
                 <i class="bi bi-people-fill"></i> <span>Daftar Team</span>
             </a>
@@ -246,14 +247,17 @@
             <a href="{{ route('admin.payments') }}" class="nav-link {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
                 <i class="bi bi-cash-stack"></i> <span>Riwayat Pembayaran</span>
             </a>
+            @endif
 
             <a href="{{ route('admin.notes.index') }}" class="nav-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                 <i class="bi bi-sticky"></i> <span>Catatan Admin</span>
             </a>
 
+            @if(Auth::check() && Auth::user()->role === 'superadmin')
             <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
+            @endif
 
             <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                 <i class="bi bi-question-circle"></i> <span>Kelola FAQ</span>
@@ -263,9 +267,15 @@
                 <i class="bi bi-clock-history"></i> <span>Log Aktivitas</span>
             </a>
 
+            @if(Auth::check() && Auth::user()->role === 'superadmin')
+            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
+                <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
+            </a>
+
             <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
                 <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
+            @endif
 
             <div class="mt-auto pt-2 w-100">
                 <hr class="border-secondary opacity-25 mx-3 mb-3">
@@ -299,6 +309,7 @@
                     <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
 
+                @if(Auth::check() && Auth::user()->role === 'superadmin')
                 <a href="{{ route('admin.teams') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
                     <i class="bi bi-people-fill me-2"></i> <span>Daftar Team</span>
                 </a>
@@ -306,14 +317,17 @@
                 <a href="{{ route('admin.payments') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
                     <i class="bi bi-cash-stack me-2"></i> <span>Riwayat Pembayaran</span>
                 </a>
+                @endif
 
                 <a href="{{ route('admin.notes.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                     <i class="bi bi-sticky me-2"></i> <span>Catatan Admin</span>
                 </a>
 
+                @if(Auth::check() && Auth::user()->role === 'superadmin')
                 <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
                 </a>
+                @endif
 
                 <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                     <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
@@ -323,9 +337,15 @@
                     <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
                 </a>
 
+                @if(Auth::check() && Auth::user()->role === 'superadmin')
+                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
+                    <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
+                </a>
+
                 <a href="{{ route('admin.backup') }}" class="nav-link backup-link mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
                     <i class="bi bi-database-down me-2"></i> <span>Backup Database</span>
                 </a>
+                @endif
 
                 <div class="mt-auto pt-4 w-100">
                     <hr class="border-secondary opacity-25 mb-3">

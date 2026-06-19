@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/callback',
             'api/ipaymu/callback',
         ]);
+        $middleware->alias([
+            'admin.auth' => \App\Http\Middleware\AdminAuthMiddleware::class,
+            'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

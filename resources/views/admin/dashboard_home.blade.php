@@ -4,6 +4,26 @@
 <!-- Head to CDN for ApexCharts -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+@if(session('welcome_alert'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            background: '#ffffff',
+            color: '#1e293b',
+        });
+        Toast.fire({
+            icon: 'success',
+            title: "{{ session('welcome_alert') }}"
+        });
+    });
+</script>
+@endif
+
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">

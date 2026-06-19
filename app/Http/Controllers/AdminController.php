@@ -7,13 +7,16 @@ use App\Models\Season;
 use App\Models\Team;
 use App\Models\AdminActivity;
 use App\Models\Faq;
+use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
     public function login()
     {
-        if (session('admin_logged_in')) {
+        if (Auth::check()) {
             return redirect()->route('admin.dashboard.home');
         }
         return view('admin.login');
@@ -21,11 +24,18 @@ class AdminController extends Controller
 
     public function authenticate(Request $request)
     {
-        $admin_user = 'admin';
-        $admin_pass = 'yomuda123';
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required',
+        ]);
 
-        if ($request->username === $admin_user && $request->password === $admin_pass) {
-            session(['admin_logged_in' => true]);
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
+            $user = Auth::user();
+            
+            if ($user->role === 'admin') {
+                session()->flash('welcome_alert', 'Selamat datang, ' . $user->name);
+            }
+
             AdminActivity::log('Login admin berhasil');
             return redirect()->route('admin.dashboard.home');
         }
@@ -37,13 +47,15 @@ class AdminController extends Controller
     public function logout()
     {
         AdminActivity::log('Logout dari panel admin');
-        session()->forget('admin_logged_in');
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
         return redirect()->route('admin.login');
     }
 
     public function dashboardHome(Request $request)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -164,7 +176,7 @@ class AdminController extends Controller
 
     public function seasons()
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -184,7 +196,7 @@ class AdminController extends Controller
 
     public function dashboard($season_id)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
     
@@ -216,7 +228,7 @@ class AdminController extends Controller
 
     public function settings()
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
         return view('admin.settings');
@@ -224,7 +236,7 @@ class AdminController extends Controller
 
     public function updateSettings(Request $request)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -372,7 +384,7 @@ class AdminController extends Controller
 
     public function deleteTeam($id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
         $team = Team::findOrFail($id);
         $teamName = $team->name;
         $team->delete();
@@ -382,7 +394,7 @@ class AdminController extends Controller
 
     public function deleteAllTeams($season_id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
         $season = Season::findOrFail($season_id);
         Team::where('season_id', $season_id)->delete();
         AdminActivity::log('Menghapus semua tim di season: ' . $season->name);
@@ -391,7 +403,7 @@ class AdminController extends Controller
 
     public function storeSeason(Request $request)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $data = [
             'name'       => $request->name,
@@ -424,7 +436,7 @@ class AdminController extends Controller
 
     public function updateSeason(Request $request, $id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $season = Season::findOrFail($id);
         $data = [
@@ -466,7 +478,7 @@ class AdminController extends Controller
 
     public function deleteSeason($id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $season = Season::findOrFail($id);
         if ($season->poster) {
@@ -485,7 +497,7 @@ class AdminController extends Controller
 
     public function updateTeam(Request $request, $id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
         $team = Team::findOrFail($id);
         $statusLama = $team->status;
         
@@ -510,7 +522,7 @@ class AdminController extends Controller
     
     public function showNotes(Request $request) 
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $all_notes = \App\Models\AdminNote::orderBy('updated_at', 'desc')->get();
 
@@ -526,7 +538,7 @@ class AdminController extends Controller
 
     public function storeNote(Request $request) 
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $note = \App\Models\AdminNote::create([
             'title'   => $request->query('title', 'Catatan Baru'),
@@ -541,7 +553,7 @@ class AdminController extends Controller
 
     public function updateNotes(Request $request, $id)
     {
-        if (!session('admin_logged_in')) return response()->json(['error' => 'Unauthorized'], 401);
+        if (!Auth::check()) return response()->json(['error' => 'Unauthorized'], 401);
 
         $note = \App\Models\AdminNote::findOrFail($id);
         $note->update([
@@ -559,7 +571,7 @@ class AdminController extends Controller
     
     public function deleteNote($id)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
         $note = \App\Models\AdminNote::findOrFail($id);
         $noteTitle = $note->title;
         $note->delete();
@@ -581,7 +593,7 @@ class AdminController extends Controller
         // FUNGSI UTAMA VIEW (Kembali ke DB Lokal agar Filter & Search Jalan)
     public function paymentHistory(Request $request)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
     
         $start_date = $request->get('start_date', date('Y-m-01'));
         $end_date = $request->get('end_date', date('Y-m-t'));
@@ -676,7 +688,7 @@ class AdminController extends Controller
 
     public function teams(Request $request)
     {
-        if (!session('admin_logged_in')) return redirect()->route('admin.login');
+        if (!Auth::check()) return redirect()->route('admin.login');
 
         $season_id = $request->get('season_id');
         $status = $request->get('status');
@@ -725,7 +737,7 @@ class AdminController extends Controller
 
     public function backupDatabase()
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -785,7 +797,7 @@ class AdminController extends Controller
 
     public function activityLog()
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -795,7 +807,7 @@ class AdminController extends Controller
 
     public function faqs()
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -805,7 +817,7 @@ class AdminController extends Controller
 
     public function storeFaq(Request $request)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -828,7 +840,7 @@ class AdminController extends Controller
 
     public function updateFaq(Request $request, $id)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -852,7 +864,7 @@ class AdminController extends Controller
 
     public function deleteFaq($id)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
@@ -867,7 +879,7 @@ class AdminController extends Controller
 
     public function reorderFaq(Request $request, $id)
     {
-        if (!session('admin_logged_in')) {
+        if (!Auth::check()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -910,5 +922,88 @@ class AdminController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function adminList()
+    {
+        if (Auth::user()->role !== 'superadmin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $admins = User::where('role', 'admin')->orderBy('name', 'asc')->get();
+        return view('admin.manage_admins', compact('admins'));
+    }
+
+    public function storeAdmin(Request $request)
+    {
+        if (Auth::user()->role !== 'superadmin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $admin = User::create([
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'admin',
+        ]);
+
+        AdminActivity::log('Membuat akun admin baru: ' . $admin->username);
+
+        return back()->with('success', 'Akun admin berhasil ditambahkan!');
+    }
+
+    public function updateAdmin(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'superadmin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $admin = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => $request->email,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $admin->update($data);
+
+        AdminActivity::log('Memperbarui akun admin: ' . $admin->username);
+
+        return back()->with('success', 'Akun admin berhasil diperbarui!');
+    }
+
+    public function deleteAdmin($id)
+    {
+        if (Auth::user()->role !== 'superadmin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $admin = User::findOrFail($id);
+        $adminUsername = $admin->username;
+        $admin->delete();
+
+        AdminActivity::log('Menghapus akun admin: ' . $adminUsername);
+
+        return back()->with('success', 'Akun admin berhasil dihapus!');
     }
 }
