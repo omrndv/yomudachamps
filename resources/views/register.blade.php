@@ -549,7 +549,9 @@
 
             const btnText = btn.querySelector('.btn-text');
 
-            btn.disabled = true;
+            setTimeout(function() {
+                btn.disabled = true;
+            }, 10);
             btn.classList.add('loading');
 
             if (btnText) {
