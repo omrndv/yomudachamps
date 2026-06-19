@@ -1104,7 +1104,6 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
             'wa_number' => 'required|string|max:20',
             'role' => 'required|string',
             'rank' => 'required|string',
@@ -1114,7 +1113,6 @@ class AdminController extends Controller
 
         \App\Models\SoloPlayer::create([
             'season_id' => $season_id,
-            'name' => $request->name,
             'wa_number' => $request->wa_number,
             'role' => $request->role,
             'rank' => $request->rank,
@@ -1122,7 +1120,7 @@ class AdminController extends Controller
             'amount_paid' => $request->amount_paid,
         ]);
 
-        AdminActivity::log('Menambahkan solo player baru: ' . $request->name);
+        AdminActivity::log('Menambahkan solo player baru dengan nomor WA: ' . $request->wa_number);
 
         return back()->with('success', 'Solo player berhasil ditambahkan!');
     }
@@ -1148,7 +1146,7 @@ class AdminController extends Controller
                 continue;
             }
 
-            // Expected format: Name | WA | Role | Rank
+            // Expected format: WA | Role | Rank
             // Allow comma or pipe or tab separation
             $delimiters = ['|', ';', ','];
             $parts = [];
@@ -1164,15 +1162,13 @@ class AdminController extends Controller
                 $parts = array_map('trim', preg_split('/\s{2,}/', $line));
             }
 
-            if (count($parts) >= 2) {
-                $name = $parts[0];
-                $wa = $parts[1];
-                $role = isset($parts[2]) ? $parts[2] : 'Roamer';
-                $rank = isset($parts[3]) ? $parts[3] : 'Legend';
+            if (count($parts) >= 1) {
+                $wa = $parts[0];
+                $role = isset($parts[1]) ? $parts[1] : 'Roamer';
+                $rank = isset($parts[2]) ? $parts[2] : 'Legend';
 
                 \App\Models\SoloPlayer::create([
                     'season_id' => $season_id,
-                    'name' => $name,
                     'wa_number' => $wa,
                     'role' => $role,
                     'rank' => $rank,
@@ -1224,7 +1220,7 @@ class AdminController extends Controller
             $player->save();
         }
 
-        AdminActivity::log('Membentuk tim solo "' . $team->name . '" berisi ' . $players->pluck('name')->implode(', '));
+        AdminActivity::log('Membentuk tim solo "' . $team->name . '" berisi nomor WA: ' . $players->pluck('wa_number')->implode(', '));
 
         return back()->with('success', 'Tim solo berhasil dibentuk!');
     }
@@ -1236,10 +1232,10 @@ class AdminController extends Controller
         }
 
         $player = \App\Models\SoloPlayer::findOrFail($id);
-        $name = $player->name;
+        $wa = $player->wa_number;
         $player->delete();
 
-        AdminActivity::log('Menghapus solo player: ' . $name);
+        AdminActivity::log('Menghapus solo player dengan nomor WA: ' . $wa);
 
         return back()->with('success', 'Solo player berhasil dihapus!');
     }

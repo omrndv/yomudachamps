@@ -9,7 +9,6 @@ class SoloPlayer extends Model
     protected $fillable = [
         'season_id',
         'team_id',
-        'name',
         'wa_number',
         'role',
         'rank',

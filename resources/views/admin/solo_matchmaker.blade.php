@@ -67,7 +67,6 @@
                         <thead class="bg-light">
                             <tr class="text-secondary small fw-bold" style="border-bottom: 2px solid #f1f5f9;">
                                 <th width="40" class="text-center">Pilih</th>
-                                <th>Nama Player</th>
                                 <th>No. WhatsApp</th>
                                 <th>Role Utama</th>
                                 <th>Rank Saat Ini</th>
@@ -82,7 +81,6 @@
                                 <td class="text-center">
                                     <input type="checkbox" class="form-check-input player-checkbox" value="{{ $player->id }}" onchange="updateSelection()">
                                 </td>
-                                <td class="fw-bold text-dark">{{ $player->name }}</td>
                                 <td>
                                     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $player->wa_number) }}" target="_blank" class="text-decoration-none text-success">
                                         <i class="bi bi-whatsapp me-1"></i>{{ $player->wa_number }}
@@ -108,7 +106,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">Belul ada player solo terdaftar yang belum tergabung.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">Belum ada player solo terdaftar yang belum tergabung.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -123,7 +121,6 @@
                     <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
                         <thead class="bg-light">
                             <tr class="text-secondary small fw-bold" style="border-bottom: 2px solid #f1f5f9;">
-                                <th>Nama Player</th>
                                 <th>No. WhatsApp</th>
                                 <th>Role</th>
                                 <th>Rank</th>
@@ -135,7 +132,6 @@
                         <tbody>
                             @forelse($matched_players as $player)
                             <tr>
-                                <td class="fw-bold text-dark">{{ $player->name }}</td>
                                 <td>{{ $player->wa_number }}</td>
                                 <td><span class="badge bg-secondary">{{ $player->role }}</span></td>
                                 <td><span class="badge bg-info text-dark">{{ $player->rank }}</span></td>
@@ -153,7 +149,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada player solo yang tergabung ke dalam tim.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">Belum ada player solo yang tergabung ke dalam tim.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -191,10 +187,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Nama Player</label>
-                    <input type="text" name="name" class="form-control" placeholder="Masukkan nama player..." required>
-                </div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">No. WhatsApp</label>
                     <input type="text" name="wa_number" class="form-control" placeholder="Contoh: 081234567890" required>
@@ -249,9 +241,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <p class="text-secondary small mb-3">Format input per baris:<br><code class="bg-light px-2 py-1 rounded">Nama | No. WA | Role | Rank</code></p>
+                <p class="text-secondary small mb-3">Format input per baris:<br><code class="bg-light px-2 py-1 rounded">No. WA | Role | Rank</code></p>
                 <div class="mb-3">
-                    <textarea name="bulk_data" class="form-control text-monospace" rows="6" placeholder="Budi | 08123456789 | Roamer | Legend&#10;Andi | 08122233344 | Gold Lane | Mythic" required></textarea>
+                    <textarea name="bulk_data" class="form-control text-monospace" rows="6" placeholder="08123456789 | Roamer | Legend&#10;08122233344 | Gold Lane | Mythic" required></textarea>
                 </div>
                 <div class="row g-2">
                     <div class="col-6">

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('season_id');
             $table->unsignedBigInteger('team_id')->nullable();
-            $table->string('name');
             $table->string('wa_number');
             $table->string('role');
             $table->string('rank');
