@@ -114,7 +114,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem;">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                    <span class="badge bg-success text-white px-2.5 py-1 rounded-pill">
                         Lunas: <strong>{{ $total_paid }} Tim</strong>
                     </span>
                     <span class="fw-bold {{ ($total_slot - $total_paid) <= 5 ? 'text-danger animate-pulse' : 'text-muted' }}">
@@ -200,7 +200,7 @@
                         <td>
                             <span class="fw-bold text-slate-800">{{ $team->name }}</span>
                             @if($name_counts[$team->name] > 1)
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size: 0.6rem;">NAMA DOUBLE ({{ $name_counts[$team->name] }})</span>
+                                <span class="badge bg-danger text-white ms-1" style="font-size: 0.6rem;">NAMA DOUBLE ({{ $name_counts[$team->name] }})</span>
                             @endif
                         </td>
                         <td>
@@ -208,7 +208,7 @@
                                 <code class="text-dark fw-bold" style="font-size: 0.8rem;">{{ $team->wa_number }}</code>
                                 
                                 @if($team->is_loyal)
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 d-flex align-items-center gap-1" 
+                                    <span class="badge bg-primary text-white px-2 d-flex align-items-center gap-1" 
                                           style="font-size: 0.6rem; cursor: help;" 
                                           data-bs-toggle="tooltip" 
                                           data-bs-html="true" 
@@ -221,7 +221,7 @@
                                 @endif
                     
                                 @if($wa_counts[$team->wa_number] > 1)
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2" style="font-size: 0.6rem;">WA DOUBLE ({{ $wa_counts[$team->wa_number] }})</span>
+                                    <span class="badge bg-warning text-dark px-2" style="font-size: 0.6rem;">WA DOUBLE ({{ $wa_counts[$team->wa_number] }})</span>
                                 @endif
                                 
                                 @php
@@ -235,7 +235,7 @@
                         </td>
                         
                         <td class="text-center">
-                            <span class="badge {{ $team->status == 'PAID' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' }} px-3 py-1.5 rounded-pill" style="font-size: 0.65rem; font-weight: 600;">
+                            <span class="badge {{ $team->status == 'PAID' ? 'bg-success text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill" style="font-size: 0.65rem; font-weight: 600;">
                                 {{ $team->status }}
                             </span>
                         </td>
@@ -396,7 +396,7 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
                     <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">
                         <i class="bi bi-info-circle me-1"></i> Format: Per Baris
                     </span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3" style="font-size: 0.7rem;">
+                    <span class="badge bg-primary text-white rounded-pill px-3" style="font-size: 0.7rem;">
                         Total: {{ $paid_teams->count() }} Tim
                     </span>
                 </div>
