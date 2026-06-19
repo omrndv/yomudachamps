@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-<meta name="csrf-token" content="{{ csrf-token() }}">
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Alerts --}}
     @if ($errors->any())
