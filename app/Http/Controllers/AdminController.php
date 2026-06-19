@@ -1322,4 +1322,33 @@ class AdminController extends Controller
             'moved_ids' => $playersToMove->pluck('id')
         ]);
     }
+
+    public function updateSoloPlayer(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'wa_number' => 'required|string|max:20',
+            'role' => 'required|string',
+            'rank' => 'required|string',
+            'status' => 'required|in:PENDING,PAID',
+            'amount_paid' => 'required|integer|min:0',
+        ]);
+
+        $player = \App\Models\SoloPlayer::findOrFail($id);
+        
+        $player->update([
+            'wa_number' => $request->wa_number,
+            'role' => $request->role,
+            'rank' => $request->rank,
+            'status' => $request->status,
+            'amount_paid' => $request->amount_paid,
+        ]);
+
+        AdminActivity::log('Memperbarui data solo player dengan WA: ' . $player->wa_number);
+
+        return back()->with('success', 'Data player berhasil diperbarui!');
+    }
 }

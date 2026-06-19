@@ -146,6 +146,7 @@ Route::middleware('admin.auth')->group(function () {
         Route::post('/solo-matchmaker/group/{season_id}', [AdminController::class, 'groupSoloPlayers'])->name('admin.solo.group');
         Route::post('/solo-matchmaker/create-empty-team/{season_id}', [AdminController::class, 'createEmptySoloTeam'])->name('admin.solo.createEmptyTeam');
         Route::post('/solo-matchmaker/update-player-team/{season_id}', [AdminController::class, 'updatePlayerTeam'])->name('admin.solo.updatePlayerTeam');
+        Route::post('/solo-matchmaker/update/{id}', [AdminController::class, 'updateSoloPlayer'])->name('admin.solo.update');
         Route::get('/solo-matchmaker/delete/{id}', [AdminController::class, 'deleteSoloPlayer'])->name('admin.solo.delete');
 
         Route::middleware('superadmin')->group(function () {

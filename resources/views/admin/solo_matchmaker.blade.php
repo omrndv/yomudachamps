@@ -106,13 +106,23 @@
                                             <span class="fw-bold text-dark text-truncate" style="max-width: 120px;">{{ $player->wa_number }}</span>
                                             <span class="badge bg-info text-dark" style="font-size: 0.65rem;">{{ $player->rank }}</span>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
                                             @if($isDuoTrio)
                                                 <span class="badge bg-purple text-white px-2" style="font-size: 0.65rem; background-color: #8b5cf6;" title="Duo/Trio terikat bersama">
                                                     <i class="bi bi-link-45deg me-0.5"></i>{{ $teamSize == 2 ? 'Duo' : 'Trio' }}
                                                 </span>
                                             @endif
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2 border-top pt-1 mt-1">
+                                            <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.75rem;" 
+                                                    onclick="openEditPlayerModal({{ json_encode($player) }})">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </button>
+                                            <a href="{{ route('admin.solo.delete', $player->id) }}" class="btn btn-link text-danger p-0 m-0" style="font-size: 0.75rem;" 
+                                               onclick="return confirm('Hapus player ini?')">
+                                                <i class="bi bi-trash"></i> Hapus
+                                            </a>
                                         </div>
                                     </div>
                                 @empty
@@ -148,20 +158,32 @@
                                             @php
                                                 $isDuoTrio = $team->players->where('wa_number', $player->wa_number)->count() > 1;
                                             @endphp
-                                            <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex justify-content-between align-items-center cursor-grab"
+                                            <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex flex-column cursor-grab mb-2"
                                                  draggable="true"
                                                  data-id="{{ $player->id }}"
                                                  data-wa="{{ $player->wa_number }}"
                                                  style="font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#10b981' }} !important;">
-                                                <div class="d-flex flex-column">
-                                                    <span class="fw-bold text-dark">{{ $player->wa_number }}</span>
-                                                    <span class="text-muted small text-uppercase" style="font-size: 0.65rem;">{{ $player->role }} - {{ $player->rank }}</span>
-                                                </div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <div class="d-flex flex-column">
+                                                        <span class="fw-bold text-dark">{{ $player->wa_number }}</span>
+                                                        <span class="text-muted small text-uppercase" style="font-size: 0.65rem;">{{ $player->role }} - {{ $player->rank }}</span>
+                                                    </div>
                                                     <button type="button" class="btn btn-link text-danger p-0 m-0" onclick="movePlayerToPool({{ $player->id }})">
-                                                        <i class="bi bi-x-circle-fill"></i>
+                                                        <i class="bi bi-x-circle-fill" style="font-size: 1.1rem;"></i>
                                                     </button>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center border-top pt-1 mt-1">
+                                                    <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.7rem;" 
+                                                                onclick="openEditPlayerModal({{ json_encode($player) }})">
+                                                            <i class="bi bi-pencil-square"></i> Edit
+                                                        </button>
+                                                        <a href="{{ route('admin.solo.delete', $player->id) }}" class="btn btn-link text-danger p-0 m-0" style="font-size: 0.7rem;" 
+                                                           onclick="return confirm('Hapus player ini dari tim & database?')">
+                                                            <i class="bi bi-trash"></i> Hapus
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @empty
@@ -391,5 +413,77 @@
             alert('Terjadi kesalahan jaringan.');
         });
     }
+
+    function openEditPlayerModal(player) {
+        const form = document.getElementById('formEditSolo');
+        
+        // Update form action dynamically
+        form.action = `/admin/solo-matchmaker/update/${player.id}`;
+        
+        // Populate inputs
+        document.getElementById('edit_wa_number').value = player.wa_number;
+        document.getElementById('edit_role').value = player.role;
+        document.getElementById('edit_rank').value = player.rank;
+        document.getElementById('edit_amount_paid').value = player.amount_paid;
+        document.getElementById('edit_status').value = player.status;
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('modalEditSoloPlayer'));
+        modal.show();
+    }
 </script>
+
+{{-- Modal: Edit Solo Player --}}
+<div class="modal fade" id="modalEditSoloPlayer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="formEditSolo" method="POST" class="modal-content border-0 shadow rounded-4">
+            @csrf
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title fw-bold text-dark">Edit Solo Player</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">No. WhatsApp</label>
+                    <input type="text" name="wa_number" id="edit_wa_number" class="form-control" required>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Role Utama</label>
+                        <select name="role" id="edit_role" class="form-select" required>
+                            @foreach($roles as $role)
+                                <option value="{{ $role }}">{{ $role }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Rank</label>
+                        <select name="rank" id="edit_rank" class="form-select" required>
+                            @foreach($ranks as $rank)
+                                <option value="{{ $rank }}">{{ $rank }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Nominal Pembayaran</label>
+                        <input type="number" name="amount_paid" id="edit_amount_paid" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select name="status" id="edit_status" class="form-select" required>
+                            <option value="PAID">PAID (Lunas)</option>
+                            <option value="PENDING">PENDING</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
