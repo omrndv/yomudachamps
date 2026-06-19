@@ -13,6 +13,7 @@ class HomeController extends Controller
     public function index()
     {
         $active_seasons = Season::where('status', 'ACTIVE')
+            ->where('name', '!=', 'Season 32')
             ->withCount(['teams' => function ($q) {
                 $q->where('status', 'PAID');
             }])->get();
@@ -25,6 +26,7 @@ class HomeController extends Controller
     public function registerForm()
     {
         $active_season = Season::where('status', 'ACTIVE')
+            ->where('name', '!=', 'Season 32')
             ->withCount(['teams' => function ($q) {
                 $q->where('status', 'PAID');
             }])
@@ -32,6 +34,22 @@ class HomeController extends Controller
     
         if (!$active_season) {
             return redirect('/')->with('error', 'Tidak ada tournament aktif saat ini.');
+        }
+    
+        return view('register', compact('active_season'));
+    }
+
+    public function registerTripayForm()
+    {
+        $active_season = Season::where('status', 'ACTIVE')
+            ->where('name', 'Season 32')
+            ->withCount(['teams' => function ($q) {
+                $q->where('status', 'PAID');
+            }])
+            ->first();
+    
+        if (!$active_season) {
+            return redirect('/')->with('error', 'Turnamen Season 32 tidak aktif saat ini.');
         }
     
         return view('register', compact('active_season'));
@@ -91,7 +109,13 @@ class HomeController extends Controller
             return redirect('/')->with('error', 'Waduh telat! Slot baru saja penuh oleh pendaftar lain.');
         }
 
-        return view('payment', compact('team'));
+        $channels = [];
+        if ($team->season->name === 'Season 32') {
+            $tripay = new TripayController();
+            $channels = $tripay->getPaymentChannels();
+        }
+
+        return view('payment', compact('team', 'channels'));
     }
 
     public function checkout(Request $request, $trx_id)
@@ -107,23 +131,50 @@ class HomeController extends Controller
             return redirect('/')->with('error', 'Slot turnamen sudah penuh.');
         }
 
-        $ipaymu = new IPaymuController();
-        $transaction = $ipaymu->requestTransaction($team);
-
-        if ($transaction && $transaction->success) {
-            $qrCodeUrl = !empty($transaction->qr_string)
-                ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($transaction->qr_string)
-                : $transaction->qr_image;
-
-            $team->update([
-                'tripay_reference' => $transaction->transaction_id,
-                'payment_method' => $qrCodeUrl,
+        if ($team->season->name === 'Season 32') {
+            $request->validate([
+                'payment_method' => 'required|string'
             ]);
 
-            return redirect()->route('payment.detail', $team->trx_id);
-        }
+            $method = strtoupper(trim($request->payment_method));
+            $tripay = new TripayController();
+            
+            $availableMethods = collect($tripay->getPaymentChannels())->pluck('code')->map(function($code){ return strtoupper($code); })->toArray();
+            if (empty($method) || !in_array($method, $availableMethods)) {
+                return back()->with('error', 'Metode pembayaran tidak tersedia atau tidak dipilih.');
+            }
 
-        return back()->with('error', 'iPaymu Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+            $transaction = $tripay->requestTransaction($method, $team);
+
+            if ($transaction && $transaction->success) {
+                $team->update([
+                    'tripay_reference' => $transaction->data->reference,
+                    'payment_method'   => $method,
+                ]);
+
+                return redirect()->route('payment.detail', $team->trx_id);
+            }
+
+            return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+        } else {
+            $ipaymu = new IPaymuController();
+            $transaction = $ipaymu->requestTransaction($team);
+
+            if ($transaction && $transaction->success) {
+                $qrCodeUrl = !empty($transaction->qr_string)
+                    ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($transaction->qr_string)
+                    : $transaction->qr_image;
+
+                $team->update([
+                    'tripay_reference' => $transaction->transaction_id,
+                    'payment_method' => $qrCodeUrl,
+                ]);
+
+                return redirect()->route('payment.detail', $team->trx_id);
+            }
+
+            return back()->with('error', 'iPaymu Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+        }
     }
 
     public function paymentDetail($trx_id)
@@ -138,7 +189,18 @@ class HomeController extends Controller
             return redirect()->route('payment.confirm', $team->trx_id);
         }
 
-        return view('payment_detail', compact('team'));
+        if ($team->season->name === 'Season 32') {
+            $tripay = new TripayController();
+            $detail = $tripay->getDetailTransaction($team->tripay_reference);
+
+            if (!$detail) {
+                return redirect()->route('home');
+            }
+
+            return view('payment_detail_tripay', compact('team', 'detail'));
+        } else {
+            return view('payment_detail', compact('team'));
+        }
     }
 
     public function successPage($trx_id)

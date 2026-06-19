@@ -86,6 +86,14 @@
         border-color: rgba(255, 193, 7, 0.5);
     }
 
+    /* Glassmorphism style for payment options */
+    .payment-option.glass-card {
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+    }
+
     .btn-check:checked+.payment-option {
         background: rgba(255, 193, 7, 0.1) !important;
         border-color: #ffc107 !important;
@@ -173,11 +181,38 @@
 
         <form action="{{ route('payment.checkout', $team->trx_id) }}" method="POST">
             @csrf
+            
+            @if($team->season->name === 'Season 32')
+            <label class="label-v2 mb-3 small fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">Pilih Cara Bayar:</label>
+            <div class="method-list mb-4">
+                @forelse($channels as $channel)
+                    @if($channel->active)
+                    <div class="position-relative">
+                        <input type="radio" class="btn-check" name="payment_method" id="method-{{ $channel->code }}" value="{{ $channel->code }}" {{ $loop->first ? 'checked' : '' }} required>
+                        <label class="payment-option glass-card" for="method-{{ $channel->code }}">
+                            <div class="d-flex align-items-center">
+                                <div class="logo-container">
+                                    <img src="{{ $channel->icon_url }}" alt="{{ $channel->name }}">
+                                </div>
+                                <span class="method-name small fw-bold text-white">{{ $channel->name }}</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-secondary small"></i>
+                        </label>
+                    </div>
+                    @endif
+                @empty
+                    <div class="text-center py-3">
+                        <p class="small text-danger">Gagal memuat metode pembayaran.</p>
+                    </div>
+                @endforelse
+            </div>
+            @else
             <div class="payment-method-badge mb-4 p-3 text-center" style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 12px;">
                 <span class="small text-secondary d-block mb-1">Metode Pembayaran</span>
                 <span class="fw-bold text-white"><i class="bi bi-wallet2 text-warning me-2"></i>iPaymu Secure Redirect</span>
                 <span class="d-block small text-secondary mt-1" style="font-size: 0.75rem;">Mendukung QRIS, VA, E-Wallet, dll.</span>
             </div>
+            @endif
 
             <button type="submit" class="btn-pay">
                 BAYAR SEKARANG <i class="bi bi-arrow-right-short fs-4"></i>
@@ -185,7 +220,7 @@
         </form>
 
         <p class="text-center text-secondary mt-4 mb-0" style="font-size: 0.7rem;">
-            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by iPaymu
+            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by {{ $team->season->name === 'Season 32' ? 'Tripay' : 'iPaymu' }}
         </p>
     </div>
 </div>
