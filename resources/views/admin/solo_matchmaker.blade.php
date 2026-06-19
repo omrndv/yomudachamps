@@ -145,9 +145,15 @@
                         <div class="col-md-6">
                             <div class="card border border-warning shadow-sm rounded-3 overflow-hidden bg-white h-100">
                                 <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex justify-content-between align-items-center">
-                                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 180px;">
-                                        <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
-                                    </h6>
+                                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 140px;" id="team-name-title-{{ $team->id }}">
+                                            <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
+                                        </h6>
+                                        <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.85rem;" 
+                                                onclick="openEditTeamModal({{ json_encode($team) }})">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    </div>
                                     <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}">{{ $team->players->count() }}/5 Player</span>
                                 </div>
                                 <div class="card-body p-3 team-drop-zone" id="team-zone-{{ $team->id }}" data-team-id="{{ $team->id }}" style="min-height: 180px; background-color: #fafafa;">
@@ -431,6 +437,21 @@
         const modal = new bootstrap.Modal(document.getElementById('modalEditSoloPlayer'));
         modal.show();
     }
+
+    function openEditTeamModal(team) {
+        const form = document.getElementById('formEditTeamDetails');
+        
+        // Update form action dynamically
+        form.action = `/admin/solo-matchmaker/team/update/${team.id}`;
+        
+        // Populate inputs
+        document.getElementById('edit_team_name_input').value = team.name;
+        document.getElementById('edit_team_wa_input').value = team.wa_number;
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('modalEditTeamDetails'));
+        modal.show();
+    }
 </script>
 
 {{-- Modal: Edit Solo Player --}}
@@ -477,6 +498,33 @@
                             <option value="PENDING">PENDING</option>
                         </select>
                     </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal: Edit Team Details --}}
+<div class="modal fade" id="modalEditTeamDetails" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="formEditTeamDetails" method="POST" class="modal-content border-0 shadow rounded-4">
+            @csrf
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title fw-bold text-dark">Edit Detail Tim Solo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nama Tim</label>
+                    <input type="text" name="name" id="edit_team_name_input" class="form-control" placeholder="Masukkan nama tim..." required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">WhatsApp Perwakilan</label>
+                    <input type="text" name="wa_number" id="edit_team_wa_input" class="form-control" placeholder="Contoh: 081234567890" required>
                 </div>
             </div>
             <div class="modal-footer border-top border-light">

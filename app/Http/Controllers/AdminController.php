@@ -1351,4 +1351,28 @@ class AdminController extends Controller
 
         return back()->with('success', 'Data player berhasil diperbarui!');
     }
+
+    public function updateSoloTeamDetails(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'wa_number' => 'required|string|max:20',
+        ]);
+
+        $team = Team::findOrFail($id);
+        $oldName = $team->name;
+        
+        $team->update([
+            'name' => $request->name,
+            'wa_number' => $request->wa_number,
+        ]);
+
+        AdminActivity::log("Memperbarui detail tim solo: '{$oldName}' menjadi '{$team->name}' (WA: {$team->wa_number})");
+
+        return back()->with('success', 'Detail tim berhasil diperbarui!');
+    }
 }
