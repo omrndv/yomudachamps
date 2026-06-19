@@ -795,14 +795,49 @@ class AdminController extends Controller
         }
     }
 
-    public function activityLog()
+    public function activityLog(Request $request)
     {
         if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
-        $activities = AdminActivity::orderBy('created_at', 'desc')->paginate(30);
-        return view('admin.activity_log', compact('activities'));
+        $type = $request->query('type', 'login'); // Default is 'login'
+
+        $query = AdminActivity::with('user');
+
+        if ($type === 'login') {
+            $query->where(function($q) {
+                $q->where('activity', 'like', '%login%')
+                  ->orWhere('activity', 'like', '%logout%')
+                  ->orWhere('activity', 'like', '%masuk%')
+                  ->orWhere('activity', 'like', '%keluar%');
+            });
+        } elseif ($type === 'tambah') {
+            $query->where(function($q) {
+                $q->where('activity', 'like', '%tambah%')
+                  ->orWhere('activity', 'like', '%buat%')
+                  ->orWhere('activity', 'like', '%store%')
+                  ->orWhere('activity', 'like', '%create%');
+            });
+        } elseif ($type === 'ubah') {
+            $query->where(function($q) {
+                $q->where('activity', 'like', '%ubah%')
+                  ->orWhere('activity', 'like', '%perbarui%')
+                  ->orWhere('activity', 'like', '%update%')
+                  ->orWhere('activity', 'like', '%edit%')
+                  ->orWhere('activity', 'like', '%reorder%');
+            });
+        } elseif ($type === 'hapus') {
+            $query->where(function($q) {
+                $q->where('activity', 'like', '%hapus%')
+                  ->orWhere('activity', 'like', '%delete%')
+                  ->orWhere('activity', 'like', '%remove%');
+            });
+        }
+
+        $activities = $query->orderBy('created_at', 'desc')->paginate(30)->withQueryString();
+
+        return view('admin.activity_log', compact('activities', 'type'));
     }
 
     public function faqs()

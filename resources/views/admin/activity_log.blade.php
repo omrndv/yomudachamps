@@ -14,6 +14,25 @@
         </div>
     </div>
 
+    {{-- Tabs Filter --}}
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-white p-2 rounded-4 shadow-sm border border-light-subtle">
+        <a href="{{ route('admin.activity-log', ['type' => 'login']) }}" class="btn btn-sm rounded-3 px-4 py-2.5 fw-bold transition-all {{ $type === 'login' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-secondary border-0 bg-transparent' }}">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Log Login & Logout
+        </a>
+        <a href="{{ route('admin.activity-log', ['type' => 'tambah']) }}" class="btn btn-sm rounded-3 px-4 py-2.5 fw-bold transition-all {{ $type === 'tambah' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-secondary border-0 bg-transparent' }}">
+            <i class="bi bi-plus-circle me-1"></i> Log Tambah Data
+        </a>
+        <a href="{{ route('admin.activity-log', ['type' => 'ubah']) }}" class="btn btn-sm rounded-3 px-4 py-2.5 fw-bold transition-all {{ $type === 'ubah' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-secondary border-0 bg-transparent' }}">
+            <i class="bi bi-pencil-square me-1"></i> Log Ubah Data
+        </a>
+        <a href="{{ route('admin.activity-log', ['type' => 'hapus']) }}" class="btn btn-sm rounded-3 px-4 py-2.5 fw-bold transition-all {{ $type === 'hapus' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-secondary border-0 bg-transparent' }}">
+            <i class="bi bi-trash3 me-1"></i> Log Hapus Data
+        </a>
+        <a href="{{ route('admin.activity-log', ['type' => 'semua']) }}" class="btn btn-sm rounded-3 px-4 py-2.5 fw-bold transition-all {{ $type === 'semua' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-secondary border-0 bg-transparent' }}">
+            <i class="bi bi-list-stars me-1"></i> Semua Aktivitas
+        </a>
+    </div>
+
     {{-- Tabel Log --}}
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
         <div class="card-body p-0">
