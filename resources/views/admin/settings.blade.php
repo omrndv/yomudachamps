@@ -228,6 +228,25 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Card 6: Log Retention / Auto Clean --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-clock-history text-warning me-2"></i> Pembersihan Log Otomatis (Log Rotation)
+                </h5>
+
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Batas Penyimpanan Log (Hari)</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-event-fill text-secondary"></i></span>
+                        <input type="number" name="log_retention_days" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="15" min="1" value="{{ \App\Models\Setting::getVal('log_retention_days', '15') }}" required>
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                        Log aktivitas admin yang sudah melewati batas jumlah hari ini akan otomatis dibersihkan secara berkala untuk menghemat kapasitas database.
+                    </small>
+                </div>
+            </div>
         </div>
 
         {{-- Tombol Submit --}}

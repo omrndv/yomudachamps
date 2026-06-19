@@ -256,7 +256,8 @@ class AdminController extends Controller
             'social_instagram',
             'social_tiktok',
             'social_youtube',
-            'maintenance_secret'
+            'maintenance_secret',
+            'log_retention_days'
         ];
 
         foreach ($keys as $key) {
@@ -799,6 +800,12 @@ class AdminController extends Controller
     {
         if (!Auth::check()) {
             return redirect()->route('admin.login');
+        }
+
+        // Run log rotation/cleanup dynamically based on setting
+        $retentionDays = (int) \App\Models\Setting::getVal('log_retention_days', 15);
+        if ($retentionDays > 0) {
+            AdminActivity::where('created_at', '<', now()->subDays($retentionDays))->delete();
         }
 
         $type = $request->query('type', 'login'); // Default is 'login'
