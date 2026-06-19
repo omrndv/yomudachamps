@@ -1436,21 +1436,21 @@ class AdminController extends Controller
         }
 
         // Group players by wa_number to respect duo/trio bindings
-        $groups = $unmatched->groupBy('wa_number')->values()->toArray();
+        $groups = $unmatched->groupBy('wa_number');
 
         // Separate groups by size
         $trios = [];
         $duos = [];
         $solos = [];
 
-        foreach ($groups as $group) {
-            $count = count($group);
+        foreach ($groups as $wa => $group) {
+            $count = $group->count();
             if ($count === 3) {
-                $trios[] = $group;
+                $trios[] = $group->all();
             } elseif ($count === 2) {
-                $duos[] = $group;
+                $duos[] = $group->all();
             } elseif ($count === 1) {
-                $solos[] = $group[0];
+                $solos[] = $group->first();
             } else {
                 // If group is larger than 3, split it into smaller pieces for safety
                 foreach ($group as $p) {

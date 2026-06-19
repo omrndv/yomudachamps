@@ -105,6 +105,7 @@
                                          draggable="true" 
                                          data-id="{{ $player->id }}"
                                          data-wa="{{ $player->wa_number }}"
+                                         data-role="{{ $player->role }}"
                                          style="width: 100%; font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#f59e0b' }} !important;">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="fw-bold text-dark text-truncate" style="max-width: 120px;">{{ $player->wa_number }}</span>
@@ -198,6 +199,7 @@
                                                  draggable="true"
                                                  data-id="{{ $player->id }}"
                                                  data-wa="{{ $player->wa_number }}"
+                                                 data-role="{{ $player->role }}"
                                                  style="font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#10b981' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <div class="d-flex flex-column">
@@ -419,13 +421,8 @@
                 const roles = [];
                 mates.forEach(mate => {
                     ids.push(mate.getAttribute('data-id'));
-                    
-                    let mText = mate.textContent.toLowerCase();
-                    let mRole = 'roamer';
-                    rolesList.forEach(r => {
-                        if (mText.includes(r)) { mRole = r; }
-                    });
-                    roles.push(mRole);
+                    const rAttr = mate.getAttribute('data-role');
+                    roles.push(rAttr ? rAttr.toLowerCase().trim() : 'roamer');
                 });
 
                 e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -453,12 +450,10 @@
                         if (ids.includes(card.getAttribute('data-id'))) {
                             return;
                         }
-                        let cardText = card.textContent.toLowerCase();
-                        rolesList.forEach(r => {
-                            if (cardText.includes(r)) {
-                                existingRoles.push(r);
-                            }
-                        });
+                        const cardRole = card.getAttribute('data-role');
+                        if (cardRole) {
+                            existingRoles.push(cardRole.toLowerCase().trim());
+                        }
                     });
 
                     // Check if any moving role exists in destination
