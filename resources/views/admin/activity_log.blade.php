@@ -63,7 +63,7 @@
                                 <td class="py-3 px-3">
                                     @php
                                         $isDanger = str_contains(strtolower($activity->activity), 'hapus') || str_contains(strtolower($activity->activity), 'gagal');
-                                        $isAdd = str_contains(strtolower($activity->activity), 'tambah') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'store') || str_contains(strtolower($activity->activity), 'create');
+                                        $isAdd = str_contains(strtolower($activity->activity), 'tambah') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'store') || str_contains(strtolower($activity->activity), 'create') || str_contains(strtolower($activity->activity), 'import');
                                         $isSuccess = !$isAdd && (str_contains(strtolower($activity->activity), 'berhasil') || str_contains(strtolower($activity->activity), 'sukses'));
                                         $isWarning = str_contains(strtolower($activity->activity), 'ubah') || str_contains(strtolower($activity->activity), 'perbarui') || str_contains(strtolower($activity->activity), 'pengaturan') || str_contains(strtolower($activity->activity), 'edit');
                                     @endphp

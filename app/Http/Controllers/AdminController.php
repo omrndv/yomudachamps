@@ -817,7 +817,8 @@ class AdminController extends Controller
                 $q->where('activity', 'like', '%tambah%')
                   ->orWhere('activity', 'like', '%buat%')
                   ->orWhere('activity', 'like', '%store%')
-                  ->orWhere('activity', 'like', '%create%');
+                  ->orWhere('activity', 'like', '%create%')
+                  ->orWhere('activity', 'like', '%import%');
             });
         } elseif ($type === 'ubah') {
             $query->where(function($q) {
