@@ -139,6 +139,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/faqs/store', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
     Route::post('/faqs/update/{id}', [AdminController::class, 'updateFaq'])->name('admin.faqs.update');
     Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
+    Route::post('/faqs/reorder/{id}', [AdminController::class, 'reorderFaq'])->name('admin.faqs.reorder');
 });
 
 Route::view('/privacy-policy', 'pages.privacy')->name('privacy');

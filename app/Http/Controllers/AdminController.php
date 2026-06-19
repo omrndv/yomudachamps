@@ -864,4 +864,51 @@ class AdminController extends Controller
 
         return back()->with('success', 'FAQ berhasil dihapus!');
     }
+
+    public function reorderFaq(Request $request, $id)
+    {
+        if (!session('admin_logged_in')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'direction' => 'required|in:up,down'
+        ]);
+
+        $faq = Faq::findOrFail($id);
+        $direction = $request->direction;
+
+        // Normalize all orders sequentially to ensure they are clean (1, 2, 3...)
+        $faqs = Faq::orderBy('order', 'asc')->orderBy('id', 'asc')->get();
+        foreach ($faqs as $index => $item) {
+            $item->order = $index + 1;
+            $item->save();
+        }
+
+        // Reload current FAQ after normalization
+        $faq = Faq::findOrFail($id);
+        $currentOrder = $faq->order;
+
+        if ($direction === 'up') {
+            $targetFaq = Faq::where('order', $currentOrder - 1)->first();
+            if ($targetFaq) {
+                $targetFaq->order = $currentOrder;
+                $targetFaq->save();
+                
+                $faq->order = $currentOrder - 1;
+                $faq->save();
+            }
+        } elseif ($direction === 'down') {
+            $targetFaq = Faq::where('order', $currentOrder + 1)->first();
+            if ($targetFaq) {
+                $targetFaq->order = $currentOrder;
+                $targetFaq->save();
+                
+                $faq->order = $currentOrder + 1;
+                $faq->save();
+            }
+        }
+
+        return response()->json(['success' => true]);
+    }
 }

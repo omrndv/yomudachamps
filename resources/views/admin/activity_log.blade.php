@@ -41,21 +41,27 @@
                                         {{ $activity->user ? $activity->user->username : 'System/Guest' }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-3 fw-semibold">
+                                <td class="py-3 px-3">
                                     @php
                                         $isDanger = str_contains(strtolower($activity->activity), 'hapus') || str_contains(strtolower($activity->activity), 'gagal');
                                         $isSuccess = str_contains(strtolower($activity->activity), 'berhasil') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'tambah');
                                         $isWarning = str_contains(strtolower($activity->activity), 'ubah') || str_contains(strtolower($activity->activity), 'perbarui') || str_contains(strtolower($activity->activity), 'pengaturan');
                                     @endphp
-                                    @if($isDanger)
-                                        <span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $activity->activity }}</span>
-                                    @elseif($isSuccess)
-                                        <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> {{ $activity->activity }}</span>
-                                    @elseif($isWarning)
-                                        <span class="text-warning-emphasis"><i class="bi bi-pencil-square me-1"></i> {{ $activity->activity }}</span>
-                                    @else
-                                        <span><i class="bi bi-info-circle-fill text-info me-1"></i> {{ $activity->activity }}</span>
-                                    @endif
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($isDanger)
+                                            <span class="badge bg-danger text-white rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Hapus</span>
+                                            <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
+                                        @elseif($isSuccess)
+                                            <span class="badge bg-success text-white rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Sukses</span>
+                                            <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
+                                        @elseif($isWarning)
+                                            <span class="badge bg-warning text-dark rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Ubah</span>
+                                            <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
+                                        @else
+                                            <span class="badge bg-info text-dark rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Info</span>
+                                            <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="py-3 px-3 text-secondary font-monospace" style="font-size: 0.8rem;">
                                     <i class="bi bi-geo-alt me-1 text-muted"></i>

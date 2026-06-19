@@ -44,9 +44,19 @@
                         @forelse($faqs as $faq)
                             <tr>
                                 <td class="py-3 px-4 font-monospace">
-                                    <span class="badge bg-light text-secondary border border-light-subtle rounded-pill px-2.5 py-1.5 fw-bold">
-                                        #{{ $faq->order }}
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-secondary border border-light-subtle rounded-pill px-2.5 py-1.5 fw-bold">
+                                            #{{ $faq->order }}
+                                        </span>
+                                        <div class="d-flex flex-column gap-0">
+                                            <button type="button" class="btn btn-link p-0 text-secondary btn-reorder-faq" data-id="{{ $faq->id }}" data-direction="up" style="line-height: 1; font-size: 0.75rem; text-decoration: none;">
+                                                <i class="bi bi-chevron-up"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-link p-0 text-secondary btn-reorder-faq" data-id="{{ $faq->id }}" data-direction="down" style="line-height: 1; font-size: 0.75rem; text-decoration: none;">
+                                                <i class="bi bi-chevron-down"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="py-3 px-3 fw-bold">
                                     {{ $faq->question }}
@@ -156,3 +166,46 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const reorderButtons = document.querySelectorAll(".btn-reorder-faq");
+    reorderButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            const faqId = this.getAttribute("data-id");
+            const direction = this.getAttribute("data-direction");
+            
+            fetch(`/admin/faqs/reorder/${faqId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ direction: direction })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.error || 'Gagal mengubah urutan FAQ'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Error reordering FAQ:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Terjadi kesalahan sistem'
+                });
+            });
+        });
+    });
+});
+</script>
+@endpush
