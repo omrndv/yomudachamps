@@ -366,7 +366,14 @@
 <style>
     .cursor-grab { cursor: grab; }
     .cursor-grab:active { cursor: grabbing; }
-    .drag-over { background-color: #e2e8f0 !important; border: 2px dashed #e2e8f0 !important; }
+    .drag-item { transition: all 0.2s ease; }
+    .drag-item.dragging-active { opacity: 0.4; transform: scale(0.95); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; }
+    .drag-over { background-color: #fef08a !important; border: 2px dashed #eab308 !important; }
+    .team-drop-zone { transition: all 0.2s ease; }
+    .team-drop-zone.zone-invalid-capacity, .team-drop-zone.zone-invalid-role { background-color: #fee2e2 !important; border: 2px dashed #ef4444 !important; opacity: 0.8; }
+    .team-drop-zone.zone-invalid-capacity::after { content: "Slot Tidak Cukup!"; display: block; text-align: center; color: #ef4444; font-size: 0.75rem; font-weight: bold; margin-top: 8px; }
+    .team-drop-zone.zone-invalid-role::after { content: "Role Bentrok!"; display: block; text-align: center; color: #ef4444; font-size: 0.75rem; font-weight: bold; margin-top: 8px; }
+    .duotrio-highlight { border-color: #8b5cf6 !important; box-shadow: 0 0 10px rgba(139, 92, 246, 0.6) !important; }
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -374,25 +381,121 @@
         const dropZones = document.querySelectorAll('.team-drop-zone');
 
         draggables.forEach(draggable => {
+            const wa = draggable.getAttribute('data-wa');
+            const playerId = draggable.getAttribute('data-id');
+
+            // Find role info for validation
+            // The role info is found inside the text of card (either exp lane, jungler etc)
+            let rawText = draggable.textContent.toLowerCase();
+            let playerRole = 'Roamer'; // fallback
+            const rolesList = ['jungler', 'mid lane', 'gold lane', 'exp lane', 'roamer'];
+            rolesList.forEach(r => {
+                if (rawText.includes(r)) {
+                    playerRole = r;
+                }
+            });
+
+            // Duo/Trio visual highlight on hover
+            draggable.addEventListener('mouseenter', () => {
+                if (wa && wa !== '-') {
+                    const mates = document.querySelectorAll(`.drag-item[data-wa="${wa}"]`);
+                    if (mates.length > 1) {
+                        mates.forEach(m => m.classList.add('duotrio-highlight'));
+                    }
+                }
+            });
+
+            draggable.addEventListener('mouseleave', () => {
+                const highlighted = document.querySelectorAll('.duotrio-highlight');
+                highlighted.forEach(h => h.classList.remove('duotrio-highlight'));
+            });
+
             draggable.addEventListener('dragstart', (e) => {
+                draggable.classList.add('dragging-active');
+                
                 // Find all players sharing the same WA (duo/trio binding)
-                const wa = draggable.getAttribute('data-wa');
                 const mates = document.querySelectorAll(`.drag-item[data-wa="${wa}"]`);
                 const ids = [];
-                mates.forEach(mate => ids.push(mate.getAttribute('data-id')));
+                const roles = [];
+                mates.forEach(mate => {
+                    ids.push(mate.getAttribute('data-id'));
+                    
+                    let mText = mate.textContent.toLowerCase();
+                    let mRole = 'roamer';
+                    rolesList.forEach(r => {
+                        if (mText.includes(r)) { mRole = r; }
+                    });
+                    roles.push(mRole);
+                });
 
                 e.dataTransfer.setData('text/plain', JSON.stringify({
-                    player_id: draggable.getAttribute('data-id'),
+                    player_id: playerId,
                     wa_number: wa,
-                    mate_ids: ids
+                    mate_ids: ids,
+                    roles: roles
                 }));
+
+                // Visual Feedback: Analyze dropzones for potential capacity or role conflicts
+                dropZones.forEach(zone => {
+                    const currentPlayersCount = parseInt(zone.parentElement.querySelector('.badge').textContent.split('/')[0]);
+                    
+                    // Capacity Check
+                    if (currentPlayersCount + ids.length > 5) {
+                        zone.classList.add('zone-invalid-capacity');
+                        return;
+                    }
+
+                    // Role Conflict Check
+                    const existingRoles = [];
+                    const assignedPlayerCards = zone.querySelectorAll('.drag-item');
+                    assignedPlayerCards.forEach(card => {
+                        // ignore self or teammates already in the target zone (if re-dragging within the same zone)
+                        if (ids.includes(card.getAttribute('data-id'))) {
+                            return;
+                        }
+                        let cardText = card.textContent.toLowerCase();
+                        rolesList.forEach(r => {
+                            if (cardText.includes(r)) {
+                                existingRoles.push(r);
+                            }
+                        });
+                    });
+
+                    // Check if any moving role exists in destination
+                    let conflict = false;
+                    roles.forEach(r => {
+                        if (existingRoles.includes(r)) {
+                            conflict = true;
+                        }
+                    });
+
+                    // Check if there is internal role duplication inside the moving group itself
+                    const uniqueRoles = new Set(roles);
+                    if (uniqueRoles.size !== roles.length) {
+                        conflict = true;
+                    }
+
+                    if (conflict) {
+                        zone.classList.add('zone-invalid-role');
+                    }
+                });
+            });
+
+            draggable.addEventListener('dragend', () => {
+                draggable.classList.remove('dragging-active');
+                dropZones.forEach(zone => {
+                    zone.classList.remove('zone-invalid-capacity', 'zone-invalid-role');
+                });
             });
         });
 
         dropZones.forEach(zone => {
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                zone.classList.add('drag-over');
+                // Only style as drag-over if it does not have invalid flags
+                if (!zone.classList.contains('zone-invalid-capacity') && !zone.classList.contains('zone-invalid-role')) {
+                    zone.classList.add('drag-over');
+                }
             });
 
             zone.addEventListener('dragleave', () => {
@@ -402,6 +505,16 @@
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.classList.remove('drag-over');
+
+                if (zone.classList.contains('zone-invalid-capacity')) {
+                    alert('Gagal! Slot tim tidak mencukupi untuk memasukkan kelompok ini.');
+                    return;
+                }
+
+                if (zone.classList.contains('zone-invalid-role')) {
+                    alert('Gagal! Role bentrok dengan player yang sudah ada di tim ini.');
+                    return;
+                }
                 
                 try {
                     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
