@@ -60,15 +60,18 @@
                                         {{ $activity->user ? $activity->user->username : 'System/Guest' }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-3">
                                     @php
                                         $isDanger = str_contains(strtolower($activity->activity), 'hapus') || str_contains(strtolower($activity->activity), 'gagal');
-                                        $isSuccess = str_contains(strtolower($activity->activity), 'berhasil') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'tambah');
-                                        $isWarning = str_contains(strtolower($activity->activity), 'ubah') || str_contains(strtolower($activity->activity), 'perbarui') || str_contains(strtolower($activity->activity), 'pengaturan');
+                                        $isAdd = str_contains(strtolower($activity->activity), 'tambah') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'store') || str_contains(strtolower($activity->activity), 'create');
+                                        $isSuccess = !$isAdd && (str_contains(strtolower($activity->activity), 'berhasil') || str_contains(strtolower($activity->activity), 'sukses'));
+                                        $isWarning = str_contains(strtolower($activity->activity), 'ubah') || str_contains(strtolower($activity->activity), 'perbarui') || str_contains(strtolower($activity->activity), 'pengaturan') || str_contains(strtolower($activity->activity), 'edit');
                                     @endphp
                                     <div class="d-flex align-items-center gap-2">
                                         @if($isDanger)
                                             <span class="badge bg-danger text-white rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Hapus</span>
+                                            <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
+                                        @elseif($isAdd)
+                                            <span class="badge bg-success text-white rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Tambah</span>
                                             <span class="text-dark fw-semibold">{{ $activity->activity }}</span>
                                         @elseif($isSuccess)
                                             <span class="badge bg-success text-white rounded-2 px-2.5 py-1.5 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px; min-width: 70px; text-align: center;">Sukses</span>
