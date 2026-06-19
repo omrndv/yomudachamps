@@ -62,6 +62,12 @@
             display: flex;
             flex-direction: column;
             height: calc(100% - 70px);
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-pills .nav-link {
