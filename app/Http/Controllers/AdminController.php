@@ -1298,6 +1298,51 @@ class AdminController extends Controller
         if ($request->team_id) {
             $team = Team::where('season_id', $season_id)->findOrFail($request->team_id);
             $teamName = $team->name;
+
+            // Fetch players currently assigned to this team (excluding players who are moving)
+            $movingIds = $playersToMove->pluck('id')->toArray();
+            $currentTeamPlayers = \App\Models\SoloPlayer::where('team_id', $team->id)
+                ->whereNotIn('id', $movingIds)
+                ->get();
+
+            // 1. Validation: Team size check (max 5 players)
+            if (($currentTeamPlayers->count() + $playersToMove->count()) > 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Tim '{$team->name}' sudah penuh atau slot tidak mencukupi untuk memasukkan kelompok ini (maksimal 5 player)."
+                ], 422);
+            }
+
+            // 2. Validation: Duplicate role check
+            // Roles already present in target team
+            $existingRoles = $currentTeamPlayers->pluck('role')->map(function($r) {
+                return strtolower(trim($r));
+            })->toArray();
+
+            // Check if any moving player has a duplicate role with current team players
+            // Or if there are duplicate roles inside the moving duo/trio itself
+            $movingRoles = [];
+            foreach ($playersToMove as $p) {
+                $roleNormalized = strtolower(trim($p->role));
+                
+                // Compare with current team members
+                if (in_array($roleNormalized, $existingRoles)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Gagal! Role '{$p->role}' sudah terisi di dalam tim '{$team->name}'."
+                    ], 422);
+                }
+
+                // Compare within the moving group
+                if (in_array($roleNormalized, $movingRoles)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Gagal! Ada duplikasi role '{$p->role}' di dalam kelompok Duo/Trio yang ingin dimasukkan."
+                    ], 422);
+                }
+
+                $movingRoles[] = $roleNormalized;
+            }
             
             // Auto update team's WhatsApp number to the first player's WhatsApp if it is currently '-'
             if ($team->wa_number === '-') {
