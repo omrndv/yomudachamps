@@ -1435,6 +1435,83 @@ class AdminController extends Controller
             return back()->with('error', 'Jumlah player di pool unmatched kurang dari 5, tidak dapat membentuk tim.');
         }
 
+        // Phase 1: Try to fill empty slots in existing incomplete solo teams
+        $existingTeams = Team::where('season_id', $season_id)
+            ->where('is_solo_team', true)
+            ->get();
+
+        foreach ($existingTeams as $team) {
+            $assignedPlayers = \App\Models\SoloPlayer::where('team_id', $team->id)->get();
+            $slotsAvailable = 5 - $assignedPlayers->count();
+            if ($slotsAvailable <= 0) {
+                continue; // team is already full
+            }
+
+            // Get roles currently filled in this team
+            $filledRoles = $assignedPlayers->pluck('role')->map(function($r) {
+                return strtolower(trim($r));
+            })->toArray();
+
+            // Fetch unmatched players and try to slot them in if they fill a missing role
+            $remainingUnmatched = \App\Models\SoloPlayer::where('season_id', $season_id)
+                ->whereNull('team_id')
+                ->get();
+
+            // Group remaining unmatched by WA to respect duo/trio
+            $unmatchedGroups = $remainingUnmatched->groupBy('wa_number');
+
+            foreach ($unmatchedGroups as $wa => $group) {
+                $groupSize = $group->count();
+                if ($groupSize > $slotsAvailable) {
+                    continue; // group is too big for the remaining slots
+                }
+
+                // Check for role conflicts between group and team, and within group
+                $conflict = false;
+                $groupRoles = [];
+                foreach ($group as $gp) {
+                    $gRole = strtolower(trim($gp->role));
+                    if (in_array($gRole, $filledRoles) || in_array($gRole, $groupRoles)) {
+                        $conflict = true;
+                        break;
+                    }
+                    $groupRoles[] = $gRole;
+                }
+
+                if (!$conflict) {
+                    // Assign this group to the team!
+                    foreach ($group as $gp) {
+                        $gp->team_id = $team->id;
+                        $gp->status = 'PAID';
+                        $gp->save();
+                    }
+                    // Update variables for next checks
+                    $slotsAvailable -= $groupSize;
+                    $filledRoles = array_merge($filledRoles, $groupRoles);
+                    
+                    // Auto-update team representative WA if not set
+                    if ($team->wa_number === '-' || empty($team->wa_number)) {
+                        $team->wa_number = $wa;
+                        $team->save();
+                    }
+
+                    if ($slotsAvailable <= 0) {
+                        break; // team is now full
+                    }
+                }
+            }
+        }
+
+        // Fetch fresh unmatched list for Phase 2 (forming new teams)
+        $unmatched = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->whereNull('team_id')
+            ->get();
+
+        if ($unmatched->count() < 5) {
+            AdminActivity::log("Algoritma Matchmaker selesai memproses pengisian slot kosong.");
+            return back()->with('success', "Proses pengisian slot kosong selesai!");
+        }
+
         // Group players by wa_number to respect duo/trio bindings
         $groups = $unmatched->groupBy('wa_number');
 
@@ -1643,5 +1720,27 @@ class AdminController extends Controller
         }
 
         return back()->with('error', 'Tidak dapat mencocokkan player dengan komposisi role yang ideal saat ini.');
+    }
+
+    public function deleteSoloTeam($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $team = Team::findOrFail($id);
+        
+        // Unlink all players assigned to this team (move back to pool)
+        \App\Models\SoloPlayer::where('team_id', $team->id)->update([
+            'team_id' => null,
+            'status' => 'PENDING'
+        ]);
+
+        $name = $team->name;
+        $team->delete();
+
+        AdminActivity::log('Menghapus tim solo: ' . $name);
+
+        return back()->with('success', 'Tim solo berhasil dihapus dan player dikembalikan ke pool!');
     }
 }

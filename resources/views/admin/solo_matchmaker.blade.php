@@ -152,13 +152,17 @@
                                 <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex flex-column gap-2">
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div class="d-flex align-items-center gap-1.5 overflow-hidden">
-                                            <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 120px;" id="team-name-title-{{ $team->id }}">
+                                            <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 100px;" id="team-name-title-{{ $team->id }}">
                                                 <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
                                             </h6>
                                             <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.85rem;" 
                                                     onclick="openEditTeamModal({{ json_encode($team) }})">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </button>
+                                            <a href="{{ route('admin.solo.team.delete', $team->id) }}" class="btn btn-link text-danger p-0 m-0" style="font-size: 0.85rem;"
+                                               onclick="return confirm('Hapus tim solo ini? Seluruh anggota di dalamnya akan dikembalikan ke pool unmatched.')">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
                                         </div>
                                         <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
                                     </div>
