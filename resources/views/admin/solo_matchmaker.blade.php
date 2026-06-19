@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf-token() }}">
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Alerts --}}
     @if ($errors->any())
@@ -34,11 +35,14 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h2 class="fw-bold text-dark m-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">
-                        Solo Matchmaker <span class="text-warning">{{ $current_season->name }}</span>
+                        Interactive Matchmaker <span class="text-warning">{{ $current_season->name }}</span>
                     </h2>
-                    <p class="text-secondary small mb-0 mt-1">Gabungkan player solo/duo/trio menjadi 1 tim lunas otomatis.</p>
+                    <p class="text-secondary small mb-0 mt-1">Kelompokkan player secara visual. Duo/Trio terikat bersama secara otomatis berdasarkan Nomor WhatsApp.</p>
                 </div>
                 <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreateEmptyTeam">
+                        <i class="bi bi-folder-plus me-1"></i> Buat Tim Kosong
+                    </button>
                     <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddSolo">
                         <i class="bi bi-person-plus-fill me-1"></i> Tambah Solo
                     </button>
@@ -50,130 +54,164 @@
         </div>
     </div>
 
-    {{-- Tabs & Interactive Matchmaker --}}
+    {{-- Interactive Drag & Drop Workspace --}}
     <div class="row g-4">
-        {{-- Matchmaker Panel --}}
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0">Player Solo Belum Tergabung ({{ $unmatched_players->count() }})</h5>
-                    <button type="button" class="btn btn-success btn-sm fw-bold px-3 rounded-pill shadow-sm" id="btnGroupSelected" disabled data-bs-toggle="modal" data-bs-target="#modalCreateTeam">
-                        <i class="bi bi-people-fill me-1"></i> Bentuk 1 Tim (<span id="selectedCount">0</span>/5)
-                    </button>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                        <thead class="bg-light">
-                            <tr class="text-secondary small fw-bold" style="border-bottom: 2px solid #f1f5f9;">
-                                <th width="40" class="text-center">Pilih</th>
-                                <th>No. WhatsApp</th>
-                                <th>Role Utama</th>
-                                <th>Rank Saat Ini</th>
-                                <th>Nominal Bayar</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center" width="80">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($unmatched_players as $player)
-                            <tr class="player-row" data-id="{{ $player->id }}">
-                                <td class="text-center">
-                                    <input type="checkbox" class="form-check-input player-checkbox" value="{{ $player->id }}" onchange="updateSelection()">
-                                </td>
-                                <td>
-                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $player->wa_number) }}" target="_blank" class="text-decoration-none text-success">
-                                        <i class="bi bi-whatsapp me-1"></i>{{ $player->wa_number }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary text-white">{{ $player->role }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info text-dark">{{ $player->rank }}</span>
-                                </td>
-                                <td class="fw-semibold text-success">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</td>
-                                <td class="text-center">
-                                    <span class="badge {{ $player->status === 'PAID' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                        {{ $player->status }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ route('admin.solo.delete', $player->id) }}" class="btn btn-link text-danger p-0" onclick="return confirm('Hapus player ini?')">
-                                        <i class="bi bi-trash fs-5"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada player solo terdaftar yang belum tergabung.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- Matched Teams Panel --}}
+        
+        {{-- Left: Unmatched Player Pool divided into 5 Role Sections --}}
+        <div class="col-xl-5">
             <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-                <h5 class="fw-bold text-dark mb-3">Player Solo yang Sudah Tergabung ({{ $matched_players->count() }})</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                        <thead class="bg-light">
-                            <tr class="text-secondary small fw-bold" style="border-bottom: 2px solid #f1f5f9;">
-                                <th>No. WhatsApp</th>
-                                <th>Role</th>
-                                <th>Rank</th>
-                                <th>Nama Tim Hasil Matchmaker</th>
-                                <th>Nominal Bayar</th>
-                                <th class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($matched_players as $player)
-                            <tr>
-                                <td>{{ $player->wa_number }}</td>
-                                <td><span class="badge bg-secondary">{{ $player->role }}</span></td>
-                                <td><span class="badge bg-info text-dark">{{ $player->rank }}</span></td>
-                                <td>
-                                    <span class="badge bg-primary text-white">
-                                        <i class="bi bi-shield me-1"></i>{{ $player->team->name ?? 'N/A' }}
-                                    </span>
-                                </td>
-                                <td class="fw-semibold text-success">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</td>
-                                <td class="text-center">
-                                    <a href="{{ route('admin.solo.delete', $player->id) }}" class="btn btn-link text-danger p-0" onclick="return confirm('Hapus player ini dari tim & database?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Belum ada player solo yang tergabung ke dalam tim.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold text-dark mb-0">Pool Unmatched (Belum Tergabung)</h5>
+                    <span class="badge bg-secondary text-white">{{ $unmatched_players->count() }} Player</span>
+                </div>
+
+                {{-- Grouping matching WA numbers to indicate duo/trio --}}
+                @php
+                    $duoTrioCounts = $unmatched_players->groupBy('wa_number')->map->count();
+                    $rolesList = ['Jungler', 'Mid Lane', 'Gold Lane', 'Exp Lane', 'Roamer'];
+                @endphp
+
+                <div class="role-sections-container">
+                    @foreach($rolesList as $roleName)
+                        @php
+                            $rolePlayers = $unmatched_players->filter(function($p) use ($roleName) {
+                                return strtolower(trim($p->role)) === strtolower(trim($roleName)) || 
+                                       (strtolower(trim($roleName)) === 'jungler' && strtolower(trim($p->role)) === 'jungler') ||
+                                       (strtolower(trim($roleName)) === 'mid lane' && strtolower(trim($p->role)) === 'mid lane') ||
+                                       (strtolower(trim($roleName)) === 'gold lane' && strtolower(trim($p->role)) === 'gold lane') ||
+                                       (strtolower(trim($roleName)) === 'exp lane' && strtolower(trim($p->role)) === 'exp lane') ||
+                                       (strtolower(trim($roleName)) === 'roamer' && strtolower(trim($p->role)) === 'roamer');
+                            });
+                        @endphp
+                        
+                        <div class="role-section mb-3 p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                    <i class="bi bi-shield-fill text-warning me-1"></i>{{ $roleName }}
+                                </span>
+                                <span class="badge bg-dark-subtle text-dark" style="font-size: 0.7rem;">{{ $rolePlayers->count() }}</span>
+                            </div>
+
+                            <div class="player-drop-zone d-flex flex-wrap gap-2 min-vh-5" id="pool-{{ Str::slug($roleName) }}" data-team-id="" style="min-height: 50px;">
+                                @forelse($rolePlayers as $player)
+                                    @php
+                                        $isDuoTrio = $duoTrioCounts[$player->wa_number] > 1;
+                                        $teamSize = $duoTrioCounts[$player->wa_number];
+                                    @endphp
+                                    <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex flex-column justify-content-between cursor-grab" 
+                                         draggable="true" 
+                                         data-id="{{ $player->id }}"
+                                         data-wa="{{ $player->wa_number }}"
+                                         style="width: 100%; font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#f59e0b' }} !important;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-bold text-dark text-truncate" style="max-width: 120px;">{{ $player->wa_number }}</span>
+                                            <span class="badge bg-info text-dark" style="font-size: 0.65rem;">{{ $player->rank }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
+                                            @if($isDuoTrio)
+                                                <span class="badge bg-purple text-white px-2" style="font-size: 0.65rem; background-color: #8b5cf6;" title="Duo/Trio terikat bersama">
+                                                    <i class="bi bi-link-45deg me-0.5"></i>{{ $teamSize == 2 ? 'Duo' : 'Trio' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="text-center w-100 py-2 text-muted small border-dashed rounded">Kosong</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
 
-        {{-- Matchmaking Strategy Insights Sidebar --}}
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-warning me-2"></i>Informasi Matchmaker</h6>
-                <p class="text-secondary small mb-3">
-                    Fitur ini membantu admin mengelompokkan pendaftar solo, duo, atau trio menjadi tim lengkap berisi <strong>5 orang</strong> secara otomatis.
-                </p>
-                <div class="border-start border-warning border-3 ps-3 py-1 mb-3">
-                    <span class="small text-muted d-block">Tips Menyusun Tim:</span>
-                    <span class="small fw-semibold text-dark">Usahakan komposisi role ideal (Roamer, Gold Lane, Mid Lane, Exp Lane, Jungler) dan rank yang seimbang agar permainan adil.</span>
-                </div>
-                <div class="alert bg-light border-0 py-2.5 small mb-0 rounded-3 text-secondary">
-                    <i class="bi bi-check2-circle text-success me-2"></i>Tim hasil gabungan solo otomatis berstatus <strong>PAID</strong> dan ditandai sebagai tim solo pada Dashboard Pendapatan.
+        {{-- Right: Created Teams & Interactive Drop Zones --}}
+        <div class="col-xl-7">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">Daftar Tim Hasil Pengelompokan ({{ $solo_teams->count() }})</h5>
+                
+                <div class="row g-3">
+                    @forelse($solo_teams as $team)
+                        <div class="col-md-6">
+                            <div class="card border border-warning shadow-sm rounded-3 overflow-hidden bg-white h-100">
+                                <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex justify-content-between align-items-center">
+                                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 180px;">
+                                        <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
+                                    </h6>
+                                    <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}">{{ $team->players->count() }}/5 Player</span>
+                                </div>
+                                <div class="card-body p-3 team-drop-zone" id="team-zone-{{ $team->id }}" data-team-id="{{ $team->id }}" style="min-height: 180px; background-color: #fafafa;">
+                                    
+                                    {{-- Role structure overlay for clean view inside target teams --}}
+                                    <div class="assigned-players-list d-flex flex-column gap-2">
+                                        @forelse($team->players as $player)
+                                            @php
+                                                $isDuoTrio = $team->players->where('wa_number', $player->wa_number)->count() > 1;
+                                            @endphp
+                                            <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex justify-content-between align-items-center cursor-grab"
+                                                 draggable="true"
+                                                 data-id="{{ $player->id }}"
+                                                 data-wa="{{ $player->wa_number }}"
+                                                 style="font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#10b981' }} !important;">
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold text-dark">{{ $player->wa_number }}</span>
+                                                    <span class="text-muted small text-uppercase" style="font-size: 0.65rem;">{{ $player->role }} - {{ $player->rank }}</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
+                                                    <button type="button" class="btn btn-link text-danger p-0 m-0" onclick="movePlayerToPool({{ $player->id }})">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-4 text-secondary small border-dashed rounded bg-light empty-placeholder-text">
+                                                Tarik player dari kiri ke mari.
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                                @if($team->players->count() > 0)
+                                    <div class="card-footer py-2 px-3 border-top bg-light text-center small text-secondary">
+                                        WhatsApp Pendaftar: <strong>{{ $team->wa_number }}</strong>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12 text-center py-5 text-muted">
+                            <i class="bi bi-shield-exclamation fs-1 mb-2 d-block text-secondary"></i>
+                            Belum ada tim solo terbentuk. Klik tombol <strong>Buat Tim Kosong</strong> di atas untuk memulai drag & drop.
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Modal: Buat Tim Kosong --}}
+<div class="modal fade" id="modalCreateEmptyTeam" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ route('admin.solo.createEmptyTeam', $current_season->id) }}" method="POST" class="modal-content border-0 shadow rounded-4">
+            @csrf
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title fw-bold text-dark">Buat Tim Solo Kosong</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nama Tim</label>
+                    <input type="text" name="team_name" class="form-control" placeholder="Contoh: Solo Rangers A" required>
+                </div>
+                <p class="text-secondary small mb-0">Tim ini akan dibuat kosong dengan status <strong>PAID</strong>, siap untuk diisi player secara drag & drop.</p>
+            </div>
+            <div class="modal-footer border-top border-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-toggle="modal">Batal</button>
+                <button type="submit" class="btn btn-success btn-sm px-4 fw-bold rounded-pill text-white">Buat Tim</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -260,61 +298,99 @@
                 </div>
             </div>
             <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-toggle="modal">Batal</button>
                 <button type="submit" class="btn btn-dark btn-sm px-4 fw-bold rounded-pill">Import Players</button>
             </div>
         </form>
     </div>
 </div>
 
-{{-- Modal: Create Team --}}
-<div class="modal fade" id="modalCreateTeam" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('admin.solo.group', $current_season->id) }}" method="POST" class="modal-content border-0 shadow rounded-4">
-            @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Bentuk Tim Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4" id="teamGroupingModalBody">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Nama Tim Baru</label>
-                    <input type="text" name="team_name" class="form-control" placeholder="Contoh: Solo Rangers A" required>
-                </div>
-                <input type="hidden" name="player_ids[]" class="hidden-player-id">
-                <input type="hidden" name="player_ids[]" class="hidden-player-id">
-                <input type="hidden" name="player_ids[]" class="hidden-player-id">
-                <input type="hidden" name="player_ids[]" class="hidden-player-id">
-                <input type="hidden" name="player_ids[]" class="hidden-player-id">
-                <p class="text-secondary small mb-0">Kamu memilih 5 player untuk digabungkan menjadi 1 tim baru.</p>
-            </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-success btn-sm px-4 fw-bold rounded-pill">Gabungkan Tim</button>
-            </div>
-        </form>
-    </div>
-</div>
-
+{{-- Inline JS for drag & drop handling and Duo/Trio binding --}}
+<style>
+    .cursor-grab { cursor: grab; }
+    .cursor-grab:active { cursor: grabbing; }
+    .drag-over { background-color: #e2e8f0 !important; border: 2px dashed #e2e8f0 !important; }
+</style>
 <script>
-    function updateSelection() {
-        const checkboxes = document.querySelectorAll('.player-checkbox:checked');
-        const count = checkboxes.length;
-        document.getElementById('selectedCount').innerText = count;
+    document.addEventListener('DOMContentLoaded', () => {
+        const draggables = document.querySelectorAll('.drag-item');
+        const dropZones = document.querySelectorAll('.team-drop-zone');
 
-        const btn = document.getElementById('btnGroupSelected');
-        if (count === 5) {
-            btn.removeAttribute('disabled');
-            // Populating hidden player inputs for modal
-            const hiddenInputs = document.querySelectorAll('.hidden-player-id');
-            checkboxes.forEach((cb, index) => {
-                if (hiddenInputs[index]) {
-                    hiddenInputs[index].value = cb.value;
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', (e) => {
+                // Find all players sharing the same WA (duo/trio binding)
+                const wa = draggable.getAttribute('data-wa');
+                const mates = document.querySelectorAll(`.drag-item[data-wa="${wa}"]`);
+                const ids = [];
+                mates.forEach(mate => ids.push(mate.getAttribute('data-id')));
+
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    player_id: draggable.getAttribute('data-id'),
+                    wa_number: wa,
+                    mate_ids: ids
+                }));
+            });
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                
+                try {
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    const teamId = zone.getAttribute('data-team-id');
+                    
+                    // Call API to save status
+                    updatePlayerTeamAPI(data.player_id, teamId);
+                } catch (err) {
+                    console.error("Drop parsing error", err);
                 }
             });
-        } else {
-            btn.setAttribute('disabled', 'true');
-        }
+        });
+    });
+
+    function movePlayerToPool(playerId) {
+        // null target moves player back to pool
+        updatePlayerTeamAPI(playerId, null);
+    }
+
+    function updatePlayerTeamAPI(playerId, teamId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        fetch("{{ route('admin.solo.updatePlayerTeam', $current_season->id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                player_id: playerId,
+                team_id: teamId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Instantly reload to reflect updated state correctly
+                window.location.reload();
+            } else {
+                alert(data.message || 'Gagal memindahkan player.');
+            }
+        })
+        .catch(err => {
+            console.error('API Error', err);
+            alert('Terjadi kesalahan jaringan.');
+        });
     }
 </script>
 @endsection

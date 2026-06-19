@@ -1085,6 +1085,17 @@ class AdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Fetch all solo teams for this season (some might be empty)
+        $solo_teams = Team::where('season_id', $season_id)
+            ->where('is_solo_team', true)
+            ->with('season')
+            ->get()
+            ->map(function ($team) {
+                // Attach players assigned to this team
+                $team->players = \App\Models\SoloPlayer::where('team_id', $team->id)->get();
+                return $team;
+            });
+
         $ranks = ['Epic', 'Legend', 'Mythic', 'Honor', 'Glory', 'Immortal'];
         $roles = ['Roamer', 'Gold Lane', 'Mid Lane', 'Exp Lane', 'Jungler'];
 
@@ -1092,6 +1103,7 @@ class AdminController extends Controller
             'current_season',
             'unmatched_players',
             'matched_players',
+            'solo_teams',
             'ranks',
             'roles'
         ));
@@ -1238,5 +1250,76 @@ class AdminController extends Controller
         AdminActivity::log('Menghapus solo player dengan nomor WA: ' . $wa);
 
         return back()->with('success', 'Solo player berhasil dihapus!');
+    }
+
+    public function createEmptySoloTeam(Request $request, $season_id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'team_name' => 'required|string|max:255',
+        ]);
+
+        $team = Team::create([
+            'season_id' => $season_id,
+            'trx_id' => 'SOLO-' . strtoupper(Str::random(8)),
+            'name' => $request->team_name,
+            'wa_number' => '-', 
+            'status' => 'PAID',
+            'is_solo_team' => true,
+        ]);
+
+        AdminActivity::log('Membuat tim solo kosong baru: ' . $team->name);
+
+        return back()->with('success', 'Tim solo kosong berhasil dibuat!');
+    }
+
+    public function updatePlayerTeam(Request $request, $season_id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'player_id' => 'required|integer',
+            'team_id' => 'nullable|integer', // null means unmatched/move back to pool
+        ]);
+
+        $player = \App\Models\SoloPlayer::where('season_id', $season_id)->findOrFail($request->player_id);
+        
+        // Find duo/trio mates by matching wa_number and same season
+        $playersToMove = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->where('wa_number', $player->wa_number)
+            ->get();
+
+        $teamName = 'Pool Unmatched';
+        if ($request->team_id) {
+            $team = Team::where('season_id', $season_id)->findOrFail($request->team_id);
+            $teamName = $team->name;
+            
+            // Auto update team's WhatsApp number to the first player's WhatsApp if it is currently '-'
+            if ($team->wa_number === '-') {
+                $team->wa_number = $player->wa_number;
+                $team->save();
+            }
+        }
+
+        foreach ($playersToMove as $p) {
+            $p->team_id = $request->team_id;
+            if ($request->team_id) {
+                $p->status = 'PAID';
+            }
+            $p->save();
+        }
+
+        AdminActivity::log("Memindahkan player(s) dengan WA {$player->wa_number} ke tim: {$teamName}");
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Team updated successfully',
+            'moved_ids' => $playersToMove->pluck('id')
+        ]);
     }
 }
