@@ -38,7 +38,11 @@
                     </h2>
                     <p class="text-secondary small mb-0 mt-1">Kelompokkan player secara visual. Duo/Trio terikat bersama secara otomatis berdasarkan Nomor WhatsApp.</p>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ route('admin.solo.suggest', $current_season->id) }}" class="btn btn-primary btn-sm px-3 fw-bold rounded-pill shadow-sm"
+                       onclick="return confirm('Sistem akan menganalisis pool unmatched untuk membentuk kombinasi tim dengan komposisi role & duo/trio ideal secara otomatis. Lanjutkan?')">
+                        <i class="bi bi-magic me-1"></i> Cocokkan Otomatis (Rekomendasi)
+                    </a>
                     <button class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreateEmptyTeam">
                         <i class="bi bi-folder-plus me-1"></i> Buat Tim Kosong
                     </button>
@@ -144,17 +148,43 @@
                     @forelse($solo_teams as $team)
                         <div class="col-md-6">
                             <div class="card border border-warning shadow-sm rounded-3 overflow-hidden bg-white h-100">
-                                <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
-                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 140px;" id="team-name-title-{{ $team->id }}">
-                                            <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
-                                        </h6>
-                                        <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.85rem;" 
-                                                onclick="openEditTeamModal({{ json_encode($team) }})">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </button>
+                                <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex flex-column gap-2">
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div class="d-flex align-items-center gap-1.5 overflow-hidden">
+                                            <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 120px;" id="team-name-title-{{ $team->id }}">
+                                                <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
+                                            </h6>
+                                            <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.85rem;" 
+                                                    onclick="openEditTeamModal({{ json_encode($team) }})">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+                                        </div>
+                                        <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
                                     </div>
-                                    <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}">{{ $team->players->count() }}/5 Player</span>
+                                    
+                                    {{-- Role Checker Badges --}}
+                                    @php
+                                        $teamRoles = $team->players->pluck('role')->map(function($r) { return strtolower(trim($r)); })->toArray();
+                                        $roleMap = [
+                                            'jungler' => '⚡ JG',
+                                            'mid lane' => '🔮 MID',
+                                            'gold lane' => '🏹 GOLD',
+                                            'exp lane' => '⚔️ EXP',
+                                            'roamer' => '🛡️ ROM'
+                                        ];
+                                    @endphp
+                                    <div class="d-flex flex-wrap gap-1" style="font-size: 0.65rem;">
+                                        @foreach($roleMap as $key => $label)
+                                            @php
+                                                $hasRole = in_array($key, $teamRoles);
+                                            @endphp
+                                            <span class="badge rounded-pill {{ $hasRole ? 'bg-success text-white' : 'bg-secondary-subtle text-muted' }}" 
+                                                  style="padding: 2.5px 6px; {{ !$hasRole ? 'background-color: #e2e8f0;' : '' }}"
+                                                  title="{{ $hasRole ? 'Role Terisi' : 'Role Kosong' }}">
+                                                {{ $label }}
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </div>
                                 <div class="card-body p-3 team-drop-zone" id="team-zone-{{ $team->id }}" data-team-id="{{ $team->id }}" style="min-height: 180px; background-color: #fafafa;">
                                     

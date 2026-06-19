@@ -1420,4 +1420,228 @@ class AdminController extends Controller
 
         return back()->with('success', 'Detail tim berhasil diperbarui!');
     }
+
+    public function suggestTeams($season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $unmatched = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->whereNull('team_id')
+            ->get();
+
+        if ($unmatched->count() < 5) {
+            return back()->with('error', 'Jumlah player di pool unmatched kurang dari 5, tidak dapat membentuk tim.');
+        }
+
+        // Group players by wa_number to respect duo/trio bindings
+        $groups = $unmatched->groupBy('wa_number')->values()->toArray();
+
+        // Separate groups by size
+        $trios = [];
+        $duos = [];
+        $solos = [];
+
+        foreach ($groups as $group) {
+            $count = count($group);
+            if ($count === 3) {
+                $trios[] = $group;
+            } elseif ($count === 2) {
+                $duos[] = $group;
+            } elseif ($count === 1) {
+                $solos[] = $group[0];
+            } else {
+                // If group is larger than 3, split it into smaller pieces for safety
+                foreach ($group as $p) {
+                    $solos[] = $p;
+                }
+            }
+        }
+
+        $suggestedTeamsCount = 0;
+
+        // Try to form teams of 5 using:
+        // Option A: 1 Trio + 1 Duo
+        // Option B: 1 Trio + 2 Solos
+        // Option C: 2 Duos + 1 Solo
+        // Option D: 1 Duo + 3 Solos
+        // Option E: 5 Solos
+
+        $usedTrioIndices = [];
+        $usedDuoIndices = [];
+        $usedSoloIds = [];
+
+        // Helper to check role conflict in a team structure
+        $hasRoleConflict = function($players) {
+            $roles = [];
+            foreach ($players as $p) {
+                $role = strtolower(trim($p->role));
+                if (in_array($role, $roles)) {
+                    return true;
+                }
+                $roles[] = $role;
+            }
+            return false;
+        };
+
+        $createSuggestedTeam = function($players) use ($season_id, &$suggestedTeamsCount) {
+            // Find next team letter index or generic suffix
+            $count = Team::where('season_id', $season_id)->where('is_solo_team', true)->count() + 1;
+            $team = Team::create([
+                'season_id' => $season_id,
+                'trx_id' => 'SOLO-' . strtoupper(Str::random(8)),
+                'name' => 'Solo Team ' . chr(64 + ($count > 26 ? 26 : $count)),
+                'wa_number' => $players[0]->wa_number,
+                'status' => 'PAID',
+                'is_solo_team' => true,
+            ]);
+
+            foreach ($players as $p) {
+                $p->team_id = $team->id;
+                $p->status = 'PAID';
+                $p->save();
+            }
+            $suggestedTeamsCount++;
+        };
+
+        // 1. Try Trio + Duo
+        for ($i = 0; $i < count($trios); $i++) {
+            if (in_array($i, $usedTrioIndices)) continue;
+            for ($j = 0; $j < count($duos); $j++) {
+                if (in_array($j, $usedDuoIndices)) continue;
+
+                $candidate = array_merge($trios[$i], $duos[$j]);
+                if (!$hasRoleConflict($candidate)) {
+                    $createSuggestedTeam($candidate);
+                    $usedTrioIndices[] = $i;
+                    $usedDuoIndices[] = $j;
+                    break;
+                }
+            }
+        }
+
+        // 2. Try Trio + 2 Solos
+        for ($i = 0; $i < count($trios); $i++) {
+            if (in_array($i, $usedTrioIndices)) continue;
+            
+            // Find 2 solos
+            $candidateSolos = [];
+            foreach ($solos as $s) {
+                if (in_array($s->id, $usedSoloIds)) continue;
+                $candidateSolos[] = $s;
+            }
+
+            // Look for combinations of 2 solos
+            $found = false;
+            for ($x = 0; $x < count($candidateSolos); $x++) {
+                for ($y = $x + 1; $y < count($candidateSolos); $y++) {
+                    $candidate = array_merge($trios[$i], [$candidateSolos[$x], $candidateSolos[$y]]);
+                    if (!$hasRoleConflict($candidate)) {
+                        $createSuggestedTeam($candidate);
+                        $usedTrioIndices[] = $i;
+                        $usedSoloIds[] = $candidateSolos[$x]->id;
+                        $usedSoloIds[] = $candidateSolos[$y]->id;
+                        $found = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        // 3. Try 2 Duos + 1 Solo
+        for ($i = 0; $i < count($duos); $i++) {
+            if (in_array($i, $usedDuoIndices)) continue;
+            for ($j = $i + 1; $j < count($duos); $j++) {
+                if (in_array($j, $usedDuoIndices)) continue;
+
+                // Find 1 solo
+                foreach ($solos as $s) {
+                    if (in_array($s->id, $usedSoloIds)) continue;
+                    
+                    $candidate = array_merge($duos[$i], $duos[$j], [$s]);
+                    if (!$hasRoleConflict($candidate)) {
+                        $createSuggestedTeam($candidate);
+                        $usedDuoIndices[] = $i;
+                        $usedDuoIndices[] = $j;
+                        $usedSoloIds[] = $s->id;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        // 4. Try 1 Duo + 3 Solos
+        for ($i = 0; $i < count($duos); $i++) {
+            if (in_array($i, $usedDuoIndices)) continue;
+
+            $candidateSolos = [];
+            foreach ($solos as $s) {
+                if (in_array($s->id, $usedSoloIds)) continue;
+                $candidateSolos[] = $s;
+            }
+
+            // Try to find 3 non-conflicting solos
+            $solosCount = count($candidateSolos);
+            $found = false;
+            for ($x = 0; $x < $solosCount; $x++) {
+                for ($y = $x + 1; $y < $solosCount; $y++) {
+                    for ($z = $y + 1; $z < $solosCount; $z++) {
+                        $candidate = array_merge($duos[$i], [$candidateSolos[$x], $candidateSolos[$y], $candidateSolos[$z]]);
+                        if (!$hasRoleConflict($candidate)) {
+                            $createSuggestedTeam($candidate);
+                            $usedDuoIndices[] = $i;
+                            $usedSoloIds[] = $candidateSolos[$x]->id;
+                            $usedSoloIds[] = $candidateSolos[$y]->id;
+                            $usedSoloIds[] = $candidateSolos[$z]->id;
+                            $found = true;
+                            break 3;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Try 5 Solos
+        $candidateSolos = [];
+        foreach ($solos as $s) {
+            if (in_array($s->id, $usedSoloIds)) continue;
+            $candidateSolos[] = $s;
+        }
+
+        $solosCount = count($candidateSolos);
+        for ($a = 0; $a < $solosCount; $a++) {
+            for ($b = $a + 1; $b < $solosCount; $b++) {
+                for ($c = $b + 1; $c < $solosCount; $c++) {
+                    for ($d = $c + 1; $d < $solosCount; $d++) {
+                        for ($e = $d + 1; $e < $solosCount; $e++) {
+                            $candidate = [$candidateSolos[$a], $candidateSolos[$b], $candidateSolos[$c], $candidateSolos[$d], $candidateSolos[$e]];
+                            if (!$hasRoleConflict($candidate)) {
+                                $createSuggestedTeam($candidate);
+                                $usedSoloIds[] = $candidateSolos[$a]->id;
+                                $usedSoloIds[] = $candidateSolos[$b]->id;
+                                $usedSoloIds[] = $candidateSolos[$c]->id;
+                                $usedSoloIds[] = $candidateSolos[$d]->id;
+                                $usedSoloIds[] = $candidateSolos[$e]->id;
+                                // Restart search filter to account for used ids
+                                $candidateSolos = array_values(array_filter($candidateSolos, function($item) use ($usedSoloIds) {
+                                    return !in_array($item->id, $usedSoloIds);
+                                }));
+                                $solosCount = count($candidateSolos);
+                                $a = -1; // resets loop
+                                break 4;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($suggestedTeamsCount > 0) {
+            AdminActivity::log("Algoritma Matchmaker berhasil mencocokkan & membentuk {$suggestedTeamsCount} tim baru.");
+            return back()->with('success', "Berhasil mencocokkan & membentuk {$suggestedTeamsCount} tim solo baru secara otomatis!");
+        }
+
+        return back()->with('error', 'Tidak dapat mencocokkan player dengan komposisi role yang ideal saat ini.');
+    }
 }
