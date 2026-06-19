@@ -60,6 +60,7 @@
                                         {{ $activity->user ? $activity->user->username : 'System/Guest' }}
                                     </span>
                                 </td>
+                                <td class="py-3 px-3">
                                     @php
                                         $isDanger = str_contains(strtolower($activity->activity), 'hapus') || str_contains(strtolower($activity->activity), 'gagal');
                                         $isAdd = str_contains(strtolower($activity->activity), 'tambah') || str_contains(strtolower($activity->activity), 'membuat') || str_contains(strtolower($activity->activity), 'store') || str_contains(strtolower($activity->activity), 'create');
