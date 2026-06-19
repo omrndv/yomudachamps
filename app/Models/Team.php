@@ -17,7 +17,8 @@ class Team extends Model
         'payment_method',    // Metode yang dipilih (QRIS, BRIVA, dll)
         'amount',        
         'fee',           
-        'net_amount'
+        'net_amount',
+        'is_solo_team'
     ];
 
     public function season()

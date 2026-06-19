@@ -59,6 +59,10 @@
                     <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExportBracket">
                         <i class="bi bi-grid-3x3-gap me-1"></i> List Bracket
                     </button>
+                    {{-- Solo Matchmaker --}}
+                    <a href="{{ route('admin.solo.matchmaker', $current_season->id) }}" class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-people me-1"></i> Solo Matchmaker
+                    </a>
                     {{-- Bulk Add --}}
                     <button class="btn btn-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalBulk">
                         <i class="bi bi-stack me-1"></i> Bulk Add
@@ -138,8 +142,18 @@
                         <i class="bi bi-wallet2 fs-5"></i>
                     </div>
                 </div>
-                <p class="small text-muted mb-0 mt-3 border-top border-light pt-2" style="font-size: 0.75rem;">
-                    Diperoleh dari <strong>{{ $total_paid }} tim</strong> yang status transaksinya telah lunas (PAID).
+                <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.75rem;">
+                    <div class="col-6 border-end">
+                        <span class="text-muted d-block">Team Revenue</span>
+                        <strong class="text-dark">Rp {{ number_format($team_income, 0, ',', '.') }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block">Solo Revenue</span>
+                        <strong class="text-dark">Rp {{ number_format($solo_income, 0, ',', '.') }}</strong>
+                    </div>
+                </div>
+                <p class="small text-muted mb-0 mt-2 text-center" style="font-size: 0.7rem;">
+                    Berdasarkan <strong>{{ $total_paid - $solo_teams_count }} tim reguler</strong> dan seluruh pembayaran individual solo.
                 </p>
             </div>
         </div>

@@ -216,12 +216,27 @@ class AdminController extends Controller
         });
     
         $paid_teams = $filtered_teams->where('status', 'PAID');
-        $total_income = $paid_teams->count() * $current_season->price;
+        
+        // Count paid solo teams
+        $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
+        
+        // Estimasi Pendapatan Team: (Total Paid Teams - Solo Teams) * Season Price
+        $team_income = ($paid_teams->count() - $solo_teams_count) * $current_season->price;
+        
+        // Estimasi Pendapatan Solo: sum of amount_paid where status = PAID
+        $solo_income = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->where('status', 'PAID')
+            ->sum('amount_paid');
+            
+        $total_income = $team_income + $solo_income;
     
         return view('admin.dashboard', compact(
             'current_season',
             'filtered_teams',
             'paid_teams',
+            'solo_teams_count',
+            'team_income',
+            'solo_income',
             'total_income'
         ));
     }
@@ -1048,5 +1063,184 @@ class AdminController extends Controller
         AdminActivity::log('Menghapus akun admin: ' . $adminUsername);
 
         return back()->with('success', 'Akun admin berhasil dihapus!');
+    }
+
+    public function soloMatchmaker($season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $current_season = Season::findOrFail($season_id);
+        
+        // Fetch players for the current season, grouped or unmatched
+        $unmatched_players = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->whereNull('team_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        $matched_players = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->whereNotNull('team_id')
+            ->with('team')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $ranks = ['Epic', 'Legend', 'Mythic', 'Honor', 'Glory', 'Immortal'];
+        $roles = ['Roamer', 'Gold Lane', 'Mid Lane', 'Exp Lane', 'Jungler'];
+
+        return view('admin.solo_matchmaker', compact(
+            'current_season',
+            'unmatched_players',
+            'matched_players',
+            'ranks',
+            'roles'
+        ));
+    }
+
+    public function storeSoloPlayer(Request $request, $season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'wa_number' => 'required|string|max:20',
+            'role' => 'required|string',
+            'rank' => 'required|string',
+            'status' => 'required|in:PENDING,PAID',
+            'amount_paid' => 'required|integer|min:0',
+        ]);
+
+        \App\Models\SoloPlayer::create([
+            'season_id' => $season_id,
+            'name' => $request->name,
+            'wa_number' => $request->wa_number,
+            'role' => $request->role,
+            'rank' => $request->rank,
+            'status' => $request->status,
+            'amount_paid' => $request->amount_paid,
+        ]);
+
+        AdminActivity::log('Menambahkan solo player baru: ' . $request->name);
+
+        return back()->with('success', 'Solo player berhasil ditambahkan!');
+    }
+
+    public function bulkStoreSolo(Request $request, $season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'bulk_data' => 'required|string',
+            'default_amount' => 'required|integer|min:0',
+            'default_status' => 'required|in:PENDING,PAID',
+        ]);
+
+        $lines = explode("\n", $request->bulk_data);
+        $addedCount = 0;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+
+            // Expected format: Name | WA | Role | Rank
+            // Allow comma or pipe or tab separation
+            $delimiters = ['|', ';', ','];
+            $parts = [];
+            foreach ($delimiters as $delim) {
+                if (strpos($line, $delim) !== false) {
+                    $parts = array_map('trim', explode($delim, $line));
+                    break;
+                }
+            }
+
+            if (empty($parts)) {
+                // Try split by whitespace/tab if no separator found
+                $parts = array_map('trim', preg_split('/\s{2,}/', $line));
+            }
+
+            if (count($parts) >= 2) {
+                $name = $parts[0];
+                $wa = $parts[1];
+                $role = isset($parts[2]) ? $parts[2] : 'Roamer';
+                $rank = isset($parts[3]) ? $parts[3] : 'Legend';
+
+                \App\Models\SoloPlayer::create([
+                    'season_id' => $season_id,
+                    'name' => $name,
+                    'wa_number' => $wa,
+                    'role' => $role,
+                    'rank' => $rank,
+                    'status' => $request->default_status,
+                    'amount_paid' => $request->default_amount,
+                ]);
+                $addedCount++;
+            }
+        }
+
+        AdminActivity::log('Berhasil mengimpor massal ' . $addedCount . ' solo player');
+
+        return back()->with('success', "Berhasil menambahkan {$addedCount} solo player!");
+    }
+
+    public function groupSoloPlayers(Request $request, $season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $request->validate([
+            'player_ids' => 'required|array|size:5',
+            'team_name' => 'required|string|max:255',
+        ]);
+
+        $players = \App\Models\SoloPlayer::whereIn('id', $request->player_ids)
+            ->whereNull('team_id')
+            ->get();
+
+        if ($players->count() !== 5) {
+            return back()->with('error', 'Silakan pilih tepat 5 player solo yang belum tergabung dalam tim.');
+        }
+
+        // Create the Team
+        $team = Team::create([
+            'season_id' => $season_id,
+            'trx_id' => 'SOLO-' . strtoupper(Str::random(8)),
+            'name' => $request->team_name,
+            'wa_number' => $players->first()->wa_number, // Default to first player's WhatsApp
+            'status' => 'PAID', // Formed teams are automatically marked as PAID
+            'is_solo_team' => true,
+        ]);
+
+        // Link solo players to team
+        foreach ($players as $player) {
+            $player->team_id = $team->id;
+            $player->status = 'PAID'; // Ensure status is updated to PAID when grouped
+            $player->save();
+        }
+
+        AdminActivity::log('Membentuk tim solo "' . $team->name . '" berisi ' . $players->pluck('name')->implode(', '));
+
+        return back()->with('success', 'Tim solo berhasil dibentuk!');
+    }
+
+    public function deleteSoloPlayer($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $player = \App\Models\SoloPlayer::findOrFail($id);
+        $name = $player->name;
+        $player->delete();
+
+        AdminActivity::log('Menghapus solo player: ' . $name);
+
+        return back()->with('success', 'Solo player berhasil dihapus!');
     }
 }

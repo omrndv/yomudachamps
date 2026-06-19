@@ -139,6 +139,13 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
         Route::post('/faqs/reorder/{id}', [AdminController::class, 'reorderFaq'])->name('admin.faqs.reorder');
 
+        // Solo Matchmaker
+        Route::get('/solo-matchmaker/{season_id}', [AdminController::class, 'soloMatchmaker'])->name('admin.solo.matchmaker');
+        Route::post('/solo-matchmaker/store/{season_id}', [AdminController::class, 'storeSoloPlayer'])->name('admin.solo.store');
+        Route::post('/solo-matchmaker/bulk-store/{season_id}', [AdminController::class, 'bulkStoreSolo'])->name('admin.solo.bulkStore');
+        Route::post('/solo-matchmaker/group/{season_id}', [AdminController::class, 'groupSoloPlayers'])->name('admin.solo.group');
+        Route::get('/solo-matchmaker/delete/{id}', [AdminController::class, 'deleteSoloPlayer'])->name('admin.solo.delete');
+
         Route::middleware('superadmin')->group(function () {
             Route::get('/teams', [AdminController::class, 'teams'])->name('admin.teams');
             Route::get('/payment-history', [AdminController::class, 'paymentHistory'])->name('admin.payments');
