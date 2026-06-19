@@ -262,7 +262,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-toggle="modal">Batal</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
                 <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Player</button>
             </div>
         </form>
@@ -298,7 +298,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-toggle="modal">Batal</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
                 <button type="submit" class="btn btn-dark btn-sm px-4 fw-bold rounded-pill">Import Players</button>
             </div>
         </form>
