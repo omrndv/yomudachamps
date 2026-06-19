@@ -143,15 +143,15 @@
                             </td>
                             <td>
                                 <div class="fw-bold text-dark text-uppercase">{{ $pay->name }}</div>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 0.65rem;">{{ $pay->season->name }}</span>
+                                <span class="badge bg-secondary text-white" style="font-size: 0.65rem;">{{ $pay->season->name }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-info-subtle text-info border border-info-subtle text-uppercase" style="font-size: 0.65rem;">
+                                <span class="badge bg-info text-dark text-uppercase fw-bold" style="font-size: 0.65rem;">
                                     {{ $pay->payment_method ?? 'QRIS/VA' }}
                                 </span>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill" style="font-size: 0.65rem;">
+                                <span class="badge bg-success text-white px-3 py-2 rounded-pill" style="font-size: 0.65rem; font-weight: 600;">
                                     <i class="bi bi-check-circle-fill me-1"></i> PAID
                                 </span>
                             </td>

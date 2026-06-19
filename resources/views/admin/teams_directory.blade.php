@@ -151,7 +151,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-3" style="font-size: 0.75rem;">
+                                <span class="badge bg-secondary text-white px-2.5 py-1.5 rounded-3" style="font-size: 0.75rem;">
                                     {{ $team->season->name }}
                                 </span>
                             </td>
@@ -160,7 +160,7 @@
                                 <div class="text-muted small" style="font-size: 0.7rem;">{{ $team->created_at->format('H:i') }} WIB</div>
                             </td>
                             <td class="text-center">
-                                <span class="badge {{ $team->status == 'PAID' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' }} px-3 py-1.5 rounded-pill" style="font-size: 0.65rem; font-weight: 600;">
+                                <span class="badge {{ $team->status == 'PAID' ? 'bg-success text-white' : 'bg-warning text-dark' }} px-3 py-1.5 rounded-pill" style="font-size: 0.65rem; font-weight: 600;">
                                     {{ $team->status }}
                                 </span>
                             </td>
@@ -170,7 +170,7 @@
                                         // Generate Popover Content listing historical seasons
                                         $popover_content = '<ul class="list-unstyled mb-0 text-start" style="padding-left: 0; min-width: 200px;">';
                                         foreach($team->history as $hist) {
-                                            $badgeClass = $hist->status == 'PAID' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle';
+                                            $badgeClass = $hist->status == 'PAID' ? 'bg-success text-white' : 'bg-warning text-dark';
                                             $popover_content .= '<li class="mb-2 pb-1 border-bottom border-light-subtle d-flex flex-column">';
                                             $popover_content .= '<span class="fw-bold text-dark" style="font-size: 0.8rem;">' . e($hist->season->name) . '</span>';
                                             $popover_content .= '<span class="text-muted" style="font-size: 0.7rem;">Tim: ' . e($hist->name) . '</span>';
@@ -179,8 +179,8 @@
                                         }
                                         $popover_content .= '</ul>';
                                     @endphp
-                                    <button type="button" class="btn btn-sm btn-outline-warning border-warning-subtle text-dark rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm"
-                                            data-bs-toggle="popover" data-bs-title="Riwayat Turnamen" data-bs-content="{{ $popover_content }}" data-bs-trigger="focus" style="font-size: 0.75rem;">
+                                    <button type="button" class="btn btn-sm btn-primary text-white border-0 rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm"
+                                            data-bs-toggle="popover" data-bs-title="Riwayat Turnamen" data-bs-content="{{ $popover_content }}" data-bs-trigger="focus" style="font-size: 0.75rem; background-color: #0d6efd;">
                                         <i class="bi bi-star-fill text-warning"></i> LOYALTY ({{ $team->loyalty_count }})
                                     </button>
                                 @else
