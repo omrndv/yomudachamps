@@ -168,6 +168,7 @@
                                                onclick="return confirm('Hapus tim solo ini? Seluruh anggota di dalamnya akan dikembalikan ke pool unmatched.')">
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>
+                                        </div>
                                         <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
                                     </div>
                                     
