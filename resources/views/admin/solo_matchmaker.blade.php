@@ -168,18 +168,7 @@
                                                onclick="return confirm('Hapus tim solo ini? Seluruh anggota di dalamnya akan dikembalikan ke pool unmatched.')">
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            @if($team->players->count() > 0)
-                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 rounded-pill fw-semibold copy-btn" 
-                                                        style="font-size: 0.65rem;"
-                                                        onclick="copyToClipboard('{{ $team->players->pluck('wa_number')->implode(', ') }}', this)" 
-                                                        title="Salin semua nomor WA tim ini">
-                                                    <i class="bi bi-clipboard-data me-1"></i>Copy WA
-                                                </button>
-                                            @endif
-                                            <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
-                                        </div>
+                                        <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
                                     </div>
                                     
                                     {{-- Role Checker Badges --}}
@@ -256,13 +245,8 @@
                                     </div>
                                 </div>
                                 @if($team->players->count() > 0)
-                                    <div class="card-footer py-2 px-3 border-top bg-light d-flex justify-content-between align-items-center small text-secondary">
-                                        <span>WhatsApp Pendaftar: <strong>{{ $team->wa_number }}</strong></span>
-                                        @if($team->wa_number && $team->wa_number !== '-')
-                                            <button type="button" class="btn btn-link p-0 m-0 text-secondary copy-btn" style="line-height: 1;" onclick="copyToClipboard('{{ $team->wa_number }}', this)" title="Copy WA Pendaftar">
-                                                <i class="bi bi-clipboard" style="font-size: 0.8rem;"></i>
-                                            </button>
-                                        @endif
+                                    <div class="card-footer py-2 px-3 border-top bg-light text-center small text-secondary">
+                                        WhatsApp Pendaftar: <strong>{{ $team->wa_number }}</strong>
                                     </div>
                                 @endif
                             </div>
