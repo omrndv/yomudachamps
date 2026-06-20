@@ -57,6 +57,35 @@ class HomeController extends Controller
 
     public function storeRegistration(Request $request)
     {
+        // Normalisasi format nomor WA
+        if ($request->has('wa_number')) {
+            $wa_raw = trim($request->wa_number);
+            // 1. Bersihkan semua karakter non-digit kecuali tanda plus (+) di awal
+            $wa_clean = preg_replace('/[^0-9+]/', '', $wa_raw);
+            
+            // 2. Normalisasi format nomor WA
+            if (str_starts_with($wa_clean, '+62')) {
+                $wa_clean = '0' . substr($wa_clean, 3);
+            } elseif (str_starts_with($wa_clean, '628')) {
+                $wa_clean = '0' . substr($wa_clean, 2);
+            } elseif (str_starts_with($wa_clean, '+60')) {
+                // Tetap menggunakan +60 di awal
+            } elseif (str_starts_with($wa_clean, '60')) {
+                // Tambahkan tanda + di depan jika sudah berawalan 60
+                $wa_clean = '+' . $wa_clean;
+            } elseif (str_starts_with($wa_clean, '01')) {
+                // Jika diawali 01 (nomor Malaysia format lokal seperti 011..., 012...), ubah menjadi +601...
+                $wa_clean = '+60' . substr($wa_clean, 1);
+            } elseif (str_starts_with($wa_clean, '1')) {
+                // Jika diawali langsung angka 1 (format lokal tanpa 0, misal 11...), ubah menjadi +601...
+                $wa_clean = '+60' . $wa_clean;
+            } elseif (!str_starts_with($wa_clean, '0') && !str_starts_with($wa_clean, '+') && strlen($wa_clean) > 0) {
+                // Jika tidak dimulai dengan 0 atau + (misal langsung 853...), tambahkan 0 di depan (asumsi nomor Indo)
+                $wa_clean = '0' . $wa_clean;
+            }
+            $request->merge(['wa_number' => $wa_clean]);
+        }
+
         $request->validate([
             'name' => 'required|max:50',
             'wa_number' => 'required|min:10',
@@ -243,6 +272,34 @@ class HomeController extends Controller
 
     public function searchTeam(Request $request)
     {
+        if ($request->has('wa_number')) {
+            $wa_raw = trim($request->wa_number);
+            // 1. Bersihkan semua karakter non-digit kecuali tanda plus (+) di awal
+            $wa_clean = preg_replace('/[^0-9+]/', '', $wa_raw);
+            
+            // 2. Normalisasi format nomor WA
+            if (str_starts_with($wa_clean, '+62')) {
+                $wa_clean = '0' . substr($wa_clean, 3);
+            } elseif (str_starts_with($wa_clean, '628')) {
+                $wa_clean = '0' . substr($wa_clean, 2);
+            } elseif (str_starts_with($wa_clean, '+60')) {
+                // Tetap menggunakan +60 di awal
+            } elseif (str_starts_with($wa_clean, '60')) {
+                // Tambahkan tanda + di depan jika sudah berawalan 60
+                $wa_clean = '+' . $wa_clean;
+            } elseif (str_starts_with($wa_clean, '01')) {
+                // Jika diawali 01 (nomor Malaysia format lokal seperti 011..., 012...), ubah menjadi +601...
+                $wa_clean = '+60' . substr($wa_clean, 1);
+            } elseif (str_starts_with($wa_clean, '1')) {
+                // Jika diawali langsung angka 1 (format lokal tanpa 0, misal 11...), ubah menjadi +601...
+                $wa_clean = '+60' . $wa_clean;
+            } elseif (!str_starts_with($wa_clean, '0') && !str_starts_with($wa_clean, '+') && strlen($wa_clean) > 0) {
+                // Jika tidak dimulai dengan 0 atau + (misal langsung 853...), tambahkan 0 di depan (asumsi nomor Indo)
+                $wa_clean = '0' . $wa_clean;
+            }
+            $request->merge(['wa_number' => $wa_clean]);
+        }
+
         $request->validate([
             'wa_number' => 'required'
         ]);
