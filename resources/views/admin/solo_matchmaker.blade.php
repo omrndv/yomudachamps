@@ -107,10 +107,15 @@
                                          data-wa="{{ $player->wa_number }}"
                                          data-role="{{ $player->role }}"
                                          style="width: 100%; font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#f59e0b' }} !important;">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="fw-bold text-dark text-truncate" style="max-width: 120px;">{{ $player->wa_number }}</span>
-                                            <span class="badge bg-info text-dark" style="font-size: 0.65rem;">{{ $player->rank }}</span>
-                                        </div>
+                                         <div class="d-flex justify-content-between align-items-center mb-1">
+                                             <span class="fw-bold text-dark text-truncate d-flex align-items-center gap-1" style="max-width: 150px;">
+                                                 <span>{{ $player->wa_number }}</span>
+                                                 <button type="button" class="btn btn-link p-0 m-0 text-secondary copy-btn" style="line-height: 1;" onclick="copyToClipboard('{{ $player->wa_number }}', this); event.stopPropagation();" title="Copy nomor WA">
+                                                     <i class="bi bi-clipboard" style="font-size: 0.75rem;"></i>
+                                                 </button>
+                                             </span>
+                                             <span class="badge bg-info text-dark" style="font-size: 0.65rem;">{{ $player->rank }}</span>
+                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="text-success small fw-semibold">Rp {{ number_format($player->amount_paid, 0, ',', '.') }}</span>
                                             @if($isDuoTrio)
@@ -156,7 +161,7 @@
                                                 <i class="bi bi-shield-shaded me-1"></i>{{ $team->name }}
                                             </h6>
                                             <button type="button" class="btn btn-link text-warning p-0 m-0" style="font-size: 0.85rem;" 
-                                                    onclick="openEditTeamModal({{ json_encode($team) }})">
+                                                     onclick="openEditTeamModal({{ json_encode($team) }})">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </button>
                                             <a href="{{ route('admin.solo.team.delete', $team->id) }}" class="btn btn-link text-danger p-0 m-0" style="font-size: 0.85rem;"
@@ -164,7 +169,17 @@
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>
                                         </div>
-                                        <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if($team->players->count() > 0)
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 rounded-pill fw-semibold copy-btn" 
+                                                        style="font-size: 0.65rem;"
+                                                        onclick="copyToClipboard('{{ $team->players->pluck('wa_number')->implode(', ') }}', this)" 
+                                                        title="Salin semua nomor WA tim ini">
+                                                    <i class="bi bi-clipboard-data me-1"></i>Copy WA
+                                                </button>
+                                            @endif
+                                            <span class="badge bg-dark rounded-pill" id="team-badge-{{ $team->id }}" style="font-size: 0.7rem;">{{ $team->players->count() }}/5 Player</span>
+                                        </div>
                                     </div>
                                     
                                     {{-- Role Checker Badges --}}
@@ -207,7 +222,12 @@
                                                  style="font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#10b981' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <div class="d-flex flex-column">
-                                                        <span class="fw-bold text-dark">{{ $player->wa_number }}</span>
+                                                        <span class="fw-bold text-dark d-flex align-items-center gap-1">
+                                                            <span>{{ $player->wa_number }}</span>
+                                                            <button type="button" class="btn btn-link p-0 m-0 text-secondary copy-btn" style="line-height: 1;" onclick="copyToClipboard('{{ $player->wa_number }}', this); event.stopPropagation();" title="Copy nomor WA">
+                                                                <i class="bi bi-clipboard" style="font-size: 0.75rem;"></i>
+                                                            </button>
+                                                        </span>
                                                         <span class="text-muted small text-uppercase" style="font-size: 0.65rem;">{{ $player->role }} - {{ $player->rank }}</span>
                                                     </div>
                                                     <button type="button" class="btn btn-link text-danger p-0 m-0" onclick="movePlayerToPool({{ $player->id }})">
@@ -236,8 +256,13 @@
                                     </div>
                                 </div>
                                 @if($team->players->count() > 0)
-                                    <div class="card-footer py-2 px-3 border-top bg-light text-center small text-secondary">
-                                        WhatsApp Pendaftar: <strong>{{ $team->wa_number }}</strong>
+                                    <div class="card-footer py-2 px-3 border-top bg-light d-flex justify-content-between align-items-center small text-secondary">
+                                        <span>WhatsApp Pendaftar: <strong>{{ $team->wa_number }}</strong></span>
+                                        @if($team->wa_number && $team->wa_number !== '-')
+                                            <button type="button" class="btn btn-link p-0 m-0 text-secondary copy-btn" style="line-height: 1;" onclick="copyToClipboard('{{ $team->wa_number }}', this)" title="Copy WA Pendaftar">
+                                                <i class="bi bi-clipboard" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -593,6 +618,40 @@
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('modalEditTeamDetails'));
         modal.show();
+    }
+
+    function copyToClipboard(text, element) {
+        if (!navigator.clipboard) {
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess(element);
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
+            return;
+        }
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess(element);
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+
+    function showCopySuccess(element) {
+        const originalHTML = element.innerHTML;
+        element.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+        element.classList.add('text-success');
+        setTimeout(() => {
+            element.innerHTML = originalHTML;
+            element.classList.remove('text-success');
+        }, 1500);
     }
 </script>
 
