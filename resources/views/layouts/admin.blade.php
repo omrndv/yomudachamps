@@ -23,12 +23,12 @@
             width: 280px;
             height: 100vh;
             position: fixed;
-            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
-            color: #ffffff;
+            background: #f1f5f9;
+            color: #0f172a;
             z-index: 1000;
             padding: 24px 16px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
         }
@@ -42,7 +42,7 @@
         .sidebar-brand {
             font-size: 1.25rem;
             letter-spacing: 0.5px;
-            color: #ffffff;
+            color: #0f172a;
         }
 
         .brand-icon {
@@ -73,7 +73,7 @@
         }
 
         .nav-pills .nav-link {
-            color: #94a3b8;
+            color: #475569;
             padding: 12px 16px;
             margin-bottom: 6px;
             font-weight: 500;
@@ -94,8 +94,8 @@
         }
 
         .nav-pills .nav-link:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.04);
+            color: #0f172a;
+            background: rgba(15, 23, 42, 0.05);
             transform: translateX(4px);
         }
 
@@ -128,14 +128,14 @@
 
         /* Mobile Header and Drawer */
         .navbar-mobile {
-            background: #0f172a;
+            background: #ffffff;
             padding: 14px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
         }
 
         .offcanvas {
-            background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
-            border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+            background: #f1f5f9 !important;
+            border-right: 1px solid #e2e8f0 !important;
         }
 
         /* Collapsed Sidebar State Rules (Desktop Only) */
@@ -209,12 +209,12 @@
                 <span class="brand-icon">
                     <i class="bi bi-lightning-charge-fill"></i>
                 </span>
-                <span class="navbar-brand fw-bold text-white m-0" style="font-size: 1.15rem; letter-spacing: 0.5px;">
-                    YOMUDA <span class="fw-light text-white-50">ADM</span>
+                <span class="navbar-brand fw-bold text-dark m-0" style="font-size: 1.15rem; letter-spacing: 0.5px;">
+                    YOMUDA <span class="fw-light text-secondary">ADM</span>
                 </span>
             </div>
-            <button class="btn btn-outline-warning border-0 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
-                <i class="bi bi-list fs-2 text-white"></i>
+            <button class="btn btn-outline-dark border-0 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+                <i class="bi bi-list fs-2 text-dark"></i>
             </button>
         </div>
     </nav>
@@ -232,7 +232,7 @@
                 <span class="brand-icon">
                     <i class="bi bi-lightning-charge-fill"></i>
                 </span>
-                <span>YOMUDA <span class="fw-light text-white-50">ADM</span></span>
+                <span>YOMUDA <span class="fw-light text-secondary">ADM</span></span>
             </div>
         </div>
         
@@ -295,58 +295,58 @@
     </aside>
 
     {{-- Mobile Sidebar Drawer --}}
-    <div class="offcanvas offcanvas-start text-white" tabindex="-1" id="sidebarMobile" style="width: 280px;">
-        <div class="offcanvas-header border-bottom border-secondary border-opacity-35 p-4">
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMobile" style="width: 280px;">
+        <div class="offcanvas-header border-bottom border-light-subtle p-4">
             <div class="d-flex align-items-center gap-2">
                 <span class="brand-icon">
                     <i class="bi bi-lightning-charge-fill"></i>
                 </span>
-                <h5 class="offcanvas-title fw-bold text-white m-0" style="letter-spacing: 0.5px;">YOMUDA ADM</h5>
+                <h5 class="offcanvas-title fw-bold text-dark m-0" style="letter-spacing: 0.5px;">YOMUDA <span class="fw-light text-secondary">ADM</span></h5>
             </div>
-            <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="offcanvas"></button>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body p-4 d-flex flex-column h-100">
             <div class="nav nav-pills flex-column h-100">
                 <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
                 
-                <a href="{{ route('admin.dashboard.home') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
+                <a href="{{ route('admin.dashboard.home') }}" class="nav-link mb-2 {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
                     <i class="bi bi-grid-1x2 me-2"></i> <span>Dashboard</span>
                 </a>
 
-                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('admin.seasons') }}" class="nav-link mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
-                <a href="{{ route('admin.teams') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
+                <a href="{{ route('admin.teams') }}" class="nav-link mb-2 {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
                     <i class="bi bi-people-fill me-2"></i> <span>Daftar Team</span>
                 </a>
 
-                <a href="{{ route('admin.payments') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
+                <a href="{{ route('admin.payments') }}" class="nav-link mb-2 {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
                     <i class="bi bi-cash-stack me-2"></i> <span>Riwayat Pembayaran</span>
                 </a>
                 @endif
 
-                <a href="{{ route('admin.notes.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.notes.index') }}" class="nav-link mb-2 {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                     <i class="bi bi-sticky me-2"></i> <span>Catatan Admin</span>
                 </a>
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
-                <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings') }}" class="nav-link mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
                 </a>
                 @endif
 
-                <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.faqs.index') }}" class="nav-link mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                     <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
                 </a>
 
-                <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                <a href="{{ route('admin.activity-log') }}" class="nav-link mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
                     <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
                 </a>
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
-                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
+                <a href="{{ route('admin.manage') }}" class="nav-link mb-2 {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
                     <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
                 </a>
 
@@ -356,7 +356,7 @@
                 @endif
 
                 <div class="mt-auto pt-4 w-100">
-                    <hr class="border-secondary opacity-25 mb-3">
+                    <hr class="border-light-subtle mb-3">
                     <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100">
                         <i class="bi bi-box-arrow-right me-2"></i> <span>Logout</span>
                     </a>
