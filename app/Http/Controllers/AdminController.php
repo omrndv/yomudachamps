@@ -265,9 +265,6 @@ class AdminController extends Controller
             'tripay_private_key',
             'tripay_merchant_code',
             'tripay_mode',
-            'ipaymu_va',
-            'ipaymu_api_key',
-            'ipaymu_mode',
             'social_instagram',
             'social_tiktok',
             'social_youtube',
@@ -650,15 +647,15 @@ class AdminController extends Controller
                 ->get();
 
             $countUpdated = 0;
-            $ipaymu = new IPaymuController();
+            $tripay = new TripayController();
 
             foreach ($pendingTeams as $team) {
-                $res = $ipaymu->checkTransactionStatus($team->tripay_reference);
+                $res = $tripay->getDetailTransaction($team->tripay_reference);
 
-                if ($res && isset($res->Status) && $res->Status == 200 && isset($res->Data)) {
-                    $statusIPaymu = (int) ($res->Data->Status ?? 0);
+                if ($res && isset($res->success) && $res->success && isset($res->data)) {
+                    $statusTriPay = strtoupper((string) ($res->data->status ?? ''));
                     
-                    if ($statusIPaymu === 1) { // PAID / SUCCESS
+                    if ($statusTriPay === 'PAID') { // PAID / SUCCESS
                         $currentPaidCount = Team::where('season_id', $team->season_id)
                                             ->where('status', 'PAID')
                                             ->count();
@@ -666,8 +663,8 @@ class AdminController extends Controller
                         if ($currentPaidCount < $team->season->slot) {
                             $team->update([
                                 'status' => 'PAID',
-                                'status_tripay' => 'SUCCESS',
-                                'amount' => $res->Data->Amount ?? $team->season->price,
+                                'status_tripay' => 'PAID',
+                                'amount' => $res->data->amount_received ?? $team->season->price,
                             ]);
                             $countUpdated++;
 
@@ -688,7 +685,7 @@ class AdminController extends Controller
                         } else {
                             $team->update([
                                 'status' => 'FAILED',
-                                'status_tripay' => 'SUCCESS',
+                                'status_tripay' => 'PAID',
                             ]);
                             \Illuminate\Support\Facades\Log::warning("OVER-SLOT: Tim {$team->name} bayar tapi slot penuh saat sync.");
                         }
@@ -696,7 +693,7 @@ class AdminController extends Controller
                 }
             }
 
-            return back()->with('success', "Mantap! $countUpdated transaksi iPaymu berhasil disinkronkan.");
+            return back()->with('success', "Mantap! $countUpdated transaksi TriPay berhasil disinkronkan.");
         } catch (\Exception $e) {
             return back()->with('error', "Gagal sinkron: " . $e->getMessage());
         }

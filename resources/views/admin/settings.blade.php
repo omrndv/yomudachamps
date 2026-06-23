@@ -130,41 +130,7 @@
 
         {{-- Kanan: Pengaturan Tripay & Upload Aset --}}
         <div class="col-lg-6">
-            {{-- Card 3: iPaymu Gateway --}}
-            <div class="card card-settings border-0 p-4 mb-4 bg-white">
-                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
-                    <i class="bi bi-credit-card-2-back text-primary me-2"></i> iPaymu Gateway Settings
-                </h5>
 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Mode iPaymu</label>
-                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-shield-fill text-secondary"></i></span>
-                        <select name="ipaymu_mode" class="form-select border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem; cursor: pointer;">
-                            <option value="sandbox" {{ \App\Models\Setting::getVal('ipaymu_mode', env('IPAYMU_MODE')) == 'sandbox' ? 'selected' : '' }}>Sandbox / Development (Testing)</option>
-                            <option value="live" {{ \App\Models\Setting::getVal('ipaymu_mode', env('IPAYMU_MODE')) == 'live' ? 'selected' : '' }}>Live / Production (Asli)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">iPaymu Virtual Account (VA)</label>
-                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-hash text-secondary"></i></span>
-                        <input type="text" name="ipaymu_va" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="Virtual Account iPaymu..." value="{{ \App\Models\Setting::getVal('ipaymu_va', env('IPAYMU_VA')) }}">
-                    </div>
-                </div>
-
-                <div class="mb-0">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">iPaymu API Key</label>
-                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-secondary"></i></span>
-                        <input type="text" name="ipaymu_api_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
-                            placeholder="iPaymu API Key..." value="{{ \App\Models\Setting::getVal('ipaymu_api_key', env('IPAYMU_API_KEY')) }}">
-                    </div>
-                </div>
-            </div>
 
             {{-- Card 4: Web Assets --}}
             <div class="card card-settings border-0 p-4 bg-white">

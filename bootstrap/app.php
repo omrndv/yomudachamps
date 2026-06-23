@@ -13,11 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [
             'api/callback',
-            'api/ipaymu/callback',
         ]);
         $middleware->preventRequestsDuringMaintenance(except: [
             'api/callback',
-            'api/ipaymu/callback',
         ]);
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuthMiddleware::class,

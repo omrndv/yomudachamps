@@ -182,7 +182,6 @@
         <form action="{{ route('payment.checkout', $team->trx_id) }}" method="POST">
             @csrf
             
-            @if($team->season->name === 'Season 32')
             <label class="label-v2 mb-3 small fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">Pilih Cara Bayar:</label>
             <div class="method-list mb-4">
                 @forelse($channels as $channel)
@@ -206,13 +205,6 @@
                     </div>
                 @endforelse
             </div>
-            @else
-            <div class="payment-method-badge mb-4 p-3 text-center" style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 12px;">
-                <span class="small text-secondary d-block mb-1">Metode Pembayaran</span>
-                <span class="fw-bold text-white"><i class="bi bi-wallet2 text-warning me-2"></i>iPaymu Secure Redirect</span>
-                <span class="d-block small text-secondary mt-1" style="font-size: 0.75rem;">Mendukung QRIS, VA, E-Wallet, dll.</span>
-            </div>
-            @endif
 
             <button type="submit" class="btn-pay">
                 BAYAR SEKARANG <i class="bi bi-arrow-right-short fs-4"></i>
@@ -220,7 +212,7 @@
         </form>
 
         <p class="text-center text-secondary mt-4 mb-0" style="font-size: 0.7rem;">
-            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by {{ $team->season->name === 'Season 32' ? 'Tripay' : 'iPaymu' }}
+            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by Tripay
         </p>
     </div>
 </div>

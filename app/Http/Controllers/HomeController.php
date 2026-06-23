@@ -138,11 +138,8 @@ class HomeController extends Controller
             return redirect('/')->with('error', 'Waduh telat! Slot baru saja penuh oleh pendaftar lain.');
         }
 
-        $channels = [];
-        if ($team->season->name === 'Season 32') {
-            $tripay = new TripayController();
-            $channels = $tripay->getPaymentChannels();
-        }
+        $tripay = new TripayController();
+        $channels = $tripay->getPaymentChannels();
 
         return view('payment', compact('team', 'channels'));
     }
@@ -160,50 +157,30 @@ class HomeController extends Controller
             return redirect('/')->with('error', 'Slot turnamen sudah penuh.');
         }
 
-        if ($team->season->name === 'Season 32') {
-            $request->validate([
-                'payment_method' => 'required|string'
+        $request->validate([
+            'payment_method' => 'required|string'
+        ]);
+
+        $method = strtoupper(trim($request->payment_method));
+        $tripay = new TripayController();
+        
+        $availableMethods = collect($tripay->getPaymentChannels())->pluck('code')->map(function($code){ return strtoupper($code); })->toArray();
+        if (empty($method) || !in_array($method, $availableMethods)) {
+            return back()->with('error', 'Metode pembayaran tidak tersedia atau tidak dipilih.');
+        }
+
+        $transaction = $tripay->requestTransaction($method, $team);
+
+        if ($transaction && $transaction->success) {
+            $team->update([
+                'tripay_reference' => $transaction->data->reference,
+                'payment_method'   => $method,
             ]);
 
-            $method = strtoupper(trim($request->payment_method));
-            $tripay = new TripayController();
-            
-            $availableMethods = collect($tripay->getPaymentChannels())->pluck('code')->map(function($code){ return strtoupper($code); })->toArray();
-            if (empty($method) || !in_array($method, $availableMethods)) {
-                return back()->with('error', 'Metode pembayaran tidak tersedia atau tidak dipilih.');
-            }
-
-            $transaction = $tripay->requestTransaction($method, $team);
-
-            if ($transaction && $transaction->success) {
-                $team->update([
-                    'tripay_reference' => $transaction->data->reference,
-                    'payment_method'   => $method,
-                ]);
-
-                return redirect()->route('payment.detail', $team->trx_id);
-            }
-
-            return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
-        } else {
-            $ipaymu = new IPaymuController();
-            $transaction = $ipaymu->requestTransaction($team);
-
-            if ($transaction && $transaction->success) {
-                $qrCodeUrl = !empty($transaction->qr_string)
-                    ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($transaction->qr_string)
-                    : $transaction->qr_image;
-
-                $team->update([
-                    'tripay_reference' => $transaction->transaction_id,
-                    'payment_method' => $qrCodeUrl,
-                ]);
-
-                return redirect()->route('payment.detail', $team->trx_id);
-            }
-
-            return back()->with('error', 'iPaymu Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+            return redirect()->route('payment.detail', $team->trx_id);
         }
+
+        return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
     }
 
     public function paymentDetail($trx_id)
@@ -218,18 +195,14 @@ class HomeController extends Controller
             return redirect()->route('payment.confirm', $team->trx_id);
         }
 
-        if ($team->season->name === 'Season 32') {
-            $tripay = new TripayController();
-            $detail = $tripay->getDetailTransaction($team->tripay_reference);
+        $tripay = new TripayController();
+        $detail = $tripay->getDetailTransaction($team->tripay_reference);
 
-            if (!$detail) {
-                return redirect()->route('home');
-            }
-
-            return view('payment_detail_tripay', compact('team', 'detail'));
-        } else {
-            return view('payment_detail', compact('team'));
+        if (!$detail) {
+            return redirect()->route('home');
         }
+
+        return view('payment_detail_tripay', compact('team', 'detail'));
     }
 
     public function successPage($trx_id)
