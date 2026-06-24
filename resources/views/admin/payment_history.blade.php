@@ -95,22 +95,38 @@
             </div>
         </div>
 
-        {{-- Total Potongan Fee --}}
+        {{-- Kesehatan API TriPay --}}
         <div class="col-md-4">
             <div class="card card-stats border-0 p-4 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <div>
-                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Potongan Biaya TriPay (Halaman Ini)</p>
-                        <h3 class="fw-bold text-danger mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
-                            Rp {{ number_format($total_fee, 0, ',', '.') }}
-                        </h3>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Kesehatan API TriPay</p>
+                        @if(($apiStatus ?? 'Disconnected') === 'Connected')
+                            <h3 class="fw-bold text-success mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
+                                Terhubung <span class="fs-6 text-muted fw-normal">/ {{ $apiLatency ?? 0 }} ms</span>
+                            </h3>
+                        @else
+                            <h3 class="fw-bold text-danger mb-0" style="font-size: 1.5rem; letter-spacing: -0.5px;">
+                                Terputus
+                            </h3>
+                        @endif
                     </div>
-                    <div class="icon-shape text-white shadow-sm" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
-                        <i class="bi bi-percent fs-5"></i>
-                    </div>
+                    @if(($apiStatus ?? 'Disconnected') === 'Connected')
+                        <div class="icon-shape text-white shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                            <i class="bi bi-activity fs-5"></i>
+                        </div>
+                    @else
+                        <div class="icon-shape text-white shadow-sm" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                            <i class="bi bi-heart-pulse-fill fs-5"></i>
+                        </div>
+                    @endif
                 </div>
                 <div class="pt-2 border-top border-light text-muted" style="font-size: 0.72rem;">
-                    Akumulasi biaya transaksi (MDR / Flat Fee) e-wallet & QRIS.
+                    @if(($apiStatus ?? 'Disconnected') === 'Connected')
+                        Koneksi ke gateway TriPay lancar dengan respon latensi normal.
+                    @else
+                        Gagal menghubungi server TriPay. Cek kembali kredensial API Key Anda.
+                    @endif
                 </div>
             </div>
         </div>

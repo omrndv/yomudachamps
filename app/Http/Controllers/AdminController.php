@@ -728,7 +728,12 @@ class AdminController extends Controller
         }
     
         $tripay = new TripayController();
+        $startTime = microtime(true);
         $response = $tripay->getTransactionsList($page, 20, $status, $apiSearch);
+        $endTime = microtime(true);
+        
+        $apiLatency = round(($endTime - $startTime) * 1000); // dalam milidetik
+        $apiStatus = ($response && isset($response->success) && $response->success) ? 'Connected' : 'Disconnected';
     
         $payments = [];
         $pagination = null;
@@ -759,7 +764,9 @@ class AdminController extends Controller
             'total_fee',
             'status',
             'search',
-            'tripayMode'
+            'tripayMode',
+            'apiLatency',
+            'apiStatus'
         ));
     }
     
