@@ -724,7 +724,7 @@ class AdminController extends Controller
             }
         }
     
-        $tripayMode = Setting::getVal('tripay_mode', env('TRIPAY_MODE', 'sandbox'));
+        $tripayMode = \App\Models\Setting::getVal('tripay_mode', env('TRIPAY_MODE', 'sandbox'));
     
         return view('admin.payment_history', compact(
             'payments',
