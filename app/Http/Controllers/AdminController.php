@@ -702,8 +702,33 @@ class AdminController extends Controller
         $status = $request->get('status');
         $search = $request->get('search');
     
+        // Optimasi Pencarian Pintar: Terjemahkan nama tim / nomor WA lokal ke format Ref/Invoice TriPay
+        $apiSearch = $search;
+        if ($search) {
+            $searchUpper = strtoupper(trim($search));
+            
+            // 1. Jika pencarian adalah TriPay Reference (misal diawali T)
+            if (str_starts_with($searchUpper, 'T') && strlen($searchUpper) > 5) {
+                $apiSearch = $searchUpper;
+            }
+            // 2. Jika pencarian adalah Invoice lokal (diawali YMD)
+            elseif (str_starts_with($searchUpper, 'YMD')) {
+                $apiSearch = $searchUpper;
+            }
+            // 3. Jika pencarian adalah Nama Tim atau Nomor WA, cari di DB lokal untuk mendapatkan trx_id (merchant_ref)
+            else {
+                $localTeam = \App\Models\Team::where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('wa_number', 'LIKE', "%{$search}%")
+                    ->first();
+                
+                if ($localTeam) {
+                    $apiSearch = $localTeam->trx_id;
+                }
+            }
+        }
+    
         $tripay = new TripayController();
-        $response = $tripay->getTransactionsList($page, 20, $status, $search);
+        $response = $tripay->getTransactionsList($page, 20, $status, $apiSearch);
     
         $payments = [];
         $pagination = null;
