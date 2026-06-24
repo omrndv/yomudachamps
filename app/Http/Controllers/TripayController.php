@@ -107,4 +107,44 @@ class TripayController extends Controller
         $res = json_decode($response);
         return $res->success ? $res->data : null;
     }
+
+    public function getTransactionsList($page = 1, $perPage = 20, $status = null, $search = null)
+    {
+        $apiKey = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
+        $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE', 'sandbox')) === 'sandbox'
+            ? 'https://tripay.co.id/api-sandbox/merchant/transactions'
+            : 'https://tripay.co.id/api/merchant/transactions';
+
+        $params = [
+            'page' => $page,
+            'per_page' => $perPage,
+            'sort' => 'desc',
+        ];
+
+        if ($status) {
+            $params['status'] = strtoupper($status);
+        }
+
+        if ($search) {
+            if (str_starts_with(strtoupper($search), 'T')) {
+                $params['reference'] = $search;
+            } else {
+                $params['merchant_ref'] = $search;
+            }
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_FRESH_CONNECT  => true,
+            CURLOPT_URL            => $url . '?' . http_build_query($params),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $apiKey],
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4
+        ]);
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        
+        return json_decode($response);
+    }
 }

@@ -693,39 +693,49 @@ class AdminController extends Controller
         return back()->with('error', 'Tidak ada tim yang dipilih.');
     }
     
-        // FUNGSI UTAMA VIEW (Kembali ke DB Lokal agar Filter & Search Jalan)
+    // FUNGSI UTAMA VIEW (Mengambil Data Langsung Secara Live dari API TriPay)
     public function paymentHistory(Request $request)
     {
         if (!Auth::check()) return redirect()->route('admin.login');
     
-        $start_date = $request->get('start_date', date('Y-m-01'));
-        $end_date = $request->get('end_date', date('Y-m-t'));
-        $season_id = $request->get('season_id');
+        $page = $request->get('page', 1);
+        $status = $request->get('status');
+        $search = $request->get('search');
     
-        $query = Team::with('season')->where('status', 'PAID')
-                     ->whereBetween('updated_at', [$start_date . " 00:00:00", $end_date . " 23:59:59"]);
+        $tripay = new TripayController();
+        $response = $tripay->getTransactionsList($page, 20, $status, $search);
     
-        if ($season_id) $query->where('season_id', $season_id);
+        $payments = [];
+        $pagination = null;
+        $total_trx = 0;
+        $total_cuan = 0; // Pendapatan bersih di halaman ini
+        $total_fee = 0;  // Total fee TriPay di halaman ini
     
-        if ($request->get('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%$search%")->orWhere('trx_id', 'LIKE', "%$search%");
-            });
+        if ($response && isset($response->success) && $response->success) {
+            $payments = $response->data ?? [];
+            $pagination = $response->pagination ?? null;
+            $total_trx = $pagination->total ?? count($payments);
+    
+            foreach ($payments as $pay) {
+                if (strtoupper($pay->status ?? '') === 'PAID') {
+                    $total_cuan += $pay->amount_received ?? 0;
+                    $total_fee += $pay->total_fee ?? 0;
+                }
+            }
         }
     
-        // Clone query untuk total perhitungan agar tidak terganggu pagination limit
-        $total_query = clone $query;
-        $total_trx = $total_query->count();
-        $total_cuan = $total_query->get()->sum(function($pay) {
-            return $pay->amount ?? $pay->season->price ?? 0;
-        });
-
-        // Urutan: Terbaru ke Terlama (desc)
-        $payments = $query->orderBy('updated_at', 'desc')->paginate(20)->appends($request->all());
-        $seasons = \App\Models\Season::orderBy('created_at', 'desc')->get();
+        $tripayMode = Setting::getVal('tripay_mode', env('TRIPAY_MODE', 'sandbox'));
     
-        return view('admin.payment_history', compact('payments', 'total_cuan', 'total_trx', 'start_date', 'end_date', 'seasons', 'season_id'));
+        return view('admin.payment_history', compact(
+            'payments',
+            'pagination',
+            'total_trx',
+            'total_cuan',
+            'total_fee',
+            'status',
+            'search',
+            'tripayMode'
+        ));
     }
     
     // FUNGSI SINKRONISASI (MAGIC BUTTON)
