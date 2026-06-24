@@ -251,6 +251,41 @@ class AdminController extends Controller
         ));
     }
 
+    public function financeIndex($season_id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $current_season = Season::findOrFail($season_id);
+        $teams = Team::where('season_id', $season_id)->get();
+        $paid_teams = $teams->where('status', 'PAID');
+        $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
+        
+        $team_income = ($paid_teams->count() - $solo_teams_count) * $current_season->price;
+        $solo_income = \App\Models\SoloPlayer::where('season_id', $season_id)
+            ->where('status', 'PAID')
+            ->sum('amount_paid');
+            
+        $total_income = $team_income + $solo_income;
+
+        $finances = \App\Models\SeasonFinance::where('season_id', $season_id)->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
+        $additional_income = $finances->where('type', 'INCOME')->sum('amount');
+        $total_expense = $finances->where('type', 'EXPENSE')->sum('amount');
+        $net_income = $total_income + $additional_income - $total_expense;
+
+        return view('admin.finance', compact(
+            'current_season',
+            'team_income',
+            'solo_income',
+            'total_income',
+            'finances',
+            'additional_income',
+            'total_expense',
+            'net_income'
+        ));
+    }
+
     public function storeFinance(Request $request, $season_id)
     {
         if (!Auth::check()) return redirect()->route('admin.login');

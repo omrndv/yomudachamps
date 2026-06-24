@@ -122,6 +122,7 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
         Route::get('/seasons', [AdminController::class, 'seasons'])->name('admin.seasons');
         Route::get('/dashboard/{season_id}', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/dashboard/{season_id}/finance', [AdminController::class, 'financeIndex'])->name('admin.season.finance.index');
         Route::post('/dashboard/{season_id}/finance', [AdminController::class, 'storeFinance'])->name('admin.season.finance.store');
         Route::delete('/dashboard/{season_id}/finance/{id}', [AdminController::class, 'deleteFinance'])->name('admin.season.finance.delete');
         
