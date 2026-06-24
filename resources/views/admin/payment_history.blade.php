@@ -21,6 +21,11 @@
                 Pemantauan mutasi, transaksi, dan arus keuangan real-time dari API Payment Gateway TriPay.
             </p>
         </div>
+        <div>
+            <a href="{{ route('admin.payments.sync') }}" class="btn btn-warning fw-bold shadow-sm rounded-pill px-4 py-2.5 d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #1e293b;">
+                <i class="bi bi-arrow-repeat fs-5"></i> SINKRONISASI PENDING
+            </a>
+        </div>
     </div>
 
     {{-- Alert Success / Error --}}
