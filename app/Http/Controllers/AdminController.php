@@ -229,6 +229,12 @@ class AdminController extends Controller
             ->sum('amount_paid');
             
         $total_income = $team_income + $solo_income;
+
+        // Catatan Keuangan Pemasukan & Pengeluaran Season
+        $finances = \App\Models\SeasonFinance::where('season_id', $season_id)->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
+        $additional_income = $finances->where('type', 'INCOME')->sum('amount');
+        $total_expense = $finances->where('type', 'EXPENSE')->sum('amount');
+        $net_income = $total_income + $additional_income - $total_expense;
     
         return view('admin.dashboard', compact(
             'current_season',
@@ -237,8 +243,57 @@ class AdminController extends Controller
             'solo_teams_count',
             'team_income',
             'solo_income',
-            'total_income'
+            'total_income',
+            'finances',
+            'additional_income',
+            'total_expense',
+            'net_income'
         ));
+    }
+
+    public function storeFinance(Request $request, $season_id)
+    {
+        if (!Auth::check()) return redirect()->route('admin.login');
+
+        $request->validate([
+            'type' => 'required|in:INCOME,EXPENSE',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'date' => 'nullable|date'
+        ]);
+
+        \App\Models\SeasonFinance::create([
+            'season_id' => $season_id,
+            'type' => $request->type,
+            'title' => $request->title,
+            'amount' => $request->amount,
+            'date' => $request->date ?? now()->toDateString()
+        ]);
+
+        $typeLabel = $request->type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran';
+        $season = Season::find($season_id);
+        $seasonName = $season ? $season->name : "ID: $season_id";
+        AdminActivity::log("Menambahkan catatan keuangan ($typeLabel) '{$request->title}' sebesar Rp " . number_format($request->amount) . " untuk season: " . $seasonName);
+
+        return back()->with('success', 'Catatan keuangan berhasil ditambahkan!');
+    }
+
+    public function deleteFinance($season_id, $id)
+    {
+        if (!Auth::check()) return redirect()->route('admin.login');
+
+        $finance = \App\Models\SeasonFinance::where('season_id', $season_id)->findOrFail($id);
+        $title = $finance->title;
+        $amount = $finance->amount;
+        $typeLabel = $finance->type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran';
+        
+        $finance->delete();
+
+        $season = Season::find($season_id);
+        $seasonName = $season ? $season->name : "ID: $season_id";
+        AdminActivity::log("Menghapus catatan keuangan ($typeLabel) '{$title}' sebesar Rp " . number_format($amount) . " untuk season: " . $seasonName);
+
+        return back()->with('success', 'Catatan keuangan berhasil dihapus!');
     }
 
     public function settings()
