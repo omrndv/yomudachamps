@@ -742,8 +742,8 @@ class AdminController extends Controller
             foreach ($pendingTeams as $team) {
                 $res = $tripay->getDetailTransaction($team->tripay_reference);
 
-                if ($res && isset($res->success) && $res->success && isset($res->data)) {
-                    $statusTriPay = strtoupper((string) ($res->data->status ?? ''));
+                if ($res) {
+                    $statusTriPay = strtoupper((string) ($res->status ?? ''));
                     
                     if ($statusTriPay === 'PAID') { // PAID / SUCCESS
                         $currentPaidCount = Team::where('season_id', $team->season_id)
@@ -754,7 +754,7 @@ class AdminController extends Controller
                             $team->update([
                                 'status' => 'PAID',
                                 'status_tripay' => 'PAID',
-                                'amount' => $res->data->amount_received ?? $team->season->price,
+                                'amount' => $res->amount_received ?? $team->season->price,
                             ]);
                             $countUpdated++;
 
