@@ -220,8 +220,19 @@ class AdminController extends Controller
         // Count paid solo teams
         $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
         
-        // Estimasi Pendapatan Team: (Total Paid Teams - Solo Teams) * Season Price
-        $team_income = ($paid_teams->count() - $solo_teams_count) * $current_season->price;
+        // Pemasukan Otomatis via TriPay
+        $tripay_teams = $paid_teams->where('is_solo_team', false)->whereNotNull('tripay_reference');
+        $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+
+        // Pemasukan Manual / Bulk Add oleh Admin
+        $manual_teams = $paid_teams->where('is_solo_team', false)->whereNull('tripay_reference');
+        $manual_income = $manual_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+        
+        $team_income = $tripay_income + $manual_income;
         
         // Estimasi Pendapatan Solo: sum of amount_paid where status = PAID
         $solo_income = \App\Models\SoloPlayer::where('season_id', $season_id)
@@ -242,6 +253,8 @@ class AdminController extends Controller
             'paid_teams',
             'solo_teams_count',
             'team_income',
+            'tripay_income',
+            'manual_income',
             'solo_income',
             'total_income',
             'finances',
@@ -262,7 +275,20 @@ class AdminController extends Controller
         $paid_teams = $teams->where('status', 'PAID');
         $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
         
-        $team_income = ($paid_teams->count() - $solo_teams_count) * $current_season->price;
+        // Pemasukan Otomatis via TriPay
+        $tripay_teams = $paid_teams->where('is_solo_team', false)->whereNotNull('tripay_reference');
+        $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+
+        // Pemasukan Manual / Bulk Add oleh Admin
+        $manual_teams = $paid_teams->where('is_solo_team', false)->whereNull('tripay_reference');
+        $manual_income = $manual_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+        
+        $team_income = $tripay_income + $manual_income;
+        
         $solo_income = \App\Models\SoloPlayer::where('season_id', $season_id)
             ->where('status', 'PAID')
             ->sum('amount_paid');
@@ -277,6 +303,8 @@ class AdminController extends Controller
         return view('admin.finance', compact(
             'current_season',
             'team_income',
+            'tripay_income',
+            'manual_income',
             'solo_income',
             'total_income',
             'finances',

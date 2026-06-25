@@ -95,14 +95,18 @@
                         <i class="bi bi-people fs-5"></i>
                     </div>
                 </div>
-                <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.7rem;">
-                    <div class="col-6 border-end">
-                        <span class="text-muted d-block">Tim</span>
-                        <strong class="text-dark">Rp {{ number_format($team_income, 0, ',', '.') }}</strong>
+                <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.65rem;">
+                    <div class="col-4 border-end px-1">
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Otomatis via TriPay/Website">TriPay (Web)</span>
+                        <strong class="text-dark d-block">Rp {{ number_format($tripay_income, 0, ',', '.') }}</strong>
                     </div>
-                    <div class="col-6">
-                        <span class="text-muted d-block">Solo</span>
-                        <strong class="text-dark">Rp {{ number_format($solo_income, 0, ',', '.') }}</strong>
+                    <div class="col-4 border-end px-1">
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Manual oleh Admin/Bulk Add">Manual/Bulk</span>
+                        <strong class="text-dark d-block">Rp {{ number_format($manual_income, 0, ',', '.') }}</strong>
+                    </div>
+                    <div class="col-4 px-1">
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Peserta Daftar Solo">Solo Player</span>
+                        <strong class="text-dark d-block">Rp {{ number_format($solo_income, 0, ',', '.') }}</strong>
                     </div>
                 </div>
             </div>
