@@ -1168,6 +1168,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
+            'permissions' => ["seasons", "finance", "solo_matchmaker", "notes", "faqs", "activity_log"],
         ]);
 
         AdminActivity::log('Membuat akun admin baru: ' . $admin->username);
@@ -1220,6 +1221,52 @@ class AdminController extends Controller
         AdminActivity::log('Menghapus akun admin: ' . $adminUsername);
 
         return back()->with('success', 'Akun admin berhasil dihapus!');
+    }
+
+    public function togglePermission(Request $request)
+    {
+        if (Auth::user()->role !== 'superadmin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'admin_id' => 'required|exists:users,id',
+            'permission' => 'required|string',
+            'status' => 'required|boolean',
+        ]);
+
+        $admin = User::findOrFail($request->admin_id);
+
+        if ($admin->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Hanya akun admin yang bisa diubah izinnya.'], 400);
+        }
+
+        $currentPermissions = $admin->permissions;
+        if (!is_array($currentPermissions)) {
+            $currentPermissions = json_decode($currentPermissions, true) ?: [];
+        }
+
+        $permission = $request->permission;
+        $status = (bool) $request->status;
+
+        if ($status) {
+            if (!in_array($permission, $currentPermissions)) {
+                $currentPermissions[] = $permission;
+            }
+        } else {
+            $currentPermissions = array_values(array_diff($currentPermissions, [$permission]));
+        }
+
+        $admin->permissions = $currentPermissions;
+        $admin->save();
+
+        AdminActivity::log('Mengubah izin ' . $permission . ' untuk admin ' . $admin->username . ' menjadi ' . ($status ? 'AKTIF' : 'NONAKTIF'));
+
+        return response()->json([
+            'success' => true, 
+            'permissions' => $currentPermissions,
+            'message' => 'Izin berhasil diperbarui'
+        ]);
     }
 
     public function soloMatchmaker($season_id)

@@ -120,39 +120,56 @@ Route::middleware('admin.auth')->group(function () {
 
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
-        Route::get('/seasons', [AdminController::class, 'seasons'])->name('admin.seasons');
-        Route::get('/dashboard/{season_id}', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-        Route::get('/dashboard/{season_id}/finance', [AdminController::class, 'financeIndex'])->name('admin.season.finance.index');
-        Route::post('/dashboard/{season_id}/finance', [AdminController::class, 'storeFinance'])->name('admin.season.finance.store');
-        Route::delete('/dashboard/{season_id}/finance/{id}', [AdminController::class, 'deleteFinance'])->name('admin.season.finance.delete');
         
-        Route::get('/notes', [AdminController::class, 'showNotes'])->name('admin.notes.index');
-        Route::get('/notes/create', [AdminController::class, 'storeNote'])->name('admin.notes.store');
-        Route::get('/notes/delete/{id}', [AdminController::class, 'deleteNote'])->name('admin.notes.delete');
-        Route::post('/notes/update/{id}', [AdminController::class, 'updateNotes'])->name('admin.notes.update');
+        // Seasons
+        Route::middleware('permission:seasons')->group(function () {
+            Route::get('/seasons', [AdminController::class, 'seasons'])->name('admin.seasons');
+            Route::get('/dashboard/{season_id}', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        });
+
+        // Finance
+        Route::middleware('permission:finance')->group(function () {
+            Route::get('/dashboard/{season_id}/finance', [AdminController::class, 'financeIndex'])->name('admin.season.finance.index');
+            Route::post('/dashboard/{season_id}/finance', [AdminController::class, 'storeFinance'])->name('admin.season.finance.store');
+            Route::delete('/dashboard/{season_id}/finance/{id}', [AdminController::class, 'deleteFinance'])->name('admin.season.finance.delete');
+        });
+        
+        // Notes
+        Route::middleware('permission:notes')->group(function () {
+            Route::get('/notes', [AdminController::class, 'showNotes'])->name('admin.notes.index');
+            Route::get('/notes/create', [AdminController::class, 'storeNote'])->name('admin.notes.store');
+            Route::get('/notes/delete/{id}', [AdminController::class, 'deleteNote'])->name('admin.notes.delete');
+            Route::post('/notes/update/{id}', [AdminController::class, 'updateNotes'])->name('admin.notes.update');
+        });
         
         // Activity Log
-        Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('admin.activity-log');
+        Route::middleware('permission:activity_log')->group(function () {
+            Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('admin.activity-log');
+        });
 
         // FAQ Management
-        Route::get('/faqs', [AdminController::class, 'faqs'])->name('admin.faqs.index');
-        Route::post('/faqs/store', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
-        Route::post('/faqs/update/{id}', [AdminController::class, 'updateFaq'])->name('admin.faqs.update');
-        Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
-        Route::post('/faqs/reorder/{id}', [AdminController::class, 'reorderFaq'])->name('admin.faqs.reorder');
+        Route::middleware('permission:faqs')->group(function () {
+            Route::get('/faqs', [AdminController::class, 'faqs'])->name('admin.faqs.index');
+            Route::post('/faqs/store', [AdminController::class, 'storeFaq'])->name('admin.faqs.store');
+            Route::post('/faqs/update/{id}', [AdminController::class, 'updateFaq'])->name('admin.faqs.update');
+            Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
+            Route::post('/faqs/reorder/{id}', [AdminController::class, 'reorderFaq'])->name('admin.faqs.reorder');
+        });
 
         // Solo Matchmaker
-        Route::get('/solo-matchmaker/{season_id}', [AdminController::class, 'soloMatchmaker'])->name('admin.solo.matchmaker');
-        Route::post('/solo-matchmaker/store/{season_id}', [AdminController::class, 'storeSoloPlayer'])->name('admin.solo.store');
-        Route::post('/solo-matchmaker/bulk-store/{season_id}', [AdminController::class, 'bulkStoreSolo'])->name('admin.solo.bulkStore');
-        Route::post('/solo-matchmaker/group/{season_id}', [AdminController::class, 'groupSoloPlayers'])->name('admin.solo.group');
-        Route::post('/solo-matchmaker/create-empty-team/{season_id}', [AdminController::class, 'createEmptySoloTeam'])->name('admin.solo.createEmptyTeam');
-        Route::post('/solo-matchmaker/update-player-team/{season_id}', [AdminController::class, 'updatePlayerTeam'])->name('admin.solo.updatePlayerTeam');
-        Route::post('/solo-matchmaker/update/{id}', [AdminController::class, 'updateSoloPlayer'])->name('admin.solo.update');
-        Route::post('/solo-matchmaker/team/update/{id}', [AdminController::class, 'updateSoloTeamDetails'])->name('admin.solo.team.update');
-        Route::get('/solo-matchmaker/suggest/{season_id}', [AdminController::class, 'suggestTeams'])->name('admin.solo.suggest');
-        Route::get('/solo-matchmaker/team/delete/{id}', [AdminController::class, 'deleteSoloTeam'])->name('admin.solo.team.delete');
-        Route::get('/solo-matchmaker/delete/{id}', [AdminController::class, 'deleteSoloPlayer'])->name('admin.solo.delete');
+        Route::middleware('permission:solo_matchmaker')->group(function () {
+            Route::get('/solo-matchmaker/{season_id}', [AdminController::class, 'soloMatchmaker'])->name('admin.solo.matchmaker');
+            Route::post('/solo-matchmaker/store/{season_id}', [AdminController::class, 'storeSoloPlayer'])->name('admin.solo.store');
+            Route::post('/solo-matchmaker/bulk-store/{season_id}', [AdminController::class, 'bulkStoreSolo'])->name('admin.solo.bulkStore');
+            Route::post('/solo-matchmaker/group/{season_id}', [AdminController::class, 'groupSoloPlayers'])->name('admin.solo.group');
+            Route::post('/solo-matchmaker/create-empty-team/{season_id}', [AdminController::class, 'createEmptySoloTeam'])->name('admin.solo.createEmptyTeam');
+            Route::post('/solo-matchmaker/update-player-team/{season_id}', [AdminController::class, 'updatePlayerTeam'])->name('admin.solo.updatePlayerTeam');
+            Route::post('/solo-matchmaker/update/{id}', [AdminController::class, 'updateSoloPlayer'])->name('admin.solo.update');
+            Route::post('/solo-matchmaker/team/update/{id}', [AdminController::class, 'updateSoloTeamDetails'])->name('admin.solo.team.update');
+            Route::get('/solo-matchmaker/suggest/{season_id}', [AdminController::class, 'suggestTeams'])->name('admin.solo.suggest');
+            Route::get('/solo-matchmaker/team/delete/{id}', [AdminController::class, 'deleteSoloTeam'])->name('admin.solo.team.delete');
+            Route::get('/solo-matchmaker/delete/{id}', [AdminController::class, 'deleteSoloPlayer'])->name('admin.solo.delete');
+        });
 
         Route::middleware('superadmin')->group(function () {
             Route::get('/teams', [AdminController::class, 'teams'])->name('admin.teams');
@@ -166,6 +183,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/store', [AdminController::class, 'storeAdmin'])->name('admin.manage.store');
             Route::post('/manage-admins/update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.manage.update');
             Route::get('/manage-admins/delete/{id}', [AdminController::class, 'deleteAdmin'])->name('admin.manage.delete');
+            Route::post('/manage-admins/toggle-permission', [AdminController::class, 'togglePermission'])->name('admin.manage.toggle-permission');
         });
     });
 });

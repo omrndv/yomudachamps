@@ -243,9 +243,11 @@
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
+            @if(Auth::check() && Auth::user()->hasPermission('seasons'))
             <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-trophy"></i> <span>Daftar Season</span>
             </a>
+            @endif
 
             @if(Auth::check() && Auth::user()->role === 'superadmin')
             <a href="{{ route('admin.teams') }}" class="nav-link {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
@@ -257,9 +259,11 @@
             </a>
             @endif
 
+            @if(Auth::check() && Auth::user()->hasPermission('notes'))
             <a href="{{ route('admin.notes.index') }}" class="nav-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                 <i class="bi bi-sticky"></i> <span>Catatan Admin</span>
             </a>
+            @endif
 
             @if(Auth::check() && Auth::user()->role === 'superadmin')
             <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
@@ -267,13 +271,17 @@
             </a>
             @endif
 
+            @if(Auth::check() && Auth::user()->hasPermission('faqs'))
             <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                 <i class="bi bi-question-circle"></i> <span>Kelola FAQ</span>
             </a>
+            @endif
 
+            @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
             <a href="{{ route('admin.activity-log') }}" class="nav-link {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
                 <i class="bi bi-clock-history"></i> <span>Log Aktivitas</span>
             </a>
+            @endif
 
             @if(Auth::check() && Auth::user()->role === 'superadmin')
             <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
@@ -313,9 +321,11 @@
                     <i class="bi bi-grid-1x2 me-2"></i> <span>Dashboard</span>
                 </a>
 
+                @if(Auth::check() && Auth::user()->hasPermission('seasons'))
                 <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
+                @endif
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
                 <a href="{{ route('admin.teams') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
@@ -327,9 +337,11 @@
                 </a>
                 @endif
 
+                @if(Auth::check() && Auth::user()->hasPermission('notes'))
                 <a href="{{ route('admin.notes.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                     <i class="bi bi-sticky me-2"></i> <span>Catatan Admin</span>
                 </a>
+                @endif
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
                 <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
@@ -337,13 +349,17 @@
                 </a>
                 @endif
 
+                @if(Auth::check() && Auth::user()->hasPermission('faqs'))
                 <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                     <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
                 </a>
+                @endif
 
+                @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
                 <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
                     <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
                 </a>
+                @endif
 
                 @if(Auth::check() && Auth::user()->role === 'superadmin')
                 <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
