@@ -448,7 +448,8 @@ class BracketController extends Controller
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
-            'new_name' => 'required|string|max:100'
+            'new_name' => 'required|string|max:100',
+            'price' => 'required|integer|min:0'
         ]);
 
         DB::beginTransaction();
@@ -484,6 +485,17 @@ class BracketController extends Controller
             // Clean up the placeholder team from the database
             $ymdTeam->delete();
 
+            // Create SeasonFinance entry for YMD slot purchase
+            if ($request->price > 0) {
+                \App\Models\SeasonFinance::create([
+                    'season_id' => $season_id,
+                    'type' => 'INCOME',
+                    'title' => 'Penjualan Slot YMD (' . $oldName . ' ke ' . $targetTeam->name . ')',
+                    'amount' => $request->price,
+                    'date' => now()->toDateString()
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -497,5 +509,34 @@ class BracketController extends Controller
                 'message' => 'Gagal menghubungkan slot: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Mengembalikan data JSON bagan tanding untuk polling real-time
+     */
+    public function getBracketData($season_id)
+    {
+        $matches = Bracket::where('season_id', $season_id)
+            ->with(['team1', 'team2'])
+            ->get()
+            ->map(function($m) {
+                return [
+                    'id' => $m->id,
+                    'round_number' => $m->round_number,
+                    'match_number' => $m->match_number,
+                    'team1_id' => $m->team1_id,
+                    'team1_name' => $m->team1 ? $m->team1->name : null,
+                    'team1_wa' => $m->team1 ? $m->team1->wa_number : null,
+                    'team2_id' => $m->team2_id,
+                    'team2_name' => $m->team2 ? $m->team2->name : null,
+                    'team2_wa' => $m->team2 ? $m->team2->wa_number : null,
+                    'team1_score' => $m->team1_score,
+                    'team2_score' => $m->team2_score,
+                    'winner_id' => $m->winner_id,
+                    'status' => $m->status,
+                    'match_time' => $m->match_time
+                ];
+            });
+        return response()->json(['success' => true, 'matches' => $matches]);
     }
 }

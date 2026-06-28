@@ -224,3 +224,4 @@ Route::get('/bracket-demo', function () {
 
 // Public Bracket Viewer Route
 Route::get('/season/{season_id}/bracket', [\App\Http\Controllers\BracketController::class, 'publicBracket'])->name('public.season.bracket');
+Route::get('/season/{season_id}/bracket/data', [\App\Http\Controllers\BracketController::class, 'getBracketData'])->name('public.season.bracket.data');

@@ -89,7 +89,7 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-center gap-2 small text-secondary">
                         <i class="bi bi-info-circle text-warning fs-5"></i>
-                        <span><strong>Tips:</strong> Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) di baris tim lain untuk mengatur posisi lawan tanding secara real-time.</span>
+                        <span><strong>Tips:</strong> Bagan terupdate secara **LIVE** tanpa perlu refresh. Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) untuk swap posisi.</span>
                     </div>
                 </div>
             </div>
@@ -218,20 +218,35 @@
             </div>
             <div class="modal-body p-4">
                 
-                {{-- Bulk Add Form --}}
-                <div class="p-3 border rounded-3 bg-light mb-4">
-                    <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-plus-circle me-1 text-warning"></i>Tambah Banyak Slot YMD Baru</h6>
-                    <div class="row g-2 align-items-center">
-                        <div class="col-auto">
-                            <span class="small text-secondary">Jumlah Slot YMD:</span>
+                {{-- Panel Tambah Slot & Cari Slot --}}
+                <div class="row g-3 mb-4">
+                    {{-- Bulk Add --}}
+                    <div class="col-md-7">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-plus-circle me-1 text-warning"></i>Tambah Banyak Slot YMD Baru</h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <span class="small text-secondary">Jumlah:</span>
+                                </div>
+                                <div class="col-4 col-sm-3">
+                                    <input type="number" id="ymdAddCount" class="form-control form-control-sm" min="1" max="32" value="5">
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-warning btn-sm fw-bold px-3 rounded" onclick="bulkAddYmdSlots()">
+                                        <i class="bi bi-plus-lg"></i> Tambahkan
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-4 col-sm-2">
-                            <input type="number" id="ymdAddCount" class="form-control form-control-sm" min="1" max="32" value="5">
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-warning btn-sm fw-bold px-3 rounded" onclick="bulkAddYmdSlots()">
-                                <i class="bi bi-plus-lg"></i> Tambahkan ke DB
-                            </button>
+                    </div>
+                    {{-- Search box --}}
+                    <div class="col-md-5">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-search me-1 text-warning"></i>Cari Slot YMD</h6>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-secondary"></i></span>
+                                <input type="text" id="modalYmdSearch" class="form-control" placeholder="Cari nama slot / tim...">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -239,11 +254,12 @@
                 {{-- List of current YMD Teams --}}
                 <h6 class="fw-bold text-dark mb-2.5 small"><i class="bi bi-list-stars me-1 text-warning"></i>Daftar Slot YMD Terdaftar (Klik Simpan untuk Ganti Nama Tim)</h6>
                 <div style="max-height: 280px; overflow-y: auto;" class="border rounded bg-white">
-                    <table class="table table-sm align-middle m-0 small">
+                    <table class="table table-sm align-middle m-0 small" id="modalYmdTable">
                         <thead class="table-light sticky-top">
                             <tr>
                                 <th class="ps-3 py-2">Nama Slot Asli</th>
                                 <th class="py-2">Ganti Nama Tim Peserta</th>
+                                <th class="py-2" style="width: 140px;">Harga Slot (Rp)</th>
                                 <th class="text-end pe-3 py-2">Aksi</th>
                             </tr>
                         </thead>
@@ -260,7 +276,10 @@
                                 <tr>
                                     <td class="ps-3 fw-bold text-warning">{{ $t->name }}</td>
                                     <td>
-                                        <input type="text" class="form-control form-control-sm w-75" id="ymdRenameInput_{{ $t->id }}" placeholder="Masukkan nama tim baru...">
+                                        <input type="text" class="form-control form-control-sm w-90" id="ymdRenameInput_{{ $t->id }}" placeholder="Ketik nama tim peserta..." list="registeredTeamsList">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm" id="ymdPriceInput_{{ $t->id }}" value="{{ $season->price }}" min="0">
                                     </td>
                                     <td class="text-end pe-3">
                                         <button type="button" class="btn btn-warning btn-sm py-0.5 px-2.5 fw-bold rounded-pill text-dark" style="font-size: 0.7rem;" onclick="renameYmdSlot({{ $t->id }}, '{{ $t->name }}')">
@@ -270,7 +289,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center py-4 text-secondary italic">Tidak ada slot YMD yang terdaftar. Gunakan formulir di atas untuk menambahkannya secara bulk.</td>
+                                    <td colspan="4" class="text-center py-4 text-secondary italic">Tidak ada slot YMD yang terdaftar. Gunakan formulir di atas untuk menambahkannya secara bulk.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -283,6 +302,13 @@
         </div>
     </div>
 </div>
+
+{{-- Autocomplete recommendations datalist --}}
+<datalist id="registeredTeamsList">
+    @foreach($teams->filter(function($t) { return !str_starts_with(strtolower($t->name), 'ymd'); }) as $rt)
+        <option value="{{ $rt->name }}"></option>
+    @endforeach
+</datalist>
 @endif
 
 {{-- Modal Atur Jam Main per Babak --}}
@@ -928,6 +954,126 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // ----------------------------------------------------
+    // Search & Filter inside YMD Slots Modal
+    // ----------------------------------------------------
+    const modalYmdSearch = document.getElementById('modalYmdSearch');
+    if (modalYmdSearch) {
+        modalYmdSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            document.querySelectorAll('#modalYmdTable tbody tr').forEach(row => {
+                const firstCell = row.querySelector('td:first-child');
+                const secondCellInput = row.querySelector('input[type="text"]');
+                
+                const slotName = firstCell ? firstCell.textContent.toLowerCase() : '';
+                const renameVal = secondCellInput ? secondCellInput.value.toLowerCase() : '';
+
+                if (slotName.includes(query) || renameVal.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // LIVE Real-Time Polling (Sync database updates without refresh)
+    // ----------------------------------------------------
+    setInterval(function() {
+        const isModalOpen = document.querySelectorAll('.modal.show').length > 0;
+        const isDragging = draggedElement !== null;
+
+        // Only poll if no modal is active and admin is not currently dragging a row
+        if (!isModalOpen && !isDragging) {
+            fetch("{{ route('public.season.bracket.data', $season->id) }}")
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.matches) {
+                        res.matches.forEach(m => {
+                            const card = document.getElementById(`card_m_${m.round_number}_${m.match_number}`);
+                            if (card) {
+                                // 1. Update time / live status badge
+                                const timeSpan = card.querySelector('.match-card-time');
+                                if (timeSpan) {
+                                    if (m.status === 'live') {
+                                        timeSpan.innerHTML = '<span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>';
+                                    } else {
+                                        timeSpan.innerHTML = `<i class="bi bi-clock"></i> ${m.match_time || '20:00 WIB'}`;
+                                    }
+                                }
+
+                                // 2. Update border class
+                                if (m.status === 'live') {
+                                    card.classList.add('border-primary');
+                                } else {
+                                    card.classList.remove('border-primary');
+                                }
+
+                                // 3. Update Team 1 row details
+                                const row1 = card.querySelector('.team-row[data-slot="1"]');
+                                if (row1) {
+                                    row1.dataset.teamId = m.team1_id || '';
+                                    row1.dataset.teamName = m.team1_name ? m.team1_name.toLowerCase() : '';
+                                    
+                                    row1.className = `team-row ${m.winner_id && m.winner_id === m.team1_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team1_id ? 'loser' : ''}`;
+                                    
+                                    const nameSpan = row1.querySelector('.team-name');
+                                    if (nameSpan) {
+                                        nameSpan.className = m.team1_name ? 'team-name text-dark fw-semibold' : 'team-name text-muted italic';
+                                        nameSpan.textContent = m.team1_name || 'Belum Ada Tim';
+                                    }
+                                    const scoreBox = row1.querySelector('.team-score-box');
+                                    if (scoreBox) scoreBox.textContent = m.team1_score;
+                                }
+
+                                // 4. Update Team 2 row details
+                                const row2 = card.querySelector('.team-row[data-slot="2"]');
+                                if (row2) {
+                                    row2.dataset.teamId = m.team2_id || '';
+                                    row2.dataset.teamName = m.team2_name ? m.team2_name.toLowerCase() : '';
+                                    
+                                    row2.className = `team-row ${m.winner_id && m.winner_id === m.team2_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team2_id ? 'loser' : ''}`;
+                                    
+                                    const nameSpan = row2.querySelector('.team-name');
+                                    if (nameSpan) {
+                                        if (m.team2_name) {
+                                            nameSpan.className = 'team-name text-dark fw-semibold';
+                                            nameSpan.textContent = m.team2_name;
+                                        } else {
+                                            if (m.round_number === 1) {
+                                                nameSpan.className = 'team-name text-success fw-bold';
+                                                nameSpan.textContent = 'BYE (Lolos)';
+                                            } else {
+                                                nameSpan.className = 'team-name text-muted italic';
+                                                nameSpan.textContent = 'Belum Ada Tim';
+                                            }
+                                        }
+                                    }
+                                    const scoreBox = row2.querySelector('.team-score-box');
+                                    if (scoreBox) scoreBox.textContent = m.team2_score;
+                                }
+
+                                // 5. Update open modal click handler payload
+                                card.setAttribute('onclick', `openEditMatchModal(${JSON.stringify({
+                                    id: m.id,
+                                    team1_name: m.team1_name || 'TBD',
+                                    team2_name: m.team2_name || 'TBD',
+                                    team1_score: m.team1_score,
+                                    team2_score: m.team2_score,
+                                    match_time: m.match_time || '20:00 WIB',
+                                    status: m.status,
+                                    team1_exists: !!m.team1_id,
+                                    team2_exists: !!m.team2_id
+                                })})`);
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.log("Realtime sync issue:", err));
+        }
+    }, 4000);
 });
 
 // ----------------------------------------------------
@@ -1006,6 +1152,8 @@ function saveRoundTime(roundNum) {
 // ----------------------------------------------------
 function renameYmdSlot(teamId, oldName) {
     const inputVal = document.getElementById(`ymdRenameInput_${teamId}`).value.trim();
+    const priceVal = document.getElementById(`ymdPriceInput_${teamId}`).value.trim();
+    const parsedPrice = parseInt(priceVal) || 0;
 
     if (!inputVal) {
         Swal.fire({
@@ -1018,7 +1166,7 @@ function renameYmdSlot(teamId, oldName) {
 
     Swal.fire({
         title: 'Ganti Nama Slot?',
-        text: `Ubah slot "${oldName}" menjadi "${inputVal}"? Perubahan akan langsung terlihat di bagan.`,
+        text: `Ubah slot "${oldName}" menjadi "${inputVal}" dengan harga Rp ${parsedPrice.toLocaleString('id-ID')}? Perubahan akan langsung terlihat di bagan.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#f97316',
@@ -1038,7 +1186,8 @@ function renameYmdSlot(teamId, oldName) {
                 },
                 body: JSON.stringify({
                     team_id: teamId,
-                    new_name: inputVal
+                    new_name: inputVal,
+                    price: parsedPrice
                 })
             })
             .then(response => response.json())
@@ -1051,7 +1200,6 @@ function renameYmdSlot(teamId, oldName) {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        // Keep scroll and reload
                         const container = document.getElementById('adminBracketContainer');
                         if (container) {
                             sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
