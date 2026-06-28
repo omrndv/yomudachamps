@@ -150,20 +150,17 @@ class BracketController extends Controller
             $match->team1_score = $request->team1_score;
             $match->team2_score = $request->team2_score;
             $match->match_time = $request->match_time;
-            $match->status = $request->status;
 
-            if ($request->status === 'finished') {
+            // Auto-finish and auto-advance when scores are unequal (winner exists)
+            if ($request->team1_score != $request->team2_score) {
                 if (!$match->team1_id || !$match->team2_id) {
                     return response()->json(['success' => false, 'message' => 'Pertandingan BYE atau tidak lengkap tidak dapat diubah skornya.'], 400);
                 }
-
-                if ($request->team1_score === $request->team2_score) {
-                    return response()->json(['success' => false, 'message' => 'Skor tanding tidak boleh seri. Harus ada pemenang.'], 400);
-                }
-
+                $match->status = 'finished';
                 $match->winner_id = ($request->team1_score > $request->team2_score) ? $match->team1_id : $match->team2_id;
             } else {
-                // If status reverted back, clear winner
+                // If scores are equal (e.g. reset to 0-0), clear winner and set status to what was requested (must not be finished)
+                $match->status = ($request->status === 'finished') ? 'upcoming' : $request->status;
                 $match->winner_id = null;
             }
 
