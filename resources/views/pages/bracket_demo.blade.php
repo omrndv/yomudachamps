@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bagan Turnamen - Yomuda Championship</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
@@ -19,7 +19,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-secondary);
             color: var(--text-light);
             overflow-x: hidden;
@@ -33,7 +33,7 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* Search Box style (Challonge-like, clean, compact) */
+        /* Search Box style */
         .search-wrapper {
             max-width: 380px;
             margin: 15px auto;
@@ -94,7 +94,7 @@
         }
 
         .round-header-item {
-            width: 200px;
+            width: 210px;
             margin-right: 90px; /* Matching column spacing */
             flex-shrink: 0;
             text-align: center;
@@ -102,7 +102,7 @@
 
         /* Bracket container layout */
         .bracket-container {
-            padding: 20px 30px 40px 30px;
+            padding: 40px 30px 40px 30px;
             overflow-x: auto;
             white-space: nowrap;
             cursor: grab;
@@ -136,9 +136,9 @@
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 100%;
+            height: 4800px; /* Standard absolute height to distribute 64 match cards and calculate lines precisely */
             vertical-align: top;
-            width: 200px;
+            width: 210px;
             margin-right: 90px;
             position: relative;
         }
@@ -147,8 +147,8 @@
         .match-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
-            width: 200px;
+            border-radius: 6px;
+            width: 210px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -166,20 +166,21 @@
             transform: scale(1.03);
         }
 
-        /* Bracket Index indicator on the left side */
-        .match-index-label {
-            position: absolute;
-            left: -24px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.65rem;
+        /* Match Card Header Row for Label & Time */
+        .match-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #202024;
+            border-bottom: 1px solid var(--border-color);
+            padding: 4px 8px;
+            font-size: 0.62rem;
+            font-weight: 700;
             color: var(--text-dim);
-            font-weight: 500;
         }
 
-        .match-card-wrapper {
-            position: relative;
-            margin: 8px 0; /* Flexible vertical spacing */
+        .match-card-time {
+            color: var(--accent-orange);
         }
 
         /* Team Row */
@@ -187,10 +188,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 25px;
+            height: 24px;
             font-size: 0.72rem;
             padding-left: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             background-color: var(--bg-card);
             color: var(--text-light);
             cursor: pointer;
@@ -230,21 +231,21 @@
 
         /* Challonge Score Box */
         .team-score-box {
-            width: 26px;
-            height: 25px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 0.75rem;
-            background-color: #27272a;
+            background-color: #202024;
             color: var(--text-dim);
             border-left: 1px solid var(--border-color);
             flex-shrink: 0;
         }
 
         .team-row.winner {
-            background-color: rgba(255, 122, 0, 0.03);
+            background-color: rgba(255, 122, 0, 0.02);
         }
 
         .team-row.winner .team-name {
@@ -258,7 +259,7 @@
         }
 
         .team-row.loser {
-            opacity: 0.5;
+            opacity: 0.45;
         }
 
         /* Path Highlighting */
@@ -269,11 +270,11 @@
             color: var(--accent-orange) !important;
         }
 
-        /* Orthogonal Connector Lines (Challonge-like) */
+        /* Orthogonal Connector Lines (Challonge-like SVG) */
         .round-connectors {
             position: absolute;
             top: 0;
-            left: 200px;
+            left: 210px;
             width: 90px;
             height: 100%;
             pointer-events: none;
@@ -282,14 +283,14 @@
 
         .connector-line {
             fill: none;
-            stroke: #3f3f46;
-            stroke-width: 1.2;
+            stroke: #44444f;
+            stroke-width: 1.5;
             transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
 
         .connector-line.highlighted {
             stroke: var(--accent-orange);
-            stroke-width: 1.8;
+            stroke-width: 2.2;
         }
     </style>
 </head>
@@ -348,13 +349,13 @@
         const roundsCount = Math.log2(teamCount); // 7 Rounds
         
         const roundTimes = {
-            1: "20:00",
-            2: "20:40",
-            3: "21:20",
-            4: "22:00",
-            5: "22:40",
-            6: "23:20",
-            7: "24:00"
+            1: "20:00 WIB",
+            2: "20:40 WIB",
+            3: "21:20 WIB",
+            4: "22:00 WIB",
+            5: "22:40 WIB",
+            6: "23:20 WIB",
+            7: "24:00 WIB"
         };
 
         const roundNames = {
@@ -389,6 +390,9 @@
         const matchesData = {};
         const container = document.getElementById('bracketContainer');
         let currentRoundTeams = [...teams];
+        
+        // Define round constant height for precision SVG layout
+        const roundHeight = 4800;
 
         // Draw rounds
         for (let round = 1; round <= roundsCount; round++) {
@@ -400,9 +404,8 @@
             const nextRoundTeams = [];
             const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svgConnectors.setAttribute("class", "round-connectors");
-
-            // Height is constant per round column, flexbox distributes vertical centers automatically
-            const roundHeight = 1000; 
+            // Important: set absolute view box to match round height for perfect line coordinates
+            svgConnectors.setAttribute("viewBox", `0 0 90 ${roundHeight}`);
 
             for (let match = 1; match <= matchesInRound; match++) {
                 const team1 = currentRoundTeams[(match - 1) * 2];
@@ -417,22 +420,18 @@
 
                 const matchId = `m_${round}_${match}`;
                 
-                // Card Wrapper (contains absolute match index on left side)
-                const wrapper = document.createElement('div');
-                wrapper.className = 'match-card-wrapper';
-
-                const indexLabel = document.createElement('span');
-                indexLabel.className = 'match-index-label';
-                indexLabel.textContent = match;
-                wrapper.appendChild(indexLabel);
-
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'match-card';
                 cardDiv.id = `card_${matchId}`;
 
                 const matchTime = roundTimes[round];
 
+                // Added match-card-header back inside the card to display 'BRACKET X' and time at the top
                 cardDiv.innerHTML = `
+                    <div class="match-card-header">
+                        <span>BRACKET ${match}</span>
+                        <span class="match-card-time"><i class="bi bi-clock"></i> ${matchTime}</span>
+                    </div>
                     <div class="team-row ${winner === team1 ? 'winner' : 'loser'}" data-team-id="${team1.id}">
                         <div class="team-info">
                             <span class="team-seed">${team1.seed}</span>
@@ -449,8 +448,7 @@
                     </div>
                 `;
                 
-                wrapper.appendChild(cardDiv);
-                roundDiv.appendChild(wrapper);
+                roundDiv.appendChild(cardDiv);
 
                 // Index details for search
                 [team1, team2].forEach(t => {
@@ -458,7 +456,7 @@
                     matchesData[t.name.toLowerCase()] = {
                         name: t.name,
                         opponent: (t === team1 ? team2 : team1).name,
-                        schedule: `${matchTime} WIB`,
+                        schedule: matchTime,
                         bracket: `Bracket ${match}`,
                         round: roundNames[round],
                         status: isWin ? 'Lolos' : 'Kalah',
@@ -466,22 +464,20 @@
                     };
                 });
 
-                // Draw connector lines
+                // Draw orthogonal connector lines using absolute coordinate projection
                 if (round < roundsCount) {
                     const nextMatchIndex = Math.ceil(match / 2);
                     
-                    // Match heights calculated dynamically for perfect lines
-                    const stepY = 100 / matchesInRound;
-                    const startY = stepY * (match - 0.5) + "%";
-                    const endY = (100 / (matchesInRound / 2)) * (nextMatchIndex - 0.5) + "%";
-                    const midX = "45";
+                    const startY = (roundHeight / matchesInRound) * (match - 0.5);
+                    const endY = (roundHeight / (matchesInRound / 2)) * (nextMatchIndex - 0.5);
+                    const midX = 45;
 
                     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     path.setAttribute("class", "connector-line");
                     path.setAttribute("id", `line_${round}_${match}`);
                     
-                    // Orthogonal draw
-                    const pathData = `M 0,${startY} L ${midX}%,${startY} L ${midX}%,${endY} L 90%,${endY}`;
+                    // Orthogonal SVG path with absolute coordinates
+                    const pathData = `M 0,${startY} L ${midX},${startY} L ${midX},${endY} L 90,${endY}`;
                     path.setAttribute("d", pathData);
                     svgConnectors.appendChild(path);
                 }
