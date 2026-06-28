@@ -60,8 +60,14 @@ class User extends Authenticatable
         }
 
         $perms = $this->permissions;
-        if (!is_array($perms)) {
-            $perms = json_decode($perms, true) ?: [];
+        if (is_null($perms)) {
+            $perms = ["dashboard", "seasons", "notes", "faqs", "activity_log"];
+        } elseif (!is_array($perms)) {
+            $perms = json_decode($perms, true);
+        }
+        
+        if (empty($perms)) {
+            $perms = ["dashboard", "seasons", "notes", "faqs", "activity_log"];
         }
 
         return in_array($permission, $perms);
