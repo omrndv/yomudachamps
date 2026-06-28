@@ -25,6 +25,9 @@
                     </a>
                     
                     @if($brackets->count() > 0)
+                        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
+                            <i class="bi bi-tag-fill me-1"></i> Detail Slot YMD
+                        </button>
                         <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
                             <i class="bi bi-clock me-1"></i> Set Jam per Babak
                         </button>
@@ -204,6 +207,81 @@
     @endif
 </div>
 
+{{-- Modal Detail Slot YMD (Manage Placeholders) --}}
+@if($brackets->count() > 0)
+<div class="modal fade" id="modalYmdSlots" tabindex="-1" aria-labelledby="modalYmdSlotsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header bg-dark text-white rounded-top-4 border-0 py-3">
+                <h6 class="modal-title fw-bold" id="modalYmdSlotsLabel"><i class="bi bi-tag-fill text-warning me-2"></i>Kelola Slot / Tim Placeholder YMD</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                {{-- Bulk Add Form --}}
+                <div class="p-3 border rounded-3 bg-light mb-4">
+                    <h6 class="fw-bold text-dark mb-2 small"><i class="bi bi-plus-circle me-1 text-warning"></i>Tambah Banyak Slot YMD Baru</h6>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <span class="small text-secondary">Jumlah Slot YMD:</span>
+                        </div>
+                        <div class="col-4 col-sm-2">
+                            <input type="number" id="ymdAddCount" class="form-control form-control-sm" min="1" max="32" value="5">
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-warning btn-sm fw-bold px-3 rounded" onclick="bulkAddYmdSlots()">
+                                <i class="bi bi-plus-lg"></i> Tambahkan ke DB
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- List of current YMD Teams --}}
+                <h6 class="fw-bold text-dark mb-2.5 small"><i class="bi bi-list-stars me-1 text-warning"></i>Daftar Slot YMD Terdaftar (Klik Simpan untuk Ganti Nama Tim)</h6>
+                <div style="max-height: 280px; overflow-y: auto;" class="border rounded bg-white">
+                    <table class="table table-sm align-middle m-0 small">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th class="ps-3 py-2">Nama Slot Asli</th>
+                                <th class="py-2">Ganti Nama Tim Peserta</th>
+                                <th class="text-end pe-3 py-2">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $ymdTeams = $teams->filter(function($t) {
+                                    return str_starts_with(strtolower($t->name), 'ymd');
+                                })->sortBy('name');
+                            @endphp
+                            @forelse($ymdTeams as $t)
+                                <tr>
+                                    <td class="ps-3 fw-bold text-warning">{{ $t->name }}</td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm w-75" id="ymdRenameInput_{{ $t->id }}" placeholder="Masukkan nama tim baru...">
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <button type="button" class="btn btn-warning btn-sm py-0.5 px-2.5 fw-bold rounded-pill text-dark" style="font-size: 0.7rem;" onclick="renameYmdSlot({{ $t->id }}, '{{ $t->name }}')">
+                                            Simpan
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-secondary italic">Tidak ada slot YMD yang terdaftar. Gunakan formulir di atas untuk menambahkannya secara bulk.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
+                <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold rounded-pill text-white" data-bs-dismiss="modal">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- Modal Atur Jam Main per Babak --}}
 @if($brackets->count() > 0)
 <div class="modal fade" id="modalRoundTimes" tabindex="-1" aria-labelledby="modalRoundTimesLabel" aria-hidden="true">
@@ -317,7 +395,6 @@
                     </div>
 
                     <div class="mb-3" style="display: none;">
-                        {{-- Hidden but kept for backwards compatibility --}}
                         <input type="hidden" name="status" id="modalMatchStatus" value="upcoming">
                     </div>
 
@@ -652,7 +729,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ----------------------------------------------------
-    // ----------------------------------------------------
     // Drag and Drop Auto-Scroll boundaries logic
     // ----------------------------------------------------
     let autoScrollInterval = null;
@@ -713,6 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.addEventListener('dragend', stopDragScroll);
     container.addEventListener('drop', stopDragScroll);
 
+    // ----------------------------------------------------
     // Drag and Drop (Rearrange Seeding inside Round 1)
     // ----------------------------------------------------
     let draggedElement = null;
@@ -922,6 +999,158 @@ function saveRoundTime(roundNum) {
 }
 
 // ----------------------------------------------------
+// Save / Rename YMD Slot Team
+// ----------------------------------------------------
+function renameYmdSlot(teamId, oldName) {
+    const inputVal = document.getElementById(`ymdRenameInput_${teamId}`).value.trim();
+
+    if (!inputVal) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Nama tim baru tidak boleh kosong!'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Ganti Nama Slot?',
+        text: `Ubah slot "${oldName}" menjadi "${inputVal}"? Perubahan akan langsung terlihat di bagan.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Ubah!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            
+            fetch("{{ route('admin.season.bracket.rename-ymd-slot', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    team_id: teamId,
+                    new_name: inputVal
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Keep scroll and reload
+                        const container = document.getElementById('adminBracketContainer');
+                        if (container) {
+                            sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
+                            sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
+                        }
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: res.message
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal mengubah nama slot karena masalah koneksi.'
+                });
+            });
+        }
+    });
+}
+
+// ----------------------------------------------------
+// Bulk Add YMD Slots
+// ----------------------------------------------------
+function bulkAddYmdSlots() {
+    const count = parseInt(document.getElementById('ymdAddCount').value);
+    
+    if (isNaN(count) || count < 1 || count > 50) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Jumlah Invalid',
+            text: 'Silakan masukkan jumlah slot YMD antara 1 s/d 50.'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Tambah Slot YMD?',
+        text: `Anda akan membuat ${count} slot placeholder YMD baru ke database untuk season ini.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Tambahkan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            
+            fetch("{{ route('admin.season.bracket.add-ymd-slots', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    count: count
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        const container = document.getElementById('adminBracketContainer');
+                        if (container) {
+                            sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
+                            sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
+                        }
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: res.message
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal menambahkan slot YMD karena masalah koneksi.'
+                });
+            });
+        }
+    });
+}
+
+// ----------------------------------------------------
 // Copy Teams list to Clipboard
 // ----------------------------------------------------
 function copyTeamsList() {
@@ -941,17 +1170,6 @@ function copyTeamsList() {
 
 // Function to populate and open Edit Modal
 function openEditMatchModal(match) {
-    // Prevent opening modal during active drag selection if dragging occurred
-    if (window.event && window.event.type === 'click') {
-        const target = window.event.target;
-        // If they click specifically to drag, let drag & drop take priority
-        if (target.getAttribute('draggable') === 'true' || target.closest('[draggable="true"]')) {
-            // Wait, to allow editing when clicking the row but dragging when dragging:
-            // Browser triggers dragstart, click is only fired if mouse doesn't move.
-            // If they drag, click won't trigger. So it is fine!
-        }
-    }
-
     document.getElementById('modalMatchId').value = match.id;
     document.getElementById('modalT1Name').textContent = match.team1_name;
     document.getElementById('modalT2Name').textContent = match.team2_name;

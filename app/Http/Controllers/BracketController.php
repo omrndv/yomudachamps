@@ -387,4 +387,84 @@ class BracketController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Bulk Add Slot YMD untuk di-seed ke bagan
+     */
+    public function addYmdSlots(Request $request, $season_id)
+    {
+        $request->validate([
+            'count' => 'required|integer|min:1|max:50'
+        ]);
+
+        $season = Season::findOrFail($season_id);
+        
+        $existingYmds = Team::where('season_id', $season_id)
+            ->where('name', 'LIKE', 'YMD-%')
+            ->get();
+            
+        $maxIndex = 0;
+        foreach($existingYmds as $team) {
+            $parts = explode('-', $team->name);
+            $index = isset($parts[1]) ? intval($parts[1]) : 0;
+            if ($index > $maxIndex) {
+                $maxIndex = $index;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            for ($i = 1; $i <= $request->count; $i++) {
+                $newIndex = $maxIndex + $i;
+                Team::create([
+                    'season_id' => $season_id,
+                    'name' => 'YMD-' . $newIndex,
+                    'wa_number' => '-',
+                    'status' => 'PAID',
+                    'is_solo_team' => false,
+                    'amount' => 0,
+                    'net_amount' => 0
+                ]);
+            }
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil menambahkan ' . $request->count . ' slot YMD baru!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan slot: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Ganti nama slot YMD menjadi nama tim peserta asli (renaming)
+     */
+    public function renameYmdSlot(Request $request, $season_id)
+    {
+        $request->validate([
+            'team_id' => 'required|exists:teams,id',
+            'new_name' => 'required|string|max:100'
+        ]);
+
+        try {
+            $team = Team::where('season_id', $season_id)->findOrFail($request->team_id);
+            $oldName = $team->name;
+            $team->name = $request->new_name;
+            $team->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Slot ' . $oldName . ' berhasil diubah menjadi ' . $request->new_name . '!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah nama slot: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

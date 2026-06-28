@@ -132,6 +132,8 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/bracket/update-match', [\App\Http\Controllers\BracketController::class, 'updateMatch'])->name('admin.season.bracket.update-match');
             Route::post('/dashboard/{season_id}/bracket/update-round-times', [\App\Http\Controllers\BracketController::class, 'updateRoundTimes'])->name('admin.season.bracket.update-round-times');
             Route::post('/dashboard/{season_id}/bracket/swap-teams', [\App\Http\Controllers\BracketController::class, 'swapTeams'])->name('admin.season.bracket.swap-teams');
+            Route::post('/dashboard/{season_id}/bracket/add-ymd-slots', [\App\Http\Controllers\BracketController::class, 'addYmdSlots'])->name('admin.season.bracket.add-ymd-slots');
+            Route::post('/dashboard/{season_id}/bracket/rename-ymd-slot', [\App\Http\Controllers\BracketController::class, 'renameYmdSlot'])->name('admin.season.bracket.rename-ymd-slot');
         });
 
         // Finance
