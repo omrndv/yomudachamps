@@ -88,6 +88,7 @@
             width: 100%;
             left: 0;
             z-index: 99999; /* Force overlay on top of sticky headers and SVGs */
+            display: none; /* Explicitly hidden by default */
         }
 
         /* Sticky Round Titles Bar */
@@ -334,15 +335,15 @@
                 <button class="search-icon-btn"><i class="bi bi-search"></i></button>
             </div>
 
-            {{-- Result Panel --}}
-            <div id="searchResultCard" class="search-results-panel">
+            {{-- Result Panel - 100% hidden by default --}}
+            <div id="searchResultCard" class="search-results-panel" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-1.5 mb-2">
                     <strong class="text-warning" id="resTeamName">Nama Tim</strong>
                     <span class="badge bg-success rounded-pill px-2.5 py-0.5" id="resMatchStatus" style="font-size: 0.6rem;">Selesai</span>
                 </div>
                 <div class="row g-2 mb-2 text-white-50" style="font-size: 0.75rem;">
-                    <div class="col-6">Opponent: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
-                    <div class="col-6">Jadwal: <strong class="text-warning" id="resSchedule">Jam Tanding</strong></div>
+                    <div class="col-6">Team Musuh: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
+                    <div class="col-6">Jam Main: <strong class="text-warning" id="resSchedule">Jam Tanding</strong></div>
                     <div class="col-6">Babak: <strong class="text-white" id="resRoundLabel">Babak 1</strong></div>
                     <div class="col-6">Bracket: <strong class="text-white" id="resBracketLabel">Bracket 1</strong></div>
                 </div>
