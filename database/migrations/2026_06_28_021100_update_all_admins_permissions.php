@@ -11,25 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Define all 12 available permissions
-        $allPermissions = [
+        // Define default permissions (7 pages)
+        $defaultPermissions = [
             "dashboard",
             "seasons",
-            "teams",
-            "payments",
             "notes",
-            "settings",
-            "faqs",
             "activity_log",
-            "manage",
-            "backup",
+            "faqs",
             "finance",
             "solo_matchmaker"
         ];
 
-        // Update all existing admin users to have all permissions active
+        // Update all existing admin users to have default permissions active
         DB::table('users')->where('role', 'admin')->update([
-            'permissions' => json_encode($allPermissions)
+            'permissions' => json_encode($defaultPermissions)
         ]);
     }
 

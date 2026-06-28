@@ -1171,14 +1171,9 @@ class AdminController extends Controller
             'permissions' => [
                 "dashboard",
                 "seasons",
-                "teams",
-                "payments",
                 "notes",
-                "settings",
-                "faqs",
                 "activity_log",
-                "manage",
-                "backup",
+                "faqs",
                 "finance",
                 "solo_matchmaker"
             ],
