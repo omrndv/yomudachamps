@@ -328,7 +328,7 @@
                 {{-- Match 1 --}}
                 <div class="match-card" data-match-id="1">
                     <div class="match-header">
-                        <span>MATCH 1</span>
+                        <span>BRACKET 1</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 19:00 WIB</span>
                     </div>
                     <div class="team-row winner" data-team-id="yomuda_star">
@@ -351,7 +351,7 @@
                 {{-- Match 2 --}}
                 <div class="match-card" data-match-id="2">
                     <div class="match-header">
-                        <span>MATCH 2</span>
+                        <span>BRACKET 2</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 20:00 WIB</span>
                     </div>
                     <div class="team-row winner" data-team-id="rrq_yomu">
@@ -374,7 +374,7 @@
                 {{-- Match 3 --}}
                 <div class="match-card" data-match-id="3">
                     <div class="match-header">
-                        <span>MATCH 3</span>
+                        <span>BRACKET 3</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 21:00 WIB</span>
                     </div>
                     <div class="team-row loser" data-team-id="alter_ego">
@@ -397,7 +397,7 @@
                 {{-- Match 4 --}}
                 <div class="match-card" data-match-id="4">
                     <div class="match-header">
-                        <span>MATCH 4</span>
+                        <span>BRACKET 4</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 22:00 WIB</span>
                     </div>
                     <div class="team-row winner" data-team-id="aura_fire">
@@ -433,7 +433,7 @@
                 {{-- Match 5 --}}
                 <div class="match-card" data-match-id="5">
                     <div class="match-header">
-                        <span>MATCH 5</span>
+                        <span>BRACKET 5</span>
                         <span class="match-time live"><i class="bi bi-broadcast"></i> LIVE NOW</span>
                     </div>
                     <div class="team-row winner" data-team-id="yomuda_star">
@@ -456,7 +456,7 @@
                 {{-- Match 6 --}}
                 <div class="match-card" data-match-id="6">
                     <div class="match-header">
-                        <span>MATCH 6</span>
+                        <span>BRACKET 6</span>
                         <span class="match-time"><i class="bi bi-clock"></i> Besok, 20:00</span>
                     </div>
                     <div class="team-row" data-team-id="onic_pro">
@@ -489,7 +489,7 @@
                 {{-- Match 7 --}}
                 <div class="match-card" data-match-id="7">
                     <div class="match-header">
-                        <span>MATCH 7</span>
+                        <span>BRACKET 7</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 2 Juli, 20:00</span>
                     </div>
                     <div class="team-row" data-team-id="yomuda_star">
