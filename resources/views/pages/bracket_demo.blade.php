@@ -5,181 +5,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bagan Turnamen - Yomuda Championship</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
-            --bg-primary: #020617;
-            --bg-secondary: #0b1329;
-            --accent-gold: #f59e0b;
-            --accent-gold-hover: #d97706;
-            --text-muted: #94a3b8;
-            --border-light: rgba(255, 255, 255, 0.05);
-            --card-bg: rgba(15, 23, 42, 0.8);
+            --bg-primary: #1e1e24;
+            --bg-secondary: #141416;
+            --bg-card: #2d2d35;
+            --border-color: #3f3f46;
+            --accent-orange: #ff7a00;
+            --text-light: #f4f4f5;
+            --text-dim: #a1a1aa;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-primary);
-            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-light);
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
             -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
         }
 
         /* Header Style */
         .bracket-header {
-            padding: 24px 0;
-            border-bottom: 1px solid var(--border-light);
-            background: linear-gradient(180deg, rgba(11, 19, 41, 0.9) 0%, transparent 100%);
+            padding: 16px 0;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .brand-logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%);
-            color: #020617;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            font-size: 1.15rem;
-            font-weight: 800;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
-            margin-right: 12px;
+        /* Search Box style (Challonge-like, clean, compact) */
+        .search-wrapper {
+            max-width: 380px;
+            margin: 15px auto;
         }
 
-        /* Bracket View Wrapper */
+        .search-input-group {
+            background-color: #27272a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .search-input-group input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 0.8rem;
+            outline: none;
+            padding: 6px 10px;
+            width: 100%;
+        }
+
+        .search-input-group input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .search-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 0 8px;
+        }
+
+        .search-results-panel {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+            text-align: left;
+            font-size: 0.78rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Sticky Round Titles Bar */
+        .round-headers-bar {
+            display: flex;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 30px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .round-header-item {
+            width: 200px;
+            margin-right: 90px; /* Matching column spacing */
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        /* Bracket container layout */
         .bracket-container {
-            padding: 50px 30px;
+            padding: 20px 30px 40px 30px;
             overflow-x: auto;
-            overflow-y: hidden;
             white-space: nowrap;
             cursor: grab;
             user-select: none;
             scrollbar-width: thin;
-            scrollbar-color: var(--accent-gold) var(--bg-secondary);
+            scrollbar-color: var(--accent-orange) var(--bg-secondary);
             scroll-behavior: smooth;
-            transform: translate3d(0, 0, 0);
-            will-change: scroll-position;
-        }
-
-        .bracket-container:active {
-            cursor: grabbing;
+            height: calc(100vh - 160px);
+            min-height: 550px;
         }
 
         .bracket-container::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
         }
 
         .bracket-container::-webkit-scrollbar-track {
             background: var(--bg-secondary);
-            border-radius: 4px;
         }
 
         .bracket-container::-webkit-scrollbar-thumb {
-            background: var(--accent-gold);
-            border-radius: 4px;
+            background: var(--border-color);
+            border-radius: 3px;
         }
 
-        /* Dynamic Heights according to rounds for 128 Teams */
+        .bracket-container::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-orange);
+        }
+
+        /* Bracket Column per Round */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4800px; /* High height to distribute 64 match cards in Round 1 */
-            vertical-align: middle;
+            height: 100%;
+            vertical-align: top;
+            width: 200px;
             margin-right: 90px;
             position: relative;
         }
 
-        .round-title {
-            position: absolute;
-            top: -30px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            color: var(--accent-gold);
-            opacity: 0.85;
-        }
-
-        /* Match Card Styles */
+        /* Challonge Match Card (Ultra Compact & Sharp) */
         .match-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            width: 230px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-            position: relative;
-            z-index: 2;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 200px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
         }
 
         .match-card:hover {
-            border-color: rgba(245, 158, 11, 0.35);
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
-            transform: translateY(-2px);
+            border-color: #52525b;
         }
 
         .match-card.focus-glow {
-            border-color: var(--accent-gold) !important;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.45) !important;
-            animation: pulse-border 1.5s infinite alternate;
+            border-color: var(--accent-orange) !important;
+            box-shadow: 0 0 15px rgba(255, 122, 0, 0.5) !important;
+            transform: scale(1.03);
         }
 
-        /* Match Schedule Info Row */
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border-light);
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--text-muted);
+        /* Bracket Index indicator on the left side */
+        .match-index-label {
+            position: absolute;
+            left: -24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            font-weight: 500;
         }
 
-        .match-time {
-            color: var(--accent-gold);
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .match-card-wrapper {
+            position: relative;
+            margin: 8px 0; /* Flexible vertical spacing */
         }
 
-        /* Team Row Styles */
+        /* Team Row */
         .team-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 9px 12px;
-            position: relative;
-            transition: background 0.2s ease;
+            height: 25px;
+            font-size: 0.72rem;
+            padding-left: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: var(--bg-card);
+            color: var(--text-light);
             cursor: pointer;
+            transition: background 0.15s ease;
         }
 
-        .team-row:first-of-type {
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .team-row.winner {
-            background: rgba(245, 158, 11, 0.02);
-        }
-
-        .team-row.loser {
-            opacity: 0.45;
+        .team-row:last-of-type {
+            border-bottom: none;
         }
 
         .team-row:hover {
-            background: rgba(255, 255, 255, 0.025);
+            background-color: #373740;
         }
 
         .team-info {
@@ -188,69 +211,69 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            flex-grow: 1;
         }
 
-        .team-logo {
-            width: 22px;
-            height: 22px;
-            border-radius: 5px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 0.68rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-            flex-shrink: 0;
+        /* Seed indicator */
+        .team-seed {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-right: 6px;
+            font-weight: 600;
         }
 
         .team-name {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #ffffff;
-            transition: color 0.2s ease;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .team-score {
-            font-size: 0.92rem;
-            font-weight: 800;
-            color: #ffffff;
-            padding-left: 10px;
+        /* Challonge Score Box */
+        .team-score-box {
+            width: 26px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            background-color: #27272a;
+            color: var(--text-dim);
+            border-left: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .team-row.winner {
+            background-color: rgba(255, 122, 0, 0.03);
         }
 
         .team-row.winner .team-name {
             color: #ffffff;
+            font-weight: 600;
         }
 
-        .team-row.winner .team-score {
-            color: var(--accent-gold);
+        .team-row.winner .team-score-box {
+            background-color: var(--accent-orange);
+            color: #000000;
         }
 
-        /* Winner crown/medal icon badge */
-        .winner-badge {
-            color: var(--accent-gold);
-            font-size: 0.75rem;
-            margin-left: 6px;
+        .team-row.loser {
+            opacity: 0.5;
         }
 
-        /* Interactive Path Glow Style */
+        /* Path Highlighting */
+        .team-highlighted {
+            background-color: #373740 !important;
+        }
         .team-highlighted .team-name {
-            color: var(--accent-gold) !important;
-            text-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
-        }
-        
-        .team-highlighted .team-logo {
-            border-color: var(--accent-gold) !important;
-            box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+            color: var(--accent-orange) !important;
         }
 
-        /* Dynamic connector paths styling */
+        /* Orthogonal Connector Lines (Challonge-like) */
         .round-connectors {
             position: absolute;
             top: 0;
-            left: 230px;
+            left: 200px;
             width: 90px;
             height: 100%;
             pointer-events: none;
@@ -259,76 +282,14 @@
 
         .connector-line {
             fill: none;
-            stroke: rgba(255, 255, 255, 0.05);
-            stroke-width: 1.5;
-            transition: stroke 0.25s ease, stroke-width 0.25s ease;
+            stroke: #3f3f46;
+            stroke-width: 1.2;
+            transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
 
         .connector-line.highlighted {
-            stroke: var(--accent-gold);
-            stroke-width: 2.5;
-            filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
-        }
-
-        @keyframes pulse-border {
-            from { border-color: rgba(245, 158, 11, 0.35); }
-            to { border-color: var(--accent-gold); }
-        }
-
-        /* Search Section Custom Style */
-        .search-wrapper {
-            max-width: 440px;
-            margin: 0 auto;
-        }
-
-        .search-input-group {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-light);
-            border-radius: 50px;
-            padding: 3px 5px;
-            transition: border-color 0.25s ease, box-shadow 0.25s ease;
-        }
-
-        .search-input-group:focus-within {
-            border-color: var(--accent-gold);
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
-        }
-
-        .search-input-group input {
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            font-size: 0.85rem;
-            outline: none;
-            padding: 6px 12px;
-            width: 100%;
-        }
-
-        .search-input-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Search Results Panel */
-        .search-results-panel {
-            background-color: #0b1329;
-            border: 1px solid var(--border-light);
-            border-radius: 14px;
-            padding: 14px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            display: none;
-            margin-top: 10px;
-            text-align: left;
-            will-change: transform, opacity;
+            stroke: var(--accent-orange);
+            stroke-width: 1.8;
         }
     </style>
 </head>
@@ -337,210 +298,190 @@
     {{-- Header --}}
     <header class="bracket-header">
         <div class="container text-center">
-            <div class="d-inline-flex align-items-center justify-content-center">
-                <span class="brand-logo">Y</span>
-                <div class="text-start">
-                    <h4 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.35rem;">YOMUDA <span class="text-warning text-uppercase">Season 33</span></h4>
-                    <p class="text-secondary m-0 small" style="font-size: 0.78rem; letter-spacing: 0.3px;">Bagan Tournament Yomuda</p>
-                </div>
-            </div>
+            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.15rem;">YOMUDA <span class="text-warning">SEASON 33</span></h5>
+            <p class="text-secondary m-0" style="font-size: 0.75rem;">Bagan Tournament Yomuda</p>
         </div>
     </header>
 
-    {{-- Search Container --}}
-    <div class="container mt-4">
-        <div class="search-wrapper text-center mb-4">
+    {{-- Search Area --}}
+    <div class="container mt-2">
+        <div class="search-wrapper text-center">
             <div class="search-input-group d-flex align-items-center">
                 <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda (cth: Tim 42)...">
                 <button class="search-icon-btn"><i class="bi bi-search"></i></button>
             </div>
 
-            {{-- Live Search Result Card --}}
+            {{-- Result Panel --}}
             <div id="searchResultCard" class="search-results-panel">
-                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-2.5">
-                    <h6 class="fw-bold text-warning mb-0" id="resTeamName" style="font-size: 0.9rem;">Nama Tim</h6>
-                    <span class="badge bg-success rounded-pill px-2.5 py-1" id="resMatchStatus" style="font-size: 0.65rem;">Selesai</span>
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-1.5 mb-2">
+                    <strong class="text-warning" id="resTeamName">Nama Tim</strong>
+                    <span class="badge bg-success rounded-pill px-2.5 py-0.5" id="resMatchStatus" style="font-size: 0.6rem;">Selesai</span>
                 </div>
-                <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.78rem;">
-                    <div class="col-6">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Lawan Bertanding</span>
-                        <strong class="text-white" id="resOpponent">Tim Lawan</strong>
-                    </div>
-                    <div class="col-6">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Jadwal Tanding</span>
-                        <strong class="text-warning" id="resSchedule">Jam Tanding</strong>
-                    </div>
-                    <div class="col-6 mt-2">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Nomor Bracket</span>
-                        <strong class="text-white" id="resBracketLabel">Bracket 1</strong>
-                    </div>
-                    <div class="col-6 mt-2">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Status Babak</span>
-                        <strong class="text-white" id="resRoundLabel">Babak 1</strong>
-                    </div>
+                <div class="row g-2 mb-2 text-white-50" style="font-size: 0.75rem;">
+                    <div class="col-6">Opponent: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
+                    <div class="col-6">Jadwal: <strong class="text-warning" id="resSchedule">Jam Tanding</strong></div>
+                    <div class="col-6">Babak: <strong class="text-white" id="resRoundLabel">Babak 1</strong></div>
+                    <div class="col-6">Bracket: <strong class="text-white" id="resBracketLabel">Bracket 1</strong></div>
                 </div>
                 <div class="text-end">
-                    <button class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.78rem;">
-                        <i class="bi bi-crosshair me-1"></i> Fokuskan ke Bagan
+                    <button class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.72rem;">
+                        Fokuskan ke Bagan
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Sticky Round Header Bar --}}
+    <div class="round-headers-bar" id="roundHeadersBar">
+        <!-- Headers generated by JS -->
+    </div>
+
     {{-- Bracket Field Wrapper --}}
-    <div class="container-fluid px-0">
-        <div class="bracket-container" id="bracketContainer">
-            {{-- Rounds are generated dynamically here by JS to support 128 Teams smoothly & optimally --}}
-        </div>
+    <div class="bracket-container" id="bracketContainer">
+        <!-- Dynamic Columns generated by JS -->
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const teamCount = 128;
-        const roundsCount = Math.log2(teamCount); // 7 Rounds for 128 teams
+        const roundsCount = Math.log2(teamCount); // 7 Rounds
         
-        // Staggered times per ROUND:
         const roundTimes = {
-            1: "20:00 WIB",
-            2: "20:40 WIB",
-            3: "21:20 WIB",
-            4: "22:00 WIB",
-            5: "22:40 WIB",
-            6: "23:20 WIB",
-            7: "24:00 WIB"
+            1: "20:00",
+            2: "20:40",
+            3: "21:20",
+            4: "22:00",
+            5: "22:40",
+            6: "23:20",
+            7: "24:00"
         };
 
         const roundNames = {
-            1: "Babak 128 Besar",
-            2: "Babak 64 Besar",
-            3: "Babak 32 Besar",
-            4: "16 Besar",
-            5: "Perempat Final",
+            1: "Babak 1",
+            2: "Babak 2",
+            3: "Babak 3",
+            4: "Babak 4",
+            5: "Perempat",
             6: "Semifinal",
             7: "Grand Final"
         };
 
-        // 1. Generate 128 Dummy Teams
+        // Render Sticky Headers
+        const headerBar = document.getElementById('roundHeadersBar');
+        for (let i = 1; i <= roundsCount; i++) {
+            const hItem = document.createElement('div');
+            hItem.className = 'round-header-item';
+            hItem.textContent = roundNames[i];
+            headerBar.appendChild(hItem);
+        }
+
+        // Generate 128 Teams
         const teams = [];
         for (let i = 1; i <= teamCount; i++) {
             teams.push({
-                id: `team_${i}`,
+                id: `t_${i}`,
                 name: `Tim ${i}`,
-                logo: `T${i}`
+                seed: i
             });
         }
 
-        // 2. Generate Tournament Matches data structures
-        const matchesData = {}; // Stores details for search index
+        const matchesData = {};
         const container = document.getElementById('bracketContainer');
-
         let currentRoundTeams = [...teams];
-        
-        // Loop rounds from 1 to 7
+
+        // Draw rounds
         for (let round = 1; round <= roundsCount; round++) {
             const matchesInRound = currentRoundTeams.length / 2;
             const roundDiv = document.createElement('div');
             roundDiv.className = 'bracket-round';
             roundDiv.id = `round_${round}`;
-            
-            // Set Round Title
-            const titleSpan = document.createElement('span');
-            titleSpan.className = 'round-title';
-            titleSpan.textContent = roundNames[round];
-            roundDiv.appendChild(titleSpan);
 
             const nextRoundTeams = [];
             const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svgConnectors.setAttribute("class", "round-connectors");
 
-            // Calculate heights & gaps for connectors
-            // Round height is 4800px.
-            // Match card height with spacing is distributed vertically by justify-around.
-            const cardHeight = 74;
-            const roundHeight = 4800;
+            // Height is constant per round column, flexbox distributes vertical centers automatically
+            const roundHeight = 1000; 
 
             for (let match = 1; match <= matchesInRound; match++) {
                 const team1 = currentRoundTeams[(match - 1) * 2];
                 const team2 = currentRoundTeams[(match - 1) * 2 + 1];
                 
-                // Simulate results: Tim with smaller ID wins
-                const t1Score = Math.floor(Math.random() * 2) + 1; // 1 or 2
-                const t2Score = t1Score === 2 ? Math.floor(Math.random() * 2) : 2; // Make sure one reaches 2
-                
+                // Simulate score
+                const t1Score = Math.floor(Math.random() * 2) + 1;
+                const t2Score = t1Score === 2 ? Math.floor(Math.random() * 2) : 2;
                 const winner = t1Score > t2Score ? team1 : team2;
                 const loser = winner === team1 ? team2 : team1;
                 nextRoundTeams.push(winner);
 
-                const matchId = `match_${round}_${match}`;
+                const matchId = `m_${round}_${match}`;
                 
-                // Create Match Card
+                // Card Wrapper (contains absolute match index on left side)
+                const wrapper = document.createElement('div');
+                wrapper.className = 'match-card-wrapper';
+
+                const indexLabel = document.createElement('span');
+                indexLabel.className = 'match-index-label';
+                indexLabel.textContent = match;
+                wrapper.appendChild(indexLabel);
+
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'match-card';
                 cardDiv.id = `card_${matchId}`;
-                cardDiv.setAttribute('data-match-id', matchId);
 
-                // Staggered Time per Round
                 const matchTime = roundTimes[round];
 
                 cardDiv.innerHTML = `
-                    <div class="match-header">
-                        <span>BRACKET ${match}</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> ${matchTime}</span>
-                    </div>
                     <div class="team-row ${winner === team1 ? 'winner' : 'loser'}" data-team-id="${team1.id}">
                         <div class="team-info">
-                            <div class="team-logo">${team1.logo}</div>
+                            <span class="team-seed">${team1.seed}</span>
                             <span class="team-name">${team1.name}</span>
-                            ${winner === team1 ? '<i class="bi bi-patch-check-fill winner-badge"></i>' : ''}
                         </div>
-                        <span class="team-score">${t1Score}</span>
+                        <span class="team-score-box">${t1Score}</span>
                     </div>
                     <div class="team-row ${winner === team2 ? 'winner' : 'loser'}" data-team-id="${team2.id}">
                         <div class="team-info">
-                            <div class="team-logo">${team2.logo}</div>
+                            <span class="team-seed">${team2.seed}</span>
                             <span class="team-name">${team2.name}</span>
-                            ${winner === team2 ? '<i class="bi bi-patch-check-fill winner-badge"></i>' : ''}
                         </div>
-                        <span class="team-score">${t2Score}</span>
+                        <span class="team-score-box">${t2Score}</span>
                     </div>
                 `;
+                
+                wrapper.appendChild(cardDiv);
+                roundDiv.appendChild(wrapper);
 
-                roundDiv.appendChild(cardDiv);
-
-                // Index search details for this team
+                // Index details for search
                 [team1, team2].forEach(t => {
                     const isWin = (t === winner);
-                    const opp = (t === team1 ? team2 : team1);
-                    
-                    // If team won, check their next round status (simulation)
                     matchesData[t.name.toLowerCase()] = {
                         name: t.name,
-                        opponent: opp.name,
-                        schedule: matchTime,
-                        bracket: `Bracket ${match} (${roundNames[round]})`,
-                        round: `${roundNames[round]} - ${isWin ? 'Lolos ke Babak Berikutnya' : 'Kalah (Eliminasi)'}`,
-                        status: isWin ? 'Lolos' : 'Kalah (Eliminasi)',
+                        opponent: (t === team1 ? team2 : team1).name,
+                        schedule: `${matchTime} WIB`,
+                        bracket: `Bracket ${match}`,
+                        round: roundNames[round],
+                        status: isWin ? 'Lolos' : 'Kalah',
                         cardId: `card_${matchId}`
                     };
                 });
 
-                // Generate SVG path connectors dynamically if not the final round
+                // Draw connector lines
                 if (round < roundsCount) {
                     const nextMatchIndex = Math.ceil(match / 2);
-                    const isTopBranch = (match % 2 !== 0);
                     
-                    // Connectors are drawn dynamically in JS
-                    const startY = (roundHeight / matchesInRound) * (match - 0.5);
-                    const endY = (roundHeight / (matchesInRound / 2)) * (nextMatchIndex - 0.5);
-                    const midX = 45;
+                    // Match heights calculated dynamically for perfect lines
+                    const stepY = 100 / matchesInRound;
+                    const startY = stepY * (match - 0.5) + "%";
+                    const endY = (100 / (matchesInRound / 2)) * (nextMatchIndex - 0.5) + "%";
+                    const midX = "45";
 
                     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     path.setAttribute("class", "connector-line");
                     path.setAttribute("id", `line_${round}_${match}`);
                     
-                    // Draw cubic/orthogonal line path
-                    const pathData = `M 0 ${startY} L ${midX} ${startY} L ${midX} ${endY} L 90 ${endY}`;
+                    // Orthogonal draw
+                    const pathData = `M 0,${startY} L ${midX}%,${startY} L ${midX}%,${endY} L 90%,${endY}`;
                     path.setAttribute("d", pathData);
                     svgConnectors.appendChild(path);
                 }
@@ -554,35 +495,39 @@
             currentRoundTeams = nextRoundTeams;
         }
 
+        // Sync sticky header bar horizontal scrolling with bracket scroll
+        container.addEventListener('scroll', function() {
+            headerBar.scrollLeft = container.scrollLeft;
+        });
+
         // Drag to scroll functionality
         let isDown = false;
         let startX;
         let scrollLeft;
 
-        slider = document.getElementById('bracketContainer');
-        slider.addEventListener('mousedown', (e) => {
+        container.addEventListener('mousedown', (e) => {
             isDown = true;
-            slider.style.cursor = 'grabbing';
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
+            container.style.cursor = 'grabbing';
+            startX = e.pageX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
         });
         
-        slider.addEventListener('mouseleave', () => {
+        container.addEventListener('mouseleave', () => {
             isDown = false;
-            slider.style.cursor = 'grab';
+            container.style.cursor = 'grab';
         });
         
-        slider.addEventListener('mouseup', () => {
+        container.addEventListener('mouseup', () => {
             isDown = false;
-            slider.style.cursor = 'grab';
+            container.style.cursor = 'grab';
         });
         
-        slider.addEventListener('mousemove', (e) => {
+        container.addEventListener('mousemove', (e) => {
             if(!isDown) return;
             e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
+            const x = e.pageX - container.offsetLeft;
             const walk = (x - startX) * 1.5;
-            slider.scrollLeft = scrollLeft - walk;
+            container.scrollLeft = scrollLeft - walk;
         });
 
         // Hover Highlighting Logic
@@ -591,7 +536,6 @@
             row.addEventListener('mouseenter', function() {
                 const teamId = this.dataset.teamId;
                 if (!teamId) return;
-
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.add('team-highlighted');
                 });
@@ -600,14 +544,13 @@
             row.addEventListener('mouseleave', function() {
                 const teamId = this.dataset.teamId;
                 if (!teamId) return;
-
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.remove('team-highlighted');
                 });
             });
         });
 
-        // Real-time Search Logic
+        // Search engine
         const searchInput = document.getElementById('teamSearchInput');
         const resultCard = document.getElementById('searchResultCard');
         const btnFocus = document.getElementById('btnFocusBracket');
@@ -615,7 +558,6 @@
 
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
-            
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
 
             if (!query) {
@@ -623,7 +565,6 @@
                 return;
             }
 
-            // Find matching team in dynamic database
             let foundKey = null;
             Object.keys(matchesData).forEach(key => {
                 if (key === query || key.includes(query)) {
@@ -633,16 +574,11 @@
 
             if (foundKey) {
                 const matchData = matchesData[foundKey];
-                
                 document.getElementById('resTeamName').textContent = matchData.name;
                 
                 const statusBadge = document.getElementById('resMatchStatus');
                 statusBadge.textContent = matchData.status;
-                if (matchData.status.includes('Kalah')) {
-                    statusBadge.className = 'badge bg-secondary rounded-pill px-2.5 py-1';
-                } else {
-                    statusBadge.className = 'badge bg-success rounded-pill px-2.5 py-1';
-                }
+                statusBadge.className = matchData.status.includes('Kalah') ? 'badge bg-secondary rounded-pill px-2 py-0.5' : 'badge bg-warning text-dark rounded-pill px-2 py-0.5';
 
                 document.getElementById('resOpponent').textContent = matchData.opponent;
                 document.getElementById('resSchedule').textContent = matchData.schedule;
@@ -654,34 +590,29 @@
             } else {
                 document.getElementById('resTeamName').textContent = 'Tim tidak ditemukan';
                 document.getElementById('resMatchStatus').textContent = '-';
-                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1';
+                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2 py-0.5';
                 document.getElementById('resOpponent').textContent = 'Tidak ada';
                 document.getElementById('resSchedule').textContent = '-';
                 document.getElementById('resBracketLabel').textContent = '-';
-                document.getElementById('resRoundLabel').textContent = 'Contoh pencarian: Tim 42';
+                document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
                 activeFocusedCardId = null;
                 resultCard.style.display = 'block';
             }
         });
 
-        // Bugfix: Focus Button Event Handler with correct relative offsets (independent of CSS absolute/relative parents)
+        // Smooth Auto-scroll Focus
         btnFocus.addEventListener('click', function() {
             if (!activeFocusedCardId) return;
 
             const cardElement = document.getElementById(activeFocusedCardId);
             if (!cardElement) return;
 
-            // Highlight the card
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
             cardElement.classList.add('focus-glow');
 
-            // Scroll container to the card's position (both horizontally and vertically!)
-            const container = document.getElementById('bracketContainer');
-            
             const containerRect = container.getBoundingClientRect();
             const cardRect = cardElement.getBoundingClientRect();
             
-            // Calculate relative scroll positions
             const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
             const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
 
@@ -690,7 +621,7 @@
                 behavior: 'smooth'
             });
 
-            // Smooth scroll vertically to center the card on screen as well!
+            // Smooth vertical scroll to center
             const relativeTop = cardRect.top - containerRect.top + window.scrollY;
             window.scrollTo({
                 top: relativeTop - (window.innerHeight / 2) + (cardRect.height / 2),
