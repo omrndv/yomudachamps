@@ -30,7 +30,7 @@
 
         /* Header Style */
         .bracket-header {
-            padding: 40px 0 20px 0;
+            padding: 30px 0 20px 0;
             border-bottom: 1px solid var(--border-light);
             background: linear-gradient(180deg, rgba(11, 19, 41, 0.8) 0%, transparent 100%);
         }
@@ -59,6 +59,7 @@
             user-select: none;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-gold) var(--bg-secondary);
+            scroll-behavior: smooth;
         }
 
         .bracket-container:active {
@@ -118,9 +119,15 @@
         }
 
         .match-card:hover {
-            border-color: rgba(245, 158, 11, 0.3);
-            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.15);
             transform: translateY(-2px);
+        }
+
+        .match-card.focus-glow {
+            border-color: var(--accent-gold) !important;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.35) !important;
+            animation: pulse-border 1.5s infinite alternate;
         }
 
         /* Match Schedule Info Row */
@@ -269,6 +276,11 @@
             100% { opacity: 0.6; }
         }
 
+        @keyframes pulse-border {
+            from { border-color: rgba(245, 158, 11, 0.4); }
+            to { border-color: var(--accent-gold); }
+        }
+
         /* Back to Admin Home Button */
         .btn-back-admin {
             color: var(--text-muted);
@@ -282,6 +294,61 @@
         .btn-back-admin:hover {
             color: var(--accent-gold);
         }
+
+        /* Search Section Custom Style */
+        .search-wrapper {
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        .search-input-group {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 50px;
+            padding: 4px 6px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-group:focus-within {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .search-input-group input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 0.88rem;
+            outline: none;
+            padding: 8px 12px;
+            width: 100%;
+        }
+
+        .search-input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Search Results Panel */
+        .search-results-panel {
+            background-color: #0b1329;
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            margin-top: 12px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -292,8 +359,8 @@
             <div class="d-flex align-items-center">
                 <span class="brand-logo">Y</span>
                 <div>
-                    <h4 class="fw-bold m-0" style="letter-spacing: 0.5px;">YOMUDA <span class="fw-light text-warning">CHAMPIONSHIP</span></h4>
-                    <p class="text-secondary m-0 small">Bagan Turnamen Native - Pratinjau Desain Front-End</p>
+                    <h4 class="fw-bold m-0" style="letter-spacing: 0.5px;">YOMUDA <span class="fw-light text-warning">SEASON 33</span></h4>
+                    <p class="text-secondary m-0 small">Bagan Tournament Yomuda</p>
                 </div>
             </div>
             <div>
@@ -304,14 +371,54 @@
         </div>
     </header>
 
-    {{-- Interactive Info Box --}}
+    {{-- Search and Tooltip Container --}}
     <div class="container mt-4">
+        {{-- Search Box --}}
+        <div class="search-wrapper text-center mb-4">
+            <div class="search-input-group d-flex align-items-center">
+                <input type="text" id="teamSearchInput" placeholder="Cari nama tim Anda di bracket...">
+                <button class="search-icon-btn"><i class="bi bi-search"></i></button>
+            </div>
+
+            {{-- Live Search Result Card --}}
+            <div id="searchResultCard" class="search-results-panel">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-35 pb-2 mb-3">
+                    <h6 class="fw-bold text-warning mb-0" id="resTeamName">Nama Tim</h6>
+                    <span class="badge bg-danger rounded-pill px-2.5 py-1 small" id="resMatchStatus" style="font-size: 0.68rem;">Selesai</span>
+                </div>
+                <div class="row g-2 mb-3 text-white-50" style="font-size: 0.8rem;">
+                    <div class="col-6">
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Lawan Bertanding</span>
+                        <strong class="text-white" id="resOpponent">Tim Lawan</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Jadwal Tanding</span>
+                        <strong class="text-warning" id="resSchedule">Jam Tanding</strong>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Nomor Bracket</span>
+                        <strong class="text-white" id="resBracketLabel">Bracket 1</strong>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Status Babak</span>
+                        <strong class="text-white" id="resRoundLabel">Babak 1 (Perempat Final)</strong>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" id="btnFocusBracket">
+                        <i class="bi bi-crosshair me-1"></i> Fokuskan ke Bagan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- Info Alert Box --}}
         <div class="alert border-0 rounded-4 p-3 d-flex align-items-center gap-3" style="background-color: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15) !important;">
             <i class="bi bi-info-circle-fill text-warning fs-3"></i>
             <div>
                 <h6 class="fw-bold text-warning mb-0.5">Informasi Demonstrasi Interaktif</h6>
                 <p class="text-white-50 m-0 small" style="line-height: 1.4;">
-                    Dekatkan kursor (*hover*) pada salah satu nama tim di bawah ini untuk menyalakan jalur histori tanding mereka! Anda juga dapat **klik dan geser (*drag*)** area bagan secara horizontal.
+                    Cari tim Anda di bar pencarian atas. Klik **"Fokuskan ke Bagan"** untuk meluncurkan layar secara otomatis dan menyinari kartu pertandingan tim tersebut! Anda juga bisa menggeser bagan secara horizontal menggunakan *mouse drag*.
                 </p>
             </div>
         </div>
@@ -322,11 +429,11 @@
         <div class="bracket-container" id="bracketContainer">
             
             {{-- ROUND 1: QUARTERFINALS --}}
-            <div class="bracket-round">
+            <div class="bracket-round" id="round_quarter">
                 <span class="round-title">Perempat Final</span>
                 
                 {{-- Match 1 --}}
-                <div class="match-card" data-match-id="1">
+                <div class="match-card" data-match-id="1" id="card_match_1">
                     <div class="match-header">
                         <span>BRACKET 1</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 19:00 WIB</span>
@@ -349,7 +456,7 @@
                 </div>
 
                 {{-- Match 2 --}}
-                <div class="match-card" data-match-id="2">
+                <div class="match-card" data-match-id="2" id="card_match_2">
                     <div class="match-header">
                         <span>BRACKET 2</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 20:00 WIB</span>
@@ -372,7 +479,7 @@
                 </div>
 
                 {{-- Match 3 --}}
-                <div class="match-card" data-match-id="3">
+                <div class="match-card" data-match-id="3" id="card_match_3">
                     <div class="match-header">
                         <span>BRACKET 3</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 21:00 WIB</span>
@@ -395,7 +502,7 @@
                 </div>
 
                 {{-- Match 4 --}}
-                <div class="match-card" data-match-id="4">
+                <div class="match-card" data-match-id="4" id="card_match_4">
                     <div class="match-header">
                         <span>BRACKET 4</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 22:00 WIB</span>
@@ -427,11 +534,11 @@
             </div>
 
             {{-- ROUND 2: SEMIFINALS --}}
-            <div class="bracket-round">
+            <div class="bracket-round" id="round_semi">
                 <span class="round-title">Semifinal</span>
                 
                 {{-- Match 5 --}}
-                <div class="match-card" data-match-id="5">
+                <div class="match-card" data-match-id="5" id="card_match_5">
                     <div class="match-header">
                         <span>BRACKET 5</span>
                         <span class="match-time live"><i class="bi bi-broadcast"></i> LIVE NOW</span>
@@ -454,7 +561,7 @@
                 </div>
 
                 {{-- Match 6 --}}
-                <div class="match-card" data-match-id="6">
+                <div class="match-card" data-match-id="6" id="card_match_6">
                     <div class="match-header">
                         <span>BRACKET 6</span>
                         <span class="match-time"><i class="bi bi-clock"></i> Besok, 20:00</span>
@@ -483,11 +590,11 @@
             </div>
 
             {{-- ROUND 3: GRAND FINAL --}}
-            <div class="bracket-round">
+            <div class="bracket-round" id="round_final">
                 <span class="round-title">Grand Final</span>
                 
                 {{-- Match 7 --}}
-                <div class="match-card" data-match-id="7">
+                <div class="match-card" data-match-id="7" id="card_match_7">
                     <div class="match-header">
                         <span>BRACKET 7</span>
                         <span class="match-time"><i class="bi bi-clock"></i> 2 Juli, 20:00</span>
@@ -502,7 +609,7 @@
                     <div class="team-row">
                         <div class="team-info">
                             <div class="team-logo">?</div>
-                            <span class="team-name text-muted">Pemenang Match 6</span>
+                            <span class="team-name text-muted">Pemenang Bracket 6</span>
                         </div>
                         <span class="team-score">-</span>
                     </div>
@@ -598,6 +705,165 @@
                     }
                 });
             });
+        });
+
+        // Simulated Search Database
+        const teamDatabase = {
+            'yomuda star': {
+                name: 'Yomuda Star',
+                opponent: 'Onic Pro / Aura Fire',
+                schedule: '2 Juli, 20:00 WIB',
+                bracket: 'Bracket 7 (Grand Final)',
+                round: 'Babak 3 (Grand Final) - Babak 2 Selesai',
+                status: 'Mendatang',
+                cardId: 'card_match_7'
+            },
+            'rrq yomu': {
+                name: 'RRQ Yomu',
+                opponent: 'Yomuda Star',
+                schedule: 'LIVE NOW',
+                bracket: 'Bracket 5 (Semifinal)',
+                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
+                status: 'Kalah (Eliminasi)',
+                cardId: 'card_match_5'
+            },
+            'onic pro': {
+                name: 'Onic Pro',
+                opponent: 'Aura Fire Junior',
+                schedule: 'Besok, 20:00 WIB',
+                bracket: 'Bracket 6 (Semifinal)',
+                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
+                status: 'Mendatang',
+                cardId: 'card_match_6'
+            },
+            'aura fire junior': {
+                name: 'Aura Fire Junior',
+                opponent: 'Onic Pro',
+                schedule: 'Besok, 20:00 WIB',
+                bracket: 'Bracket 6 (Semifinal)',
+                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
+                status: 'Mendatang',
+                cardId: 'card_match_6'
+            },
+            'sans esports': {
+                name: 'Sans Esports',
+                opponent: 'Yomuda Star',
+                schedule: 'Selesai (19:00 WIB)',
+                bracket: 'Bracket 1 (Perempat Final)',
+                round: 'Babak 1 (Perempat Final) - Belum Selesai',
+                status: 'Kalah (Eliminasi)',
+                cardId: 'card_match_1'
+            },
+            'evos wann': {
+                name: 'Evos Wann',
+                opponent: 'RRQ Yomu',
+                schedule: 'Selesai (20:00 WIB)',
+                bracket: 'Bracket 2 (Perempat Final)',
+                round: 'Babak 1 (Perempat Final) - Belum Selesai',
+                status: 'Kalah (Eliminasi)',
+                cardId: 'card_match_2'
+            },
+            'alter ego y': {
+                name: 'Alter Ego Y',
+                opponent: 'Onic Pro',
+                schedule: 'Selesai (21:00 WIB)',
+                bracket: 'Bracket 3 (Perempat Final)',
+                round: 'Babak 1 (Perempat Final) - Belum Selesai',
+                status: 'Kalah (Eliminasi)',
+                cardId: 'card_match_3'
+            },
+            'geek fam x': {
+                name: 'Geek Fam X',
+                opponent: 'Aura Fire Junior',
+                schedule: 'Selesai (22:00 WIB)',
+                bracket: 'Bracket 4 (Perempat Final)',
+                round: 'Babak 1 (Perempat Final) - Belum Selesai',
+                status: 'Kalah (Eliminasi)',
+                cardId: 'card_match_4'
+            }
+        };
+
+        // Real-time Search Logic
+        const searchInput = document.getElementById('teamSearchInput');
+        const resultCard = document.getElementById('searchResultCard');
+        const btnFocus = document.getElementById('btnFocusBracket');
+        let activeFocusedCardId = null;
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            
+            // Clear previous highlight styles
+            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
+
+            if (!query) {
+                resultCard.style.display = 'none';
+                return;
+            }
+
+            // Find matching team in database
+            let foundKey = null;
+            Object.keys(teamDatabase).forEach(key => {
+                if (key.includes(query)) {
+                    foundKey = key;
+                }
+            });
+
+            if (foundKey) {
+                const matchData = teamDatabase[foundKey];
+                
+                // Set data to card HTML
+                document.getElementById('resTeamName').textContent = matchData.name;
+                
+                const statusBadge = document.getElementById('resMatchStatus');
+                statusBadge.textContent = matchData.status;
+                if (matchData.status.includes('Kalah')) {
+                    statusBadge.className = 'badge bg-secondary rounded-pill px-2.5 py-1 small';
+                } else if (matchData.schedule.includes('LIVE')) {
+                    statusBadge.className = 'badge bg-danger rounded-pill px-2.5 py-1 small';
+                } else {
+                    statusBadge.className = 'badge bg-success rounded-pill px-2.5 py-1 small';
+                }
+
+                document.getElementById('resOpponent').textContent = matchData.opponent;
+                document.getElementById('resSchedule').textContent = matchData.schedule;
+                document.getElementById('resBracketLabel').textContent = matchData.bracket;
+                document.getElementById('resRoundLabel').textContent = matchData.round;
+
+                activeFocusedCardId = matchData.cardId;
+                resultCard.style.display = 'block';
+            } else {
+                // If not found
+                document.getElementById('resTeamName').textContent = 'Tim tidak ditemukan';
+                document.getElementById('resMatchStatus').textContent = '-';
+                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1 small';
+                document.getElementById('resOpponent').textContent = 'Tidak ada';
+                document.getElementById('resSchedule').textContent = '-';
+                document.getElementById('resBracketLabel').textContent = '-';
+                document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
+                activeFocusedCardId = null;
+                resultCard.style.display = 'block';
+            }
+        });
+
+        // Focus Button Event Handler
+        btnFocus.addEventListener('click', function() {
+            if (!activeFocusedCardId) return;
+
+            const cardElement = document.getElementById(activeFocusedCardId);
+            if (!cardElement) return;
+
+            // Highlight the card
+            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
+            cardElement.classList.add('focus-glow');
+
+            // Scroll container to the card's position (horizontally)
+            const container = document.getElementById('bracketContainer');
+            const cardLeft = cardElement.offsetLeft;
+            const containerWidth = container.offsetWidth;
+            const cardWidth = cardElement.offsetWidth;
+
+            // Centering the card in container
+            container.scrollLeft = cardLeft - (containerWidth / 2) + (cardWidth / 2);
         });
     });
     </script>
