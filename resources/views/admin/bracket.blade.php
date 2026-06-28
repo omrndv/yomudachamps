@@ -980,8 +980,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ----------------------------------------------------
     // LIVE Real-Time Polling (Sync database updates without refresh)
+    // Optimized with Page Visibility API to save bandwidth
     // ----------------------------------------------------
-    setInterval(function() {
+    let pollingInterval = null;
+
+    function fetchLatestBracketData() {
         const isModalOpen = document.querySelectorAll('.modal.show').length > 0;
         const isDragging = draggedElement !== null;
 
@@ -1073,7 +1076,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(err => console.log("Realtime sync issue:", err));
         }
-    }, 4000);
+    }
+
+    function startPolling() {
+        if (!pollingInterval) {
+            pollingInterval = setInterval(fetchLatestBracketData, 4000);
+        }
+    }
+
+    function stopPolling() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+    }
+
+    // Stop polling when tab is inactive
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopPolling();
+        } else {
+            fetchLatestBracketData();
+            startPolling();
+        }
+    });
+
+    startPolling();
 });
 
 // ----------------------------------------------------

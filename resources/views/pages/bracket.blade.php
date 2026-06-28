@@ -827,9 +827,13 @@
         });
 
         // ----------------------------------------------------
-        // LIVE Real-Time Polling (Sync public bracket updates without refresh)
         // ----------------------------------------------------
-        setInterval(function() {
+        // LIVE Real-Time Polling (Sync public bracket updates without refresh)
+        // Optimized with Page Visibility API to save bandwidth
+        // ----------------------------------------------------
+        let pollingInterval = null;
+
+        function fetchLatestBracketData() {
             fetch("{{ route('public.season.bracket.data', $season->id) }}")
                 .then(r => r.json())
                 .then(res => {
@@ -942,7 +946,33 @@
                     }
                 })
                 .catch(err => console.log("Realtime sync issue:", err));
-        }, 4000);
+        }
+
+        function startPolling() {
+            if (!pollingInterval) {
+                pollingInterval = setInterval(fetchLatestBracketData, 4000);
+            }
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // Detect Visibility change to stop requests when browser tab is inactive
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                fetchLatestBracketData(); // immediate fetch when coming back active
+                startPolling();
+            }
+        });
+
+        // Start polling initially
+        startPolling();
     });
     </script>
 </body>
