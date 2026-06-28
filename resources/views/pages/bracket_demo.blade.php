@@ -715,22 +715,6 @@
                 });
             });
 
-            // Legendary UX Feature: Click any team inside the bracket directly to trigger search & WA Details card!
-            row.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const teamName = this.querySelector('.team-name').textContent;
-                searchInput.value = teamName;
-                
-                // Trigger the text input event programmatically to pop up result card
-                const event = new Event('input', { bubbles: true });
-                searchInput.dispatchEvent(event);
-                
-                // Auto scroll layout vertically to top search area
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
         });
 
         // Search engine UI elements
