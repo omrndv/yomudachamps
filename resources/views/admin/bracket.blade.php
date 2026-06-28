@@ -556,6 +556,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('adminBracketContainer');
     const headerBar = document.getElementById('adminRoundHeadersBar');
 
+    // ----------------------------------------------------
+    // Restore Scroll Position seamlessly (NO MORE RESETTING SCROLL ON ACTION!)
+    // ----------------------------------------------------
+    if (container) {
+        const savedLeft = sessionStorage.getItem('admin_bracket_scroll_left');
+        const savedTop = sessionStorage.getItem('admin_bracket_scroll_top');
+        if (savedLeft !== null && savedTop !== null) {
+            container.scrollLeft = parseFloat(savedLeft);
+            container.scrollTop = parseFloat(savedTop);
+            sessionStorage.removeItem('admin_bracket_scroll_left');
+            sessionStorage.removeItem('admin_bracket_scroll_top');
+        }
+    }
+
+    // Helper function to save scroll state and reload page
+    function saveScrollAndReload() {
+        if (container) {
+            sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
+            sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
+        }
+        window.location.reload();
+    }
+
     if (container && headerBar) {
         // Sync header horizontal scrolling
         container.addEventListener('scroll', function() {
@@ -633,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.reload();
+                    saveScrollAndReload(); // Use smooth scroll reload
                 });
             } else {
                 Swal.fire({
@@ -733,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 timer: 1500,
                                 showConfirmButton: false
                             }).then(() => {
-                                window.location.reload();
+                                saveScrollAndReload(); // Use smooth scroll reload
                             });
                         } else {
                             Swal.fire({
@@ -833,7 +856,19 @@ function saveRoundTime(roundNum) {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.reload();
+                        // For round times editor modal, we reload and restore the scroll position!
+                        // We also need to make sure the modal has finished closing.
+                        // Since modal closes on reload, scroll restoration handles the rest seamlessly!
+                        if (typeof saveScrollAndReload === 'function') {
+                            saveScrollAndReload();
+                        } else {
+                            const container = document.getElementById('adminBracketContainer');
+                            if (container) {
+                                sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
+                                sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
+                            }
+                            window.location.reload();
+                        }
                     });
                 } else {
                     Swal.fire({
