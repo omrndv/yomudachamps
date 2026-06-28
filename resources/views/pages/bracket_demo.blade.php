@@ -370,6 +370,34 @@
             stroke-width: 2.2;
         }
 
+        /* Action Buttons on Result Card */
+        .result-actions-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-whatsapp-chat {
+            background-color: #25d366;
+            color: #ffffff;
+            border: none;
+            font-weight: bold;
+            font-size: 0.72rem;
+            padding: 6px 14px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-whatsapp-chat:hover {
+            background-color: #1ebe5d;
+            color: #ffffff;
+        }
+
         /* ==========================================================================
            RESPONSIVE MOBILE STYLES (Screens <= 576px)
            ========================================================================== */
@@ -449,14 +477,17 @@
                     <strong class="text-warning" id="resTeamName">Nama Tim</strong>
                     <span class="badge bg-success rounded-pill px-2.5 py-0.5" id="resMatchStatus" style="font-size: 0.6rem;">Selesai</span>
                 </div>
-                <div class="row g-2 mb-2 text-white-50" style="font-size: 0.75rem;">
+                <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.75rem;">
                     <div class="col-6">Team Musuh: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
                     <div class="col-6">Nomer WA Musuh: <strong class="text-warning" id="resOpponentWA">-</strong></div>
                     <div class="col-6">Jam Main: <strong class="text-white" id="resSchedule">Jam Tanding</strong></div>
                     <div class="col-6">Babak: <strong class="text-white" id="resRoundLabel">Babak 1</strong></div>
                     <div class="col-6">Bracket: <strong class="text-white" id="resBracketLabel">Bracket 1</strong></div>
                 </div>
-                <div class="text-end">
+                <div class="result-actions-wrapper border-top border-secondary border-opacity-25 pt-2">
+                    <a href="#" target="_blank" class="btn-whatsapp-chat" id="btnChatWA">
+                        <i class="bi bi-whatsapp"></i> Hubungi Musuh
+                    </a>
                     <button class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.72rem;">
                         Fokuskan ke Bagan
                     </button>
@@ -683,6 +714,23 @@
                     el.classList.remove('team-highlighted');
                 });
             });
+
+            // Legendary UX Feature: Click any team inside the bracket directly to trigger search & WA Details card!
+            row.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const teamName = this.querySelector('.team-name').textContent;
+                searchInput.value = teamName;
+                
+                // Trigger the text input event programmatically to pop up result card
+                const event = new Event('input', { bubbles: true });
+                searchInput.dispatchEvent(event);
+                
+                // Auto scroll layout vertically to top search area
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
         });
 
         // Search engine UI elements
@@ -691,6 +739,7 @@
         const btnFocus = document.getElementById('btnFocusBracket');
         const searchIconBtn = document.getElementById('searchIconBtn');
         const searchClearBtn = document.getElementById('searchClearBtn');
+        const btnChatWA = document.getElementById('btnChatWA');
         let activeFocusedCardId = null;
 
         // Perform Focus Scroll
@@ -729,7 +778,6 @@
                 return;
             }
 
-            // Show clean Clear "X" button inside search input
             searchClearBtn.style.display = 'block';
 
             let foundKey = null;
@@ -753,6 +801,11 @@
                 document.getElementById('resBracketLabel').textContent = matchData.bracket;
                 document.getElementById('resRoundLabel').textContent = matchData.round;
 
+                // Formulate WA Chat Link (Indonesian Country Code: 62)
+                const numericWA = matchData.opponentWA.replace(/^0/, '62');
+                btnChatWA.href = `https://wa.me/${numericWA}`;
+                btnChatWA.style.display = 'inline-flex';
+
                 activeFocusedCardId = matchData.cardId;
                 resultCard.style.display = 'block';
             } else {
@@ -764,12 +817,14 @@
                 document.getElementById('resSchedule').textContent = '-';
                 document.getElementById('resBracketLabel').textContent = '-';
                 document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
+                
+                btnChatWA.style.display = 'none';
                 activeFocusedCardId = null;
                 resultCard.style.display = 'block';
             }
         });
 
-        // Search icon btn click triggers focus scroll as well
+        // Search icon btn click triggers focus scroll
         searchIconBtn.addEventListener('click', function() {
             performFocusScroll();
         });
