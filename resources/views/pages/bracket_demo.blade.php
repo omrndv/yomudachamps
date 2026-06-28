@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bagan Turnamen - Yomuda Championship</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,11 +18,14 @@
             --text-dim: #a1a1aa;
         }
 
-        /* Set body as full-height flex column to prevent offscreen elements on mobile */
+        /* Prevent window elastic bounce on iOS while maintaining internal momentum scroll */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         body {
@@ -31,8 +34,9 @@
             color: var(--text-light);
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Lock viewport scroll */
             -webkit-font-smoothing: antialiased;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         /* Header Style - Fixed height */
@@ -43,7 +47,7 @@
             flex-shrink: 0;
         }
 
-        /* Search Area Wrapper - Fixed height */
+        /* Search Area Container - Fixed height */
         .search-area-container {
             padding: 10px 15px;
             background-color: var(--bg-secondary);
@@ -91,7 +95,7 @@
             padding: 0 6px;
         }
 
-        /* Search Results Panel - Renders absolutely on top of everything */
+        /* Search Results Panel - Absolute overlay */
         .search-results-panel {
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -127,19 +131,18 @@
         }
 
         .round-header-item {
-            width: 185px;
-            margin-right: 80px;
+            width: 185px; /* Compact Column Width */
+            margin-right: 80px; /* Matching column spacing */
             flex-shrink: 0;
             text-align: center;
         }
 
-        /* Bracket container layout - Fills all leftover vertical space dynamically */
+        /* Bracket container layout */
         .bracket-container {
             padding: 30px 30px 40px 30px;
             overflow: auto;
             white-space: nowrap;
             cursor: grab;
-            user-select: none;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-orange) var(--bg-secondary);
             scroll-behavior: smooth;
@@ -148,6 +151,7 @@
             will-change: scroll-position;
             position: relative;
             z-index: 1;
+            -webkit-overflow-scrolling: touch; /* Smooth kinetic scroll for iOS Safari */
         }
 
         .bracket-container:active {
@@ -177,14 +181,14 @@
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4600px;
+            height: 4600px; /* Precise height containing the tree */
             vertical-align: top;
             width: 185px;
             margin-right: 80px;
             position: relative;
         }
 
-        /* Challonge Match Card */
+        /* Challonge Match Card (Ultra Compact & Sharp) */
         .match-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -207,6 +211,7 @@
             transform: scale(1.04);
         }
 
+        /* Match Card Header Row for Label & Time */
         .match-card-header {
             display: flex;
             justify-content: space-between;
@@ -223,6 +228,7 @@
             color: var(--accent-orange);
         }
 
+        /* Team Row - Compact Height 22px */
         .team-row {
             display: flex;
             justify-content: space-between;
@@ -254,6 +260,7 @@
             flex-grow: 1;
         }
 
+        /* Seed indicator */
         .team-seed {
             font-size: 0.58rem;
             color: var(--text-dim);
@@ -267,6 +274,7 @@
             text-overflow: ellipsis;
         }
 
+        /* Challonge Score Box - Compact Width/Height 22px */
         .team-score-box {
             width: 22px;
             height: 22px;
@@ -299,6 +307,7 @@
             opacity: 0.45;
         }
 
+        /* Path Highlighting */
         .team-highlighted {
             background-color: #373740 !important;
         }
@@ -306,6 +315,7 @@
             color: var(--accent-orange) !important;
         }
 
+        /* Orthogonal Connector Lines (Challonge-like SVG) */
         .round-connectors {
             position: absolute;
             top: 0;
@@ -326,6 +336,60 @@
         .connector-line.highlighted {
             stroke: var(--accent-orange);
             stroke-width: 2.2;
+        }
+
+        /* ==========================================================================
+           RESPONSIVE MOBILE STYLES (Screens <= 576px)
+           Decreases card sizes and round spacing for high mobile accessibility
+           ========================================================================== */
+        @media (max-width: 576px) {
+            .round-headers-bar {
+                padding: 6px 15px;
+            }
+            
+            .round-header-item {
+                width: 155px; /* Slimmer columns */
+                margin-right: 40px; /* Reduced gap between columns on mobile */
+            }
+
+            .bracket-container {
+                padding: 20px 15px 30px 15px;
+            }
+
+            .bracket-round {
+                width: 155px;
+                margin-right: 40px;
+            }
+
+            .match-card {
+                width: 155px;
+            }
+
+            .round-connectors {
+                left: 155px;
+                width: 40px; /* Connector SVGs scale down seamlessly */
+            }
+
+            .team-row {
+                font-size: 0.63rem;
+                height: 20px;
+            }
+
+            .team-score-box {
+                width: 20px;
+                height: 20px;
+                font-size: 0.65rem;
+            }
+
+            .team-seed {
+                font-size: 0.52rem;
+                margin-right: 4px;
+            }
+
+            .match-card-header {
+                font-size: 0.54rem;
+                padding: 2px 4px;
+            }
         }
     </style>
 </head>
