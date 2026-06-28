@@ -251,7 +251,10 @@
                             @php
                                 $ymdTeams = $teams->filter(function($t) {
                                     return str_starts_with(strtolower($t->name), 'ymd');
-                                })->sortBy('name');
+                                })->sortBy(function($t) {
+                                    $parts = explode('-', $t->name);
+                                    return isset($parts[1]) ? intval($parts[1]) : 0;
+                                });
                             @endphp
                             @forelse($ymdTeams as $t)
                                 <tr>
