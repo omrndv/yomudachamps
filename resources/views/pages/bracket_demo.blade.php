@@ -18,27 +18,44 @@
             --text-dim: #a1a1aa;
         }
 
+        /* Set body as full-height flex column to prevent offscreen elements on mobile */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-secondary);
             color: var(--text-light);
-            overflow: hidden; /* Lock the main window scroll to keep it neat like Challonge */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Lock viewport scroll */
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Header Style */
+        /* Header Style - Fixed height */
         .bracket-header {
-            padding: 12px 0;
+            padding: 10px 0;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
 
-        /* Search Box style */
+        /* Search Area Wrapper - Fixed height */
+        .search-area-container {
+            padding: 10px 15px;
+            background-color: var(--bg-secondary);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 999;
+        }
+
         .search-wrapper {
             max-width: 360px;
-            margin: 12px auto;
+            margin: 0 auto;
             position: relative;
-            z-index: 999; /* Higher z-index stack for wrapper */
         }
 
         .search-input-group {
@@ -74,7 +91,7 @@
             padding: 0 6px;
         }
 
-        /* Search Results Panel with absolute overlay stack */
+        /* Search Results Panel - Renders absolutely on top of everything */
         .search-results-panel {
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -87,11 +104,11 @@
             position: absolute;
             width: 100%;
             left: 0;
-            z-index: 99999; /* Force overlay on top of sticky headers and SVGs */
-            display: none; /* Explicitly hidden by default */
+            z-index: 99999;
+            display: none;
         }
 
-        /* Sticky Round Titles Bar */
+        /* Sticky Round Titles Bar - Fixed height */
         .round-headers-bar {
             display: flex;
             background-color: var(--bg-primary);
@@ -104,32 +121,33 @@
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
             position: relative;
-            z-index: 5; /* Lower than search wrapper */
+            z-index: 5;
         }
 
         .round-header-item {
-            width: 185px; /* Compact Column Width */
-            margin-right: 80px; /* Matching column spacing */
+            width: 185px;
+            margin-right: 80px;
             flex-shrink: 0;
             text-align: center;
         }
 
-        /* Bracket container layout - BOTH horizontal and vertical scroll inside the container */
+        /* Bracket container layout - Fills all leftover vertical space dynamically */
         .bracket-container {
             padding: 30px 30px 40px 30px;
-            overflow: auto; /* Allow horizontal & vertical scrolling inside container */
+            overflow: auto;
             white-space: nowrap;
             cursor: grab;
             user-select: none;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-orange) var(--bg-secondary);
             scroll-behavior: smooth;
-            height: calc(100vh - 145px); /* Responsive viewport fitting */
+            flex-grow: 1; /* Takes exactly the remaining viewport height */
             transform: translate3d(0, 0, 0);
             will-change: scroll-position;
             position: relative;
-            z-index: 1; /* Lowest layout stack */
+            z-index: 1;
         }
 
         .bracket-container:active {
@@ -159,14 +177,14 @@
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4600px; /* Precise height containing the tree */
+            height: 4600px;
             vertical-align: top;
             width: 185px;
             margin-right: 80px;
             position: relative;
         }
 
-        /* Challonge Match Card (Ultra Compact & Sharp) */
+        /* Challonge Match Card */
         .match-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -189,7 +207,6 @@
             transform: scale(1.04);
         }
 
-        /* Match Card Header Row for Label & Time */
         .match-card-header {
             display: flex;
             justify-content: space-between;
@@ -206,7 +223,6 @@
             color: var(--accent-orange);
         }
 
-        /* Team Row - Compact Height 22px */
         .team-row {
             display: flex;
             justify-content: space-between;
@@ -238,7 +254,6 @@
             flex-grow: 1;
         }
 
-        /* Seed indicator */
         .team-seed {
             font-size: 0.58rem;
             color: var(--text-dim);
@@ -252,7 +267,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Challonge Score Box - Compact Width/Height 22px */
         .team-score-box {
             width: 22px;
             height: 22px;
@@ -285,7 +299,6 @@
             opacity: 0.45;
         }
 
-        /* Path Highlighting */
         .team-highlighted {
             background-color: #373740 !important;
         }
@@ -293,7 +306,6 @@
             color: var(--accent-orange) !important;
         }
 
-        /* Orthogonal Connector Lines (Challonge-like SVG) */
         .round-connectors {
             position: absolute;
             top: 0;
@@ -322,21 +334,21 @@
     {{-- Header --}}
     <header class="bracket-header">
         <div class="container text-center">
-            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.1rem;">YOMUDA <span class="text-warning">SEASON 33</span></h5>
-            <p class="text-secondary m-0" style="font-size: 0.72rem;">Bagan Tournament Yomuda</p>
+            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.05rem;">YOMUDA <span class="text-warning">SEASON 33</span></h5>
+            <p class="text-secondary m-0" style="font-size: 0.68rem;">Bagan Tournament Yomuda</p>
         </div>
     </header>
 
-    {{-- Search Area --}}
-    <div class="container mt-2">
+    {{-- Search Area Container --}}
+    <div class="search-area-container">
         <div class="search-wrapper text-center">
             <div class="search-input-group d-flex align-items-center">
                 <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda (cth: Tim 42)...">
                 <button class="search-icon-btn"><i class="bi bi-search"></i></button>
             </div>
 
-            {{-- Result Panel - 100% hidden by default --}}
-            <div id="searchResultCard" class="search-results-panel" style="display: none;">
+            {{-- Result Panel --}}
+            <div id="searchResultCard" class="search-results-panel">
                 <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-1.5 mb-2">
                     <strong class="text-warning" id="resTeamName">Nama Tim</strong>
                     <span class="badge bg-success rounded-pill px-2.5 py-0.5" id="resMatchStatus" style="font-size: 0.6rem;">Selesai</span>
