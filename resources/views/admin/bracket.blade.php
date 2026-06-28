@@ -89,7 +89,7 @@
                 <div class="col-md-3 text-start">
                     @php
                         $hasBronze = false;
-                        $finalRoundKey = $rounds->keys()->max();
+                        $finalRoundKey = $brackets->max('round_number');
                         if ($finalRoundKey) {
                             $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->exists();
                         }
