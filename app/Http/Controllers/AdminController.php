@@ -1168,7 +1168,20 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
-            'permissions' => ["dashboard", "seasons", "notes", "faqs", "activity_log"],
+            'permissions' => [
+                "dashboard",
+                "seasons",
+                "teams",
+                "payments",
+                "notes",
+                "settings",
+                "faqs",
+                "activity_log",
+                "manage",
+                "backup",
+                "finance",
+                "solo_matchmaker"
+            ],
         ]);
 
         AdminActivity::log('Membuat akun admin baru: ' . $admin->username);
