@@ -89,7 +89,7 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-center gap-2 small text-secondary">
                         <i class="bi bi-info-circle text-warning fs-5"></i>
-                        <span><strong>Tips:</strong> Bagan terupdate secara **LIVE** tanpa perlu refresh. Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) untuk swap posisi.</span>
+                        <span><strong>Tips:</strong> Bagan terupdate secara LIVE tanpa perlu refresh. Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) untuk swap posisi.</span>
                     </div>
                 </div>
             </div>
@@ -929,29 +929,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!query) return;
 
-        const matchRow = document.querySelector(`.team-row[data-team-name*="${query}"]`);
-        if (matchRow) {
-            const cardId = matchRow.dataset.matchId;
+        const matchRows = document.querySelectorAll(`.team-row[data-team-name*="${query}"]`);
+        let firstCard = null;
+        matchRows.forEach(matchRow => {
             const targetCard = matchRow.closest('.match-card');
-            
             if (targetCard) {
                 targetCard.classList.add('search-focus-glow');
-                
-                const containerRect = container.getBoundingClientRect();
-                const cardRect = targetCard.getBoundingClientRect();
-                
-                const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
-                const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
-
-                const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
-                const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
-
-                container.scrollTo({
-                    left: targetScrollLeft,
-                    top: targetScrollTop,
-                    behavior: 'smooth'
-                });
+                if (!firstCard) {
+                    firstCard = targetCard;
+                }
             }
+        });
+
+        if (firstCard) {
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = firstCard.getBoundingClientRect();
+            
+            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
+            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
+
+            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
+            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
+
+            container.scrollTo({
+                left: targetScrollLeft,
+                top: targetScrollTop,
+                behavior: 'smooth'
+            });
         }
     });
 
