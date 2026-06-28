@@ -79,17 +79,31 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
             <div class="row g-3 align-items-center">
                 {{-- Search Box --}}
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
                         <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Cari nama tim untuk mencari & fokus ke bagan...">
                     </div>
                 </div>
+                {{-- Bronze Match Toggle Switch --}}
+                <div class="col-md-3 text-start">
+                    @php
+                        $hasBronze = false;
+                        $finalRoundKey = $rounds->keys()->max();
+                        if ($finalRoundKey) {
+                            $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->exists();
+                        }
+                    @endphp
+                    <div class="form-check form-switch ps-5">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)">
+                        <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch">Aktifkan Bronze Match (Juara 3/4)</label>
+                    </div>
+                </div>
                 {{-- Info text --}}
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="d-flex align-items-center gap-2 small text-secondary">
                         <i class="bi bi-info-circle text-warning fs-5"></i>
-                        <span><strong>Tips:</strong> Bagan terupdate secara LIVE tanpa perlu refresh. Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) untuk swap posisi.</span>
+                        <span><strong>Tips:</strong> Bagan terupdate secara <strong>LIVE</strong>. Di Babak 1, seret (drag) baris tim mana saja untuk swap posisi.</span>
                     </div>
                 </div>
             </div>
@@ -234,6 +248,11 @@
                                 <div class="col-auto">
                                     <button type="button" class="btn btn-warning btn-sm fw-bold px-3 rounded" onclick="bulkAddYmdSlots()">
                                         <i class="bi bi-plus-lg"></i> Tambahkan
+                                    </button>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-3 rounded" onclick="deleteAllYmdSlots()">
+                                        <i class="bi bi-trash-fill"></i> Hapus Semua Slot
                                     </button>
                                 </div>
                             </div>
@@ -1255,6 +1274,111 @@ function renameYmdSlot(teamId, oldName) {
                 });
             });
         }
+    });
+}
+
+// ----------------------------------------------------
+// Delete All YMD Slots
+// ----------------------------------------------------
+function deleteAllYmdSlots() {
+    Swal.fire({
+        title: 'Hapus Semua Slot YMD?',
+        text: "Semua tim placeholder berawalan YMD- di season ini akan dihapus dari database dan bagan.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Hapus Semua!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            
+            fetch("{{ route('admin.season.bracket.delete-all-ymd-slots', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: res.message
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal menghapus slot karena masalah koneksi.'
+                });
+            });
+        }
+    });
+}
+
+// ----------------------------------------------------
+// Toggle Bronze Match (Juara 3 & 4)
+// ----------------------------------------------------
+function toggleBronzeMatchSetting(switchEl) {
+    const active = switchEl.checked;
+    Swal.showLoading();
+
+    fetch("{{ route('admin.season.bracket.toggle-bronze-match', $season->id) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            active: active
+        })
+    })
+    .then(response => response.json())
+    .then(res => {
+        if (res.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: res.message,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            switchEl.checked = !active; // revert
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: res.message
+            });
+        }
+    })
+    .catch(err => {
+        switchEl.checked = !active; // revert
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Gagal mengubah pengaturan Bronze Match karena masalah koneksi.'
+        });
     });
 }
 

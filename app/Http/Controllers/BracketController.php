@@ -261,6 +261,37 @@ class BracketController extends Controller
                 $this->advanceWinner($nextMatch);
             }
         }
+
+        // Bronze Match logic: Loser of Semifinals goes to Round (Final) Match 2
+        $finalRoundNum = Bracket::where('season_id', $match->season_id)->max('round_number');
+        if ($match->round_number === $finalRoundNum - 1) {
+            $bronzeMatch = Bracket::where('season_id', $match->season_id)
+                ->where('round_number', $finalRoundNum)
+                ->where('match_number', 2)
+                ->first();
+
+            if ($bronzeMatch) {
+                $loserId = null;
+                if ($match->status === 'finished' && $match->winner_id) {
+                    $loserId = ($match->winner_id == $match->team1_id) ? $match->team2_id : $match->team1_id;
+                }
+
+                if ($match->match_number === 1) {
+                    $bronzeMatch->team1_id = $loserId;
+                } else if ($match->match_number === 2) {
+                    $bronzeMatch->team2_id = $loserId;
+                }
+
+                if (!$loserId) {
+                    $bronzeMatch->winner_id = null;
+                    $bronzeMatch->team1_score = 0;
+                    $bronzeMatch->team2_score = 0;
+                    $bronzeMatch->status = 'upcoming';
+                }
+
+                $bronzeMatch->save();
+            }
+        }
     }
 
     /**
@@ -538,5 +569,116 @@ class BracketController extends Controller
                 ];
             });
         return response()->json(['success' => true, 'matches' => $matches]);
+    }
+
+    /**
+     * Delete all placeholder YMD slots for this season
+     */
+    public function deleteAllYmdSlots($season_id)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $ymdTeams = Team::where('season_id', $season_id)
+                ->where('name', 'LIKE', 'YMD-%')
+                ->get();
+                
+            $count = $ymdTeams->count();
+            
+            foreach ($ymdTeams as $team) {
+                Bracket::where('season_id', $season_id)
+                    ->where('team1_id', $team->id)
+                    ->update(['team1_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
+                    
+                Bracket::where('season_id', $season_id)
+                    ->where('team2_id', $team->id)
+                    ->update(['team2_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
+
+                $team->delete();
+            }
+            
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil menghapus ' . $count . ' slot placeholder YMD!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus slot YMD: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle the Bronze Match (Match 2 in final round)
+     */
+    public function toggleBronzeMatch(Request $request, $season_id)
+    {
+        $request->validate([
+            'active' => 'required|boolean'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $finalRoundNum = Bracket::where('season_id', $season_id)->max('round_number');
+            if (!$finalRoundNum) {
+                return response()->json(['success' => false, 'message' => 'Bagan belum dibuat.'], 400);
+            }
+
+            if ($request->active) {
+                $exists = Bracket::where('season_id', $season_id)
+                    ->where('round_number', $finalRoundNum)
+                    ->where('match_number', 2)
+                    ->exists();
+
+                if (!$exists) {
+                    $bronze = new Bracket();
+                    $bronze->season_id = $season_id;
+                    $bronze->round_number = $finalRoundNum;
+                    $bronze->match_number = 2;
+                    $bronze->status = 'upcoming';
+                    $bronze->match_time = '21:20 WIB';
+                    
+                    $semi1 = Bracket::where('season_id', $season_id)
+                        ->where('round_number', $finalRoundNum - 1)
+                        ->where('match_number', 1)
+                        ->first();
+                    $semi2 = Bracket::where('season_id', $season_id)
+                        ->where('round_number', $finalRoundNum - 1)
+                        ->where('match_number', 2)
+                        ->first();
+
+                    if ($semi1 && $semi1->status === 'finished' && $semi1->winner_id) {
+                        $bronze->team1_id = ($semi1->winner_id == $semi1->team1_id) ? $semi1->team2_id : $semi1->team1_id;
+                    }
+                    if ($semi2 && $semi2->status === 'finished' && $semi2->winner_id) {
+                        $bronze->team2_id = ($semi2->winner_id == $semi2->team1_id) ? $semi2->team2_id : $semi2->team1_id;
+                    }
+
+                    $bronze->save();
+                }
+                $msg = 'Bracket Bronze Match (Juara 3 & 4) berhasil diaktifkan!';
+            } else {
+                Bracket::where('season_id', $season_id)
+                    ->where('round_number', $finalRoundNum)
+                    ->where('match_number', 2)
+                    ->delete();
+                $msg = 'Bracket Bronze Match dinonaktifkan.';
+            }
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => $msg
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah status Bronze Match: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
