@@ -181,14 +181,14 @@
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4600px; /* Precise height containing the tree */
+            height: 4600px;
             vertical-align: top;
             width: 185px;
             margin-right: 80px;
             position: relative;
         }
 
-        /* Challonge Match Card (Ultra Compact & Sharp) */
+        /* Challonge Match Card */
         .match-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -211,7 +211,6 @@
             transform: scale(1.04);
         }
 
-        /* Match Card Header Row for Label & Time */
         .match-card-header {
             display: flex;
             justify-content: space-between;
@@ -228,7 +227,6 @@
             color: var(--accent-orange);
         }
 
-        /* Team Row - Compact Height 22px */
         .team-row {
             display: flex;
             justify-content: space-between;
@@ -260,7 +258,6 @@
             flex-grow: 1;
         }
 
-        /* Seed indicator */
         .team-seed {
             font-size: 0.58rem;
             color: var(--text-dim);
@@ -274,7 +271,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Challonge Score Box - Compact Width/Height 22px */
         .team-score-box {
             width: 22px;
             height: 22px;
@@ -307,7 +303,6 @@
             opacity: 0.45;
         }
 
-        /* Path Highlighting */
         .team-highlighted {
             background-color: #373740 !important;
         }
@@ -315,7 +310,6 @@
             color: var(--accent-orange) !important;
         }
 
-        /* Orthogonal Connector Lines (Challonge-like SVG) */
         .round-connectors {
             position: absolute;
             top: 0;
@@ -505,6 +499,9 @@
             const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svgConnectors.setAttribute("class", "round-connectors");
             svgConnectors.setAttribute("viewBox", `0 0 80 ${roundHeight}`);
+            
+            // Critical fix: force browser to stretch/scale width independently of height without preserving aspect ratio
+            svgConnectors.setAttribute("preserveAspectRatio", "none");
 
             for (let match = 1; match <= matchesInRound; match++) {
                 const team1 = currentRoundTeams[(match - 1) * 2];
