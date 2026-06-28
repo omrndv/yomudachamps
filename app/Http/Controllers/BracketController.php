@@ -418,6 +418,7 @@ class BracketController extends Controller
                 $newIndex = $maxIndex + $i;
                 Team::create([
                     'season_id' => $season_id,
+                    'trx_id' => 'YMD' . $season_id . '-SLOT-' . strtoupper(\Illuminate\Support\Str::random(4)),
                     'name' => 'YMD-' . $newIndex,
                     'wa_number' => '-',
                     'status' => 'PAID',
