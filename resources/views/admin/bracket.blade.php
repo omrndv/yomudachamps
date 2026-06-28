@@ -24,6 +24,12 @@
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
                     
+                    @if($brackets->count() > 0)
+                        <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
+                            <i class="bi bi-clock me-1"></i> Set Jam per Babak
+                        </button>
+                    @endif
+
                     <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
                         <i class="bi bi-clipboard me-1"></i> Copy Daftar Tim (Backup)
                     </button>
@@ -67,46 +73,20 @@
         </div>
     @else
         {{-- Controls Panel --}}
-        <div class="row g-3 mb-4">
-            {{-- Edit Jam Main per Babak --}}
-            <div class="col-md-7">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-fill text-warning me-2"></i>Atur Jam Main Serentak per Babak</h6>
-                    <div class="row g-2">
-                        @foreach($rounds as $roundNum => $matches)
-                            @php
-                                $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                                $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
-                                $firstMatch = $matches->first();
-                            @endphp
-                            <div class="col-sm-6 col-md-4">
-                                <div class="p-2 border rounded bg-light">
-                                    <label class="d-block small fw-bold text-secondary mb-1">{{ $title }}</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" id="roundTime_{{ $roundNum }}" value="{{ $firstMatch->match_time ?? '20:00 WIB' }}" placeholder="Tgl & Jam">
-                                        <button class="btn btn-warning" type="button" onclick="saveRoundTime({{ $roundNum }})">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+            <div class="row g-3 align-items-center">
+                {{-- Search Box --}}
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                        <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Cari nama tim untuk mencari & fokus ke bagan...">
                     </div>
                 </div>
-            </div>
-
-            {{-- Search & Drag Info --}}
-            <div class="col-md-5">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-search text-warning me-2"></i>Pencarian Tim & Drag-Drop</h6>
-                    <div class="mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
-                            <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Ketik nama tim untuk mencari & fokus...">
-                        </div>
-                    </div>
-                    <div class="alert alert-info py-2 px-3 small border-0 m-0 rounded-3">
-                        <i class="bi bi-info-circle-fill me-1"></i> <strong>Tips Drag & Drop:</strong> Di Babak 1, Anda dapat menyeret (drag) baris tim mana saja dan meletakkannya (drop) di slot tim lain untuk menukar posisi mereka secara real-time.
+                {{-- Info text --}}
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-2 small text-secondary">
+                        <i class="bi bi-info-circle text-warning fs-5"></i>
+                        <span><strong>Tips:</strong> Di Babak 1, seret (drag) baris tim mana saja dan taruh (drop) di baris tim lain untuk mengatur posisi lawan tanding secara real-time.</span>
                     </div>
                 </div>
             </div>
@@ -241,6 +221,46 @@
         </div>
     @endif
 </div>
+
+{{-- Modal Atur Jam Main per Babak --}}
+@if($brackets->count() > 0)
+<div class="modal fade" id="modalRoundTimes" tabindex="-1" aria-labelledby="modalRoundTimesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header bg-dark text-white rounded-top-4 border-0 py-3">
+                <h6 class="modal-title fw-bold" id="modalRoundTimesLabel"><i class="bi bi-clock-fill text-warning me-2"></i>Atur Jam Main Serentak per Babak</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-secondary small mb-3">Masukkan jadwal (Tanggal & Jam) tanding untuk masing-masing babak di bawah. Jadwal akan langsung terupdate serentak ke semua pertandingan pada babak terkait.</p>
+                <div class="row g-3">
+                    @foreach($rounds as $roundNum => $matches)
+                        @php
+                            $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
+                            $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                            $firstMatch = $matches->first();
+                        @endphp
+                        <div class="col-md-6 col-lg-4">
+                            <div class="p-3 border rounded bg-light">
+                                <label class="d-block small fw-bold text-dark mb-1.5">{{ $title }}</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="roundTime_{{ $roundNum }}" value="{{ $firstMatch->match_time ?? '20:00 WIB' }}" placeholder="Contoh: 29 Juni, 20:00 WIB">
+                                    <button class="btn btn-warning" type="button" onclick="saveRoundTime({{ $roundNum }})">
+                                        <i class="bi bi-check-lg"></i> Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
+                <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold rounded-pill text-white" data-bs-dismiss="modal">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Modal Copy Teams (Backup to Challonge) --}}
 <div class="modal fade" id="modalCopyTeams" tabindex="-1" aria-labelledby="modalCopyTeamsLabel" aria-hidden="true">
@@ -547,7 +567,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let startX, startY;
         let scrollLeft, scrollTop;
 
-        // Only trigger scroll drag on canvas background, not on match cards
         container.addEventListener('mousedown', (e) => {
             if (e.target.closest('.match-card')) return;
             isDown = true;
@@ -677,7 +696,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const m2_id = this.dataset.matchId;
             const slot2 = this.dataset.slot;
 
-            // Trigger swap AJAX request
             Swal.fire({
                 title: 'Tukar Posisi Tim?',
                 text: "Anda akan menukar posisi tim ini di Babak 1.",
@@ -747,17 +765,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!query) return;
 
-        // Find match card containing the team name
         const matchRow = document.querySelector(`.team-row[data-team-name*="${query}"]`);
         if (matchRow) {
             const cardId = matchRow.dataset.matchId;
-            const cardElement = document.getElementById(`card_m_${matchRow.dataset.round}_${matchRow.closest('.match-card').querySelector('.match-card-header span').textContent.replace('BRACKET ', '')}`);
             const targetCard = matchRow.closest('.match-card');
             
             if (targetCard) {
                 targetCard.classList.add('search-focus-glow');
                 
-                // Scroll canvas to focus on the target card
                 const containerRect = container.getBoundingClientRect();
                 const cardRect = targetCard.getBoundingClientRect();
                 
@@ -873,7 +888,6 @@ function openEditMatchModal(match) {
     const statusSelect = document.getElementById('modalMatchStatus');
     const btnSave = document.getElementById('btnSaveMatch');
 
-    // Disable editing if team matchups are not fully set (TBD)
     if (!match.team1_exists || !match.team2_exists) {
         alertEl.classList.remove('d-none');
         input1.disabled = true;
