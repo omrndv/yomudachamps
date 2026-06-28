@@ -355,7 +355,8 @@
                 </div>
                 <div class="row g-2 mb-2 text-white-50" style="font-size: 0.75rem;">
                     <div class="col-6">Team Musuh: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
-                    <div class="col-6">Jam Main: <strong class="text-warning" id="resSchedule">Jam Tanding</strong></div>
+                    <div class="col-6">Nomer WA Musuh: <strong class="text-warning" id="resOpponentWA">-</strong></div>
+                    <div class="col-6">Jam Main: <strong class="text-white" id="resSchedule">Jam Tanding</strong></div>
                     <div class="col-6">Babak: <strong class="text-white" id="resRoundLabel">Babak 1</strong></div>
                     <div class="col-6">Bracket: <strong class="text-white" id="resBracketLabel">Bracket 1</strong></div>
                 </div>
@@ -483,12 +484,16 @@
                 
                 roundDiv.appendChild(cardDiv);
 
-                // Index details for search
+                // Index details for search (adding a realistic WA number)
                 [team1, team2].forEach(t => {
                     const isWin = (t === winner);
+                    const opp = (t === team1 ? team2 : team1);
+                    const oppWA = `08${120000000 + opp.seed * 54321}`; // Generates clean simulated 081xxxxxxxx WA numbers
+
                     matchesData[t.name.toLowerCase()] = {
                         name: t.name,
-                        opponent: (t === team1 ? team2 : team1).name,
+                        opponent: opp.name,
+                        opponentWA: oppWA,
                         schedule: matchTime,
                         bracket: `Bracket ${match}`,
                         round: roundNames[round],
@@ -614,6 +619,7 @@
                 statusBadge.className = matchData.status.includes('Kalah') ? 'badge bg-secondary rounded-pill px-2 py-0.5' : 'badge bg-warning text-dark rounded-pill px-2 py-0.5';
 
                 document.getElementById('resOpponent').textContent = matchData.opponent;
+                document.getElementById('resOpponentWA').textContent = matchData.opponentWA;
                 document.getElementById('resSchedule').textContent = matchData.schedule;
                 document.getElementById('resBracketLabel').textContent = matchData.bracket;
                 document.getElementById('resRoundLabel').textContent = matchData.round;
@@ -625,6 +631,7 @@
                 document.getElementById('resMatchStatus').textContent = '-';
                 document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2 py-0.5';
                 document.getElementById('resOpponent').textContent = 'Tidak ada';
+                document.getElementById('resOpponentWA').textContent = '-';
                 document.getElementById('resSchedule').textContent = '-';
                 document.getElementById('resBracketLabel').textContent = '-';
                 document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
