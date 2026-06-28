@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bagan Turnamen - Yomuda Championship</title>
+    <!-- DNS prefetch and preconnect for Google Fonts to maximize loading speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -67,6 +71,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 2px 4px;
+            position: relative;
         }
 
         .search-input-group:focus-within {
@@ -80,7 +85,7 @@
             color: #ffffff;
             font-size: 0.78rem;
             outline: none;
-            padding: 5px 8px;
+            padding: 5px 30px 5px 8px; /* Extra padding right for clear button */
             width: 100%;
         }
 
@@ -93,9 +98,34 @@
             border: none;
             color: var(--text-dim);
             padding: 0 6px;
+            cursor: pointer;
+            transition: color 0.2s ease;
         }
 
-        /* Search Results Panel - Absolute overlay */
+        .search-icon-btn:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Clear button inside input */
+        .search-clear-btn {
+            position: absolute;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            display: none;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .search-clear-btn:hover {
+            color: #ffffff;
+        }
+
+        /* Search Results Panel with smooth fade-in */
         .search-results-panel {
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -110,6 +140,12 @@
             left: 0;
             z-index: 99999;
             display: none;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Sticky Round Titles Bar - Fixed height */
@@ -131,8 +167,8 @@
         }
 
         .round-header-item {
-            width: 185px; /* Compact Column Width */
-            margin-right: 80px; /* Matching column spacing */
+            width: 185px;
+            margin-right: 80px;
             flex-shrink: 0;
             text-align: center;
         }
@@ -205,10 +241,12 @@
             border-color: #52525b;
         }
 
+        /* Beautiful glowing focus animation */
         .match-card.focus-glow {
             border-color: var(--accent-orange) !important;
-            box-shadow: 0 0 15px rgba(255, 122, 0, 0.6) !important;
+            box-shadow: 0 0 20px rgba(255, 122, 0, 0.7) !important;
             transform: scale(1.04);
+            animation: pulse-border 1.2s infinite alternate;
         }
 
         .match-card-header {
@@ -334,7 +372,6 @@
 
         /* ==========================================================================
            RESPONSIVE MOBILE STYLES (Screens <= 576px)
-           Decreases card sizes and round spacing for high mobile accessibility
            ========================================================================== */
         @media (max-width: 576px) {
             .round-headers-bar {
@@ -342,8 +379,8 @@
             }
             
             .round-header-item {
-                width: 155px; /* Slimmer columns */
-                margin-right: 40px; /* Reduced gap between columns on mobile */
+                width: 155px;
+                margin-right: 40px;
             }
 
             .bracket-container {
@@ -361,7 +398,7 @@
 
             .round-connectors {
                 left: 155px;
-                width: 40px; /* Connector SVGs scale down seamlessly */
+                width: 40px;
             }
 
             .team-row {
@@ -402,7 +439,8 @@
         <div class="search-wrapper text-center">
             <div class="search-input-group d-flex align-items-center">
                 <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda (cth: Tim 42)...">
-                <button class="search-icon-btn"><i class="bi bi-search"></i></button>
+                <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
+                <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
 
             {{-- Result Panel --}}
@@ -499,8 +537,6 @@
             const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svgConnectors.setAttribute("class", "round-connectors");
             svgConnectors.setAttribute("viewBox", `0 0 80 ${roundHeight}`);
-            
-            // Critical fix: force browser to stretch/scale width independently of height without preserving aspect ratio
             svgConnectors.setAttribute("preserveAspectRatio", "none");
 
             for (let match = 1; match <= matchesInRound; match++) {
@@ -649,11 +685,39 @@
             });
         });
 
-        // Search engine
+        // Search engine UI elements
         const searchInput = document.getElementById('teamSearchInput');
         const resultCard = document.getElementById('searchResultCard');
         const btnFocus = document.getElementById('btnFocusBracket');
+        const searchIconBtn = document.getElementById('searchIconBtn');
+        const searchClearBtn = document.getElementById('searchClearBtn');
         let activeFocusedCardId = null;
+
+        // Perform Focus Scroll
+        function performFocusScroll() {
+            if (!activeFocusedCardId) return;
+
+            const cardElement = document.getElementById(activeFocusedCardId);
+            if (!cardElement) return;
+
+            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
+            cardElement.classList.add('focus-glow');
+
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = cardElement.getBoundingClientRect();
+            
+            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
+            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
+
+            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
+            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
+
+            container.scrollTo({
+                left: targetScrollLeft,
+                top: targetScrollTop,
+                behavior: 'smooth'
+            });
+        }
 
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
@@ -661,8 +725,12 @@
 
             if (!query) {
                 resultCard.style.display = 'none';
+                searchClearBtn.style.display = 'none';
                 return;
             }
+
+            // Show clean Clear "X" button inside search input
+            searchClearBtn.style.display = 'block';
 
             let foundKey = null;
             Object.keys(matchesData).forEach(key => {
@@ -701,30 +769,31 @@
             }
         });
 
-        // Smooth Auto-scroll Focus (Handles scrolling BOTH vertically and horizontally inside the container rect)
-        btnFocus.addEventListener('click', function() {
-            if (!activeFocusedCardId) return;
+        // Search icon btn click triggers focus scroll as well
+        searchIconBtn.addEventListener('click', function() {
+            performFocusScroll();
+        });
 
-            const cardElement = document.getElementById(activeFocusedCardId);
-            if (!cardElement) return;
+        // Search input Enter key press triggers focus scroll
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performFocusScroll();
+                searchInput.blur(); // dismiss mobile keyboard
+            }
+        });
 
+        // Clear search button functionality
+        searchClearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resultCard.style.display = 'none';
+            searchClearBtn.style.display = 'none';
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
-            cardElement.classList.add('focus-glow');
+        });
 
-            const containerRect = container.getBoundingClientRect();
-            const cardRect = cardElement.getBoundingClientRect();
-            
-            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
-            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
-
-            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
-            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
-
-            container.scrollTo({
-                left: targetScrollLeft,
-                top: targetScrollTop,
-                behavior: 'smooth'
-            });
+        // Focus Button
+        btnFocus.addEventListener('click', function() {
+            performFocusScroll();
         });
     });
     </script>
