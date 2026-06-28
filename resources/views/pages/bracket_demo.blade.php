@@ -131,12 +131,12 @@
             background: var(--accent-orange);
         }
 
-        /* Bracket Column per Round - Height increased to 6400px to solve Round 1 clumping spacing */
+        /* Bracket Column per Round - Set to 4600px to maintain precisely a ~10px vertical card gap in Round 1 */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 6400px; 
+            height: 4600px; 
             vertical-align: top;
             width: 185px;
             margin-right: 80px;
@@ -391,8 +391,8 @@
         const container = document.getElementById('bracketContainer');
         let currentRoundTeams = [...teams];
         
-        // Dynamic Height changed to 6400px to give beautiful vertical spacing in Round 1
-        const roundHeight = 6400;
+        // Height adjusted to 4600px to maintain precisely a ~10px vertical card gap in Round 1
+        const roundHeight = 4600;
 
         // Draw rounds
         for (let round = 1; round <= roundsCount; round++) {
