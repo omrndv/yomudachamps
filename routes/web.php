@@ -208,3 +208,7 @@ Route::view('/terms-conditions', 'pages.terms')->name('terms');
 Route::view('/contact-us', 'pages.contact')->name('contact');
 
 Route::redirect('/register/{id}', '/daftar', 301);
+
+Route::get('/bracket-demo', function () {
+    return view('pages.bracket_demo');
+})->name('bracket.demo');
