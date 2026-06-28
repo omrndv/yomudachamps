@@ -38,7 +38,7 @@
             max-width: 360px;
             margin: 12px auto;
             position: relative;
-            z-index: 10;
+            z-index: 999; /* Higher z-index stack for wrapper */
         }
 
         .search-input-group {
@@ -46,6 +46,11 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 2px 4px;
+        }
+
+        .search-input-group:focus-within {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 10px rgba(255, 122, 0, 0.2);
         }
 
         .search-input-group input {
@@ -69,6 +74,7 @@
             padding: 0 6px;
         }
 
+        /* Search Results Panel with absolute overlay stack */
         .search-results-panel {
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -77,10 +83,11 @@
             margin-top: 8px;
             text-align: left;
             font-size: 0.75rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
             position: absolute;
             width: 100%;
             left: 0;
+            z-index: 99999; /* Force overlay on top of sticky headers and SVGs */
         }
 
         /* Sticky Round Titles Bar */
@@ -96,6 +103,8 @@
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            position: relative;
+            z-index: 5; /* Lower than search wrapper */
         }
 
         .round-header-item {
@@ -118,6 +127,8 @@
             height: calc(100vh - 145px); /* Responsive viewport fitting */
             transform: translate3d(0, 0, 0);
             will-change: scroll-position;
+            position: relative;
+            z-index: 1; /* Lowest layout stack */
         }
 
         .bracket-container:active {
