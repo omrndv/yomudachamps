@@ -126,9 +126,16 @@
                         <i class="bi bi-graph-up-arrow fs-5"></i>
                     </div>
                 </div>
-                <p class="small text-muted mb-0 mt-2" style="font-size: 0.7rem;">
-                    Dana dari sponsor, donasi, kas, dan sumber luar lainnya.
-                </p>
+                <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.65rem;">
+                    <div class="col-6 border-end px-1">
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Jumlah slot YMD cadangan terjual">Slot YMD Terjual</span>
+                        <strong class="text-warning d-block">{{ $ymd_slots_count }} Slot</strong>
+                    </div>
+                    <div class="col-6 px-1">
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Total keuntungan dari penjualan slot YMD">Keuntungan YMD</span>
+                        <strong class="text-success d-block">Rp {{ number_format($ymd_slots_income, 0, ',', '.') }}</strong>
+                    </div>
+                </div>
             </div>
         </div>
 

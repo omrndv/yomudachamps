@@ -300,6 +300,13 @@ class AdminController extends Controller
         $total_expense = $finances->where('type', 'EXPENSE')->sum('amount');
         $net_income = $total_income + $additional_income - $total_expense;
 
+        // Hitung Keuntungan & Jumlah Pembelian Slot YMD
+        $ymd_finances = $finances->filter(function($f) {
+            return str_contains(strtolower($f->title), 'penjualan slot ymd');
+        });
+        $ymd_slots_count = $ymd_finances->count();
+        $ymd_slots_income = $ymd_finances->sum('amount');
+
         return view('admin.finance', compact(
             'current_season',
             'team_income',
@@ -310,7 +317,9 @@ class AdminController extends Controller
             'finances',
             'additional_income',
             'total_expense',
-            'net_income'
+            'net_income',
+            'ymd_slots_count',
+            'ymd_slots_income'
         ));
     }
 
