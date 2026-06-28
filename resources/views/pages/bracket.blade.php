@@ -525,7 +525,14 @@
                                 @if($match->status === 'live')
                                     <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
                                 @else
-                                    <i class="bi bi-clock"></i> {{ $match->match_time ?? '20:00' }}
+                                    @php
+                                        $timeDisplay = $match->match_time ?? '20:00 WIB';
+                                        if (strpos($timeDisplay, ',') !== false) {
+                                            $parts = explode(',', $timeDisplay);
+                                            $timeDisplay = trim(end($parts));
+                                        }
+                                    @endphp
+                                    <i class="bi bi-clock"></i> {{ $timeDisplay }}
                                 @endif
                             </span>
                         </div>
@@ -759,7 +766,14 @@
 
                 document.getElementById('resOpponent').textContent = matchData.opponent;
                 document.getElementById('resOpponentWA').textContent = matchData.opponentWA;
-                document.getElementById('resSchedule').textContent = matchData.schedule;
+                
+                let scheduleClean = matchData.schedule;
+                if (scheduleClean.includes(',')) {
+                    const parts = scheduleClean.split(',');
+                    scheduleClean = parts[parts.length - 1].trim();
+                }
+                document.getElementById('resSchedule').textContent = scheduleClean;
+                
                 document.getElementById('resBracketLabel').textContent = matchData.bracket;
                 document.getElementById('resRoundLabel').textContent = matchData.round;
 

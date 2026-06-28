@@ -282,4 +282,112 @@ class BracketController extends Controller
         ];
         return isset($times[$round]) ? $times[$round] : "20:00 WIB";
     }
+
+    /**
+     * Update jam main serentak per babak (round)
+     */
+    public function updateRoundTimes(Request $request, $season_id)
+    {
+        $request->validate([
+            'round_number' => 'required|integer',
+            'match_time' => 'required|string'
+        ]);
+
+        Bracket::where('season_id', $season_id)
+            ->where('round_number', $request->round_number)
+            ->update(['match_time' => $request->match_time]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal Babak ' . $request->round_number . ' berhasil diperbarui secara serentak!'
+        ]);
+    }
+
+    /**
+     * Tukar posisi tim di Babak 1 (Drag & Drop)
+     */
+    public function swapTeams(Request $request, $season_id)
+    {
+        $request->validate([
+            'match1_id' => 'required|exists:brackets,id',
+            'slot1' => 'required|in:1,2',
+            'match2_id' => 'required|exists:brackets,id',
+            'slot2' => 'required|in:1,2'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $m1 = Bracket::findOrFail($request->match1_id);
+            $m2 = Bracket::findOrFail($request->match2_id);
+
+            if ($m1->round_number !== 1 || $m2->round_number !== 1) {
+                return response()->json(['success' => false, 'message' => 'Hanya dapat menukar posisi tim di Babak 1.'], 400);
+            }
+
+            if ($m1->status === 'finished' || $m2->status === 'finished') {
+                return response()->json(['success' => false, 'message' => 'Tidak dapat menukar tim jika pertandingan sudah selesai.'], 400);
+            }
+
+            $col1 = 'team' . $request->slot1 . '_id';
+            $col2 = 'team' . $request->slot2 . '_id';
+
+            $tempId = $m1->$col1;
+            $m1->$col1 = $m2->$col2;
+            $m2->$col2 = $tempId;
+
+            // Handle bye checking for Match 1
+            if ($m1->team1_id && !$m1->team2_id) {
+                $m1->winner_id = $m1->team1_id;
+                $m1->team1_score = 1;
+                $m1->team2_score = 0;
+                $m1->status = 'finished';
+            } elseif (!$m1->team1_id && !$m1->team2_id) {
+                $m1->winner_id = null;
+                $m1->team1_score = 0;
+                $m1->team2_score = 0;
+                $m1->status = 'upcoming';
+            } else {
+                $m1->winner_id = null;
+                $m1->team1_score = 0;
+                $m1->team2_score = 0;
+                $m1->status = 'upcoming';
+            }
+            $m1->save();
+
+            // Handle bye checking for Match 2
+            if ($m2->team1_id && !$m2->team2_id) {
+                $m2->winner_id = $m2->team1_id;
+                $m2->team1_score = 1;
+                $m2->team2_score = 0;
+                $m2->status = 'finished';
+            } elseif (!$m2->team1_id && !$m2->team2_id) {
+                $m2->winner_id = null;
+                $m2->team1_score = 0;
+                $m2->team2_score = 0;
+                $m2->status = 'upcoming';
+            } else {
+                $m2->winner_id = null;
+                $m2->team1_score = 0;
+                $m2->team2_score = 0;
+                $m2->status = 'upcoming';
+            }
+            $m2->save();
+
+            // Advance winners to Round 2
+            $this->advanceWinner($m1);
+            $this->advanceWinner($m2);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Posisi tim berhasil ditukar!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menukar posisi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

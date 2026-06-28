@@ -17,18 +17,22 @@
                     <h2 class="fw-bold text-dark m-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">
                         Kelola Bagan Turnamen <span class="text-warning">{{ $season->name }}</span>
                     </h2>
-                    <p class="text-secondary small mb-0 mt-1">Ubah skor, tentukan pemenang, atur jam main, dan pantau kelolosan tim otomatis.</p>
+                    <p class="text-secondary small mb-0 mt-1">Atur jadwal serentak per babak, geser (drag & drop) posisi tim di Babak 1, dan edit skor.</p>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{{ route('public.season.bracket', $season->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
                     
+                    <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
+                        <i class="bi bi-clipboard me-1"></i> Copy Daftar Tim (Backup)
+                    </button>
+                    
                     @if($brackets->count() > 0)
                         <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" onsubmit="return confirm('PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?')">
                             @csrf
                             <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Reset & Acak Ulang Bagan
+                                <i class="bi bi-arrow-clockwise me-1"></i> Reset & Acak Ulang
                             </button>
                         </form>
                     @endif
@@ -50,7 +54,7 @@
                     <h4 class="fw-bold text-dark mb-2">Bagan Turnamen Belum Dibuat</h4>
                     <p class="text-secondary mb-4">
                         Ada <strong>{{ $teams->count() }} tim lunas (PAID)</strong> terdaftar untuk season ini. <br>
-                        Anda dapat men-generate bagan secara otomatis dengan menekan tombol di bawah. Sistem akan mengacak posisi tanding seluruh tim secara adil.
+                        Sistem akan mengacak posisi tanding seluruh tim secara adil.
                     </p>
                     <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST">
                         @csrf
@@ -62,15 +66,54 @@
             </div>
         </div>
     @else
-        {{-- Bracket Tree Viewer (Admin Mode) --}}
-        <div class="card border-0 shadow-sm rounded-4" style="background-color: #ffffff; overflow: hidden;">
-            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold text-dark m-0"><i class="bi bi-grid-3x3-gap me-2 text-warning"></i>Visualisasi Bagan</h5>
-                <span class="badge bg-light text-secondary rounded-pill px-3 py-1.5 border" style="font-size: 0.75rem;">
-                    Petunjuk: Klik kotak pertandingan untuk mengubah skor/jam main
-                </span>
+        {{-- Controls Panel --}}
+        <div class="row g-3 mb-4">
+            {{-- Edit Jam Main per Babak --}}
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-fill text-warning me-2"></i>Atur Jam Main Serentak per Babak</h6>
+                    <div class="row g-2">
+                        @foreach($rounds as $roundNum => $matches)
+                            @php
+                                $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
+                                $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                                $firstMatch = $matches->first();
+                            @endphp
+                            <div class="col-sm-6 col-md-4">
+                                <div class="p-2 border rounded bg-light">
+                                    <label class="d-block small fw-bold text-secondary mb-1">{{ $title }}</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="roundTime_{{ $roundNum }}" value="{{ $firstMatch->match_time ?? '20:00 WIB' }}" placeholder="Tgl & Jam">
+                                        <button class="btn btn-warning" type="button" onclick="saveRoundTime({{ $roundNum }})">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
+            {{-- Search & Drag Info --}}
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-search text-warning me-2"></i>Pencarian Tim & Drag-Drop</h6>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                            <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Ketik nama tim untuk mencari & fokus...">
+                        </div>
+                    </div>
+                    <div class="alert alert-info py-2 px-3 small border-0 m-0 rounded-3">
+                        <i class="bi bi-info-circle-fill me-1"></i> <strong>Tips Drag & Drop:</strong> Di Babak 1, Anda dapat menyeret (drag) baris tim mana saja dan meletakkannya (drop) di slot tim lain untuk menukar posisi mereka secara real-time.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Bracket Tree Viewer --}}
+        <div class="card border-0 shadow-sm rounded-4" style="background-color: #ffffff; overflow: hidden;">
             <!-- Sticky Round Titles Bar -->
             <div class="round-headers-bar" id="adminRoundHeadersBar">
                 @foreach($rounds as $roundNum => $matches)
@@ -93,8 +136,9 @@
                             $matchesCount = $matches->count();
                         @endphp
                         @foreach($matches as $match)
-                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
-                                 onclick="openEditMatchModal({{ json_encode([
+                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
+                                
+                                <div class="match-card-header" onclick="openEditMatchModal({{ json_encode([
                                      'id' => $match->id,
                                      'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
                                      'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
@@ -105,20 +149,24 @@
                                      'team1_exists' => (bool)$match->team1_id,
                                      'team2_exists' => (bool)$match->team2_id
                                  ]) }})">
-                                
-                                <div class="match-card-header">
                                     <span>BRACKET {{ $match->match_number }}</span>
                                     <span class="match-card-time">
                                         @if($match->status === 'live')
                                             <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>
                                         @else
-                                            <i class="bi bi-clock"></i> {{ $match->match_time ?? '20:00' }}
+                                            <i class="bi bi-clock"></i> {{ $match->match_time ?? '20:00 WIB' }}
                                         @endif
                                     </span>
                                 </div>
 
                                 {{-- Team 1 Row --}}
-                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}">
+                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
+                                     data-team-id="{{ $match->team1_id ?? '' }}"
+                                     data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
+                                     data-match-id="{{ $match->id }}"
+                                     data-slot="1"
+                                     data-round="{{ $match->round_number }}"
+                                     @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                     <div class="team-info">
                                         @if($match->team1)
                                             <span class="team-name text-dark fw-semibold">{{ $match->team1->name }}</span>
@@ -126,11 +174,27 @@
                                             <span class="team-name text-muted italic">Belum Ada Tim</span>
                                         @endif
                                     </div>
-                                    <span class="team-score-box">{{ $match->team1_score }}</span>
+                                    <span class="team-score-box" onclick="openEditMatchModal({{ json_encode([
+                                         'id' => $match->id,
+                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
+                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
+                                         'team1_score' => $match->team1_score,
+                                         'team2_score' => $match->team2_score,
+                                         'match_time' => $match->match_time ?? '20:00 WIB',
+                                         'status' => $match->status,
+                                         'team1_exists' => (bool)$match->team1_id,
+                                         'team2_exists' => (bool)$match->team2_id
+                                     ]) }})">{{ $match->team1_score }}</span>
                                 </div>
 
                                 {{-- Team 2 Row --}}
-                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}">
+                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
+                                     data-team-id="{{ $match->team2_id ?? '' }}"
+                                     data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
+                                     data-match-id="{{ $match->id }}"
+                                     data-slot="2"
+                                     data-round="{{ $match->round_number }}"
+                                     @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                     <div class="team-info">
                                         @if($match->team2)
                                             <span class="team-name text-dark fw-semibold">{{ $match->team2->name }}</span>
@@ -142,7 +206,17 @@
                                             @endif
                                         @endif
                                     </div>
-                                    <span class="team-score-box">{{ $match->team2_score }}</span>
+                                    <span class="team-score-box" onclick="openEditMatchModal({{ json_encode([
+                                         'id' => $match->id,
+                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
+                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
+                                         'team1_score' => $match->team1_score,
+                                         'team2_score' => $match->team2_score,
+                                         'match_time' => $match->match_time ?? '20:00 WIB',
+                                         'status' => $match->status,
+                                         'team1_exists' => (bool)$match->team1_id,
+                                         'team2_exists' => (bool)$match->team2_id
+                                     ]) }})">{{ $match->team2_score }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -166,6 +240,29 @@
             </div>
         </div>
     @endif
+</div>
+
+{{-- Modal Copy Teams (Backup to Challonge) --}}
+<div class="modal fade" id="modalCopyTeams" tabindex="-1" aria-labelledby="modalCopyTeamsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header bg-dark text-white rounded-top-4 border-0 py-3">
+                <h6 class="modal-title fw-bold" id="modalCopyTeamsLabel"><i class="bi bi-clipboard me-2"></i>Copy Nama Semua Tim</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-secondary small mb-3">Salin daftar tim lunas di bawah untuk di-import langsung ke Challonge (satu tim per baris) sebagai cadangan.</p>
+                <textarea class="form-control bg-light" id="teamsListArea" rows="10" readonly style="font-family: monospace; font-size: 0.85rem;">@foreach($teams as $t){{ $t->name }}
+@endforeach</textarea>
+            </div>
+            <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-warning btn-sm px-4 fw-bold rounded-pill shadow-sm" onclick="copyTeamsList()">
+                    <i class="bi bi-copy me-1"></i> Copy ke Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- Edit Match Modal --}}
@@ -209,11 +306,12 @@
 
                     {{-- Schedule and Status --}}
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Jadwal Jam Main</label>
+                        <label class="form-label small fw-bold text-secondary">Jadwal Tanding (Tanggal & Jam)</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                            <input type="text" name="match_time" id="modalMatchTime" class="form-control" placeholder="Contoh: 20:00 WIB">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                            <input type="text" name="match_time" id="modalMatchTime" class="form-control" placeholder="Contoh: 29 Juni, 20:00 WIB">
                         </div>
+                        <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">Format bebas, contoh: <strong>29 Juni, 20:00 WIB</strong></small>
                     </div>
 
                     <div class="mb-3">
@@ -292,7 +390,6 @@
         display: flex;
         flex-direction: column;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        cursor: pointer;
         transition: all 0.2s ease;
         z-index: 10;
         position: relative;
@@ -314,6 +411,7 @@
         font-size: 0.6rem;
         font-weight: 800;
         color: #94a3b8;
+        cursor: pointer;
     }
 
     .match-card-time {
@@ -330,10 +428,25 @@
         border-bottom: 1px solid #f1f5f9;
         background-color: #ffffff;
         color: #334155;
+        transition: background 0.2s ease;
     }
 
     .team-row:last-of-type {
         border-bottom: none;
+    }
+
+    /* Styling for Drag & Drop drag states */
+    .team-row[draggable="true"] {
+        cursor: grab;
+    }
+
+    .team-row[draggable="true"]:active {
+        cursor: grabbing;
+    }
+
+    .team-row.drag-over {
+        background-color: rgba(255, 122, 0, 0.2) !important;
+        outline: 1.5px dashed var(--accent-orange);
     }
 
     .team-info {
@@ -362,6 +475,7 @@
         color: #94a3b8;
         border-left: 1px solid #e2e8f0;
         flex-shrink: 0;
+        cursor: pointer;
     }
 
     .team-row.winner {
@@ -403,6 +517,14 @@
         font-style: italic;
     }
 
+    /* Highlight matching cards on search */
+    .match-card.search-focus-glow {
+        border-color: #ff7a00 !important;
+        box-shadow: 0 0 15px rgba(255, 122, 0, 0.6) !important;
+        transform: scale(1.04);
+        z-index: 100;
+    }
+
     @keyframes pulse {
         from { opacity: 0.6; }
         to { opacity: 1; }
@@ -425,7 +547,9 @@ document.addEventListener('DOMContentLoaded', function() {
         let startX, startY;
         let scrollLeft, scrollTop;
 
+        // Only trigger scroll drag on canvas background, not on match cards
         container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.match-card')) return;
             isDown = true;
             container.style.cursor = 'grabbing';
             startX = e.pageX - container.offsetLeft;
@@ -436,12 +560,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.addEventListener('mouseleave', () => {
             isDown = false;
-            container.style.cursor = 'grab';
+            container.style.cursor = 'default';
         });
         
         container.addEventListener('mouseup', () => {
             isDown = false;
-            container.style.cursor = 'grab';
+            container.style.cursor = 'default';
         });
         
         container.addEventListener('mousemove', (e) => {
@@ -487,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'success',
                     title: 'Berhasil!',
                     text: res.message,
-                    timer: 2000,
+                    timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.reload();
@@ -510,7 +634,228 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // ----------------------------------------------------
+    // Drag and Drop (Rearrange Seeding inside Round 1)
+    // ----------------------------------------------------
+    let draggedElement = null;
+
+    const draggableRows = document.querySelectorAll('.team-row[draggable="true"]');
+    
+    draggableRows.forEach(row => {
+        row.addEventListener('dragstart', function(e) {
+            draggedElement = this;
+            e.dataTransfer.effectAllowed = 'move';
+            this.style.opacity = '0.5';
+        });
+
+        row.addEventListener('dragend', function() {
+            draggedElement = null;
+            this.style.opacity = '1';
+            draggableRows.forEach(r => r.classList.remove('drag-over'));
+        });
+
+        row.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (draggedElement && draggedElement !== this) {
+                this.classList.add('drag-over');
+            }
+        });
+
+        row.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over');
+        });
+
+        row.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (!draggedElement || draggedElement === this) return;
+
+            const m1_id = draggedElement.dataset.matchId;
+            const slot1 = draggedElement.dataset.slot;
+            const m2_id = this.dataset.matchId;
+            const slot2 = this.dataset.slot;
+
+            // Trigger swap AJAX request
+            Swal.fire({
+                title: 'Tukar Posisi Tim?',
+                text: "Anda akan menukar posisi tim ini di Babak 1.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Tukar!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+                    
+                    fetch("{{ route('admin.season.bracket.swap-teams', $season->id) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            match1_id: m1_id,
+                            slot1: slot1,
+                            match2_id: m2_id,
+                            slot2: slot2
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: res.message
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Gagal menukar posisi tim karena masalah koneksi.'
+                        });
+                    });
+                }
+            });
+        });
+    });
+
+    // ----------------------------------------------------
+    // Search Engine inside Admin View
+    // ----------------------------------------------------
+    const adminSearchInput = document.getElementById('adminTeamSearch');
+    adminSearchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        document.querySelectorAll('.match-card').forEach(card => card.classList.remove('search-focus-glow'));
+
+        if (!query) return;
+
+        // Find match card containing the team name
+        const matchRow = document.querySelector(`.team-row[data-team-name*="${query}"]`);
+        if (matchRow) {
+            const cardId = matchRow.dataset.matchId;
+            const cardElement = document.getElementById(`card_m_${matchRow.dataset.round}_${matchRow.closest('.match-card').querySelector('.match-card-header span').textContent.replace('BRACKET ', '')}`);
+            const targetCard = matchRow.closest('.match-card');
+            
+            if (targetCard) {
+                targetCard.classList.add('search-focus-glow');
+                
+                // Scroll canvas to focus on the target card
+                const containerRect = container.getBoundingClientRect();
+                const cardRect = targetCard.getBoundingClientRect();
+                
+                const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
+                const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
+
+                const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
+                const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
+
+                container.scrollTo({
+                    left: targetScrollLeft,
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    });
 });
+
+// ----------------------------------------------------
+// Save Jam Main per Babak
+// ----------------------------------------------------
+function saveRoundTime(roundNum) {
+    const inputVal = document.getElementById(`roundTime_${roundNum}`).value;
+
+    Swal.fire({
+        title: 'Ubah Jadwal Babak?',
+        text: `Semua pertandingan di Babak ${roundNum} akan diubah jadwalnya menjadi: "${inputVal}". Lanjutkan?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Perbarui!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            
+            fetch("{{ route('admin.season.bracket.update-round-times', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    round_number: roundNum,
+                    match_time: inputVal
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: res.message
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal mengubah jadwal karena masalah koneksi.'
+                });
+            });
+        }
+    });
+}
+
+// ----------------------------------------------------
+// Copy Teams list to Clipboard
+// ----------------------------------------------------
+function copyTeamsList() {
+    const area = document.getElementById('teamsListArea');
+    area.select();
+    area.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Disalin!',
+        text: 'Daftar nama tim berhasil disalin ke clipboard.',
+        timer: 1500,
+        showConfirmButton: false
+    });
+}
 
 // Function to populate and open Edit Modal
 function openEditMatchModal(match) {
