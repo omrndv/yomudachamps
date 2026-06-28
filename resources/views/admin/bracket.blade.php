@@ -116,9 +116,9 @@
                             $matchesCount = $matches->count();
                         @endphp
                         @foreach($matches as $match)
-                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
-                                
-                                <div class="match-card-header" onclick="openEditMatchModal({{ json_encode([
+                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
+                                 id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
+                                 onclick="openEditMatchModal({{ json_encode([
                                      'id' => $match->id,
                                      'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
                                      'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
@@ -129,6 +129,8 @@
                                      'team1_exists' => (bool)$match->team1_id,
                                      'team2_exists' => (bool)$match->team2_id
                                  ]) }})">
+                                
+                                <div class="match-card-header">
                                     <span>BRACKET {{ $match->match_number }}</span>
                                     <span class="match-card-time">
                                         @if($match->status === 'live')
@@ -154,17 +156,7 @@
                                             <span class="team-name text-muted italic">Belum Ada Tim</span>
                                         @endif
                                     </div>
-                                    <span class="team-score-box" onclick="openEditMatchModal({{ json_encode([
-                                         'id' => $match->id,
-                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
-                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
-                                         'team1_score' => $match->team1_score,
-                                         'team2_score' => $match->team2_score,
-                                         'match_time' => $match->match_time ?? '20:00 WIB',
-                                         'status' => $match->status,
-                                         'team1_exists' => (bool)$match->team1_id,
-                                         'team2_exists' => (bool)$match->team2_id
-                                     ]) }})">{{ $match->team1_score }}</span>
+                                    <span class="team-score-box">{{ $match->team1_score }}</span>
                                 </div>
 
                                 {{-- Team 2 Row --}}
@@ -186,17 +178,7 @@
                                             @endif
                                         @endif
                                     </div>
-                                    <span class="team-score-box" onclick="openEditMatchModal({{ json_encode([
-                                         'id' => $match->id,
-                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
-                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
-                                         'team1_score' => $match->team1_score,
-                                         'team2_score' => $match->team2_score,
-                                         'match_time' => $match->match_time ?? '20:00 WIB',
-                                         'status' => $match->status,
-                                         'team1_exists' => (bool)$match->team1_id,
-                                         'team2_exists' => (bool)$match->team2_id
-                                     ]) }})">{{ $match->team2_score }}</span>
+                                    <span class="team-score-box">{{ $match->team2_score }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -334,16 +316,9 @@
                         <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">Format bebas, contoh: <strong>29 Juni, 20:00 WIB</strong></small>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Status Pertandingan</label>
-                        <select name="status" id="modalMatchStatus" class="form-select">
-                            <option value="upcoming">Belum Main (Upcoming)</option>
-                            <option value="live">Sedang Berlangsung (Live)</option>
-                            <option value="finished">Selesai (Finished)</option>
-                        </select>
-                        <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">
-                            Catatan: Memilih status <strong>Selesai</strong> otomatis meloloskan pemenang ke babak berikutnya.
-                        </small>
+                    <div class="mb-3" style="display: none;">
+                        {{-- Hidden but kept for backwards compatibility --}}
+                        <input type="hidden" name="status" id="modalMatchStatus" value="upcoming">
                     </div>
 
                 </div>
@@ -413,6 +388,7 @@
         transition: all 0.2s ease;
         z-index: 10;
         position: relative;
+        cursor: pointer;
     }
 
     .match-card:hover {
@@ -431,7 +407,6 @@
         font-size: 0.6rem;
         font-weight: 800;
         color: #94a3b8;
-        cursor: pointer;
     }
 
     .match-card-time {
@@ -495,7 +470,6 @@
         color: #94a3b8;
         border-left: 1px solid #e2e8f0;
         flex-shrink: 0;
-        cursor: pointer;
     }
 
     .team-row.winner {
@@ -856,9 +830,6 @@ function saveRoundTime(roundNum) {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        // For round times editor modal, we reload and restore the scroll position!
-                        // We also need to make sure the modal has finished closing.
-                        // Since modal closes on reload, scroll restoration handles the rest seamlessly!
                         if (typeof saveScrollAndReload === 'function') {
                             saveScrollAndReload();
                         } else {
@@ -909,31 +880,38 @@ function copyTeamsList() {
 
 // Function to populate and open Edit Modal
 function openEditMatchModal(match) {
+    // Prevent opening modal during active drag selection if dragging occurred
+    if (window.event && window.event.type === 'click') {
+        const target = window.event.target;
+        // If they click specifically to drag, let drag & drop take priority
+        if (target.getAttribute('draggable') === 'true' || target.closest('[draggable="true"]')) {
+            // Wait, to allow editing when clicking the row but dragging when dragging:
+            // Browser triggers dragstart, click is only fired if mouse doesn't move.
+            // If they drag, click won't trigger. So it is fine!
+        }
+    }
+
     document.getElementById('modalMatchId').value = match.id;
     document.getElementById('modalT1Name').textContent = match.team1_name;
     document.getElementById('modalT2Name').textContent = match.team2_name;
     document.getElementById('modalT1Score').value = match.team1_score;
     document.getElementById('modalT2Score').value = match.team2_score;
     document.getElementById('modalMatchTime').value = match.match_time;
-    document.getElementById('modalMatchStatus').value = match.status;
 
     const alertEl = document.getElementById('modalIncompleteAlert');
     const input1 = document.getElementById('modalT1Score');
     const input2 = document.getElementById('modalT2Score');
-    const statusSelect = document.getElementById('modalMatchStatus');
     const btnSave = document.getElementById('btnSaveMatch');
 
     if (!match.team1_exists || !match.team2_exists) {
         alertEl.classList.remove('d-none');
         input1.disabled = true;
         input2.disabled = true;
-        statusSelect.disabled = true;
         btnSave.disabled = true;
     } else {
         alertEl.classList.add('d-none');
         input1.disabled = false;
         input2.disabled = false;
-        statusSelect.disabled = false;
         btnSave.disabled = false;
     }
 
