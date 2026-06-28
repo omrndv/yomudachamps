@@ -14,8 +14,8 @@
             --accent-gold: #f59e0b;
             --accent-gold-hover: #d97706;
             --text-muted: #94a3b8;
-            --border-light: rgba(255, 255, 255, 0.08);
-            --card-bg: rgba(15, 23, 42, 0.65);
+            --border-light: rgba(255, 255, 255, 0.06);
+            --card-bg: rgba(15, 23, 42, 0.75);
         }
 
         body {
@@ -24,15 +24,17 @@
             color: #ffffff;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 20% 30%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
         /* Header Style */
         .bracket-header {
-            padding: 30px 0 20px 0;
+            padding: 24px 0;
             border-bottom: 1px solid var(--border-light);
-            background: linear-gradient(180deg, rgba(11, 19, 41, 0.8) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(11, 19, 41, 0.9) 0%, transparent 100%);
         }
 
         .brand-logo {
@@ -41,18 +43,18 @@
             justify-content: center;
             background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%);
             color: #020617;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            font-size: 1.25rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 1.15rem;
             font-weight: 800;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
             margin-right: 12px;
         }
 
-        /* Bracket View Wrapper */
+        /* Bracket View Wrapper with hardware acceleration optimization */
         .bracket-container {
-            padding: 50px 20px;
+            padding: 40px 20px;
             overflow-x: auto;
             white-space: nowrap;
             cursor: grab;
@@ -60,6 +62,8 @@
             scrollbar-width: thin;
             scrollbar-color: var(--accent-gold) var(--bg-secondary);
             scroll-behavior: smooth;
+            transform: translate3d(0, 0, 0); /* Hardware acceleration */
+            will-change: scroll-position;
         }
 
         .bracket-container:active {
@@ -67,7 +71,7 @@
         }
 
         .bracket-container::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
         }
 
         .bracket-container::-webkit-scrollbar-track {
@@ -80,53 +84,57 @@
             border-radius: 4px;
         }
 
-        /* Bracket Columns/Rounds */
+        /* Bracket Columns/Rounds - Sizing is fluid to support high team counts (up to 128) */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 640px; /* Base height for vertical alignment */
+            min-height: 580px; /* Minimal height */
+            height: auto;
             vertical-align: middle;
-            margin-right: 70px;
+            margin-right: 80px;
             position: relative;
+            padding: 10px 0;
         }
 
         .round-title {
             position: absolute;
-            top: -35px;
+            top: -25px;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             font-weight: 700;
             color: var(--accent-gold);
-            opacity: 0.9;
+            opacity: 0.85;
         }
 
         /* Match Card Styles */
         .match-card {
             background: var(--card-bg);
             border: 1px solid var(--border-light);
-            border-radius: 14px;
-            width: 250px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            width: 240px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
             position: relative;
             z-index: 2;
+            margin: 15px 0; /* Margin-based flexible spacing to support scaling height */
         }
 
         .match-card:hover {
-            border-color: rgba(245, 158, 11, 0.4);
-            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 10px 24px rgba(245, 158, 11, 0.12);
             transform: translateY(-2px);
         }
 
         .match-card.focus-glow {
             border-color: var(--accent-gold) !important;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.35) !important;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.45) !important;
             animation: pulse-border 1.5s infinite alternate;
         }
 
@@ -137,7 +145,7 @@
             align-items: center;
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-light);
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-muted);
         }
@@ -159,9 +167,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
+            padding: 9px 12px;
             position: relative;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease;
             cursor: pointer;
         }
 
@@ -170,7 +178,7 @@
         }
 
         .team-row.winner {
-            background: rgba(245, 158, 11, 0.03);
+            background: rgba(245, 158, 11, 0.02);
         }
 
         .team-row.loser {
@@ -178,7 +186,7 @@
         }
 
         .team-row:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.025);
         }
 
         .team-info {
@@ -190,14 +198,14 @@
         }
 
         .team-logo {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: #ffffff;
             font-weight: 700;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -206,14 +214,14 @@
         }
 
         .team-name {
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 600;
             color: #ffffff;
             transition: color 0.2s ease;
         }
 
         .team-score {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 800;
             color: #ffffff;
             padding-left: 10px;
@@ -230,27 +238,27 @@
         /* Winner crown/medal icon badge */
         .winner-badge {
             color: var(--accent-gold);
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             margin-left: 6px;
         }
 
         /* Interactive Path Glow Style */
         .team-highlighted .team-name {
             color: var(--accent-gold) !important;
-            text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+            text-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
         }
         
         .team-highlighted .team-logo {
             border-color: var(--accent-gold) !important;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
         }
 
         /* Bracket connecting lines */
         .connector-svg {
             position: absolute;
             top: 0;
-            left: 250px;
-            width: 70px;
+            left: 240px;
+            width: 80px;
             height: 100%;
             pointer-events: none;
             z-index: 1;
@@ -258,16 +266,16 @@
 
         .connector-line {
             fill: none;
-            stroke: rgba(255, 255, 255, 0.08);
-            stroke-width: 2;
-            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 1.8;
+            transition: stroke 0.25s ease, stroke-width 0.25s ease;
         }
 
         /* Glow active connector line */
         .connector-line.highlighted {
             stroke: var(--accent-gold);
-            stroke-width: 3;
-            filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5));
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
         }
 
         @keyframes pulse-live {
@@ -277,27 +285,13 @@
         }
 
         @keyframes pulse-border {
-            from { border-color: rgba(245, 158, 11, 0.4); }
+            from { border-color: rgba(245, 158, 11, 0.35); }
             to { border-color: var(--accent-gold); }
-        }
-
-        /* Back to Admin Home Button */
-        .btn-back-admin {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: color 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-back-admin:hover {
-            color: var(--accent-gold);
         }
 
         /* Search Section Custom Style */
         .search-wrapper {
-            max-width: 460px;
+            max-width: 440px;
             margin: 0 auto;
         }
 
@@ -305,22 +299,22 @@
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-light);
             border-radius: 50px;
-            padding: 4px 6px;
-            transition: all 0.3s ease;
+            padding: 3px 5px;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
         .search-input-group:focus-within {
             border-color: var(--accent-gold);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
         }
 
         .search-input-group input {
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             outline: none;
-            padding: 8px 12px;
+            padding: 6px 12px;
             width: 100%;
         }
 
@@ -332,7 +326,7 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 0 12px;
+            padding: 0 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -342,12 +336,13 @@
         .search-results-panel {
             background-color: #0b1329;
             border: 1px solid var(--border-light);
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             display: none;
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: left;
+            will-change: transform, opacity;
         }
     </style>
 </head>
@@ -355,71 +350,54 @@
 
     {{-- Header --}}
     <header class="bracket-header">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
+        <div class="container text-center">
+            <div class="d-inline-flex align-items-center justify-content-center">
                 <span class="brand-logo">Y</span>
-                <div>
-                    <h4 class="fw-bold m-0" style="letter-spacing: 0.5px;">YOMUDA <span class="fw-light text-warning">SEASON 33</span></h4>
-                    <p class="text-secondary m-0 small">Bagan Tournament Yomuda</p>
+                <div class="text-start">
+                    <h4 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.35rem;">YOMUDA <span class="text-warning text-uppercase">Season 33</span></h4>
+                    <p class="text-secondary m-0 small" style="font-size: 0.78rem; letter-spacing: 0.3px;">Bagan Tournament Yomuda</p>
                 </div>
-            </div>
-            <div>
-                <a href="{{ route('admin.seasons') }}" class="btn-back-admin">
-                    <i class="bi bi-arrow-left"></i> Kembali ke Panel Admin
-                </a>
             </div>
         </div>
     </header>
 
-    {{-- Search and Tooltip Container --}}
+    {{-- Search Container --}}
     <div class="container mt-4">
-        {{-- Search Box --}}
         <div class="search-wrapper text-center mb-4">
             <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" placeholder="Cari nama tim Anda di bracket...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda di bracket...">
                 <button class="search-icon-btn"><i class="bi bi-search"></i></button>
             </div>
 
             {{-- Live Search Result Card --}}
             <div id="searchResultCard" class="search-results-panel">
-                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-35 pb-2 mb-3">
-                    <h6 class="fw-bold text-warning mb-0" id="resTeamName">Nama Tim</h6>
-                    <span class="badge bg-danger rounded-pill px-2.5 py-1 small" id="resMatchStatus" style="font-size: 0.68rem;">Selesai</span>
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-2.5">
+                    <h6 class="fw-bold text-warning mb-0" id="resTeamName" style="font-size: 0.9rem;">Nama Tim</h6>
+                    <span class="badge bg-danger rounded-pill px-2.5 py-1" id="resMatchStatus" style="font-size: 0.65rem;">Selesai</span>
                 </div>
-                <div class="row g-2 mb-3 text-white-50" style="font-size: 0.8rem;">
+                <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.78rem;">
                     <div class="col-6">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Lawan Bertanding</span>
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Lawan Bertanding</span>
                         <strong class="text-white" id="resOpponent">Tim Lawan</strong>
                     </div>
                     <div class="col-6">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Jadwal Tanding</span>
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Jadwal Tanding</span>
                         <strong class="text-warning" id="resSchedule">Jam Tanding</strong>
                     </div>
                     <div class="col-6 mt-2">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Nomor Bracket</span>
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Nomor Bracket</span>
                         <strong class="text-white" id="resBracketLabel">Bracket 1</strong>
                     </div>
                     <div class="col-6 mt-2">
-                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.5px;">Status Babak</span>
+                        <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Status Babak</span>
                         <strong class="text-white" id="resRoundLabel">Babak 1 (Perempat Final)</strong>
                     </div>
                 </div>
                 <div class="text-end">
-                    <button class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" id="btnFocusBracket">
+                    <button class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.78rem;">
                         <i class="bi bi-crosshair me-1"></i> Fokuskan ke Bagan
                     </button>
                 </div>
-            </div>
-        </div>
-
-        {{-- Info Alert Box --}}
-        <div class="alert border-0 rounded-4 p-3 d-flex align-items-center gap-3" style="background-color: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15) !important;">
-            <i class="bi bi-info-circle-fill text-warning fs-3"></i>
-            <div>
-                <h6 class="fw-bold text-warning mb-0.5">Informasi Demonstrasi Interaktif</h6>
-                <p class="text-white-50 m-0 small" style="line-height: 1.4;">
-                    Cari tim Anda di bar pencarian atas. Klik **"Fokuskan ke Bagan"** untuk meluncurkan layar secara otomatis dan menyinari kartu pertandingan tim tersebut! Anda juga bisa menggeser bagan secara horizontal menggunakan *mouse drag*.
-                </p>
             </div>
         </div>
     </div>
@@ -436,7 +414,7 @@
                 <div class="match-card" data-match-id="1" id="card_match_1">
                     <div class="match-header">
                         <span>BRACKET 1</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 19:00 WIB</span>
+                        <span class="match-time"><i class="bi bi-clock"></i> 20:00 WIB</span>
                     </div>
                     <div class="team-row winner" data-team-id="yomuda_star">
                         <div class="team-info">
@@ -459,7 +437,7 @@
                 <div class="match-card" data-match-id="2" id="card_match_2">
                     <div class="match-header">
                         <span>BRACKET 2</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 20:00 WIB</span>
+                        <span class="match-time"><i class="bi bi-clock"></i> 20:40 WIB</span>
                     </div>
                     <div class="team-row winner" data-team-id="rrq_yomu">
                         <div class="team-info">
@@ -482,7 +460,7 @@
                 <div class="match-card" data-match-id="3" id="card_match_3">
                     <div class="match-header">
                         <span>BRACKET 3</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 21:00 WIB</span>
+                        <span class="match-time"><i class="bi bi-clock"></i> 21:20 WIB</span>
                     </div>
                     <div class="team-row loser" data-team-id="alter_ego">
                         <div class="team-info">
@@ -541,7 +519,7 @@
                 <div class="match-card" data-match-id="5" id="card_match_5">
                     <div class="match-header">
                         <span>BRACKET 5</span>
-                        <span class="match-time live"><i class="bi bi-broadcast"></i> LIVE NOW</span>
+                        <span class="match-time live"><i class="bi bi-broadcast"></i> LIVE 22:40</span>
                     </div>
                     <div class="team-row winner" data-team-id="yomuda_star">
                         <div class="team-info">
@@ -655,7 +633,7 @@
         // Hover Highlighting Logic
         const teamRows = document.querySelectorAll('.team-row[data-team-id]');
         
-        // Define paths connecting matches (which match outputs feed to which next lines)
+        // Define paths connecting matches
         const teamLines = {
             'yomuda_star': ['line_1', 'line_5'],
             'rrq_yomu': ['line_2'],
@@ -672,12 +650,10 @@
                 const teamId = this.dataset.teamId;
                 if (!teamId) return;
 
-                // 1. Highlight all rows with same team
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.add('team-highlighted');
                 });
 
-                // 2. Glow matching connector lines
                 const lines = teamLines[teamId] || [];
                 lines.forEach(lineId => {
                     const lineEl = document.getElementById(lineId);
@@ -691,12 +667,10 @@
                 const teamId = this.dataset.teamId;
                 if (!teamId) return;
 
-                // 1. Remove highlight
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.remove('team-highlighted');
                 });
 
-                // 2. Remove glow from connector lines
                 const lines = teamLines[teamId] || [];
                 lines.forEach(lineId => {
                     const lineEl = document.getElementById(lineId);
@@ -721,7 +695,7 @@
             'rrq yomu': {
                 name: 'RRQ Yomu',
                 opponent: 'Yomuda Star',
-                schedule: 'LIVE NOW',
+                schedule: 'LIVE 22:40 WIB',
                 bracket: 'Bracket 5 (Semifinal)',
                 round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
                 status: 'Kalah (Eliminasi)',
@@ -748,7 +722,7 @@
             'sans esports': {
                 name: 'Sans Esports',
                 opponent: 'Yomuda Star',
-                schedule: 'Selesai (19:00 WIB)',
+                schedule: 'Selesai (20:00 WIB)',
                 bracket: 'Bracket 1 (Perempat Final)',
                 round: 'Babak 1 (Perempat Final) - Belum Selesai',
                 status: 'Kalah (Eliminasi)',
@@ -757,7 +731,7 @@
             'evos wann': {
                 name: 'Evos Wann',
                 opponent: 'RRQ Yomu',
-                schedule: 'Selesai (20:00 WIB)',
+                schedule: 'Selesai (20:40 WIB)',
                 bracket: 'Bracket 2 (Perempat Final)',
                 round: 'Babak 1 (Perempat Final) - Belum Selesai',
                 status: 'Kalah (Eliminasi)',
@@ -766,7 +740,7 @@
             'alter ego y': {
                 name: 'Alter Ego Y',
                 opponent: 'Onic Pro',
-                schedule: 'Selesai (21:00 WIB)',
+                schedule: 'Selesai (21:20 WIB)',
                 bracket: 'Bracket 3 (Perempat Final)',
                 round: 'Babak 1 (Perempat Final) - Belum Selesai',
                 status: 'Kalah (Eliminasi)',
@@ -792,7 +766,6 @@
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
             
-            // Clear previous highlight styles
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
 
             if (!query) {
@@ -800,7 +773,6 @@
                 return;
             }
 
-            // Find matching team in database
             let foundKey = null;
             Object.keys(teamDatabase).forEach(key => {
                 if (key.includes(query)) {
@@ -811,17 +783,16 @@
             if (foundKey) {
                 const matchData = teamDatabase[foundKey];
                 
-                // Set data to card HTML
                 document.getElementById('resTeamName').textContent = matchData.name;
                 
                 const statusBadge = document.getElementById('resMatchStatus');
                 statusBadge.textContent = matchData.status;
                 if (matchData.status.includes('Kalah')) {
-                    statusBadge.className = 'badge bg-secondary rounded-pill px-2.5 py-1 small';
+                    statusBadge.className = 'badge bg-secondary rounded-pill px-2.5 py-1';
                 } else if (matchData.schedule.includes('LIVE')) {
-                    statusBadge.className = 'badge bg-danger rounded-pill px-2.5 py-1 small';
+                    statusBadge.className = 'badge bg-danger rounded-pill px-2.5 py-1';
                 } else {
-                    statusBadge.className = 'badge bg-success rounded-pill px-2.5 py-1 small';
+                    statusBadge.className = 'badge bg-success rounded-pill px-2.5 py-1';
                 }
 
                 document.getElementById('resOpponent').textContent = matchData.opponent;
@@ -832,10 +803,9 @@
                 activeFocusedCardId = matchData.cardId;
                 resultCard.style.display = 'block';
             } else {
-                // If not found
                 document.getElementById('resTeamName').textContent = 'Tim tidak ditemukan';
                 document.getElementById('resMatchStatus').textContent = '-';
-                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1 small';
+                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1';
                 document.getElementById('resOpponent').textContent = 'Tidak ada';
                 document.getElementById('resSchedule').textContent = '-';
                 document.getElementById('resBracketLabel').textContent = '-';
@@ -845,7 +815,7 @@
             }
         });
 
-        // Focus Button Event Handler
+        // Bugfix: Focus Button Event Handler with correct relative offsets (independent of CSS absolute/relative parents)
         btnFocus.addEventListener('click', function() {
             if (!activeFocusedCardId) return;
 
@@ -858,12 +828,18 @@
 
             // Scroll container to the card's position (horizontally)
             const container = document.getElementById('bracketContainer');
-            const cardLeft = cardElement.offsetLeft;
-            const containerWidth = container.offsetWidth;
-            const cardWidth = cardElement.offsetWidth;
+            
+            // Calculate position using getBoundingClientRect to bypass parent elements absolute/relative offsets
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = cardElement.getBoundingClientRect();
+            
+            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
+            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
 
-            // Centering the card in container
-            container.scrollLeft = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+            container.scrollTo({
+                left: targetScrollLeft,
+                behavior: 'smooth'
+            });
         });
     });
     </script>
