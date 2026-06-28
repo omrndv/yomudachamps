@@ -17,7 +17,7 @@ return new class extends Migration
         });
 
         // Set default permissions for existing admin users
-        $defaultPermissions = json_encode(["seasons", "finance", "solo_matchmaker", "notes", "faqs", "activity_log"]);
+        $defaultPermissions = json_encode(["dashboard", "seasons", "notes", "faqs", "activity_log"]);
         DB::table('users')->where('role', 'admin')->update([
             'permissions' => $defaultPermissions
         ]);

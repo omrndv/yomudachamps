@@ -9,7 +9,7 @@
                 Kelola Akun Admin
             </h2>
             <p class="text-secondary mb-0" style="font-size: 0.9rem;">
-                Daftar staf administrator turnamen beserta manajemen detail hak akses modul halaman masing-masing.
+                Atur otorisasi halaman untuk setiap akun admin secara instan menggunakan switch aktif/nonaktif.
             </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -80,7 +80,7 @@
                                 <td class="py-3.5 px-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-light text-dark border border-light-subtle rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.78rem;">
-                                            <i class="bi bi-shield-lock-fill text-warning me-1.5"></i>{{ $activeCount }} dari 6 Akses Aktif
+                                            <i class="bi bi-shield-lock-fill text-warning me-1.5"></i>{{ $activeCount }} dari 12 Akses Aktif
                                         </span>
                                         <button class="btn btn-sm btn-link text-decoration-none fw-bold p-0 text-warning hover-underline" 
                                                 data-bs-toggle="modal" 
@@ -126,34 +126,41 @@
                                             </div>
                                             <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                                         </div>
-                                        <div class="modal-body p-4 bg-light">
+                                        <div class="modal-body p-4 bg-light" style="max-height: 65vh; overflow-y: auto;">
                                             <p class="text-secondary small mb-4">
-                                                <i class="bi bi-info-circle me-1.5"></i> Perubahan izin di bawah ini disinkronkan secara instan ke server. Admin terkait akan segera dibatasi atau diizinkan akses setelah tombol diubah.
+                                                <i class="bi bi-info-circle me-1.5"></i> Perubahan izin di bawah ini disinkronkan secara instan ke server. Staf admin terkait akan segera dibatasi atau diizinkan akses setelah tombol diubah.
                                             </p>
                                             
                                             <div class="row g-3">
                                                 @php
                                                     $availablePerms = [
+                                                        'dashboard' => [
+                                                            'label' => 'Dashboard Utama',
+                                                            'desc' => 'Mengakses ringkasan umum sistem turnamen, statistik cepat pendaftaran, dan data ringkas mutasi kas.',
+                                                            'icon' => 'bi-grid-1x2',
+                                                            'color' => '#0f172a',
+                                                            'bg' => '#e2e8f0'
+                                                        ],
                                                         'seasons' => [
-                                                            'label' => 'Season & Tim', 
-                                                            'desc' => 'Mengakses menu Daftar Season, mengelola pendaftaran tim, edit data tim, dan status kelulusan pembayaran.',
+                                                            'label' => 'Daftar Season', 
+                                                            'desc' => 'Mengakses menu Daftar Season, membuat season baru, mengubah detail season, dan mengelola tim pendaftar.',
                                                             'icon' => 'bi-trophy', 
                                                             'color' => '#d97706',
                                                             'bg' => '#fef3c7'
                                                         ],
-                                                        'finance' => [
-                                                            'label' => 'Keuangan (Ledger)', 
-                                                            'desc' => 'Mengakses data finansial, menginput pemasukan manual/bulk, pengeluaran kas, serta melihat rekapitulasi cashflow.',
-                                                            'icon' => 'bi-cash-stack', 
+                                                        'teams' => [
+                                                            'label' => 'Daftar Team (Super)',
+                                                            'desc' => 'Melihat list global semua tim, memfilter berdasarkan status pembayaran, mempermudah pelacakan tim.',
+                                                            'icon' => 'bi-people-fill',
+                                                            'color' => '#06b6d4',
+                                                            'bg' => '#ecfeff'
+                                                        ],
+                                                        'payments' => [
+                                                            'label' => 'Riwayat Pembayaran (Super)',
+                                                            'desc' => 'Mengakses mutasi log transaksi TriPay gateway secara live, status MDR/biaya flat, dan sinkronisasi manual.',
+                                                            'icon' => 'bi-cash-stack',
                                                             'color' => '#10b981',
                                                             'bg' => '#d1fae5'
-                                                        ],
-                                                        'solo_matchmaker' => [
-                                                            'label' => 'Solo Matchmaker', 
-                                                            'desc' => 'Menggunakan modul penyusun tim otomatis untuk memproses pendaftar solo ke dalam tim-tim seimbang.',
-                                                            'icon' => 'bi-people', 
-                                                            'color' => '#3b82f6',
-                                                            'bg' => '#dbeafe'
                                                         ],
                                                         'notes' => [
                                                             'label' => 'Catatan Staf', 
@@ -161,6 +168,13 @@
                                                             'icon' => 'bi-sticky', 
                                                             'color' => '#8b5cf6',
                                                             'bg' => '#ede9fe'
+                                                        ],
+                                                        'settings' => [
+                                                            'label' => 'Pengaturan Sistem (Super)',
+                                                            'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay Gateway, email support, dan template notifikasi.',
+                                                            'icon' => 'bi-gear',
+                                                            'color' => '#ea580c',
+                                                            'bg' => '#ffedd5'
                                                         ],
                                                         'faqs' => [
                                                             'label' => 'Kelola FAQ', 
@@ -176,6 +190,34 @@
                                                             'color' => '#ec4899',
                                                             'bg' => '#fce7f3'
                                                         ],
+                                                        'manage' => [
+                                                            'label' => 'Kelola Admin (Super)',
+                                                            'desc' => 'Menambah, mengedit informasi, menghapus akun admin, dan mengatur pembagian hak akses ini.',
+                                                            'icon' => 'bi-person-gear',
+                                                            'color' => '#3b82f6',
+                                                            'bg' => '#dbeafe'
+                                                        ],
+                                                        'backup' => [
+                                                            'label' => 'Backup Database (Super)',
+                                                            'desc' => 'Mengunduh file salinan struktur dan data SQL database platform secara langsung ke storage lokal.',
+                                                            'icon' => 'bi-database-down',
+                                                            'color' => '#ef4444',
+                                                            'bg' => '#fee2e2'
+                                                        ],
+                                                        'finance' => [
+                                                            'label' => 'Keuangan Ledger (Modul Season)', 
+                                                            'desc' => 'Mengakses data finansial per-season, menginput pemasukan manual/bulk, pengeluaran kas, serta melihat rekapitulasi cashflow.',
+                                                            'icon' => 'bi-currency-exchange', 
+                                                            'color' => '#22c55e',
+                                                            'bg' => '#f0fdf4'
+                                                        ],
+                                                        'solo_matchmaker' => [
+                                                            'label' => 'Solo Matchmaker (Modul Season)', 
+                                                            'desc' => 'Menggunakan modul penyusun tim otomatis untuk memproses pendaftar solo ke dalam tim-tim seimbang.',
+                                                            'icon' => 'bi-people', 
+                                                            'color' => '#6366f1',
+                                                            'bg' => '#e0e7ff'
+                                                        ],
                                                     ];
                                                 @endphp
 
@@ -183,7 +225,7 @@
                                                     <div class="col-md-6">
                                                         <div class="permission-card bg-white border border-light-subtle rounded-3 p-3 h-100 d-flex justify-content-between align-items-start">
                                                             <div class="d-flex align-items-start me-3">
-                                                                <div class="icon-square me-3" style="background-color: {{ $pInfo['bg'] }}; color: {{ $pInfo['color'] }};">
+                                                                <div class="icon-square me-3" style="background-color: {{ $pInfo['bg'] }}; color: {{ $pInfo['color'] }}; flex-shrink: 0;">
                                                                     <i class="bi {{ $pInfo['icon'] }}"></i>
                                                                 </div>
                                                                 <div class="text-start">
@@ -422,17 +464,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToast('Berhasil', data.message || 'Izin berhasil diperbarui', 'success');
                     
                     // Live update active count badges in background table
-                    const badges = document.querySelectorAll('.badge');
-                    badges.forEach(badge => {
-                        // Find the row containing this toggle
-                        const row = this.closest('tr');
-                        if (row) {
-                            const countBadge = row.querySelector('.badge');
-                            if (countBadge && data.permissions) {
-                                countBadge.innerHTML = `<i class="bi bi-shield-lock-fill text-warning me-1.5"></i>${data.permissions.length} dari 6 Akses Aktif`;
+                    // Find the row containing this toggle
+                    const row = document.getElementById(`perm_modal_${adminId}_${permission}`).closest('.modal');
+                    if (row) {
+                        // Find the matching button/row on background table
+                        const tableRow = document.querySelector(`button[data-bs-target="#permissionsModal${adminId}"]`).closest('tr');
+                        if (tableRow && data.permissions) {
+                            const countBadge = tableRow.querySelector('.badge');
+                            if (countBadge) {
+                                countBadge.innerHTML = `<i class="bi bi-shield-lock-fill text-warning me-1.5"></i>${data.permissions.length} dari 12 Akses Aktif`;
                             }
                         }
-                    });
+                    }
                 } else {
                     this.checked = !this.checked; // Revert
                     showToast('Gagal', data.message || 'Gagal memperbarui izin', 'danger');

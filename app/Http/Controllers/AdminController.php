@@ -1141,7 +1141,7 @@ class AdminController extends Controller
 
     public function adminList()
     {
-        if (Auth::user()->role !== 'superadmin') {
+        if (!Auth::user()->hasPermission('manage')) {
             abort(403, 'Unauthorized');
         }
 
@@ -1151,7 +1151,7 @@ class AdminController extends Controller
 
     public function storeAdmin(Request $request)
     {
-        if (Auth::user()->role !== 'superadmin') {
+        if (!Auth::user()->hasPermission('manage')) {
             abort(403, 'Unauthorized');
         }
 
@@ -1168,7 +1168,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
-            'permissions' => ["seasons", "finance", "solo_matchmaker", "notes", "faqs", "activity_log"],
+            'permissions' => ["dashboard", "seasons", "notes", "faqs", "activity_log"],
         ]);
 
         AdminActivity::log('Membuat akun admin baru: ' . $admin->username);
@@ -1178,7 +1178,7 @@ class AdminController extends Controller
 
     public function updateAdmin(Request $request, $id)
     {
-        if (Auth::user()->role !== 'superadmin') {
+        if (!Auth::user()->hasPermission('manage')) {
             abort(403, 'Unauthorized');
         }
 
@@ -1210,7 +1210,7 @@ class AdminController extends Controller
 
     public function deleteAdmin($id)
     {
-        if (Auth::user()->role !== 'superadmin') {
+        if (!Auth::user()->hasPermission('manage')) {
             abort(403, 'Unauthorized');
         }
 
@@ -1225,7 +1225,7 @@ class AdminController extends Controller
 
     public function togglePermission(Request $request)
     {
-        if (Auth::user()->role !== 'superadmin') {
+        if (!Auth::user()->hasPermission('manage')) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 

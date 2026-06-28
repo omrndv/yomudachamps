@@ -114,12 +114,14 @@ Route::middleware('admin.auth')->group(function () {
     Route::post('/admin/team/update/{id}', [AdminController::class, 'updateTeam'])->name('admin.team.update');
     Route::post('/admin/team/bulk-delete', [AdminController::class, 'bulkDelete'])->name('admin.team.bulkDelete');
     
-    Route::middleware('superadmin')->group(function () {
+    Route::middleware('permission:payments')->group(function () {
         Route::get('/admin/payments/sync', [AdminController::class, 'syncPayments'])->name('admin.payments.sync');
     });
 
     Route::prefix('admin')->group(function () {
-        Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
+        Route::middleware('permission:dashboard')->group(function () {
+            Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
+        });
         
         // Seasons
         Route::middleware('permission:seasons')->group(function () {
@@ -171,14 +173,29 @@ Route::middleware('admin.auth')->group(function () {
             Route::get('/solo-matchmaker/delete/{id}', [AdminController::class, 'deleteSoloPlayer'])->name('admin.solo.delete');
         });
 
-        Route::middleware('superadmin')->group(function () {
+        // Teams Directory
+        Route::middleware('permission:teams')->group(function () {
             Route::get('/teams', [AdminController::class, 'teams'])->name('admin.teams');
+        });
+
+        // Payment History
+        Route::middleware('permission:payments')->group(function () {
             Route::get('/payment-history', [AdminController::class, 'paymentHistory'])->name('admin.payments');
+        });
+
+        // System Settings
+        Route::middleware('permission:settings')->group(function () {
             Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
             Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+        });
+
+        // Database Backup
+        Route::middleware('permission:backup')->group(function () {
             Route::get('/backup', [AdminController::class, 'backupDatabase'])->name('admin.backup');
-            
-            // Admin management CRUD
+        });
+        
+        // Admin Staff Management
+        Route::middleware('permission:manage')->group(function () {
             Route::get('/manage-admins', [AdminController::class, 'adminList'])->name('admin.manage');
             Route::post('/manage-admins/store', [AdminController::class, 'storeAdmin'])->name('admin.manage.store');
             Route::post('/manage-admins/update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.manage.update');
