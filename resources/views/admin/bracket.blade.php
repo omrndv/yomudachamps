@@ -652,6 +652,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ----------------------------------------------------
+    // ----------------------------------------------------
+    // Drag and Drop Auto-Scroll boundaries logic
+    // ----------------------------------------------------
+    let autoScrollInterval = null;
+    let scrollXSpeed = 0;
+    let scrollYSpeed = 0;
+
+    container.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if (!draggedElement) return;
+
+        const rect = container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const edgeSize = 65; // Distance in pixels from edge to trigger scroll
+        const maxSpeed = 22; // Maximum scroll speed
+        
+        scrollXSpeed = 0;
+        scrollYSpeed = 0;
+        
+        // Vertical Scroll boundaries
+        if (mouseY < edgeSize) {
+            scrollYSpeed = -Math.max(3, maxSpeed * (1 - mouseY / edgeSize));
+        } else if (mouseY > rect.height - edgeSize) {
+            const dist = rect.height - mouseY;
+            scrollYSpeed = Math.max(3, maxSpeed * (1 - dist / edgeSize));
+        }
+        
+        // Horizontal Scroll boundaries
+        if (mouseX < edgeSize) {
+            scrollXSpeed = -Math.max(3, maxSpeed * (1 - mouseX / edgeSize));
+        } else if (mouseX > rect.width - edgeSize) {
+            const dist = rect.width - mouseX;
+            scrollXSpeed = Math.max(3, maxSpeed * (1 - dist / edgeSize));
+        }
+        
+        // Handle trigger interval
+        if (scrollXSpeed !== 0 || scrollYSpeed !== 0) {
+            if (!autoScrollInterval) {
+                autoScrollInterval = setInterval(() => {
+                    container.scrollLeft += scrollXSpeed;
+                    container.scrollTop += scrollYSpeed;
+                }, 16);
+            }
+        } else {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+    });
+
+    const stopDragScroll = () => {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+    };
+
+    container.addEventListener('dragend', stopDragScroll);
+    container.addEventListener('drop', stopDragScroll);
+
     // Drag and Drop (Rearrange Seeding inside Round 1)
     // ----------------------------------------------------
     let draggedElement = null;
