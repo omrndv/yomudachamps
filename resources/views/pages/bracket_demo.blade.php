@@ -28,15 +28,15 @@
 
         /* Header Style */
         .bracket-header {
-            padding: 16px 0;
+            padding: 12px 0;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
         }
 
         /* Search Box style */
         .search-wrapper {
-            max-width: 380px;
-            margin: 15px auto;
+            max-width: 360px;
+            margin: 12px auto;
         }
 
         .search-input-group {
@@ -50,9 +50,9 @@
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             outline: none;
-            padding: 6px 10px;
+            padding: 5px 8px;
             width: 100%;
         }
 
@@ -64,7 +64,7 @@
             background: transparent;
             border: none;
             color: var(--text-dim);
-            padding: 0 8px;
+            padding: 0 6px;
         }
 
         .search-results-panel {
@@ -74,7 +74,7 @@
             padding: 12px;
             margin-top: 8px;
             text-align: left;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
@@ -83,19 +83,19 @@
             display: flex;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
-            padding: 8px 30px;
+            padding: 6px 30px;
             white-space: nowrap;
             overflow-x: hidden;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.7rem;
+            font-weight: 700;
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .round-header-item {
-            width: 210px;
-            margin-right: 90px; /* Matching column spacing */
+            width: 185px; /* Compact Column Width */
+            margin-right: 80px; /* Matching column spacing */
             flex-shrink: 0;
             text-align: center;
         }
@@ -110,8 +110,8 @@
             scrollbar-width: thin;
             scrollbar-color: var(--accent-orange) var(--bg-secondary);
             scroll-behavior: smooth;
-            height: calc(100vh - 160px);
-            min-height: 550px;
+            height: calc(100vh - 150px);
+            min-height: 520px;
         }
 
         .bracket-container::-webkit-scrollbar {
@@ -131,15 +131,15 @@
             background: var(--accent-orange);
         }
 
-        /* Bracket Column per Round */
+        /* Bracket Column per Round - Height increased to 6400px to solve Round 1 clumping spacing */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4800px; /* Standard absolute height to distribute 64 match cards and calculate lines precisely */
+            height: 6400px; 
             vertical-align: top;
-            width: 210px;
-            margin-right: 90px;
+            width: 185px;
+            margin-right: 80px;
             position: relative;
         }
 
@@ -147,12 +147,12 @@
         .match-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            width: 210px;
+            border-radius: 5px;
+            width: 185px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
             transition: all 0.2s ease;
         }
 
@@ -162,8 +162,8 @@
 
         .match-card.focus-glow {
             border-color: var(--accent-orange) !important;
-            box-shadow: 0 0 15px rgba(255, 122, 0, 0.5) !important;
-            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(255, 122, 0, 0.6) !important;
+            transform: scale(1.04);
         }
 
         /* Match Card Header Row for Label & Time */
@@ -173,8 +173,8 @@
             align-items: center;
             background-color: #202024;
             border-bottom: 1px solid var(--border-color);
-            padding: 4px 8px;
-            font-size: 0.62rem;
+            padding: 3px 6px;
+            font-size: 0.58rem;
             font-weight: 700;
             color: var(--text-dim);
         }
@@ -183,14 +183,14 @@
             color: var(--accent-orange);
         }
 
-        /* Team Row */
+        /* Team Row - Compact Height 22px */
         .team-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 24px;
-            font-size: 0.72rem;
-            padding-left: 8px;
+            height: 22px;
+            font-size: 0.68rem;
+            padding-left: 6px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             background-color: var(--bg-card);
             color: var(--text-light);
@@ -217,9 +217,9 @@
 
         /* Seed indicator */
         .team-seed {
-            font-size: 0.6rem;
+            font-size: 0.58rem;
             color: var(--text-dim);
-            margin-right: 6px;
+            margin-right: 5px;
             font-weight: 600;
         }
 
@@ -229,15 +229,15 @@
             text-overflow: ellipsis;
         }
 
-        /* Challonge Score Box */
+        /* Challonge Score Box - Compact Width/Height 22px */
         .team-score-box {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             background-color: #202024;
             color: var(--text-dim);
             border-left: 1px solid var(--border-color);
@@ -274,8 +274,8 @@
         .round-connectors {
             position: absolute;
             top: 0;
-            left: 210px;
-            width: 90px;
+            left: 185px;
+            width: 80px;
             height: 100%;
             pointer-events: none;
             z-index: 1;
@@ -299,8 +299,8 @@
     {{-- Header --}}
     <header class="bracket-header">
         <div class="container text-center">
-            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.15rem;">YOMUDA <span class="text-warning">SEASON 33</span></h5>
-            <p class="text-secondary m-0" style="font-size: 0.75rem;">Bagan Tournament Yomuda</p>
+            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.1rem;">YOMUDA <span class="text-warning">SEASON 33</span></h5>
+            <p class="text-secondary m-0" style="font-size: 0.72rem;">Bagan Tournament Yomuda</p>
         </div>
     </header>
 
@@ -391,8 +391,8 @@
         const container = document.getElementById('bracketContainer');
         let currentRoundTeams = [...teams];
         
-        // Define round constant height for precision SVG layout
-        const roundHeight = 4800;
+        // Dynamic Height changed to 6400px to give beautiful vertical spacing in Round 1
+        const roundHeight = 6400;
 
         // Draw rounds
         for (let round = 1; round <= roundsCount; round++) {
@@ -404,8 +404,7 @@
             const nextRoundTeams = [];
             const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svgConnectors.setAttribute("class", "round-connectors");
-            // Important: set absolute view box to match round height for perfect line coordinates
-            svgConnectors.setAttribute("viewBox", `0 0 90 ${roundHeight}`);
+            svgConnectors.setAttribute("viewBox", `0 0 80 ${roundHeight}`);
 
             for (let match = 1; match <= matchesInRound; match++) {
                 const team1 = currentRoundTeams[(match - 1) * 2];
@@ -426,7 +425,6 @@
 
                 const matchTime = roundTimes[round];
 
-                // Added match-card-header back inside the card to display 'BRACKET X' and time at the top
                 cardDiv.innerHTML = `
                     <div class="match-card-header">
                         <span>BRACKET ${match}</span>
@@ -464,20 +462,19 @@
                     };
                 });
 
-                // Draw orthogonal connector lines using absolute coordinate projection
+                // Draw orthogonal connector lines
                 if (round < roundsCount) {
                     const nextMatchIndex = Math.ceil(match / 2);
                     
                     const startY = (roundHeight / matchesInRound) * (match - 0.5);
                     const endY = (roundHeight / (matchesInRound / 2)) * (nextMatchIndex - 0.5);
-                    const midX = 45;
+                    const midX = 40;
 
                     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     path.setAttribute("class", "connector-line");
                     path.setAttribute("id", `line_${round}_${match}`);
                     
-                    // Orthogonal SVG path with absolute coordinates
-                    const pathData = `M 0,${startY} L ${midX},${startY} L ${midX},${endY} L 90,${endY}`;
+                    const pathData = `M 0,${startY} L ${midX},${startY} L ${midX},${endY} L 80,${endY}`;
                     path.setAttribute("d", pathData);
                     svgConnectors.appendChild(path);
                 }
