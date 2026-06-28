@@ -9,12 +9,12 @@
                 Kelola Akun Admin
             </h2>
             <p class="text-secondary mb-0" style="font-size: 0.9rem;">
-                Atur otorisasi halaman untuk setiap akun admin secara instan menggunakan switch aktif/nonaktif.
+                Daftar staf administrator turnamen beserta manajemen detail hak akses modul halaman masing-masing.
             </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <button class="btn btn-warning fw-bold px-4 py-2.5 rounded-pill shadow-sm text-dark hover-gold" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                <i class="bi bi-person-plus-fill me-1"></i> Tambah Admin
+                <i class="bi bi-person-plus-fill me-1"></i> Tambah Staf Admin
             </button>
         </div>
     </div>
@@ -31,7 +31,7 @@
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center py-2.5">
             <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
-            <div>{{ session('success') }}</div>
+            <div class="fw-semibold">{{ session('success') }}</div>
         </div>
     @endif
 
@@ -39,92 +39,179 @@
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
-                    <thead class="text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); font-size: 0.75rem; letter-spacing: 0.8px;">
+                <table class="table align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead class="bg-light text-secondary text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.8px; border-bottom: 1px solid #edf2f7;">
                         <tr>
                             <th class="py-3.5 px-4" style="width: 60px;">#</th>
-                            <th class="py-3.5 px-3">Info Akun</th>
-                            <th class="py-3.5 px-3">Kontak / Email</th>
-                            <th class="py-3.5 px-3" style="min-width: 480px;">Hak Akses Halaman (On / Off)</th>
-                            <th class="py-3.5 px-3">Dibuat Pada</th>
-                            <th class="py-3.5 px-4 text-end" style="width: 180px;">Aksi</th>
+                            <th class="py-3.5 px-3">Nama & Username</th>
+                            <th class="py-3.5 px-3">Alamat Email</th>
+                            <th class="py-3.5 px-3">Hak Akses Modul</th>
+                            <th class="py-3.5 px-3">Tanggal Dibuat</th>
+                            <th class="py-3.5 px-4 text-end" style="width: 220px;">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody class="text-dark">
                         @forelse($admins as $index => $admin)
-                            <tr>
-                                <td class="py-4 px-4 text-secondary fw-semibold">
+                            @php
+                                $userPerms = $admin->permissions;
+                                if (!is_array($userPerms)) {
+                                    $userPerms = json_decode($userPerms, true) ?: [];
+                                }
+                                $activeCount = count($userPerms);
+                            @endphp
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td class="py-3.5 px-4 text-secondary fw-semibold">
                                     {{ $index + 1 }}
                                 </td>
-                                <td class="py-4 px-3">
+                                <td class="py-3.5 px-3">
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-circle me-3">
                                             {{ strtoupper(substr($admin->name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <span class="fw-bold text-dark d-block" style="font-size: 0.95rem;">{{ $admin->name }}</span>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.92rem;">{{ $admin->name }}</span>
                                             <span class="text-secondary small">Username: <code class="bg-light text-dark px-1.5 py-0.5 rounded">{{ $admin->username }}</code></span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-3 text-secondary">
-                                    {{ $admin->email }}
+                                <td class="py-3.5 px-3 text-secondary">
+                                    <i class="bi bi-envelope-fill text-muted me-1.5"></i>{{ $admin->email }}
                                 </td>
-                                <td class="py-4 px-3">
-                                    {{-- Grouping Permission Switces --}}
-                                    <div class="d-flex flex-wrap gap-2 pt-1">
-                                        @php
-                                            $userPerms = $admin->permissions;
-                                            if (!is_array($userPerms)) {
-                                                $userPerms = json_decode($userPerms, true) ?: [];
-                                            }
-                                            
-                                            $availablePerms = [
-                                                'seasons' => ['label' => 'Season & Tim', 'icon' => 'bi-trophy', 'color' => '#d97706'],
-                                                'finance' => ['label' => 'Keuangan', 'icon' => 'bi-cash-stack', 'color' => '#10b981'],
-                                                'solo_matchmaker' => ['label' => 'Matchmaker', 'icon' => 'bi-people', 'color' => '#3b82f6'],
-                                                'notes' => ['label' => 'Catatan', 'icon' => 'bi-sticky', 'color' => '#8b5cf6'],
-                                                'faqs' => ['label' => 'FAQ', 'icon' => 'bi-question-circle', 'color' => '#6b7280'],
-                                                'activity_log' => ['label' => 'Log Aktivitas', 'icon' => 'bi-clock-history', 'color' => '#ec4899'],
-                                            ];
-                                        @endphp
-                                        
-                                        @foreach($availablePerms as $key => $pInfo)
-                                            <div class="permission-pill d-flex align-items-center bg-light border border-light-subtle rounded-3 px-2.5 py-1.5">
-                                                <div class="form-check form-switch p-0 m-0 d-flex align-items-center">
-                                                    <input class="form-check-input permission-switch shadow-none" 
-                                                           type="checkbox" 
-                                                           role="switch" 
-                                                           id="perm_{{ $admin->id }}_{{ $key }}"
-                                                           data-admin-id="{{ $admin->id }}"
-                                                           data-permission="{{ $key }}"
-                                                           {{ in_array($key, $userPerms) ? 'checked' : '' }}
-                                                           style="width: 2.2em; height: 1.1em; cursor: pointer; margin-right: 8px;">
-                                                    <label class="form-check-label small fw-semibold text-secondary d-flex align-items-center" for="perm_{{ $admin->id }}_{{ $key }}" style="cursor: pointer; font-size: 0.78rem;">
-                                                        <i class="bi {{ $pInfo['icon'] }} me-1" style="color: {{ $pInfo['color'] }}"></i> {{ $pInfo['label'] }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
+                                <td class="py-3.5 px-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-dark border border-light-subtle rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.78rem;">
+                                            <i class="bi bi-shield-lock-fill text-warning me-1.5"></i>{{ $activeCount }} dari 6 Akses Aktif
+                                        </span>
+                                        <button class="btn btn-sm btn-link text-decoration-none fw-bold p-0 text-warning hover-underline" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#permissionsModal{{ $admin->id }}"
+                                                style="font-size: 0.8rem;">
+                                            Atur Izin <i class="bi bi-chevron-right ms-0.5"></i>
+                                        </button>
                                     </div>
                                 </td>
-                                <td class="py-4 px-3 text-secondary" style="font-size: 0.8rem;">
-                                    {{ $admin->created_at->format('d M Y') }}<br>
-                                    <span class="text-muted" style="font-size: 0.75rem;">{{ $admin->created_at->format('H:i') }} WIB</span>
+                                <td class="py-3.5 px-3 text-secondary" style="font-size: 0.8rem;">
+                                    <div>{{ $admin->created_at->format('d M Y') }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ $admin->created_at->format('H:i') }} WIB</div>
                                 </td>
-                                <td class="py-4 px-4 text-end">
-                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 me-1 border-light-subtle shadow-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editAdminModal{{ $admin->id }}">
-                                        <i class="bi bi-pencil me-1"></i> Edit
-                                    </button>
-                                    <a href="{{ route('admin.manage.delete', $admin->id) }}" 
-                                       class="btn btn-sm btn-outline-danger rounded-pill px-3 border-light-subtle shadow-sm" 
-                                       onclick="return confirm('Apakah Anda yakin ingin menghapus akun admin {{ $admin->username }}?');">
-                                        <i class="bi bi-trash me-1"></i> Hapus
-                                    </a>
+                                <td class="py-3.5 px-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1.5">
+                                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 border-light-subtle shadow-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editAdminModal{{ $admin->id }}">
+                                            <i class="bi bi-pencil me-1"></i> Edit
+                                        </button>
+                                        <a href="{{ route('admin.manage.delete', $admin->id) }}" 
+                                           class="btn btn-sm btn-outline-danger rounded-pill px-3 border-light-subtle shadow-sm" 
+                                           onclick="return confirm('Apakah Anda yakin ingin menghapus akun admin {{ $admin->username }}? Hapus akun tidak dapat dibatalkan.');">
+                                            <i class="bi bi-trash me-1"></i> Hapus
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
+
+                            {{-- Permissions Management Modal (Dedicated, Premium Look) --}}
+                            <div class="modal fade" id="permissionsModal{{ $admin->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                                        <div class="modal-header border-0 text-white px-4 py-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle-modal me-3">
+                                                    {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                                </div>
+                                                <div class="text-start">
+                                                    <h5 class="modal-title fw-bold text-white mb-0">Atur Hak Akses</h5>
+                                                    <p class="text-white-50 mb-0 small">{{ $admin->name }} ({{ $admin->email }})</p>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4 bg-light">
+                                            <p class="text-secondary small mb-4">
+                                                <i class="bi bi-info-circle me-1.5"></i> Perubahan izin di bawah ini disinkronkan secara instan ke server. Admin terkait akan segera dibatasi atau diizinkan akses setelah tombol diubah.
+                                            </p>
+                                            
+                                            <div class="row g-3">
+                                                @php
+                                                    $availablePerms = [
+                                                        'seasons' => [
+                                                            'label' => 'Season & Tim', 
+                                                            'desc' => 'Mengakses menu Daftar Season, mengelola pendaftaran tim, edit data tim, dan status kelulusan pembayaran.',
+                                                            'icon' => 'bi-trophy', 
+                                                            'color' => '#d97706',
+                                                            'bg' => '#fef3c7'
+                                                        ],
+                                                        'finance' => [
+                                                            'label' => 'Keuangan (Ledger)', 
+                                                            'desc' => 'Mengakses data finansial, menginput pemasukan manual/bulk, pengeluaran kas, serta melihat rekapitulasi cashflow.',
+                                                            'icon' => 'bi-cash-stack', 
+                                                            'color' => '#10b981',
+                                                            'bg' => '#d1fae5'
+                                                        ],
+                                                        'solo_matchmaker' => [
+                                                            'label' => 'Solo Matchmaker', 
+                                                            'desc' => 'Menggunakan modul penyusun tim otomatis untuk memproses pendaftar solo ke dalam tim-tim seimbang.',
+                                                            'icon' => 'bi-people', 
+                                                            'color' => '#3b82f6',
+                                                            'bg' => '#dbeafe'
+                                                        ],
+                                                        'notes' => [
+                                                            'label' => 'Catatan Staf', 
+                                                            'desc' => 'Melihat, membuat, mengubah, dan menghapus catatan koordinasi internal antar administrator.',
+                                                            'icon' => 'bi-sticky', 
+                                                            'color' => '#8b5cf6',
+                                                            'bg' => '#ede9fe'
+                                                        ],
+                                                        'faqs' => [
+                                                            'label' => 'Kelola FAQ', 
+                                                            'desc' => 'Menambah, mengubah susunan urutan, dan menghapus daftar tanya jawab publik di halaman utama.',
+                                                            'icon' => 'bi-question-circle', 
+                                                            'color' => '#6b7280',
+                                                            'bg' => '#f3f4f6'
+                                                        ],
+                                                        'activity_log' => [
+                                                            'label' => 'Log Aktivitas', 
+                                                            'desc' => 'Melihat audit log rekaman jejak tindakan administratif seluruh administrator platform.',
+                                                            'icon' => 'bi-clock-history', 
+                                                            'color' => '#ec4899',
+                                                            'bg' => '#fce7f3'
+                                                        ],
+                                                    ];
+                                                @endphp
+
+                                                @foreach($availablePerms as $key => $pInfo)
+                                                    <div class="col-md-6">
+                                                        <div class="permission-card bg-white border border-light-subtle rounded-3 p-3 h-100 d-flex justify-content-between align-items-start">
+                                                            <div class="d-flex align-items-start me-3">
+                                                                <div class="icon-square me-3" style="background-color: {{ $pInfo['bg'] }}; color: {{ $pInfo['color'] }};">
+                                                                    <i class="bi {{ $pInfo['icon'] }}"></i>
+                                                                </div>
+                                                                <div class="text-start">
+                                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">{{ $pInfo['label'] }}</h6>
+                                                                    <p class="text-secondary mb-0" style="font-size: 0.74rem; line-height: 1.4;">{{ $pInfo['desc'] }}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-check form-switch p-0 m-0 pt-1">
+                                                                <input class="form-check-input permission-switch shadow-none" 
+                                                                       type="checkbox" 
+                                                                       role="switch" 
+                                                                       id="perm_modal_{{ $admin->id }}_{{ $key }}"
+                                                                       data-admin-id="{{ $admin->id }}"
+                                                                       data-permission="{{ $key }}"
+                                                                       {{ in_array($key, $userPerms) ? 'checked' : '' }}
+                                                                       style="width: 2.3em; height: 1.15em; cursor: pointer;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 bg-white px-4 py-3">
+                                            <button type="button" class="btn btn-dark rounded-pill px-4 fw-semibold shadow-sm text-white" data-bs-dismiss="modal">Tutup & Simpan</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {{-- Edit Admin Modal --}}
                             <div class="modal fade" id="editAdminModal{{ $admin->id }}" tabindex="-1" aria-hidden="true">
@@ -171,7 +258,7 @@
                                 <td colspan="6" class="py-5 text-center text-secondary">
                                     <div class="py-4">
                                         <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-                                        Belum ada akun admin yang dibuat.
+                                        Belum ada staf admin yang ditambahkan ke sistem.
                                     </div>
                                 </td>
                             </tr>
@@ -225,7 +312,7 @@
 </div>
 
 {{-- Toast Container for instant action feedback --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1200;">
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1300;">
     <div id="permissionToast" class="toast align-items-center border-0 text-white rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center py-2.5">
@@ -239,34 +326,63 @@
 
 <style>
     .avatar-circle {
-        width: 42px;
-        height: 42px;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         color: #f59e0b;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 1.1rem;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        font-size: 1.15rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
         border: 2px solid #ffffff;
     }
 
-    .permission-pill {
-        transition: all 0.25s ease;
+    .avatar-circle-modal {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #f59e0b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        border: 2px solid rgba(255,255,255,0.25);
     }
 
-    .permission-pill:hover {
-        background-color: #f1f5f9 !important;
+    .icon-square {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .permission-card {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .permission-card:hover {
         border-color: #cbd5e1 !important;
-        transform: translateY(-1px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.03);
+        transform: translateY(-1.5px);
     }
 
     .hover-gold:hover {
         background-color: #d97706 !important;
         border-color: #d97706 !important;
         color: #ffffff !important;
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
     }
 
     /* Custom form-switch styling for premium look */
@@ -304,6 +420,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.disabled = false;
                 if (data.success) {
                     showToast('Berhasil', data.message || 'Izin berhasil diperbarui', 'success');
+                    
+                    // Live update active count badges in background table
+                    const badges = document.querySelectorAll('.badge');
+                    badges.forEach(badge => {
+                        // Find the row containing this toggle
+                        const row = this.closest('tr');
+                        if (row) {
+                            const countBadge = row.querySelector('.badge');
+                            if (countBadge && data.permissions) {
+                                countBadge.innerHTML = `<i class="bi bi-shield-lock-fill text-warning me-1.5"></i>${data.permissions.length} dari 6 Akses Aktif`;
+                            }
+                        }
+                    });
                 } else {
                     this.checked = !this.checked; // Revert
                     showToast('Gagal', data.message || 'Gagal memperbarui izin', 'danger');
