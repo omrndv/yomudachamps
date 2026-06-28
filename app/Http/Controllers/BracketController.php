@@ -451,20 +451,50 @@ class BracketController extends Controller
             'new_name' => 'required|string|max:100'
         ]);
 
+        DB::beginTransaction();
         try {
-            $team = Team::where('season_id', $season_id)->findOrFail($request->team_id);
-            $oldName = $team->name;
-            $team->name = $request->new_name;
-            $team->save();
+            $ymdTeam = Team::where('season_id', $season_id)->findOrFail($request->team_id);
+            $oldName = $ymdTeam->name;
+            
+            // Search for target registered team in the database for this season
+            $targetTeam = Team::where('season_id', $season_id)
+                ->where('name', trim($request->new_name))
+                ->first();
+
+            if (!$targetTeam) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tim "' . $request->new_name . '" tidak ditemukan di database season ini. Pastikan nama tim terdaftar.'
+                ], 400);
+            }
+
+            // Replace occurrences of YMD Team with Target Team in bracket matches
+            Bracket::where('season_id', $season_id)
+                ->where('team1_id', $ymdTeam->id)
+                ->update(['team1_id' => $targetTeam->id]);
+
+            Bracket::where('season_id', $season_id)
+                ->where('team2_id', $ymdTeam->id)
+                ->update(['team2_id' => $targetTeam->id]);
+
+            Bracket::where('season_id', $season_id)
+                ->where('winner_id', $ymdTeam->id)
+                ->update(['winner_id' => $targetTeam->id]);
+
+            // Clean up the placeholder team from the database
+            $ymdTeam->delete();
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Slot ' . $oldName . ' berhasil diubah menjadi ' . $request->new_name . '!'
+                'message' => 'Slot ' . $oldName . ' berhasil dihubungkan dengan tim "' . $targetTeam->name . '" (WA: ' . ($targetTeam->wa_number ?? '-') . ')!'
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengubah nama slot: ' . $e->getMessage()
+                'message' => 'Gagal menghubungkan slot: ' . $e->getMessage()
             ], 500);
         }
     }
