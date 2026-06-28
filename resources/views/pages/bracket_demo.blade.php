@@ -14,8 +14,8 @@
             --accent-gold: #f59e0b;
             --accent-gold-hover: #d97706;
             --text-muted: #94a3b8;
-            --border-light: rgba(255, 255, 255, 0.06);
-            --card-bg: rgba(15, 23, 42, 0.75);
+            --border-light: rgba(255, 255, 255, 0.05);
+            --card-bg: rgba(15, 23, 42, 0.8);
         }
 
         body {
@@ -52,17 +52,18 @@
             margin-right: 12px;
         }
 
-        /* Bracket View Wrapper with hardware acceleration optimization */
+        /* Bracket View Wrapper */
         .bracket-container {
-            padding: 40px 20px;
+            padding: 50px 30px;
             overflow-x: auto;
+            overflow-y: hidden;
             white-space: nowrap;
             cursor: grab;
             user-select: none;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-gold) var(--bg-secondary);
             scroll-behavior: smooth;
-            transform: translate3d(0, 0, 0); /* Hardware acceleration */
+            transform: translate3d(0, 0, 0);
             will-change: scroll-position;
         }
 
@@ -71,7 +72,7 @@
         }
 
         .bracket-container::-webkit-scrollbar {
-            height: 6px;
+            height: 8px;
         }
 
         .bracket-container::-webkit-scrollbar-track {
@@ -84,22 +85,20 @@
             border-radius: 4px;
         }
 
-        /* Bracket Columns/Rounds - Sizing is fluid to support high team counts (up to 128) */
+        /* Dynamic Heights according to rounds for 128 Teams */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            min-height: 580px; /* Minimal height */
-            height: auto;
+            height: 4800px; /* High height to distribute 64 match cards in Round 1 */
             vertical-align: middle;
-            margin-right: 80px;
+            margin-right: 90px;
             position: relative;
-            padding: 10px 0;
         }
 
         .round-title {
             position: absolute;
-            top: -25px;
+            top: -30px;
             left: 0;
             right: 0;
             text-align: center;
@@ -116,19 +115,18 @@
             background: var(--card-bg);
             border: 1px solid var(--border-light);
             border-radius: 12px;
-            width: 240px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            width: 230px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
             position: relative;
             z-index: 2;
-            margin: 15px 0; /* Margin-based flexible spacing to support scaling height */
         }
 
         .match-card:hover {
             border-color: rgba(245, 158, 11, 0.35);
-            box-shadow: 0 10px 24px rgba(245, 158, 11, 0.12);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
             transform: translateY(-2px);
         }
 
@@ -145,7 +143,7 @@
             align-items: center;
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-light);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--text-muted);
         }
@@ -155,11 +153,6 @@
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-
-        .match-time.live {
-            color: #ef4444;
-            animation: pulse-live 1.5s infinite;
         }
 
         /* Team Row Styles */
@@ -253,12 +246,12 @@
             box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
         }
 
-        /* Bracket connecting lines */
-        .connector-svg {
+        /* Dynamic connector paths styling */
+        .round-connectors {
             position: absolute;
             top: 0;
-            left: 240px;
-            width: 80px;
+            left: 230px;
+            width: 90px;
             height: 100%;
             pointer-events: none;
             z-index: 1;
@@ -266,22 +259,15 @@
 
         .connector-line {
             fill: none;
-            stroke: rgba(255, 255, 255, 0.06);
-            stroke-width: 1.8;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1.5;
             transition: stroke 0.25s ease, stroke-width 0.25s ease;
         }
 
-        /* Glow active connector line */
         .connector-line.highlighted {
             stroke: var(--accent-gold);
             stroke-width: 2.5;
             filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
-        }
-
-        @keyframes pulse-live {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
         }
 
         @keyframes pulse-border {
@@ -365,7 +351,7 @@
     <div class="container mt-4">
         <div class="search-wrapper text-center mb-4">
             <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda di bracket...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda (cth: Tim 42)...">
                 <button class="search-icon-btn"><i class="bi bi-search"></i></button>
             </div>
 
@@ -373,7 +359,7 @@
             <div id="searchResultCard" class="search-results-panel">
                 <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-2.5">
                     <h6 class="fw-bold text-warning mb-0" id="resTeamName" style="font-size: 0.9rem;">Nama Tim</h6>
-                    <span class="badge bg-danger rounded-pill px-2.5 py-1" id="resMatchStatus" style="font-size: 0.65rem;">Selesai</span>
+                    <span class="badge bg-success rounded-pill px-2.5 py-1" id="resMatchStatus" style="font-size: 0.65rem;">Selesai</span>
                 </div>
                 <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.78rem;">
                     <div class="col-6">
@@ -390,7 +376,7 @@
                     </div>
                     <div class="col-6 mt-2">
                         <span class="d-block small text-muted text-uppercase fw-semibold mb-0.5" style="letter-spacing: 0.3px; font-size: 0.65rem;">Status Babak</span>
-                        <strong class="text-white" id="resRoundLabel">Babak 1 (Perempat Final)</strong>
+                        <strong class="text-white" id="resRoundLabel">Babak 1</strong>
                     </div>
                 </div>
                 <div class="text-end">
@@ -405,206 +391,175 @@
     {{-- Bracket Field Wrapper --}}
     <div class="container-fluid px-0">
         <div class="bracket-container" id="bracketContainer">
-            
-            {{-- ROUND 1: QUARTERFINALS --}}
-            <div class="bracket-round" id="round_quarter">
-                <span class="round-title">Perempat Final</span>
-                
-                {{-- Match 1 --}}
-                <div class="match-card" data-match-id="1" id="card_match_1">
-                    <div class="match-header">
-                        <span>BRACKET 1</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 20:00 WIB</span>
-                    </div>
-                    <div class="team-row winner" data-team-id="yomuda_star">
-                        <div class="team-info">
-                            <div class="team-logo">YS</div>
-                            <span class="team-name">Yomuda Star</span>
-                            <i class="bi bi-patch-check-fill winner-badge"></i>
-                        </div>
-                        <span class="team-score">2</span>
-                    </div>
-                    <div class="team-row loser" data-team-id="sans_esport">
-                        <div class="team-info">
-                            <div class="team-logo">SE</div>
-                            <span class="team-name">Sans Esports</span>
-                        </div>
-                        <span class="team-score">0</span>
-                    </div>
-                </div>
-
-                {{-- Match 2 --}}
-                <div class="match-card" data-match-id="2" id="card_match_2">
-                    <div class="match-header">
-                        <span>BRACKET 2</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 20:40 WIB</span>
-                    </div>
-                    <div class="team-row winner" data-team-id="rrq_yomu">
-                        <div class="team-info">
-                            <div class="team-logo">RY</div>
-                            <span class="team-name">RRQ Yomu</span>
-                            <i class="bi bi-patch-check-fill winner-badge"></i>
-                        </div>
-                        <span class="team-score">2</span>
-                    </div>
-                    <div class="team-row loser" data-team-id="evos_wann">
-                        <div class="team-info">
-                            <div class="team-logo">EW</div>
-                            <span class="team-name">Evos Wann</span>
-                        </div>
-                        <span class="team-score">1</span>
-                    </div>
-                </div>
-
-                {{-- Match 3 --}}
-                <div class="match-card" data-match-id="3" id="card_match_3">
-                    <div class="match-header">
-                        <span>BRACKET 3</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 21:20 WIB</span>
-                    </div>
-                    <div class="team-row loser" data-team-id="alter_ego">
-                        <div class="team-info">
-                            <div class="team-logo">AE</div>
-                            <span class="team-name">Alter Ego Y</span>
-                        </div>
-                        <span class="team-score">0</span>
-                    </div>
-                    <div class="team-row winner" data-team-id="onic_pro">
-                        <div class="team-info">
-                            <div class="team-logo">OP</div>
-                            <span class="team-name">Onic Pro</span>
-                            <i class="bi bi-patch-check-fill winner-badge"></i>
-                        </div>
-                        <span class="team-score">2</span>
-                    </div>
-                </div>
-
-                {{-- Match 4 --}}
-                <div class="match-card" data-match-id="4" id="card_match_4">
-                    <div class="match-header">
-                        <span>BRACKET 4</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 22:00 WIB</span>
-                    </div>
-                    <div class="team-row winner" data-team-id="aura_fire">
-                        <div class="team-info">
-                            <div class="team-logo">AF</div>
-                            <span class="team-name">Aura Fire Junior</span>
-                            <i class="bi bi-patch-check-fill winner-badge"></i>
-                        </div>
-                        <span class="team-score">2</span>
-                    </div>
-                    <div class="team-row loser" data-team-id="geek_fam">
-                        <div class="team-info">
-                            <div class="team-logo">GF</div>
-                            <span class="team-name">Geek Fam X</span>
-                        </div>
-                        <span class="team-score">1</span>
-                    </div>
-                </div>
-
-                {{-- SVG Connectors to Semifinals --}}
-                <svg class="connector-svg">
-                    <path class="connector-line" id="line_1" d="M 0 100 L 35 100 L 35 180 L 70 180" />
-                    <path class="connector-line" id="line_2" d="M 0 260 L 35 260 L 35 180 L 70 180" />
-                    <path class="connector-line" id="line_3" d="M 0 420 L 35 420 L 35 500 L 70 500" />
-                    <path class="connector-line" id="line_4" d="M 0 580 L 35 580 L 35 500 L 70 500" />
-                </svg>
-            </div>
-
-            {{-- ROUND 2: SEMIFINALS --}}
-            <div class="bracket-round" id="round_semi">
-                <span class="round-title">Semifinal</span>
-                
-                {{-- Match 5 --}}
-                <div class="match-card" data-match-id="5" id="card_match_5">
-                    <div class="match-header">
-                        <span>BRACKET 5</span>
-                        <span class="match-time live"><i class="bi bi-broadcast"></i> LIVE 22:40</span>
-                    </div>
-                    <div class="team-row winner" data-team-id="yomuda_star">
-                        <div class="team-info">
-                            <div class="team-logo">YS</div>
-                            <span class="team-name">Yomuda Star</span>
-                            <i class="bi bi-patch-check-fill winner-badge"></i>
-                        </div>
-                        <span class="team-score">2</span>
-                    </div>
-                    <div class="team-row loser" data-team-id="rrq_yomu">
-                        <div class="team-info">
-                            <div class="team-logo">RY</div>
-                            <span class="team-name">RRQ Yomu</span>
-                        </div>
-                        <span class="team-score">0</span>
-                    </div>
-                </div>
-
-                {{-- Match 6 --}}
-                <div class="match-card" data-match-id="6" id="card_match_6">
-                    <div class="match-header">
-                        <span>BRACKET 6</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> Besok, 20:00</span>
-                    </div>
-                    <div class="team-row" data-team-id="onic_pro">
-                        <div class="team-info">
-                            <div class="team-logo">OP</div>
-                            <span class="team-name">Onic Pro</span>
-                        </div>
-                        <span class="team-score">-</span>
-                    </div>
-                    <div class="team-row" data-team-id="aura_fire">
-                        <div class="team-info">
-                            <div class="team-logo">AF</div>
-                            <span class="team-name">Aura Fire Junior</span>
-                        </div>
-                        <span class="team-score">-</span>
-                    </div>
-                </div>
-
-                {{-- SVG Connectors to Grand Final --}}
-                <svg class="connector-svg">
-                    <path class="connector-line" id="line_5" d="M 0 180 L 35 180 L 35 340 L 70 340" />
-                    <path class="connector-line" id="line_6" d="M 0 500 L 35 500 L 35 340 L 70 340" />
-                </svg>
-            </div>
-
-            {{-- ROUND 3: GRAND FINAL --}}
-            <div class="bracket-round" id="round_final">
-                <span class="round-title">Grand Final</span>
-                
-                {{-- Match 7 --}}
-                <div class="match-card" data-match-id="7" id="card_match_7">
-                    <div class="match-header">
-                        <span>BRACKET 7</span>
-                        <span class="match-time"><i class="bi bi-clock"></i> 2 Juli, 20:00</span>
-                    </div>
-                    <div class="team-row" data-team-id="yomuda_star">
-                        <div class="team-info">
-                            <div class="team-logo">YS</div>
-                            <span class="team-name">Yomuda Star</span>
-                        </div>
-                        <span class="team-score">-</span>
-                    </div>
-                    <div class="team-row">
-                        <div class="team-info">
-                            <div class="team-logo">?</div>
-                            <span class="team-name text-muted">Pemenang Bracket 6</span>
-                        </div>
-                        <span class="team-score">-</span>
-                    </div>
-                </div>
-            </div>
-
+            {{-- Rounds are generated dynamically here by JS to support 128 Teams smoothly & optimally --}}
         </div>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const teamCount = 128;
+        const roundsCount = Math.log2(teamCount); // 7 Rounds for 128 teams
+        
+        // Staggered times per ROUND:
+        const roundTimes = {
+            1: "20:00 WIB",
+            2: "20:40 WIB",
+            3: "21:20 WIB",
+            4: "22:00 WIB",
+            5: "22:40 WIB",
+            6: "23:20 WIB",
+            7: "24:00 WIB"
+        };
+
+        const roundNames = {
+            1: "Babak 128 Besar",
+            2: "Babak 64 Besar",
+            3: "Babak 32 Besar",
+            4: "16 Besar",
+            5: "Perempat Final",
+            6: "Semifinal",
+            7: "Grand Final"
+        };
+
+        // 1. Generate 128 Dummy Teams
+        const teams = [];
+        for (let i = 1; i <= teamCount; i++) {
+            teams.push({
+                id: `team_${i}`,
+                name: `Tim ${i}`,
+                logo: `T${i}`
+            });
+        }
+
+        // 2. Generate Tournament Matches data structures
+        const matchesData = {}; // Stores details for search index
+        const container = document.getElementById('bracketContainer');
+
+        let currentRoundTeams = [...teams];
+        
+        // Loop rounds from 1 to 7
+        for (let round = 1; round <= roundsCount; round++) {
+            const matchesInRound = currentRoundTeams.length / 2;
+            const roundDiv = document.createElement('div');
+            roundDiv.className = 'bracket-round';
+            roundDiv.id = `round_${round}`;
+            
+            // Set Round Title
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'round-title';
+            titleSpan.textContent = roundNames[round];
+            roundDiv.appendChild(titleSpan);
+
+            const nextRoundTeams = [];
+            const svgConnectors = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svgConnectors.setAttribute("class", "round-connectors");
+
+            // Calculate heights & gaps for connectors
+            // Round height is 4800px.
+            // Match card height with spacing is distributed vertically by justify-around.
+            const cardHeight = 74;
+            const roundHeight = 4800;
+
+            for (let match = 1; match <= matchesInRound; match++) {
+                const team1 = currentRoundTeams[(match - 1) * 2];
+                const team2 = currentRoundTeams[(match - 1) * 2 + 1];
+                
+                // Simulate results: Tim with smaller ID wins
+                const t1Score = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                const t2Score = t1Score === 2 ? Math.floor(Math.random() * 2) : 2; // Make sure one reaches 2
+                
+                const winner = t1Score > t2Score ? team1 : team2;
+                const loser = winner === team1 ? team2 : team1;
+                nextRoundTeams.push(winner);
+
+                const matchId = `match_${round}_${match}`;
+                
+                // Create Match Card
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'match-card';
+                cardDiv.id = `card_${matchId}`;
+                cardDiv.setAttribute('data-match-id', matchId);
+
+                // Staggered Time per Round
+                const matchTime = roundTimes[round];
+
+                cardDiv.innerHTML = `
+                    <div class="match-header">
+                        <span>BRACKET ${match}</span>
+                        <span class="match-time"><i class="bi bi-clock"></i> ${matchTime}</span>
+                    </div>
+                    <div class="team-row ${winner === team1 ? 'winner' : 'loser'}" data-team-id="${team1.id}">
+                        <div class="team-info">
+                            <div class="team-logo">${team1.logo}</div>
+                            <span class="team-name">${team1.name}</span>
+                            ${winner === team1 ? '<i class="bi bi-patch-check-fill winner-badge"></i>' : ''}
+                        </div>
+                        <span class="team-score">${t1Score}</span>
+                    </div>
+                    <div class="team-row ${winner === team2 ? 'winner' : 'loser'}" data-team-id="${team2.id}">
+                        <div class="team-info">
+                            <div class="team-logo">${team2.logo}</div>
+                            <span class="team-name">${team2.name}</span>
+                            ${winner === team2 ? '<i class="bi bi-patch-check-fill winner-badge"></i>' : ''}
+                        </div>
+                        <span class="team-score">${t2Score}</span>
+                    </div>
+                `;
+
+                roundDiv.appendChild(cardDiv);
+
+                // Index search details for this team
+                [team1, team2].forEach(t => {
+                    const isWin = (t === winner);
+                    const opp = (t === team1 ? team2 : team1);
+                    
+                    // If team won, check their next round status (simulation)
+                    matchesData[t.name.toLowerCase()] = {
+                        name: t.name,
+                        opponent: opp.name,
+                        schedule: matchTime,
+                        bracket: `Bracket ${match} (${roundNames[round]})`,
+                        round: `${roundNames[round]} - ${isWin ? 'Lolos ke Babak Berikutnya' : 'Kalah (Eliminasi)'}`,
+                        status: isWin ? 'Lolos' : 'Kalah (Eliminasi)',
+                        cardId: `card_${matchId}`
+                    };
+                });
+
+                // Generate SVG path connectors dynamically if not the final round
+                if (round < roundsCount) {
+                    const nextMatchIndex = Math.ceil(match / 2);
+                    const isTopBranch = (match % 2 !== 0);
+                    
+                    // Connectors are drawn dynamically in JS
+                    const startY = (roundHeight / matchesInRound) * (match - 0.5);
+                    const endY = (roundHeight / (matchesInRound / 2)) * (nextMatchIndex - 0.5);
+                    const midX = 45;
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("class", "connector-line");
+                    path.setAttribute("id", `line_${round}_${match}`);
+                    
+                    // Draw cubic/orthogonal line path
+                    const pathData = `M 0 ${startY} L ${midX} ${startY} L ${midX} ${endY} L 90 ${endY}`;
+                    path.setAttribute("d", pathData);
+                    svgConnectors.appendChild(path);
+                }
+            }
+
+            if (round < roundsCount) {
+                roundDiv.appendChild(svgConnectors);
+            }
+
+            container.appendChild(roundDiv);
+            currentRoundTeams = nextRoundTeams;
+        }
+
         // Drag to scroll functionality
-        const slider = document.getElementById('bracketContainer');
         let isDown = false;
         let startX;
         let scrollLeft;
 
+        slider = document.getElementById('bracketContainer');
         slider.addEventListener('mousedown', (e) => {
             isDown = true;
             slider.style.cursor = 'grabbing';
@@ -626,25 +581,12 @@
             if(!isDown) return;
             e.preventDefault();
             const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5; //scroll-fastness
+            const walk = (x - startX) * 1.5;
             slider.scrollLeft = scrollLeft - walk;
         });
 
         // Hover Highlighting Logic
         const teamRows = document.querySelectorAll('.team-row[data-team-id]');
-        
-        // Define paths connecting matches
-        const teamLines = {
-            'yomuda_star': ['line_1', 'line_5'],
-            'rrq_yomu': ['line_2'],
-            'onic_pro': ['line_3'],
-            'aura_fire': ['line_4'],
-            'sans_esport': [],
-            'evos_wann': [],
-            'alter_ego': [],
-            'geek_fam': []
-        };
-
         teamRows.forEach(row => {
             row.addEventListener('mouseenter', function() {
                 const teamId = this.dataset.teamId;
@@ -652,14 +594,6 @@
 
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.add('team-highlighted');
-                });
-
-                const lines = teamLines[teamId] || [];
-                lines.forEach(lineId => {
-                    const lineEl = document.getElementById(lineId);
-                    if (lineEl) {
-                        lineEl.classList.add('highlighted');
-                    }
                 });
             });
 
@@ -670,92 +604,8 @@
                 document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`).forEach(el => {
                     el.classList.remove('team-highlighted');
                 });
-
-                const lines = teamLines[teamId] || [];
-                lines.forEach(lineId => {
-                    const lineEl = document.getElementById(lineId);
-                    if (lineEl) {
-                        lineEl.classList.remove('highlighted');
-                    }
-                });
             });
         });
-
-        // Simulated Search Database
-        const teamDatabase = {
-            'yomuda star': {
-                name: 'Yomuda Star',
-                opponent: 'Onic Pro / Aura Fire',
-                schedule: '2 Juli, 20:00 WIB',
-                bracket: 'Bracket 7 (Grand Final)',
-                round: 'Babak 3 (Grand Final) - Babak 2 Selesai',
-                status: 'Mendatang',
-                cardId: 'card_match_7'
-            },
-            'rrq yomu': {
-                name: 'RRQ Yomu',
-                opponent: 'Yomuda Star',
-                schedule: 'LIVE 22:40 WIB',
-                bracket: 'Bracket 5 (Semifinal)',
-                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
-                status: 'Kalah (Eliminasi)',
-                cardId: 'card_match_5'
-            },
-            'onic pro': {
-                name: 'Onic Pro',
-                opponent: 'Aura Fire Junior',
-                schedule: 'Besok, 20:00 WIB',
-                bracket: 'Bracket 6 (Semifinal)',
-                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
-                status: 'Mendatang',
-                cardId: 'card_match_6'
-            },
-            'aura fire junior': {
-                name: 'Aura Fire Junior',
-                opponent: 'Onic Pro',
-                schedule: 'Besok, 20:00 WIB',
-                bracket: 'Bracket 6 (Semifinal)',
-                round: 'Babak 2 (Semifinal) - Babak 1 Selesai',
-                status: 'Mendatang',
-                cardId: 'card_match_6'
-            },
-            'sans esports': {
-                name: 'Sans Esports',
-                opponent: 'Yomuda Star',
-                schedule: 'Selesai (20:00 WIB)',
-                bracket: 'Bracket 1 (Perempat Final)',
-                round: 'Babak 1 (Perempat Final) - Belum Selesai',
-                status: 'Kalah (Eliminasi)',
-                cardId: 'card_match_1'
-            },
-            'evos wann': {
-                name: 'Evos Wann',
-                opponent: 'RRQ Yomu',
-                schedule: 'Selesai (20:40 WIB)',
-                bracket: 'Bracket 2 (Perempat Final)',
-                round: 'Babak 1 (Perempat Final) - Belum Selesai',
-                status: 'Kalah (Eliminasi)',
-                cardId: 'card_match_2'
-            },
-            'alter ego y': {
-                name: 'Alter Ego Y',
-                opponent: 'Onic Pro',
-                schedule: 'Selesai (21:20 WIB)',
-                bracket: 'Bracket 3 (Perempat Final)',
-                round: 'Babak 1 (Perempat Final) - Belum Selesai',
-                status: 'Kalah (Eliminasi)',
-                cardId: 'card_match_3'
-            },
-            'geek fam x': {
-                name: 'Geek Fam X',
-                opponent: 'Aura Fire Junior',
-                schedule: 'Selesai (22:00 WIB)',
-                bracket: 'Bracket 4 (Perempat Final)',
-                round: 'Babak 1 (Perempat Final) - Belum Selesai',
-                status: 'Kalah (Eliminasi)',
-                cardId: 'card_match_4'
-            }
-        };
 
         // Real-time Search Logic
         const searchInput = document.getElementById('teamSearchInput');
@@ -773,15 +623,16 @@
                 return;
             }
 
+            // Find matching team in dynamic database
             let foundKey = null;
-            Object.keys(teamDatabase).forEach(key => {
-                if (key.includes(query)) {
+            Object.keys(matchesData).forEach(key => {
+                if (key === query || key.includes(query)) {
                     foundKey = key;
                 }
             });
 
             if (foundKey) {
-                const matchData = teamDatabase[foundKey];
+                const matchData = matchesData[foundKey];
                 
                 document.getElementById('resTeamName').textContent = matchData.name;
                 
@@ -789,8 +640,6 @@
                 statusBadge.textContent = matchData.status;
                 if (matchData.status.includes('Kalah')) {
                     statusBadge.className = 'badge bg-secondary rounded-pill px-2.5 py-1';
-                } else if (matchData.schedule.includes('LIVE')) {
-                    statusBadge.className = 'badge bg-danger rounded-pill px-2.5 py-1';
                 } else {
                     statusBadge.className = 'badge bg-success rounded-pill px-2.5 py-1';
                 }
@@ -809,7 +658,7 @@
                 document.getElementById('resOpponent').textContent = 'Tidak ada';
                 document.getElementById('resSchedule').textContent = '-';
                 document.getElementById('resBracketLabel').textContent = '-';
-                document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
+                document.getElementById('resRoundLabel').textContent = 'Contoh pencarian: Tim 42';
                 activeFocusedCardId = null;
                 resultCard.style.display = 'block';
             }
@@ -826,18 +675,25 @@
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
             cardElement.classList.add('focus-glow');
 
-            // Scroll container to the card's position (horizontally)
+            // Scroll container to the card's position (both horizontally and vertically!)
             const container = document.getElementById('bracketContainer');
             
-            // Calculate position using getBoundingClientRect to bypass parent elements absolute/relative offsets
             const containerRect = container.getBoundingClientRect();
             const cardRect = cardElement.getBoundingClientRect();
             
+            // Calculate relative scroll positions
             const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
             const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
 
             container.scrollTo({
                 left: targetScrollLeft,
+                behavior: 'smooth'
+            });
+
+            // Smooth scroll vertically to center the card on screen as well!
+            const relativeTop = cardRect.top - containerRect.top + window.scrollY;
+            window.scrollTo({
+                top: relativeTop - (window.innerHeight / 2) + (cardRect.height / 2),
                 behavior: 'smooth'
             });
         });
