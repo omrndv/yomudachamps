@@ -31,7 +31,7 @@ class CheckPermission
 
         // Check if user has specific permission
         if (!$user->hasPermission($permission)) {
-            abort(403, 'Anda tidak memiliki hak akses ke halaman/aksi ini.');
+            abort(403, 'Anda tidak memiliki hak akses ke halaman/aksi ini. (Izin dibutuhkan: "' . $permission . '", URL: "' . $request->path() . '")');
         }
 
         return $next($request);
