@@ -22,7 +22,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-secondary);
             color: var(--text-light);
-            overflow-x: hidden;
+            overflow: hidden; /* Lock the main window scroll to keep it neat like Challonge */
             -webkit-font-smoothing: antialiased;
         }
 
@@ -37,6 +37,8 @@
         .search-wrapper {
             max-width: 360px;
             margin: 12px auto;
+            position: relative;
+            z-index: 10;
         }
 
         .search-input-group {
@@ -75,7 +77,10 @@
             margin-top: 8px;
             text-align: left;
             font-size: 0.75rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: absolute;
+            width: 100%;
+            left: 0;
         }
 
         /* Sticky Round Titles Bar */
@@ -83,7 +88,7 @@
             display: flex;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
-            padding: 6px 30px;
+            padding: 8px 30px;
             white-space: nowrap;
             overflow-x: hidden;
             font-size: 0.7rem;
@@ -100,21 +105,27 @@
             text-align: center;
         }
 
-        /* Bracket container layout */
+        /* Bracket container layout - BOTH horizontal and vertical scroll inside the container */
         .bracket-container {
-            padding: 40px 30px 40px 30px;
-            overflow-x: auto;
+            padding: 30px 30px 40px 30px;
+            overflow: auto; /* Allow horizontal & vertical scrolling inside container */
             white-space: nowrap;
             cursor: grab;
             user-select: none;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-orange) var(--bg-secondary);
             scroll-behavior: smooth;
-            height: calc(100vh - 150px);
-            min-height: 520px;
+            height: calc(100vh - 145px); /* Responsive viewport fitting */
+            transform: translate3d(0, 0, 0);
+            will-change: scroll-position;
+        }
+
+        .bracket-container:active {
+            cursor: grabbing;
         }
 
         .bracket-container::-webkit-scrollbar {
+            width: 6px;
             height: 6px;
         }
 
@@ -131,12 +142,12 @@
             background: var(--accent-orange);
         }
 
-        /* Bracket Column per Round - Set to 4600px to maintain precisely a ~10px vertical card gap in Round 1 */
+        /* Bracket Column per Round */
         .bracket-round {
             display: inline-flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 4600px; 
+            height: 4600px; /* Precise height containing the tree */
             vertical-align: top;
             width: 185px;
             margin-right: 80px;
@@ -391,7 +402,7 @@
         const container = document.getElementById('bracketContainer');
         let currentRoundTeams = [...teams];
         
-        // Height adjusted to 4600px to maintain precisely a ~10px vertical card gap in Round 1
+        // Height of the inner vertical canvas
         const roundHeight = 4600;
 
         // Draw rounds
@@ -493,16 +504,18 @@
             headerBar.scrollLeft = container.scrollLeft;
         });
 
-        // Drag to scroll functionality
+        // Drag to scroll functionality (Supports both vertical and horizontal scroll via mouse dragging)
         let isDown = false;
-        let startX;
-        let scrollLeft;
+        let startX, startY;
+        let scrollLeft, scrollTop;
 
         container.addEventListener('mousedown', (e) => {
             isDown = true;
             container.style.cursor = 'grabbing';
             startX = e.pageX - container.offsetLeft;
+            startY = e.pageY - container.offsetTop;
             scrollLeft = container.scrollLeft;
+            scrollTop = container.scrollTop;
         });
         
         container.addEventListener('mouseleave', () => {
@@ -519,8 +532,11 @@
             if(!isDown) return;
             e.preventDefault();
             const x = e.pageX - container.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            container.scrollLeft = scrollLeft - walk;
+            const y = e.pageY - container.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            container.scrollLeft = scrollLeft - walkX;
+            container.scrollTop = scrollTop - walkY;
         });
 
         // Hover Highlighting Logic
@@ -593,7 +609,7 @@
             }
         });
 
-        // Smooth Auto-scroll Focus
+        // Smooth Auto-scroll Focus (Handles scrolling BOTH vertically and horizontally inside the container rect)
         btnFocus.addEventListener('click', function() {
             if (!activeFocusedCardId) return;
 
@@ -609,15 +625,12 @@
             const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
             const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
 
+            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
+            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
+
             container.scrollTo({
                 left: targetScrollLeft,
-                behavior: 'smooth'
-            });
-
-            // Smooth vertical scroll to center
-            const relativeTop = cardRect.top - containerRect.top + window.scrollY;
-            window.scrollTo({
-                top: relativeTop - (window.innerHeight / 2) + (cardRect.height / 2),
+                top: targetScrollTop,
                 behavior: 'smooth'
             });
         });
