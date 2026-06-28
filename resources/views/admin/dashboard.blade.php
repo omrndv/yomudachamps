@@ -55,10 +55,10 @@
                     <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExportWA">
                         <i class="bi bi-whatsapp me-1"></i> Format WA
                     </button>
-                    {{-- List Bracket --}}
-                    <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExportBracket">
-                        <i class="bi bi-grid-3x3-gap me-1"></i> List Bracket
-                    </button>
+                    {{-- Kelola Bracket --}}
+                    <a href="{{ route('admin.season.bracket', $current_season->id) }}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-diagram-3 me-1"></i> Kelola Bracket
+                    </a>
                     {{-- Solo Matchmaker --}}
                     <a href="{{ route('admin.solo.matchmaker', $current_season->id) }}" class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-people me-1"></i> Solo Matchmaker

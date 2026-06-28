@@ -125,6 +125,11 @@ Route::middleware('admin.auth')->group(function () {
         Route::middleware('permission:seasons')->group(function () {
             Route::get('/seasons', [AdminController::class, 'seasons'])->name('admin.seasons');
             Route::get('/dashboard/{season_id}', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+            
+            // Bracket management routes
+            Route::get('/dashboard/{season_id}/bracket', [\App\Http\Controllers\BracketController::class, 'manageBracket'])->name('admin.season.bracket');
+            Route::post('/dashboard/{season_id}/bracket/generate', [\App\Http\Controllers\BracketController::class, 'generateBracket'])->name('admin.season.bracket.generate');
+            Route::post('/dashboard/{season_id}/bracket/update-match', [\App\Http\Controllers\BracketController::class, 'updateMatch'])->name('admin.season.bracket.update-match');
         });
 
         // Finance
@@ -212,3 +217,6 @@ Route::redirect('/register/{id}', '/daftar', 301);
 Route::get('/bracket-demo', function () {
     return view('pages.bracket_demo');
 })->name('bracket.demo');
+
+// Public Bracket Viewer Route
+Route::get('/season/{season_id}/bracket', [\App\Http\Controllers\BracketController::class, 'publicBracket'])->name('public.season.bracket');
