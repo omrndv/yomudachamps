@@ -201,7 +201,7 @@
                         @endforeach
 
                         {{-- Draw dynamic SVG connector lines between columns --}}
-                        @if($roundNum < $rounds->count())
+                        @if($roundNum < count($rounds))
                             <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                                 @for($m = 1; $m <= $matchesCount; $m++)
                                     @php
