@@ -55,7 +55,7 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permission): bool
     {
-        if ($this->role === 'superadmin') {
+        if ($this->role === 'superadmin' || $permission === 'dashboard') {
             return true;
         }
 

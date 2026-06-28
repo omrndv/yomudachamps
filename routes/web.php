@@ -119,9 +119,7 @@ Route::middleware('admin.auth')->group(function () {
     });
 
     Route::prefix('admin')->group(function () {
-        Route::middleware('permission:dashboard')->group(function () {
-            Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
-        });
+        Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
         
         // Seasons
         Route::middleware('permission:seasons')->group(function () {

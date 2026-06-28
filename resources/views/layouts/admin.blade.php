@@ -239,11 +239,9 @@
         <div class="sidebar-nav nav nav-pills">
             <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
             
-            @if(Auth::check() && Auth::user()->hasPermission('dashboard'))
             <a href="{{ route('admin.dashboard.home') }}" class="nav-link {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
-            @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('seasons'))
             <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -323,11 +321,9 @@
             <div class="nav nav-pills flex-column h-100">
                 <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
                 
-                @if(Auth::check() && Auth::user()->hasPermission('dashboard'))
                 <a href="{{ route('admin.dashboard.home') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
                     <i class="bi bi-grid-1x2 me-2"></i> <span>Dashboard</span>
                 </a>
-                @endif
 
                 @if(Auth::check() && Auth::user()->hasPermission('seasons'))
                 <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
