@@ -22,14 +22,13 @@
             --text-dim: #a1a1aa;
         }
 
-        /* Prevent window elastic bounce on iOS while maintaining internal momentum scroll */
+        /* Allow default mobile pull-to-refresh and page scroll while maintaining clean structure */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            position: fixed;
             width: 100%;
+            overscroll-behavior-y: auto;
         }
 
         body {
