@@ -11,6 +11,24 @@ use Illuminate\Support\Facades\DB;
 class BracketController extends Controller
 {
     /**
+     * Reversible secure obfuscation for season IDs to make URLs unguessable
+     */
+    public static function encodeId($id)
+    {
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(($id * 98765) . 'y'));
+    }
+
+    public static function decodeId($hash)
+    {
+        $data = str_replace(['-', '_'], ['+', '/'], $hash);
+        $decoded = base64_decode($data);
+        if (!$decoded || !str_ends_with($decoded, 'y')) return null;
+        $val = substr($decoded, 0, -1);
+        if (!is_numeric($val)) return null;
+        return intval($val) / 98765;
+    }
+
+    /**
      * Tampilkan halaman kelola bracket admin
      */
     public function manageBracket($season_id)
@@ -186,8 +204,11 @@ class BracketController extends Controller
     /**
      * Rilis halaman publik bagan tanding untuk season tertentu
      */
-    public function publicBracket($season_id)
+    public function publicBracket($slug)
     {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) abort(404);
+
         $season = Season::findOrFail($season_id);
         $brackets = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2', 'winner'])
@@ -545,8 +566,11 @@ class BracketController extends Controller
     /**
      * Mengembalikan data JSON bagan tanding untuk polling real-time
      */
-    public function getBracketData($season_id)
+    public function getBracketData($slug)
     {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) return response()->json(['success' => false, 'message' => 'Season not found'], 404);
+
         $matches = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2'])
             ->get()

@@ -20,7 +20,7 @@
                     <p class="text-secondary small mb-0 mt-1">Atur jadwal serentak per babak, geser (drag & drop) posisi tim di Babak 1, dan edit skor.</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('public.season.bracket', $season->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                    <a href="{{ route('public.season.bracket', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
                     
@@ -1013,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Only poll if no modal is active and admin is not currently dragging a row
         if (!isModalOpen && !isDragging) {
-            fetch("{{ route('public.season.bracket.data', $season->id) }}")
+            fetch("{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}")
                 .then(r => r.json())
                 .then(res => {
                     if (res.success && res.matches) {

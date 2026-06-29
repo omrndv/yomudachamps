@@ -224,6 +224,6 @@ Route::get('/bracket-demo', function () {
     return view('pages.bracket_demo');
 })->name('bracket.demo');
 
-// Public Bracket Viewer Route
-Route::get('/season/{season_id}/bracket', [\App\Http\Controllers\BracketController::class, 'publicBracket'])->name('public.season.bracket');
-Route::get('/season/{season_id}/bracket/data', [\App\Http\Controllers\BracketController::class, 'getBracketData'])->name('public.season.bracket.data');
+// Public Bracket Viewer Route (Obfuscated slug)
+Route::get('/season/{slug}/bracket', [\App\Http\Controllers\BracketController::class, 'publicBracket'])->name('public.season.bracket');
+Route::get('/season/{slug}/bracket/data', [\App\Http\Controllers\BracketController::class, 'getBracketData'])->name('public.season.bracket.data');

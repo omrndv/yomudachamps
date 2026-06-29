@@ -842,7 +842,7 @@
         let pollingInterval = null;
 
         function fetchLatestBracketData() {
-            fetch("{{ route('public.season.bracket.data', $season->id) }}")
+            fetch("{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}")
                 .then(r => r.json())
                 .then(res => {
                     if (res.success && res.matches) {
