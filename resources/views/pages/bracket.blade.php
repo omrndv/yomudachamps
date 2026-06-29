@@ -356,6 +356,26 @@
             color: var(--accent-orange) !important;
         }
 
+        .bronze-match-wrapper {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .bronze-match-title {
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
         .round-connectors {
             position: absolute;
             top: 0;
@@ -520,12 +540,14 @@
     {{-- Bracket Field Wrapper --}}
     <div class="bracket-container" id="bracketContainer">
         @foreach($rounds as $roundNum => $matches)
+            @php
+                $isFinalRound = ($roundNum === $rounds->keys()->max());
+                $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
+                $roundHeight = 4600;
+                $matchesCount = $columnMatches->count();
+            @endphp
             <div class="bracket-round">
-                @php
-                    $roundHeight = 4600;
-                    $matchesCount = $matches->count();
-                @endphp
-                @foreach($matches as $match)
+                @foreach($columnMatches as $match)
                     <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
                         <div class="match-card-header">
                             <span>BRACKET {{ $match->match_number }}</span>
@@ -591,6 +613,42 @@
                 @endif
             </div>
         @endforeach
+
+        @php
+            $finalRoundNum = $rounds->keys()->max();
+            $bronzeMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 2)->first();
+        @endphp
+
+        @if($bronzeMatch)
+            <div class="bronze-match-wrapper">
+                <div class="bronze-match-title">3rd Place Match</div>
+                <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
+                    {{-- Team 1 Row --}}
+                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
+                        <div class="team-info">
+                            @if($bronzeMatch->team1)
+                                <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
+                            @else
+                                <span class="team-name text-muted italic">TBD</span>
+                            @endif
+                        </div>
+                        <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
+                    </div>
+
+                    {{-- Team 2 Row --}}
+                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
+                        <div class="team-info">
+                            @if($bronzeMatch->team2)
+                                <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
+                            @else
+                                <span class="team-name text-muted italic">TBD</span>
+                            @endif
+                        </div>
+                        <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <script>

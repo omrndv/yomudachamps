@@ -127,12 +127,14 @@
             <!-- Scrollable Bracket Canvas -->
             <div class="bracket-container" id="adminBracketContainer">
                 @foreach($rounds as $roundNum => $matches)
+                    @php
+                        $isFinalRound = ($roundNum === $rounds->keys()->max());
+                        $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
+                        $roundHeight = 4600;
+                        $matchesCount = $columnMatches->count();
+                    @endphp
                     <div class="bracket-round">
-                        @php
-                            $roundHeight = 4600;
-                            $matchesCount = $matches->count();
-                        @endphp
-                        @foreach($matches as $match)
+                        @foreach($columnMatches as $match)
                             <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
                                  id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
                                  onclick="openEditMatchModal({{ json_encode([
@@ -166,7 +168,7 @@
                                      data-slot="1"
                                      data-round="{{ $match->round_number }}"
                                      @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
-                                    <div class="team-info">
+                                     <div class="team-info">
                                         @if($match->team1)
                                             <span class="team-name text-dark fw-semibold">{{ $match->team1->name }}</span>
                                         @else
@@ -184,7 +186,7 @@
                                      data-slot="2"
                                      data-round="{{ $match->round_number }}"
                                      @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
-                                    <div class="team-info">
+                                     <div class="team-info">
                                         @if($match->team2)
                                             <span class="team-name text-dark fw-semibold">{{ $match->team2->name }}</span>
                                         @else
@@ -216,6 +218,65 @@
                         @endif
                     </div>
                 @endforeach
+
+                @php
+                    $finalRoundNum = $rounds->keys()->max();
+                    $bronzeMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 2)->first();
+                @endphp
+
+                @if($bronzeMatch)
+                    <div class="bronze-match-wrapper">
+                        <div class="bronze-match-title">3rd Place Match</div>
+                        <div class="match-card {{ $bronzeMatch->status === 'live' ? 'border-primary' : '' }}" 
+                             id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}"
+                             onclick="openEditMatchModal({{ json_encode([
+                                 'id' => $bronzeMatch->id,
+                                 'team1_name' => $bronzeMatch->team1 ? $bronzeMatch->team1->name : 'TBD',
+                                 'team2_name' => $bronzeMatch->team2 ? $bronzeMatch->team2->name : 'TBD',
+                                 'team1_score' => $bronzeMatch->team1_score,
+                                 'team2_score' => $bronzeMatch->team2_score,
+                                 'match_time' => $bronzeMatch->match_time ?? '',
+                                 'status' => $bronzeMatch->status,
+                                 'team1_exists' => (bool)$bronzeMatch->team1_id,
+                                 'team2_exists' => (bool)$bronzeMatch->team2_id
+                             ]) }})">
+                            
+                            {{-- Team 1 Row --}}
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
+                                 data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
+                                 data-team-name="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->name) : '' }}"
+                                 data-match-id="{{ $bronzeMatch->id }}"
+                                 data-slot="1"
+                                 data-round="{{ $bronzeMatch->round_number }}">
+                                 <div class="team-info">
+                                    @if($bronzeMatch->team1)
+                                        <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team1->name }}</span>
+                                    @else
+                                        <span class="team-name text-muted italic">Belum Ada Tim</span>
+                                    @endif
+                                </div>
+                                <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
+                            </div>
+
+                            {{-- Team 2 Row --}}
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
+                                 data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
+                                 data-team-name="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->name) : '' }}"
+                                 data-match-id="{{ $bronzeMatch->id }}"
+                                 data-slot="2"
+                                 data-round="{{ $bronzeMatch->round_number }}">
+                                 <div class="team-info">
+                                    @if($bronzeMatch->team2)
+                                        <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team2->name }}</span>
+                                    @else
+                                        <span class="team-name text-muted italic">Belum Ada Tim</span>
+                                    @endif
+                                </div>
+                                <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     @endif
@@ -647,6 +708,26 @@
     @keyframes pulse {
         from { opacity: 0.6; }
         to { opacity: 1; }
+    }
+
+    .bronze-match-wrapper {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 50;
+    }
+
+    .bronze-match-title {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: #f97316;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        text-align: center;
     }
 </style>
 
