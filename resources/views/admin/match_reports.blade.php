@@ -165,6 +165,15 @@
         const modalPreview = new bootstrap.Modal(document.getElementById('modalImagePreview'));
         const previewImg = document.getElementById('previewImageSrc');
 
+        // Preload all screenshot images in the background on page load
+        document.querySelectorAll('.preview-trigger').forEach(trigger => {
+            const src = trigger.getAttribute('data-img');
+            if (src) {
+                const img = new Image();
+                img.src = src;
+            }
+        });
+
         document.querySelectorAll('.preview-trigger').forEach(trigger => {
             trigger.addEventListener('click', function(e) {
                 e.preventDefault();
