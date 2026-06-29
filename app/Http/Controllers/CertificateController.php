@@ -179,9 +179,9 @@ class CertificateController extends Controller
     }
 
     /**
-     * Inisialisasi status pembuatan sertifikat masal (Session/Cache-based)
+     * Generate Sertifikat Masal & Unggah langsung ke Google Drive Folder
      */
-    public function initGeneration(Request $request, $season_id)
+    public function generateToDrive(Request $request, $season_id)
     {
         $season = Season::findOrFail($season_id);
         $layout = CertificateLayout::where('season_id', $season_id)->first();
@@ -198,70 +198,17 @@ class CertificateController extends Controller
             'drive_link' => 'required|string',
         ]);
 
+        // Extract Google Drive Folder ID from URL
         $folderId = $this->extractFolderId($request->drive_link);
         if (!$folderId) {
             return response()->json(['success' => false, 'message' => 'Format link Google Drive Folder tidak valid.'], 400);
         }
 
-        $teams = Team::where('season_id', $season_id)
-            ->where('status', 'PAID')
-            ->select('id', 'name')
-            ->get();
-
-        if ($teams->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada tim terdaftar yang lunas (PAID) untuk season ini.'], 400);
+        // Check if generation is already running
+        if (\Illuminate\Support\Facades\Cache::get("cert_gen_status_{$season_id}") === 'running') {
+            return response()->json(['success' => true, 'message' => 'Proses sinkronisasi sedang berjalan di latar belakang.']);
         }
 
-        $state = [
-            'status' => 'processing',
-            'season_id' => $season_id,
-            'drive_link' => $request->drive_link,
-            'folder_id' => $folderId,
-            'teams' => $teams->toArray(),
-            'total' => $teams->count(),
-            'current_index' => 0,
-            'success_count' => 0,
-            'logs' => [
-                "[" . date('H:i:s') . "] 🚀 Memulai pencocokan data...",
-                "[" . date('H:i:s') . "] 📂 Folder tujuan Google Drive tervalidasi.",
-                "[" . date('H:i:s') . "] 👥 Ditemukan " . $teams->count() . " tim berstatus LUNAS (PAID)."
-            ]
-        ];
-
-        Cache::put("cert_gen_{$season_id}", $state, 1800); // 30 minutes TTL
-
-        // Save current season ID in session for redirect callback logic helper
-        session(['current_cert_season_id' => $season_id]);
-
-        return response()->json([
-            'success' => true,
-            'state' => $state
-        ]);
-    }
-
-    /**
-     * Proses batch tim satu per satu secara asinkron
-     */
-    public function processBatch($season_id)
-    {
-        $state = Cache::get("cert_gen_{$season_id}");
-        if (!$state || $state['status'] !== 'processing') {
-            return response()->json(['success' => false, 'message' => 'Tidak ada proses pembuatan sertifikat yang aktif.'], 400);
-        }
-
-        $layout = CertificateLayout::where('season_id', $season_id)->first();
-        $currentIndex = $state['current_index'];
-        $teams = $state['teams'];
-
-        if ($currentIndex >= count($teams)) {
-            $state['status'] = 'completed';
-            $state['logs'][] = "[" . date('H:i:s') . "] 🎉 Selesai! Seluruh sertifikat berhasil diproses.";
-            Cache::put("cert_gen_{$season_id}", $state, 1800);
-            return response()->json(['success' => true, 'state' => $state]);
-        }
-
-        $team = $teams[$currentIndex];
-        
         // Initialize Google Service
         $client = $this->getGoogleClient();
         $client->setAccessToken(Session::get('google_oauth_token'));
@@ -273,117 +220,178 @@ class CertificateController extends Controller
                 return response()->json(['success' => false, 'message' => 'Sesi Google Drive telah habis. Hubungkan ulang akun Anda.'], 401);
             }
         }
-        $driveService = new GoogleDriveService($client);
 
-        $templateFullPath = public_path($layout->template_path);
-        $fontFullPath = $layout->font_path ? storage_path('app/' . $layout->font_path) : null;
-        $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
-        
-        $tempDir = storage_path('app/temp_certs');
-        if (!file_exists($tempDir)) {
-            mkdir($tempDir, 0755, true);
+        // Fetch paid teams/members
+        $teams = Team::where('season_id', $season_id)
+            ->where('status', 'PAID')
+            ->get();
+
+        if ($teams->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada tim terdaftar yang lunas (PAID) untuk season ini.'], 400);
         }
+
+        // Send early response to browser, then continue in background
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        ob_start();
+        echo json_encode([
+            'success' => true,
+            'message' => 'Proses sinkronisasi sertifikat berhasil dimulai di latar belakang!'
+        ]);
+        $size = ob_get_length();
+        header("Content-Length: $size");
+        header('Connection: close');
+        header('Content-Type: application/json');
+        ob_end_flush();
+        ob_flush();
+        flush();
+
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        }
+
+        // --- BACKGROUND EXECUTION ---
+        ignore_user_abort(true);
+        set_time_limit(0);
+
+        \Illuminate\Support\Facades\Cache::put("cert_gen_status_{$season_id}", 'running', 1800);
+        \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$season_id}", 0, 1800);
+        \Illuminate\Support\Facades\Cache::forget("cert_gen_logs_{$season_id}");
+
+        $this->writeGenLog($season_id, "🚀 Memulai proses sinkronisasi sertifikat...");
+        $this->writeGenLog($season_id, "Membaca berkas di folder Google Drive tujuan...");
 
         try {
-            $fileName = 'Sertifikat - ' . $team['name'] . ($isPdf ? '.pdf' : '.jpg');
-            $tempFilePath = $tempDir . '/' . $fileName;
+            $driveService = new GoogleDriveService($client);
 
-            if ($isPdf) {
-                $pdf = new Fpdi();
-                $pageCount = $pdf->setSourceFile($templateFullPath);
-                $tplIdx = $pdf->importPage(1);
-                $specs = $pdf->getTemplateSize($tplIdx);
-                $width = $specs['width'];
-                $height = $specs['height'];
-
-                $orientation = ($width > $height) ? 'L' : 'P';
-                $pdf->AddPage($orientation, [$width, $height]);
-                $pdf->useTemplate($tplIdx);
-
-                $posX = ($layout->pos_x / 100) * $width;
-                $posY = ($layout->pos_y / 100) * $height;
-
-                $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
-
-                $hex = str_replace('#', '', $layout->font_color);
-                $r = hexdec(substr($hex, 0, 2));
-                $g = hexdec(substr($hex, 2, 2));
-                $b = hexdec(substr($hex, 4, 2));
-                $pdf->SetTextColor($r, $g, $b);
-
-                $pdf->SetXY(0, $posY - 5);
-                $pdf->Cell($width, 10, $team['name'], 0, 0, 'C');
-
-                $pdf->Output('F', $tempFilePath);
-            } else {
-                $img = Image::make($templateFullPath);
-                $width = $img->width();
-                $height = $img->height();
-
-                $posX = ($layout->pos_x / 100) * $width;
-                $posY = ($layout->pos_y / 100) * $height;
-
-                $img->text($team['name'], $posX, $posY, function($font) use ($fontFullPath, $layout) {
-                    if ($fontFullPath && file_exists($fontFullPath)) {
-                        $font->file($fontFullPath);
-                    } else {
-                        $font->file(public_path('fonts/Poppins-Bold.ttf'));
-                    }
-                    $font->size($layout->font_size);
-                    $font->color($layout->font_color);
-                    $font->align('center');
-                    $font->valign('middle');
-                });
-
-                $img->save($tempFilePath, 90);
+            // Fetch existing certificates in the folder
+            $query = "'{$folderId}' in parents and trashed = false";
+            $optParams = [
+                'q' => $query,
+                'fields' => 'files(name)',
+                'pageSize' => 1000
+            ];
+            $results = $driveService->files->listFiles($optParams);
+            
+            $existingFiles = [];
+            foreach ($results->getFiles() as $file) {
+                $existingFiles[$file->getName()] = true;
             }
 
-            // Upload to Google Drive Folder
-            $fileMetadata = new DriveFile([
-                'name' => $fileName,
-                'parents' => [$state['folder_id']]
-            ]);
+            $existingCount = count($existingFiles);
+            $this->writeGenLog($season_id, "✅ Folder Drive terhubung. Absen file dimuat: {$existingCount} file ditemukan.");
 
-            $content = file_get_contents($tempFilePath);
-            $mimeType = $isPdf ? 'application/pdf' : 'image/jpeg';
-            
-            $driveService->files->create($fileMetadata, [
-                'data' => $content,
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id'
-            ]);
+            // Prepare local template and font path
+            $templateFullPath = public_path($layout->template_path);
+            $fontFullPath = $layout->font_path ? storage_path('app/' . $layout->font_path) : null;
+            $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
 
-            @unlink($tempFilePath);
-            
-            $state['success_count']++;
-            $state['logs'][] = "[" . date('H:i:s') . "] 🔨 DIBUAT BARU: " . $team['name'];
+            // Create temporary directory for certificate output
+            $tempDir = storage_path('app/temp_certs');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            $totalTeams = $teams->count();
+            $processedCount = 0;
+            $successCount = 0;
+            $skippedCount = 0;
+
+            foreach ($teams as $team) {
+                $processedCount++;
+                $progressPercent = round(($processedCount / $totalTeams) * 100);
+
+                // Generate filename
+                $fileName = 'Sertifikat - ' . $team->name . ($isPdf ? '.pdf' : '.jpg');
+                $tempFilePath = $tempDir . '/' . $fileName;
+
+                // Check if file already exists in folder
+                if (isset($existingFiles[$fileName])) {
+                    $this->writeGenLog($season_id, "✅ SKIP (Sudah ada): " . $team->name, $progressPercent);
+                    $skippedCount++;
+                    continue;
+                }
+
+                // If not exist, generate and upload
+                try {
+                    if ($isPdf) {
+                        $pdf = new Fpdi();
+                        $pageCount = $pdf->setSourceFile($templateFullPath);
+                        $tplIdx = $pdf->importPage(1);
+                        $specs = $pdf->getTemplateSize($tplIdx);
+                        $width = $specs['width'];
+                        $height = $specs['height'];
+
+                        $orientation = ($width > $height) ? 'L' : 'P';
+                        $pdf->AddPage($orientation, [$width, $height]);
+                        $pdf->useTemplate($tplIdx);
+
+                        $posX = ($layout->pos_x / 100) * $width;
+                        $posY = ($layout->pos_y / 100) * $height;
+
+                        $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
+
+                        $hex = str_replace('#', '', $layout->font_color);
+                        $r = hexdec(substr($hex, 0, 2));
+                        $g = hexdec(substr($hex, 2, 2));
+                        $b = hexdec(substr($hex, 4, 2));
+                        $pdf->SetTextColor($r, $g, $b);
+
+                        $pdf->SetXY(0, $posY - 5);
+                        $pdf->Cell($width, 10, $team->name, 0, 0, 'C');
+
+                        $pdf->Output('F', $tempFilePath);
+                    } else {
+                        $img = Image::make($templateFullPath);
+                        $width = $img->width();
+                        $height = $img->height();
+                        $posX = ($layout->pos_x / 100) * $width;
+                        $posY = ($layout->pos_y / 100) * $height;
+
+                        $img->text($team->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
+                            if ($fontFullPath && file_exists($fontFullPath)) {
+                                    $font->file($fontFullPath);
+                            }
+                            $font->size($layout->font_size);
+                            $font->color($layout->font_color);
+                            $font->align('center');
+                            $font->valign('middle');
+                        });
+                        $img->save($tempFilePath, 90);
+                    }
+
+                    // Upload to Google Drive
+                    $fileMetadata = new DriveFile([
+                        'name' => $fileName,
+                        'parents' => [$folderId]
+                    ]);
+
+                    $content = file_get_contents($tempFilePath);
+                    $mimeType = $isPdf ? 'application/pdf' : 'image/jpeg';
+                    
+                    $driveService->files->create($fileMetadata, [
+                        'data' => $content,
+                        'mimeType' => $mimeType,
+                        'uploadType' => 'multipart',
+                        'fields' => 'id'
+                    ]);
+
+                    @unlink($tempFilePath);
+                    $successCount++;
+                    $this->writeGenLog($season_id, "🔨 DIBUAT BARU: " . $team->name, $progressPercent);
+                } catch (\Exception $e) {
+                    $this->writeGenLog($season_id, "❌ GAGAL MEMPROSES: " . $team->name . " (" . $e->getMessage() . ")", $progressPercent);
+                }
+            }
+
+            $this->writeGenLog($season_id, "🎉 Selesai! Folder sudah bersih dan lengkap. ({$successCount} dibuat baru, {$skippedCount} di-skip, {$totalTeams} total)");
         } catch (\Exception $e) {
-            $state['logs'][] = "[" . date('H:i:s') . "] ❌ Gagal membuat: " . $team['name'] . " (" . $e->getMessage() . ")";
+            $this->writeGenLog($season_id, "🚨 Error proses latar belakang: " . $e->getMessage());
+        } finally {
+            \Illuminate\Support\Facades\Cache::put("cert_gen_status_{$season_id}", 'idle', 1800);
+            \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$season_id}", 100, 1800);
         }
-
-        $state['current_index']++;
-        
-        if ($state['current_index'] >= count($teams)) {
-            $state['status'] = 'completed';
-            $state['logs'][] = "[" . date('H:i:s') . "] 🎉 Selesai! Folder sudah bersih dan lengkap.";
-        }
-
-        Cache::put("cert_gen_{$season_id}", $state, 1800);
-
-        return response()->json(['success' => true, 'state' => $state]);
-    }
-
-    /**
-     * Dapatkan status & log proses pembuatan sertifikat saat ini
-     */
-    public function getGenerationStatus($season_id)
-    {
-        $state = Cache::get("cert_gen_{$season_id}");
-        return response()->json([
-            'success' => true,
-            'state' => $state
-        ]);
     }
 
     /**
@@ -448,8 +456,6 @@ class CertificateController extends Controller
                 $img->text($request->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
                     if ($fontFullPath && file_exists($fontFullPath)) {
                         $font->file($fontFullPath);
-                    } else {
-                        $font->file(public_path('fonts/Poppins-Bold.ttf'));
                     }
                     $font->size($layout->font_size);
                     $font->color($layout->font_color);
@@ -462,6 +468,31 @@ class CertificateController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memproses sertifikat: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Tulis log aktivitas sinkronisasi sertifikat ke Cache
+     */
+    private function writeGenLog($seasonId, $message, $progress = null)
+    {
+        $logs = \Illuminate\Support\Facades\Cache::get("cert_gen_logs_{$seasonId}", []);
+        $logs[] = "[" . date('H:i:s') . "] " . $message;
+        \Illuminate\Support\Facades\Cache::put("cert_gen_logs_{$seasonId}", $logs, 1800);
+        if ($progress !== null) {
+            \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$seasonId}", $progress, 1800);
+        }
+    }
+
+    /**
+     * Endpoint polling untuk mendapatkan status & log aktivitas sinkronisasi sertifikat (JSON)
+     */
+    public function getLogs($season_id)
+    {
+        return response()->json([
+            'status' => \Illuminate\Support\Facades\Cache::get("cert_gen_status_{$season_id}", 'idle'),
+            'progress' => \Illuminate\Support\Facades\Cache::get("cert_gen_progress_{$season_id}", 0),
+            'logs' => \Illuminate\Support\Facades\Cache::get("cert_gen_logs_{$season_id}", [])
+        ]);
     }
 
     /**

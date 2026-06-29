@@ -188,15 +188,16 @@
                             <span id="progressText">Memproses sertifikat...</span>
                             <span id="progressPercent" class="fw-bold">0%</span>
                         </div>
-                        <div class="progress rounded-pill" style="height: 8px;">
+                        <div class="progress rounded-pill mb-3" style="height: 8px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger rounded-pill" id="progressBar" role="progressbar" style="width: 0%;"></div>
                         </div>
-                    </div>
 
-                    {{-- Terminal Logger Console --}}
-                    <div class="mt-3" id="terminalContainer" style="display: none;">
-                        <label class="form-label small fw-bold text-secondary">Terminal Log Aktivitas</label>
-                        <div id="terminalConsole" class="bg-dark text-success p-3 rounded-3 font-monospace shadow-sm" style="height: 180px; overflow-y: auto; font-size: 0.72rem; line-height: 1.5; border: 1px solid #111;"></div>
+                        {{-- Terminal Console Log --}}
+                        <div class="bg-dark text-success p-3 rounded-3 font-monospace small overflow-y-auto" 
+                             id="terminalConsole" 
+                             style="max-height: 200px; font-size: 0.72rem; line-height: 1.4; border: 1px solid #334155;">
+                            [SYSTEM] Menunggu pemrosesan...
+                        </div>
                     </div>
                 @endif
             </div>
@@ -315,101 +316,107 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Responsif Font Size Live Preview
+        function updatePreviewFontSize() {
+            let originalWidth = 1920; // default fallback
+            if (templateImg && templateImg.complete && templateImg.naturalWidth) {
+                originalWidth = templateImg.naturalWidth;
+            } else if (pdfCanvas) {
+                originalWidth = pdfCanvas.width || 1920;
+            }
+
+            const currentWidth = wrapper.clientWidth;
+            const size = inputFontSize.value;
+
+            if (originalWidth && currentWidth) {
+                const scale = currentWidth / originalWidth;
+                draggable.style.fontSize = (size * scale) + 'px';
+            } else {
+                draggable.style.fontSize = `calc(${size}px * 0.4)`;
+            }
+        }
+
+        if (templateImg) {
+            templateImg.addEventListener('load', updatePreviewFontSize);
+        }
+        window.addEventListener('resize', updatePreviewFontSize);
+
         if (inputFontSize) {
             inputFontSize.addEventListener('input', function() {
-                const size = this.value;
-                draggable.style.fontSize = `calc(${size}px * 0.4)`;
+                updatePreviewFontSize();
             });
         }
 
-        // Responsif Font Color Live Preview
         if (inputFontColor) {
             inputFontColor.addEventListener('input', function() {
                 const color = this.value;
                 draggable.style.color = color;
             });
         }
+
+        // Run once initially
+        setTimeout(updatePreviewFontSize, 600);
     }
 
     // -------------------------------------------------------------
-    // SINKRONISASI & GENERATE MASAL KE GOOGLE DRIVE
+    // SINKRONISASI & GENERATE MASAL KE GOOGLE DRIVE (CONSOLE LOG POLLING)
     // -------------------------------------------------------------
     const btnGenerateToDrive = document.getElementById('btnGenerateToDrive');
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    const progressPercent = document.getElementById('progressPercent');
-    const progressText = document.getElementById('progressText');
-    const terminalContainer = document.getElementById('terminalContainer');
-    const terminalConsole = document.getElementById('terminalConsole');
+    let pollInterval = null;
 
-    function updateTerminal(logs) {
-        if (!terminalConsole) return;
-        terminalConsole.innerHTML = logs.map(log => `<div>${log}</div>`).join('');
-        terminalConsole.scrollTop = terminalConsole.scrollHeight;
-    }
+    function startLogPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressText = document.getElementById('progressText');
+        const terminalConsole = document.getElementById('terminalConsole');
+        
+        progressContainer.style.display = 'block';
+        if (btnGenerateToDrive) btnGenerateToDrive.disabled = true;
 
-    function checkActiveGeneration() {
-        fetch("{{ route('admin.season.certificate.status', $season->id) }}")
-        .then(r => r.json())
-        .then(res => {
-            if (res.success && res.state && res.state.status === 'processing') {
-                // Resume generation!
-                showProgressUI(true);
-                updateProgress(res.state);
-                processNextBatch();
-            }
-        })
-        .catch(err => console.error('Error checking active status:', err));
-    }
-
-    function showProgressUI(show) {
-        if (progressContainer) progressContainer.style.display = show ? 'block' : 'none';
-        if (terminalContainer) terminalContainer.style.display = show ? 'block' : 'none';
-        if (btnGenerateToDrive) btnGenerateToDrive.disabled = show;
-    }
-
-    function updateProgress(state) {
-        const percent = Math.round((state.current_index / state.total) * 100);
-        if (progressBar) progressBar.style.width = percent + '%';
-        if (progressPercent) progressPercent.textContent = percent + '%';
-        if (progressText) progressText.textContent = `Memproses: ${state.current_index} dari ${state.total} sertifikat...`;
-        updateTerminal(state.logs);
-    }
-
-    function processNextBatch() {
-        fetch("{{ route('admin.season.certificate.process-batch', $season->id) }}", {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success && res.state) {
-                updateProgress(res.state);
+        pollInterval = setInterval(() => {
+            fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
+            .then(r => r.json())
+            .then(res => {
+                // Update Progress
+                progressBar.style.width = res.progress + '%';
+                progressPercent.textContent = res.progress + '%';
                 
-                if (res.state.status === 'processing') {
-                    // Continue loop
-                    processNextBatch();
-                } else if (res.state.status === 'completed') {
-                    // Completed!
-                    setTimeout(() => {
-                        alert('Proses pembuatan sertifikat selesai!');
-                        showProgressUI(false);
-                    }, 500);
+                // Update Console Logs
+                if (res.logs && res.logs.length > 0) {
+                    terminalConsole.innerHTML = res.logs.map(log => {
+                        let colorClass = 'text-success';
+                        if (log.includes('❌') || log.includes('🚨')) colorClass = 'text-danger';
+                        if (log.includes('✅') || log.includes('🎉')) colorClass = 'text-info';
+                        return `<div class="mb-1 ${colorClass}">${log}</div>`;
+                    }).join('');
+                    
+                    // Auto-scroll to bottom of terminal
+                    terminalConsole.scrollTop = terminalConsole.scrollHeight;
                 }
-            } else {
-                alert('Terjadi kesalahan: ' + res.message);
-                showProgressUI(false);
-            }
-        })
-        .catch(err => {
-            console.error('Error processing batch:', err);
-            alert('Koneksi terputus atau server mengalami timeout. Mencoba kembali dalam 3 detik...');
-            setTimeout(processNextBatch, 3000);
-        });
+
+                if (res.status === 'idle') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    if (btnGenerateToDrive) btnGenerateToDrive.disabled = false;
+                    progressText.textContent = 'Sinkronisasi Selesai!';
+                } else {
+                    progressText.textContent = 'Sedang mensinkronisasi sertifikat...';
+                }
+            })
+            .catch(err => console.error('Error polling logs:', err));
+        }, 1000);
     }
+
+    // Check initially if generation is already running (persists on refresh!)
+    fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
+    .then(r => r.json())
+    .then(res => {
+        if (res.status === 'running') {
+            startLogPolling();
+        }
+    });
 
     if (btnGenerateToDrive) {
         btnGenerateToDrive.addEventListener('click', function() {
@@ -421,13 +428,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            showProgressUI(true);
-            updateTerminal(['Menghubungkan ke server... 🚀']);
-
             const formData = new FormData();
             formData.append('drive_link', driveLink);
 
-            fetch("{{ route('admin.season.certificate.init-drive', $season->id) }}", {
+            if (btnGenerateToDrive) btnGenerateToDrive.disabled = true;
+
+            fetch("{{ route('admin.season.certificate.generate-drive', $season->id) }}", {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -437,24 +443,21 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(r => r.json())
             .then(res => {
-                if (res.success && res.state) {
-                    updateProgress(res.state);
-                    processNextBatch();
+                if (res.success) {
+                    // Start log polling instantly
+                    startLogPolling();
                 } else {
-                    alert('Gagal inisialisasi: ' + res.message);
-                    showProgressUI(false);
+                    alert('Gagal: ' + res.message);
+                    if (btnGenerateToDrive) btnGenerateToDrive.disabled = false;
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Gagal menghubungkan ke server.');
-                showProgressUI(false);
+                alert('Gagal memulai proses sinkronisasi.');
+                if (btnGenerateToDrive) btnGenerateToDrive.disabled = false;
             });
         });
     }
-
-    // Panggil saat halaman dimuat untuk mengecek/resume jika ada proses yang berjalan
-    checkActiveGeneration();
 
     // Client-side image compressor for "waswuss" upload of templates
     function compressTemplateImage(file, maxWidth, quality) {
