@@ -358,8 +358,9 @@
 
         .bronze-match-wrapper {
             position: absolute;
-            bottom: 40px;
-            right: 40px;
+            top: calc(50% + 100px);
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -611,44 +612,40 @@
                         @endfor
                     </svg>
                 @endif
+
+                {{-- Render Bronze Match inside the final column --}}
+                @if($isFinalRound && $bronzeMatch)
+                    <div class="bronze-match-wrapper">
+                        <div class="bronze-match-title">3rd Place Match</div>
+                        <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
+                            {{-- Team 1 Row --}}
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
+                                <div class="team-info">
+                                    @if($bronzeMatch->team1)
+                                        <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
+                                    @else
+                                        <span class="team-name text-muted italic">TBD</span>
+                                    @endif
+                                </div>
+                                <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
+                            </div>
+
+                            {{-- Team 2 Row --}}
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
+                                <div class="team-info">
+                                    @if($bronzeMatch->team2)
+                                        <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
+                                    @else
+                                        <span class="team-name text-muted italic">TBD</span>
+                                    @endif
+                                </div>
+                                <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         @endforeach
-
-        @php
-            $finalRoundNum = $rounds->keys()->max();
-            $bronzeMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 2)->first();
-        @endphp
-
-        @if($bronzeMatch)
-            <div class="bronze-match-wrapper">
-                <div class="bronze-match-title">3rd Place Match</div>
-                <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
-                    {{-- Team 1 Row --}}
-                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
-                        <div class="team-info">
-                            @if($bronzeMatch->team1)
-                                <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
-                            @else
-                                <span class="team-name text-muted italic">TBD</span>
-                            @endif
-                        </div>
-                        <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
-                    </div>
-
-                    {{-- Team 2 Row --}}
-                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
-                        <div class="team-info">
-                            @if($bronzeMatch->team2)
-                                <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
-                            @else
-                                <span class="team-name text-muted italic">TBD</span>
-                            @endif
-                        </div>
-                        <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
-                    </div>
-                </div>
-            </div>
-        @endif
     </div>
 
     <script>

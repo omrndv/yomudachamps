@@ -216,67 +216,63 @@
                                 @endfor
                             </svg>
                         @endif
+
+                        {{-- Render Bronze Match inside the final column --}}
+                        @if($isFinalRound && $bronzeMatch)
+                            <div class="bronze-match-wrapper">
+                                <div class="bronze-match-title">3rd Place Match</div>
+                                <div class="match-card {{ $bronzeMatch->status === 'live' ? 'border-primary' : '' }}" 
+                                     id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}"
+                                     onclick="openEditMatchModal({{ json_encode([
+                                         'id' => $bronzeMatch->id,
+                                         'team1_name' => $bronzeMatch->team1 ? $bronzeMatch->team1->name : 'TBD',
+                                         'team2_name' => $bronzeMatch->team2 ? $bronzeMatch->team2->name : 'TBD',
+                                         'team1_score' => $bronzeMatch->team1_score,
+                                         'team2_score' => $bronzeMatch->team2_score,
+                                         'match_time' => $bronzeMatch->match_time ?? '',
+                                         'status' => $bronzeMatch->status,
+                                         'team1_exists' => (bool)$bronzeMatch->team1_id,
+                                         'team2_exists' => (bool)$bronzeMatch->team2_id
+                                     ]) }})">
+                                    
+                                    {{-- Team 1 Row --}}
+                                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
+                                         data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
+                                         data-team-name="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->name) : '' }}"
+                                         data-match-id="{{ $bronzeMatch->id }}"
+                                         data-slot="1"
+                                         data-round="{{ $bronzeMatch->round_number }}">
+                                         <div class="team-info">
+                                            @if($bronzeMatch->team1)
+                                                <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team1->name }}</span>
+                                            @else
+                                                <span class="team-name text-muted italic">Belum Ada Tim</span>
+                                            @endif
+                                        </div>
+                                        <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
+                                    </div>
+
+                                    {{-- Team 2 Row --}}
+                                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
+                                         data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
+                                         data-team-name="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->name) : '' }}"
+                                         data-match-id="{{ $bronzeMatch->id }}"
+                                         data-slot="2"
+                                         data-round="{{ $bronzeMatch->round_number }}">
+                                         <div class="team-info">
+                                            @if($bronzeMatch->team2)
+                                                <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team2->name }}</span>
+                                            @else
+                                                <span class="team-name text-muted italic">Belum Ada Tim</span>
+                                            @endif
+                                        </div>
+                                        <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
-
-                @php
-                    $finalRoundNum = $rounds->keys()->max();
-                    $bronzeMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 2)->first();
-                @endphp
-
-                @if($bronzeMatch)
-                    <div class="bronze-match-wrapper">
-                        <div class="bronze-match-title">3rd Place Match</div>
-                        <div class="match-card {{ $bronzeMatch->status === 'live' ? 'border-primary' : '' }}" 
-                             id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}"
-                             onclick="openEditMatchModal({{ json_encode([
-                                 'id' => $bronzeMatch->id,
-                                 'team1_name' => $bronzeMatch->team1 ? $bronzeMatch->team1->name : 'TBD',
-                                 'team2_name' => $bronzeMatch->team2 ? $bronzeMatch->team2->name : 'TBD',
-                                 'team1_score' => $bronzeMatch->team1_score,
-                                 'team2_score' => $bronzeMatch->team2_score,
-                                 'match_time' => $bronzeMatch->match_time ?? '',
-                                 'status' => $bronzeMatch->status,
-                                 'team1_exists' => (bool)$bronzeMatch->team1_id,
-                                 'team2_exists' => (bool)$bronzeMatch->team2_id
-                             ]) }})">
-                            
-                            {{-- Team 1 Row --}}
-                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
-                                 data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
-                                 data-team-name="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->name) : '' }}"
-                                 data-match-id="{{ $bronzeMatch->id }}"
-                                 data-slot="1"
-                                 data-round="{{ $bronzeMatch->round_number }}">
-                                 <div class="team-info">
-                                    @if($bronzeMatch->team1)
-                                        <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team1->name }}</span>
-                                    @else
-                                        <span class="team-name text-muted italic">Belum Ada Tim</span>
-                                    @endif
-                                </div>
-                                <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
-                            </div>
-
-                            {{-- Team 2 Row --}}
-                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
-                                 data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
-                                 data-team-name="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->name) : '' }}"
-                                 data-match-id="{{ $bronzeMatch->id }}"
-                                 data-slot="2"
-                                 data-round="{{ $bronzeMatch->round_number }}">
-                                 <div class="team-info">
-                                    @if($bronzeMatch->team2)
-                                        <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team2->name }}</span>
-                                    @else
-                                        <span class="team-name text-muted italic">Belum Ada Tim</span>
-                                    @endif
-                                </div>
-                                <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </div>
         </div>
     @endif
