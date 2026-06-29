@@ -25,13 +25,25 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yomuda.png') }}">
 
+    <!-- Performance Optimizations: DNS Prefetch & Preconnect -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload Critical Background Images Responsively to Prevent Rendering Delay -->
+    <link rel="preload" as="image" href="/images/bg-mobile.jpg" media="(max-width: 768px)">
+    <link rel="preload" as="image" href="/images/bg-yomuda.jpg" media="(min-width: 769px)">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Defer non-critical scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
     <meta name="google-site-verification" content="ErJnugnESZ9vYec5vVLW1evAKh6SQ5xJTG_jlY2WzOg">
 
@@ -155,9 +167,8 @@
 
     @include('components.footer')
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @if(session('success') || session('error') || session('info'))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const Toast = Swal.mixin({
@@ -194,6 +205,7 @@
             @endif
         });
     </script>
+    @endif
 
     @stack('scripts')
 </body>
