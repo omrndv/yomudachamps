@@ -16,7 +16,9 @@ class Season extends Model
         'slot', 
         'is_open',
         'poster',     
-        'prize_pool'
+        'prize_pool',
+        'rules_link',
+        'schedule_info'
     ];
 
     public function teams(): HasMany

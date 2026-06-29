@@ -206,6 +206,22 @@ class BracketController extends Controller
     }
 
     /**
+     * Tampilkan halaman landing page season publik (obfuscated slug)
+     */
+    public function seasonLanding($slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) abort(404);
+
+        $season = Season::findOrFail($season_id);
+        
+        $brackets = Bracket::where('season_id', $season_id)->get();
+        $rounds = $brackets->groupBy('round_number');
+
+        return view('pages.season_landing', compact('season', 'rounds', 'brackets', 'slug'));
+    }
+
+    /**
      * Rilis halaman publik bagan tanding untuk season tertentu
      */
     public function publicBracket($slug)

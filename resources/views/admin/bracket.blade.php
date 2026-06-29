@@ -452,8 +452,13 @@
             </div>
             <div class="modal-body p-4">
                 <p class="text-secondary small mb-3">Salin daftar tim lunas di bawah untuk di-import langsung ke Challonge (satu tim per baris) sebagai cadangan.</p>
-                <textarea class="form-control bg-light" id="teamsListArea" rows="10" readonly style="font-family: monospace; font-size: 0.85rem;">@foreach($teams as $t){{ $t->name }}
-@endforeach</textarea>
+                <textarea class="form-control bg-light" id="teamsListArea" rows="10" readonly style="font-family: monospace; font-size: 0.85rem;">@php
+                    $babak1Matches = $brackets->where('round_number', 1)->sortBy('match_number');
+                    foreach($babak1Matches as $m) {
+                        echo ($m->team1 ? $m->team1->name : 'BYE') . "\n";
+                        echo ($m->team2 ? $m->team2->name : 'BYE') . "\n";
+                    }
+                @endphp</textarea>
             </div>
             <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
                 <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill" data-bs-dismiss="modal">Tutup</button>

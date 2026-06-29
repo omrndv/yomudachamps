@@ -206,6 +206,16 @@
                                 <input type="url" name="wa_link" class="form-control rounded-3 shadow-none border-light-subtle" value="{{ $season->wa_link }}">
                             </div>
 
+                            <div class="mb-3">
+                                <label class="small fw-bold text-secondary mb-1 text-uppercase">Link Rules (Google Drive PDF)</label>
+                                <input type="url" name="rules_link" class="form-control rounded-3 shadow-none border-light-subtle" value="{{ $season->rules_link }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-bold text-secondary mb-1 text-uppercase">Informasi Jadwal Rentang Waktu (Optional)</label>
+                                <textarea name="schedule_info" class="form-control rounded-3 shadow-none border-light-subtle" rows="3" placeholder="Contoh:&#10;Babak 1: 20:00 - 20:40 WIB&#10;Babak 2: 20:40 - 21:20 WIB">{{ $season->schedule_info }}</textarea>
+                            </div>
+
                             <div class="mb-0">
                                 <label class="small fw-bold text-secondary mb-1 text-uppercase">Pendaftaran</label>
                                 <select name="is_open" class="form-select rounded-3 shadow-none border-light-subtle">
@@ -282,9 +292,19 @@
                         <input type="text" name="date_info" class="form-control rounded-3 shadow-none border-light-subtle" placeholder="Contoh: 21 - 25 Jan 2026" required>
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <label class="small fw-bold text-secondary mb-1 text-uppercase">Link Grup WhatsApp</label>
                         <input type="url" name="wa_link" class="form-control rounded-3 shadow-none border-light-subtle" placeholder="https://chat.whatsapp.com/...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase">Link Rules (Google Drive PDF)</label>
+                        <input type="url" name="rules_link" class="form-control rounded-3 shadow-none border-light-subtle" placeholder="https://drive.google.com/...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase">Informasi Jadwal Rentang Waktu (Optional)</label>
+                        <textarea name="schedule_info" class="form-control rounded-3 shadow-none border-light-subtle" rows="3" placeholder="Contoh:&#10;Babak 1: 20:00 - 20:40 WIB&#10;Babak 2: 20:40 - 21:20 WIB"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
