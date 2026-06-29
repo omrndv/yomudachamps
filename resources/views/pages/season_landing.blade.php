@@ -1092,6 +1092,47 @@
                 });
             }
 
+            // Client-side image compressor using Canvas to achieve instant ("waswuss") uploads
+            function compressImage(file, maxWidth, quality) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            canvas.toBlob((blob) => {
+                                if (blob) {
+                                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                        type: 'image/jpeg',
+                                        lastModified: Date.now()
+                                    }));
+                                } else {
+                                    reject(new Error("Canvas toBlob failed"));
+                                }
+                            }, 'image/jpeg', quality);
+                        };
+                        img.onerror = (err) => reject(err);
+                    };
+                    reader.onerror = (err) => reject(err);
+                });
+            }
+
             if (formSubmitReport) {
                 formSubmitReport.addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -1103,16 +1144,27 @@
                     }
 
                     btnSubmitReportScore.disabled = true;
-                    btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim & Mengompres Gambar...';
+                    btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengompres Gambar...';
 
-                    const formData = new FormData(formSubmitReport);
+                    const file = fileInput.files[0];
+                    compressImage(file, 1200, 0.7)
+                    .then(compressedFile => {
+                        btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim Laporan (Waswuss)...';
 
-                    fetch("{{ route('public.match-report.submit', $slug) }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: formData
+                        const formData = new FormData();
+                        formData.append('match_id', formSubmitReport.querySelector('[name="match_id"]').value);
+                        formData.append('reporter_team_id', formSubmitReport.querySelector('[name="reporter_team_id"]').value);
+                        formData.append('score_team1', formSubmitReport.querySelector('[name="score_team1"]').value);
+                        formData.append('score_team2', formSubmitReport.querySelector('[name="score_team2"]').value);
+                        formData.append('image', compressedFile);
+
+                        return fetch("{{ route('public.match-report.submit', $slug) }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        });
                     })
                     .then(r => r.json())
                     .then(res => {
