@@ -113,14 +113,14 @@
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-sliders text-warning me-2"></i>Pengaturan Aset</h5>
                 
-                <form action="{{ route('admin.season.certificate.layout', $season->id) }}" method="POST" enctype="multipart/form-data">
+                <form id="layoutForm" action="{{ route('admin.season.certificate.layout', $season->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="pos_x" id="inputPosX" value="{{ $layout->pos_x }}">
                     <input type="hidden" name="pos_y" id="inputPosY" value="{{ $layout->pos_y }}">
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Template Sertifikat (PDF/JPG/PNG)</label>
-                        <input type="file" name="template" class="form-control rounded-3" accept="image/jpeg,image/png,application/pdf">
+                        <input type="file" id="certTemplateInput" name="template" class="form-control rounded-3" accept="image/jpeg,image/png,application/pdf">
                         <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi (PDF atau JPG/PNG).</div>
                     </div>
 
@@ -391,6 +391,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressContainer.style.display = 'none';
                 btnGenerateToDrive.disabled = false;
             });
+        });
+    }
+
+    // Client-side image compressor for "waswuss" upload of templates
+    function compressTemplateImage(file, maxWidth, quality) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            }));
+                        } else {
+                            reject(new Error("Canvas toBlob failed"));
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
+    const layoutForm = document.getElementById('layoutForm');
+    const certTemplateInput = document.getElementById('certTemplateInput');
+    if (layoutForm && certTemplateInput) {
+        layoutForm.addEventListener('submit', function(e) {
+            if (certTemplateInput.files && certTemplateInput.files[0]) {
+                const file = certTemplateInput.files[0];
+                const fileType = file.type;
+
+                // Only compress image templates (don't compress PDF to keep vector quality)
+                if (fileType.startsWith('image/')) {
+                    e.preventDefault();
+
+                    const submitBtn = layoutForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengompresi & Menyimpan... 🚀';
+
+                    // Compress to max width 2400px (very high res) at 90% quality (waswuss size)
+                    compressTemplateImage(file, 2400, 0.90)
+                    .then(compressedFile => {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        certTemplateInput.files = dataTransfer.files;
+
+                        // Submit the form programmatically bypassing the event listener
+                        layoutForm.submit();
+                    })
+                    .catch(err => {
+                        console.error('Compression error, submitting original file:', err);
+                        layoutForm.submit();
+                    });
+                }
+            }
         });
     }
 });
