@@ -538,6 +538,15 @@
         @endforeach
     </div>
 
+    @php
+        $startNumbers = [];
+        $currentStart = 1;
+        foreach ($rounds as $rNum => $rMatches) {
+            $startNumbers[$rNum] = $currentStart;
+            $currentStart += $rMatches->count();
+        }
+    @endphp
+
     {{-- Bracket Field Wrapper --}}
     <div class="bracket-container" id="bracketContainer">
         @foreach($rounds as $roundNum => $matches)
@@ -552,7 +561,7 @@
                 @foreach($columnMatches as $match)
                     <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
                         <div class="match-card-header">
-                            <span>BRACKET {{ $match->match_number }}</span>
+                            <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
                             <span class="match-card-time">
                                 @if($match->status === 'live')
                                     <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>

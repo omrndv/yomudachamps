@@ -124,6 +124,15 @@
                 @endforeach
             </div>
 
+            @php
+                $startNumbers = [];
+                $currentStart = 1;
+                foreach ($rounds as $rNum => $rMatches) {
+                    $startNumbers[$rNum] = $currentStart;
+                    $currentStart += $rMatches->count();
+                }
+            @endphp
+
             <!-- Scrollable Bracket Canvas -->
             <div class="bracket-container" id="adminBracketContainer">
                 @foreach($rounds as $roundNum => $matches)
@@ -151,7 +160,7 @@
                                  ]) }})">
                                 
                                 <div class="match-card-header">
-                                    <span>BRACKET {{ $match->match_number }}</span>
+                                    <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
                                     <span class="match-card-time">
                                         @if($match->status === 'live')
                                             <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>
