@@ -555,6 +555,15 @@
                             Reset All
                         </button>
                     </div>
+                    <!-- Tab Pills for Active vs Archived -->
+                    <div class="p-2 border-bottom border-secondary border-opacity-10 d-flex gap-1.5" style="background-color: rgba(0,0,0,0.1);">
+                        <button id="adminTabActive" class="btn btn-warning btn-sm py-0.5 px-2.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
+                            Aktif
+                        </button>
+                        <button id="adminTabArchived" class="btn btn-outline-secondary text-white btn-sm py-0.5 px-2.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
+                            Diarsipkan
+                        </button>
+                    </div>
                     <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
                         <div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>
                     </div>
@@ -567,6 +576,9 @@
                         <div class="d-flex gap-2 align-items-center">
                             <button id="adminBtnArchiveThread" class="btn btn-outline-warning btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
                                 <i class="bi bi-archive-fill me-1"></i> Arsipkan
+                            </button>
+                            <button id="adminBtnUnarchiveThread" class="btn btn-outline-success btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
+                                <i class="bi bi-arrow-up-right-square-fill me-1"></i> Buka Arsip
                             </button>
                             <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
                                 <i class="bi bi-trash3-fill me-1"></i> Hapus Chat
@@ -1719,11 +1731,12 @@ let activeThreadName = null;
 let adminLastMessageId = 0;
 let adminThreadsInterval = null;
 let adminMessagesInterval = null;
+let adminChatTab = 'active';
 
 // Thread List Styling helpers
 function renderThreadListHTML(threads) {
     if (!threads || threads.length === 0) {
-        threadsList.innerHTML = '<div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>';
+        threadsList.innerHTML = `<div class="text-center text-secondary py-5 small">Tidak ada percakapan ${adminChatTab === 'archived' ? 'diarsip' : 'aktif'}.</div>`;
         return;
     }
 
@@ -1764,12 +1777,21 @@ window.selectChatThread = function(token, name) {
     const adminBtnAttach = document.getElementById('adminBtnAttach');
     if (adminBtnAttach) adminBtnAttach.disabled = false;
 
-    // Show delete & archive buttons
+    // Show delete button
     const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
     if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'inline-block';
     
+    // Show archive or unarchive button depending on tab
     const adminBtnArchiveThread = document.getElementById('adminBtnArchiveThread');
-    if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'inline-block';
+    const adminBtnUnarchiveThread = document.getElementById('adminBtnUnarchiveThread');
+    
+    if (adminChatTab === 'active') {
+        if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'inline-block';
+        if (adminBtnUnarchiveThread) adminBtnUnarchiveThread.style.display = 'none';
+    } else {
+        if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'none';
+        if (adminBtnUnarchiveThread) adminBtnUnarchiveThread.style.display = 'inline-block';
+    }
 
     adminReplyInput.focus();
 
@@ -1791,9 +1813,29 @@ window.selectChatThread = function(token, name) {
 document.addEventListener('DOMContentLoaded', () => {
     const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
     const adminBtnArchiveThread = document.getElementById('adminBtnArchiveThread');
+    const adminBtnUnarchiveThread = document.getElementById('adminBtnUnarchiveThread');
     const adminBtnClearAllChats = document.getElementById('adminBtnClearAllChats');
     const adminBtnAttach = document.getElementById('adminBtnAttach');
     const adminFileInput = document.getElementById('adminFileInput');
+    const adminTabActive = document.getElementById('adminTabActive');
+    const adminTabArchived = document.getElementById('adminTabArchived');
+
+    // Tab Switching Bindings
+    if (adminTabActive && adminTabArchived) {
+        adminTabActive.addEventListener('click', () => {
+            adminChatTab = 'active';
+            adminTabActive.className = 'btn btn-warning btn-sm py-0.5 px-2.5 rounded-pill fw-bold';
+            adminTabArchived.className = 'btn btn-outline-secondary text-white btn-sm py-0.5 px-2.5 rounded-pill fw-bold';
+            fetchAdminChatThreads();
+        });
+
+        adminTabArchived.addEventListener('click', () => {
+            adminChatTab = 'archived';
+            adminTabActive.className = 'btn btn-outline-secondary text-white btn-sm py-0.5 px-2.5 rounded-pill fw-bold';
+            adminTabArchived.className = 'btn btn-warning btn-sm py-0.5 px-2.5 rounded-pill fw-bold';
+            fetchAdminChatThreads();
+        });
+    }
 
     // 1. Delete thread
     if (adminBtnDeleteThread) {
@@ -1816,6 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
                     adminBtnDeleteThread.style.display = 'none';
                     if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'none';
+                    if (adminBtnUnarchiveThread) adminBtnUnarchiveThread.style.display = 'none';
                     if (adminBtnAttach) adminBtnAttach.disabled = true;
                     adminReplyInput.disabled = true;
                     adminBtnReplySend.disabled = true;
@@ -1867,7 +1910,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Clear all chats (entire season)
+    // 3. Unarchive thread
+    if (adminBtnUnarchiveThread) {
+        adminBtnUnarchiveThread.addEventListener('click', () => {
+            if (!activeThreadToken) return;
+            
+            fetch(`/admin/dashboard/{{ $season->id }}/chat/unarchive/${activeThreadToken}`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    activeThreadToken = null;
+                    activeThreadName = null;
+                    activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
+                    if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'none';
+                    adminBtnUnarchiveThread.style.display = 'none';
+                    if (adminBtnAttach) adminBtnAttach.disabled = true;
+                    adminReplyInput.disabled = true;
+                    adminBtnReplySend.disabled = true;
+                    adminChatMessagesBody.innerHTML = `
+                        <div class="text-center text-secondary my-auto py-5 small">
+                            <i class="bi bi-check-circle" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2">Percakapan dikembalikan ke pesan aktif.</p>
+                        </div>
+                    `;
+                    fetchAdminChatThreads();
+                }
+            });
+        });
+    }
+
+    // 4. Clear all chats (entire season)
     if (adminBtnClearAllChats) {
         adminBtnClearAllChats.addEventListener('click', () => {
             if (!confirm("PERINGATAN! Anda yakin ingin menghapus SELURUH riwayat obrolan dan gambar media di season ini? Tindakan ini tidak dapat dibatalkan.")) return;
@@ -1884,6 +1962,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
                     if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'none';
                     if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'none';
+                    if (adminBtnUnarchiveThread) adminBtnUnarchiveThread.style.display = 'none';
                     if (adminBtnAttach) adminBtnAttach.disabled = true;
                     adminReplyInput.disabled = true;
                     adminBtnReplySend.disabled = true;
@@ -1899,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Admin upload file attachments
+    // 5. Admin upload file attachments
     if (adminBtnAttach && adminFileInput) {
         adminBtnAttach.addEventListener('click', () => adminFileInput.click());
         adminFileInput.addEventListener('change', function() {
@@ -1934,7 +2013,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchAdminChatThreads() {
-    fetch("{{ route('admin.season.chat.threads', $season->id) }}")
+    fetch("{{ route('admin.season.chat.threads', $season->id) }}?status=" + adminChatTab)
         .then(r => r.json())
         .then(res => {
             if (res.success && res.threads) {

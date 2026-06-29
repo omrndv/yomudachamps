@@ -799,10 +799,12 @@ class BracketController extends Controller
     /**
      * Get all active chat threads for a season (Admin API)
      */
-    public function getChatThreads($season_id)
+    public function getChatThreads(Request $request, $season_id)
     {
+        $isArchived = $request->query('status') === 'archived';
+
         $threads = SeasonChat::where('season_id', $season_id)
-            ->where('is_archived', false)
+            ->where('is_archived', $isArchived)
             ->select('sender_session_token', 'sender_name', DB::raw('MAX(created_at) as last_chat_time'), DB::raw('SUM(CASE WHEN is_admin = 0 AND is_read = 0 THEN 1 ELSE 0 END) as unread_count'))
             ->groupBy('sender_session_token', 'sender_name')
             ->orderBy('last_chat_time', 'desc')
@@ -1052,6 +1054,21 @@ class BracketController extends Controller
         return response()->json([
             'success' => true,
             'chat' => $chat
+        ]);
+    }
+
+    /**
+     * Unarchive a chat thread (Admin only)
+     */
+    public function unarchiveChatThread($season_id, $token)
+    {
+        SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->update(['is_archived' => false]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Percakapan berhasil diaktifkan kembali.'
         ]);
     }
 }
