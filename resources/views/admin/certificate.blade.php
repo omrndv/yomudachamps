@@ -56,11 +56,19 @@
                      style="min-height: 400px; max-width: 100%;">
                     
                     @if($layout->template_path)
+                        @php
+                            $isPdf = strtolower(pathinfo($layout->template_path, PATHINFO_EXTENSION)) === 'pdf';
+                        @endphp
+                        
                         <img src="{{ asset($layout->template_path) }}" 
                              id="certTemplateImg" 
                              alt="Template Sertifikat" 
                              class="img-fluid w-100" 
-                             style="object-fit: contain; pointer-events: none; user-select: none;">
+                             style="object-fit: contain; pointer-events: none; user-select: none; {{ $isPdf ? 'display: none;' : '' }}">
+
+                        @if($isPdf)
+                            <canvas id="pdfCanvas" class="w-100" style="object-fit: contain; pointer-events: none; user-select: none;"></canvas>
+                        @endif
                         
                         {{-- Elemen Nama Draggable --}}
                         <div id="draggableName" 
@@ -211,7 +219,11 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------
     // LOGIKA DRAG & DROP EDITOR
@@ -219,6 +231,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const draggable = document.getElementById('draggableName');
     const wrapper = document.getElementById('editorWrapper');
     const templateImg = document.getElementById('certTemplateImg');
+    const pdfCanvas = document.getElementById('pdfCanvas');
+
+    // Render PDF on Canvas if template is PDF
+    if (pdfCanvas) {
+        const url = "{{ asset($layout->template_path) }}";
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            pdf.getPage(1).then(page => {
+                // Adjust scale based on wrapper width
+                const viewport = page.getViewport({ scale: 1.5 });
+                const context = pdfCanvas.getContext('2d');
+                pdfCanvas.height = viewport.height;
+                pdfCanvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }).catch(err => {
+            console.error('Error rendering PDF:', err);
+        });
+    }
 
     const inputPosX = document.getElementById('inputPosX');
     const inputPosY = document.getElementById('inputPosY');

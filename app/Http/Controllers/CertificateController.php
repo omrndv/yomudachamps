@@ -12,6 +12,7 @@ use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDriveService;
 use Google\Service\Drive\DriveFile;
 use Intervention\Image\Facades\Image;
+use Setasign\Fpdi\Fpdi;
 
 class CertificateController extends Controller
 {
@@ -89,7 +90,7 @@ class CertificateController extends Controller
     public function saveLayout(Request $request, $season_id)
     {
         $request->validate([
-            'template' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'template' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
             'font' => 'nullable|file|max:5120', // TTF font file
             'font_size' => 'required|integer|min:10|max:200',
             'font_color' => 'required|string|regex:/^#[a-fA-F0-9]{6}$/',
@@ -240,45 +241,80 @@ class CertificateController extends Controller
             mkdir($tempDir, 0755, true);
         }
 
+        $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
+
         foreach ($teams as $team) {
             try {
                 // Generate filename
-                $fileName = 'Sertifikat - ' . $team->name . '.jpg';
+                $fileName = 'Sertifikat - ' . $team->name . ($isPdf ? '.pdf' : '.jpg');
                 $tempFilePath = $tempDir . '/' . $fileName;
 
-                // Load image canvas and draw name
-                $img = Image::make($templateFullPath);
-                $width = $img->width();
-                $height = $img->height();
+                if ($isPdf) {
+                    $pdf = new Fpdi();
+                    $pageCount = $pdf->setSourceFile($templateFullPath);
+                    $tplIdx = $pdf->importPage(1);
+                    $specs = $pdf->getTemplateSize($tplIdx);
+                    $width = $specs['width'];
+                    $height = $specs['height'];
 
-                // Compute pixel coordinates from percentages
-                $posX = ($layout->pos_x / 100) * $width;
-                $posY = ($layout->pos_y / 100) * $height;
+                    $orientation = ($width > $height) ? 'L' : 'P';
+                    $pdf->AddPage($orientation, [$width, $height]);
+                    $pdf->useTemplate($tplIdx);
 
-                $img->text($team->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
-                    if ($fontFullPath && file_exists($fontFullPath)) {
-                        $font->file($fontFullPath);
-                    }
-                    $font->size($layout->font_size);
-                    $font->color($layout->font_color);
-                    $font->align('center');
-                    $font->valign('middle');
-                });
+                    // Compute coordinates from percentage
+                    $posX = ($layout->pos_x / 100) * $width;
+                    $posY = ($layout->pos_y / 100) * $height;
 
-                // Save locally temporarily
-                $img->save($tempFilePath, 90);
+                    $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
+
+                    // Parse Hex to RGB
+                    $hex = str_replace('#', '', $layout->font_color);
+                    $r = hexdec(substr($hex, 0, 2));
+                    $g = hexdec(substr($hex, 2, 2));
+                    $b = hexdec(substr($hex, 4, 2));
+                    $pdf->SetTextColor($r, $g, $b);
+
+                    // Center-aligned text
+                    $pdf->SetXY(0, $posY - 5);
+                    $pdf->Cell($width, 10, $team->name, 0, 0, 'C');
+
+                    $pdf->Output('F', $tempFilePath);
+                } else {
+                    // Load image canvas and draw name
+                    $img = Image::make($templateFullPath);
+                    $width = $img->width();
+                    $height = $img->height();
+
+                    // Compute pixel coordinates from percentages
+                    $posX = ($layout->pos_x / 100) * $width;
+                    $posY = ($layout->pos_y / 100) * $height;
+
+                    $img->text($team->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
+                        if ($fontFullPath && file_exists($fontFullPath)) {
+                            $font->file($fontFullPath);
+                        }
+                        $font->size($layout->font_size);
+                        $font->color($layout->font_color);
+                        $font->align('center');
+                        $font->valign('middle');
+                    });
+
+                    // Save locally temporarily
+                    $img->save($tempFilePath, 90);
+                }
 
                 // Upload to Google Drive Folder
                 $fileMetadata = new DriveFile([
-                    'name' => 'Sertifikat - ' . $team->name . '.jpg',
+                    'name' => $fileName,
                     'parents' => [$folderId]
                 ]);
 
                 $content = file_get_contents($tempFilePath);
+                $mimeType = $isPdf ? 'application/pdf' : 'image/jpeg';
                 
                 $driveService->files->create($fileMetadata, [
                     'data' => $content,
-                    'mimeType' => 'image/jpeg',
+                    'mimeType' => $mimeType,
                     'uploadType' => 'multipart',
                     'fields' => 'id'
                 ]);
@@ -317,27 +353,59 @@ class CertificateController extends Controller
         $templateFullPath = public_path($layout->template_path);
         $fontFullPath = $layout->font_path ? storage_path('app/' . $layout->font_path) : null;
 
-        // Generate and stream directly to client
+        $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
+
         try {
-            $img = Image::make($templateFullPath);
-            $width = $img->width();
-            $height = $img->height();
+            if ($isPdf) {
+                $pdf = new Fpdi();
+                $pageCount = $pdf->setSourceFile($templateFullPath);
+                $tplIdx = $pdf->importPage(1);
+                $specs = $pdf->getTemplateSize($tplIdx);
+                $width = $specs['width'];
+                $height = $specs['height'];
 
-            $posX = ($layout->pos_x / 100) * $width;
-            $posY = ($layout->pos_y / 100) * $height;
+                $orientation = ($width > $height) ? 'L' : 'P';
+                $pdf->AddPage($orientation, [$width, $height]);
+                $pdf->useTemplate($tplIdx);
 
-            $img->text($request->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
-                if ($fontFullPath && file_exists($fontFullPath)) {
-                    $font->file($fontFullPath);
-                }
-                $font->size($layout->font_size);
-                $font->color($layout->font_color);
-                $font->align('center');
-                $font->valign('middle');
-            });
+                $posX = ($layout->pos_x / 100) * $width;
+                $posY = ($layout->pos_y / 100) * $height;
 
-            // Stream response
-            return $img->response('jpg', 90);
+                $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
+
+                $hex = str_replace('#', '', $layout->font_color);
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                $pdf->SetTextColor($r, $g, $b);
+
+                $pdf->SetXY(0, $posY - 5);
+                $pdf->Cell($width, 10, $request->name, 0, 0, 'C');
+
+                return response($pdf->Output('S'), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="Sertifikat - ' . $request->name . '.pdf"'
+                ]);
+            } else {
+                $img = Image::make($templateFullPath);
+                $width = $img->width();
+                $height = $img->height();
+
+                $posX = ($layout->pos_x / 100) * $width;
+                $posY = ($layout->pos_y / 100) * $height;
+
+                $img->text($request->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
+                    if ($fontFullPath && file_exists($fontFullPath)) {
+                        $font->file($fontFullPath);
+                    }
+                    $font->size($layout->font_size);
+                    $font->color($layout->font_color);
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+
+                return $img->response('jpg', 90);
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memproses sertifikat: ' . $e->getMessage());
         }
