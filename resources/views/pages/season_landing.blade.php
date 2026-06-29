@@ -498,11 +498,6 @@
 <body>
 
     <div class="landing-container">
-        <!-- Logo -->
-        <div class="brand-logo">
-            <i class="bi bi-lightning-charge-fill"></i>
-            <span>Peraturan & Bagan Pemain Yomuda</span>
-        </div>
 
         <!-- Season Card info -->
         <div class="season-card">
