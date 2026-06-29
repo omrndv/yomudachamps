@@ -144,6 +144,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/match-report/approve/{id}', [\App\Http\Controllers\BracketController::class, 'approveMatchReport'])->name('admin.match-report.approve');
             Route::post('/match-report/reject/{id}', [\App\Http\Controllers\BracketController::class, 'rejectMatchReport'])->name('admin.match-report.reject');
             Route::post('/dashboard/{season_id}/match-reports/clear-all', [\App\Http\Controllers\BracketController::class, 'clearAllMatchReports'])->name('admin.season.match-reports.clear-all');
+            Route::get('/dashboard/{season_id}/match-reports/poll', [\App\Http\Controllers\BracketController::class, 'pollMatchReports'])->name('admin.season.match-reports.poll');
             
             // Admin Live Chat routes (real-time chat management)
             Route::get('/dashboard/{season_id}/chat/threads', [\App\Http\Controllers\BracketController::class, 'getChatThreads'])->name('admin.season.chat.threads');

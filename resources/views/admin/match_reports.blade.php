@@ -46,61 +46,83 @@
         $countRejected = $reports->where('status', 'REJECTED')->count();
     @endphp
 
-    {{-- CSS Styles for Active Category Tabs --}}
+    {{-- CSS Styles for Active Category Tabs (Premium Glassmorphic Design) --}}
     <style>
-        #reportTabs .nav-link {
-            color: #64748b;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0 !important;
-            transition: all 0.2s;
+        #reportTabs {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 100px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            display: inline-flex !important;
+            padding: 5px;
         }
-        #reportTabs .nav-link.active#tab-all {
+        #reportTabs button {
+            color: #64748b;
+            background-color: transparent;
+            font-size: 0.78rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            outline: none;
+        }
+        #reportTabs button:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        #reportTabs button.active#tab-all {
             background-color: #0f172a !important;
             color: #ffffff !important;
-            border-color: #0f172a !important;
         }
-        #reportTabs .nav-link.active#tab-pending {
+        #reportTabs button.active#tab-all .badge {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+        #reportTabs button.active#tab-pending {
             background-color: #f59e0b !important;
             color: #ffffff !important;
-            border-color: #f59e0b !important;
         }
-        #reportTabs .nav-link.active#tab-approved {
+        #reportTabs button.active#tab-pending .badge {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        #reportTabs button.active#tab-approved {
             background-color: #10b981 !important;
             color: #ffffff !important;
-            border-color: #10b981 !important;
         }
-        #reportTabs .nav-link.active#tab-rejected {
+        #reportTabs button.active#tab-approved .badge {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        #reportTabs button.active#tab-rejected {
             background-color: #ef4444 !important;
             color: #ffffff !important;
-            border-color: #ef4444 !important;
+        }
+        #reportTabs button.active#tab-rejected .badge {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
         }
     </style>
 
     {{-- Categories / Tabs Filter --}}
     <div class="row mb-4">
         <div class="col-12">
-            <ul class="nav nav-pills gap-2" id="reportTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm" id="tab-all" data-status="ALL">
-                        Semua Laporan <span class="badge bg-secondary ms-1.5">{{ $countAll }}</span>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-pending" data-status="PENDING">
-                        Menunggu Persetujuan <span class="badge bg-warning text-dark ms-1.5">{{ $countPending }}</span>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-approved" data-status="APPROVED">
-                        Disetujui <span class="badge bg-success ms-1.5">{{ $countApproved }}</span>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-rejected" data-status="REJECTED">
-                        Ditolak <span class="badge bg-danger ms-1.5">{{ $countRejected }}</span>
-                    </button>
-                </li>
-            </ul>
+            <div class="d-flex flex-wrap gap-1" id="reportTabs">
+                <button class="btn btn-sm rounded-pill px-4 py-2.5 fw-bold active d-flex align-items-center gap-2" id="tab-all" data-status="ALL">
+                    <i class="bi bi-grid-fill"></i> Semua Laporan 
+                    <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill" style="font-size: 0.65rem;">{{ $countAll }}</span>
+                </button>
+                <button class="btn btn-sm rounded-pill px-4 py-2.5 fw-bold d-flex align-items-center gap-2" id="tab-pending" data-status="PENDING">
+                    <i class="bi bi-clock-history"></i> Menunggu Persetujuan 
+                    <span class="badge bg-warning-subtle text-warning px-2.5 py-1 rounded-pill" style="font-size: 0.65rem;">{{ $countPending }}</span>
+                </button>
+                <button class="btn btn-sm rounded-pill px-4 py-2.5 fw-bold d-flex align-items-center gap-2" id="tab-approved" data-status="APPROVED">
+                    <i class="bi bi-check-circle-fill"></i> Disetujui 
+                    <span class="badge bg-success-subtle text-success px-2.5 py-1 rounded-pill" style="font-size: 0.65rem;">{{ $countApproved }}</span>
+                </button>
+                <button class="btn btn-sm rounded-pill px-4 py-2.5 fw-bold d-flex align-items-center gap-2" id="tab-rejected" data-status="REJECTED">
+                    <i class="bi bi-x-circle-fill"></i> Ditolak 
+                    <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill" style="font-size: 0.65rem;">{{ $countRejected }}</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -122,7 +144,7 @@
                     </thead>
                     <tbody>
                         @forelse($reports as $report)
-                            <tr data-status="{{ $report->status }}">
+                            <tr data-status="{{ $report->status }}" id="report-row-{{ $report->id }}">
                                 <td class="ps-4 text-secondary small">
                                     {{ $report->created_at->format('d M Y, H:i') }} WIB
                                 </td>
@@ -276,6 +298,94 @@
                 }
             });
         });
+
+        // Web Audio API Synthesizer Chime Notification for new incoming match reports
+        function playNewReportChime() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // First note
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+                gain1.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain1.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+                gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                
+                // Second note
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(987.77, audioCtx.currentTime + 0.12); // B5
+                gain2.gain.setValueAtTime(0, audioCtx.currentTime + 0.12);
+                gain2.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+
+                // Third note
+                const osc3 = audioCtx.createOscillator();
+                const gain3 = audioCtx.createGain();
+                osc3.type = 'sine';
+                osc3.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.24); // E6
+                gain3.gain.setValueAtTime(0, audioCtx.currentTime + 0.24);
+                gain3.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.28);
+                gain3.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
+                osc3.connect(gain3);
+                gain3.connect(audioCtx.destination);
+                
+                osc1.start();
+                osc1.stop(audioCtx.currentTime + 0.4);
+                osc2.start(audioCtx.currentTime + 0.12);
+                osc2.stop(audioCtx.currentTime + 0.6);
+                osc3.start(audioCtx.currentTime + 0.24);
+                osc3.stop(audioCtx.currentTime + 1.0);
+            } catch (e) {
+                console.error('AudioContext error:', e);
+            }
+        }
+
+        // Live Poll tracking for new reports
+        let knownReportIds = new Set();
+        document.querySelectorAll('tbody tr[data-status]').forEach(row => {
+            const idStr = row.getAttribute('id');
+            if (idStr) {
+                knownReportIds.add(idStr.replace('report-row-', ''));
+            }
+        });
+
+        function pollNewReports() {
+            fetch("{{ route('admin.season.match-reports.poll', $season->id) }}")
+                .then(r => r.json())
+                .then(data => {
+                    let hasNew = false;
+                    const reports = data.reports;
+                    
+                    reports.forEach(r => {
+                        if (!knownReportIds.has(String(r.id))) {
+                            knownReportIds.add(String(r.id));
+                            if (r.status === 'PENDING') {
+                                hasNew = true;
+                            }
+                        }
+                    });
+
+                    if (hasNew) {
+                        playNewReportChime();
+                        // Automatically update data by reloading the page so CSRF tokens & html actions are fresh
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 800);
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        }
+
+        // Poll every 8 seconds
+        setInterval(pollNewReports, 8000);
     });
 </script>
 @endpush

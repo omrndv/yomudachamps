@@ -1384,4 +1384,19 @@ class BracketController extends Controller
 
         return back()->with('success', 'Semua laporan hasil tanding beserta berkas screenshot di server berhasil dibersihkan!');
     }
+
+    /**
+     * Poll match reports (returns JSON list of reports for real-time sound updates)
+     */
+    public function pollMatchReports($season_id)
+    {
+        $reports = \App\Models\MatchReport::where('season_id', $season_id)
+            ->select('id', 'status')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'reports' => $reports
+        ]);
+    }
 }

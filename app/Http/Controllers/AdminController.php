@@ -2016,7 +2016,7 @@ class AdminController extends Controller
         $folders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
-            'posters' => $publicPath . '/storage/posters'
+            'posters' => storage_path('app/public/posters')
         ];
 
         $storageData = [];
@@ -2082,7 +2082,7 @@ class AdminController extends Controller
         $allowedFolders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
-            'posters' => $publicPath . '/storage/posters'
+            'posters' => storage_path('app/public/posters')
         ];
 
         if (!array_key_exists($folderKey, $allowedFolders)) {
@@ -2143,9 +2143,11 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 400);
         }
 
-        $publicPath = public_path();
-
-        $absolutePath = $publicPath . $filePathRelative;
+        if (strpos($filePathRelative, '/storage/posters/') === 0) {
+            $absolutePath = storage_path('app/public/posters/' . basename($filePathRelative));
+        } else {
+            $absolutePath = $publicPath . $filePathRelative;
+        }
 
         if (file_exists($absolutePath) && is_file($absolutePath)) {
             $isAllowedDir = false;

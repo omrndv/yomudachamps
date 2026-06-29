@@ -1883,7 +1883,7 @@
                 const file = fileInput.files[0];
                 compressImage(file, 1200, 0.7)
                 .then(compressedFile => {
-                    btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim Laporan (Waswuss)...';
+                    btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim Laporan... 🚀';
 
                     const formData = new FormData();
                     formData.append('match_id', formSubmitReport.querySelector('[name="match_id"]').value);
