@@ -254,7 +254,7 @@ class BracketController extends Controller
         }
         $teamCount = count(array_unique($teamIds));
 
-        return view('pages.bracket', compact('season', 'brackets', 'rounds', 'roundsCount', 'teamCount'));
+        return view('pages.bracket', compact('season', 'brackets', 'rounds', 'roundsCount', 'teamCount', 'slug'));
     }
 
     /**

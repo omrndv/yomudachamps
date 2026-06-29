@@ -279,6 +279,220 @@
             color: #000000;
             transform: translateY(-1px);
         }
+        /* Floating Live Chat Widget CSS */
+        .chat-widget-wrapper {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1050;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .chat-toggle-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-color: var(--accent-orange);
+            color: #000000;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(255, 122, 0, 0.3);
+        }
+
+        .chat-toggle-btn:hover {
+            transform: scale(1.08) rotate(5deg);
+            background-color: #ff912a;
+        }
+
+        .chat-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #18181b;
+        }
+
+        .chat-box-container {
+            position: absolute;
+            bottom: 68px;
+            right: 0;
+            width: 320px;
+            height: 400px;
+            background-color: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom right;
+        }
+
+        .chat-box-container.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-box-header {
+            padding: 14px 16px;
+            background-color: rgba(39, 39, 42, 0.6);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .chat-header-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .chat-header-subtitle {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+        }
+
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .chat-close-btn:hover {
+            color: #ffffff;
+        }
+
+        .chat-messages-body {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-system-message {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .chat-msg-bubble {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 14px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .chat-msg-bubble.user {
+            background-color: rgba(255, 122, 0, 0.12);
+            border: 1px solid rgba(255, 122, 0, 0.2);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-msg-bubble.admin {
+            background-color: #27272a;
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-wrapper {
+            padding: 10px 12px;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(24, 24, 27, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-input-wrapper input {
+            flex-grow: 1;
+            background-color: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            color: #ffffff;
+            font-size: 0.8rem;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .chat-input-wrapper input:focus {
+            border-color: rgba(255, 122, 0, 0.4);
+        }
+
+        .chat-input-wrapper button {
+            background: none;
+            border: none;
+            color: var(--accent-orange);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+        }
+
+        .chat-input-wrapper button:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 576px) {
+            .chat-widget-wrapper {
+                bottom: 16px;
+                right: 16px;
+            }
+            .chat-box-container {
+                width: 280px;
+                height: 360px;
+                bottom: 60px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -335,14 +549,14 @@
                 </div>
 
                 <!-- 4. Chat Dengan Admin (Live Chat) -->
-                <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalLiveChat">
+                <div class="menu-item" id="btnLandingChatOpen">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
                             <i class="bi bi-chat-left-text-fill"></i>
                         </div>
                         <div class="d-flex flex-column align-items-start gap-1">
                             <span>Chat Dengan Admin</span>
-                            <span class="badge-coming-soon">COMING SOON</span>
+                            <span class="badge bg-success rounded-pill px-2 py-0.5" style="font-size: 0.52rem; letter-spacing: 0.3px;">LIVE NOW</span>
                         </div>
                     </div>
                     <i class="bi bi-chevron-right menu-arrow"></i>
@@ -442,36 +656,182 @@
     </div>
 
     <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Live Chat -->
+    <!-- Floating Live Chat UI & Scripts -->
     <!-- ---------------------------------------------------------------------- -->
-    <div class="modal fade" id="modalLiveChat" tabindex="-1" aria-labelledby="modalLiveChatLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="modal-title fw-bold" id="modalLiveChatLabel"><i class="bi bi-chat-dots-fill text-warning me-2"></i>Web Live Chat Admin</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4 text-center">
-                    <div class="position-relative d-inline-block mb-3">
-                        <i class="bi bi-chat-left-heart text-warning" style="font-size: 3.5rem; filter: drop-shadow(0 0 15px rgba(255, 122, 0, 0.3));"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.5rem; padding: 4px 6px;">NEW</span>
-                    </div>
-                    <h6 class="fw-bold mb-2">Fitur Chat Langsung via Web</h6>
-                    <p class="small text-secondary mb-4 px-2">
-                        Kami sedang menyiapkan fitur <strong>Live Chat Web</strong> terintegrasi agar Anda dapat bertanya langsung kepada admin/panitia turnamen secara real-time tanpa perlu dialihkan ke WhatsApp, meminimalisir risiko banned nomor WhatsApp.
-                    </p>
-                    <div class="bg-dark p-3 rounded-4 text-warning small border border-warning border-opacity-10 mb-2">
-                        <i class="bi bi-gear-fill spin me-1"></i> Sedang dikembangkan. Segera hadir untuk Anda!
+    <div class="chat-widget-wrapper" id="chatWidget">
+        <button class="chat-toggle-btn shadow-lg" id="btnChatToggle">
+            <i class="bi bi-chat-left-text-fill"></i>
+            <span class="chat-badge" id="chatUnreadCount" style="display: none;">0</span>
+        </button>
+        
+        <div class="chat-box-container" id="chatBoxContainer">
+            <div class="chat-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="chat-status-dot"></div>
+                    <div>
+                        <div class="chat-header-title">Live Chat Admin</div>
+                        <div class="chat-header-subtitle">Yomuda Panitia</div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-modal-close w-100" data-bs-dismiss="modal">Tutup</button>
+                <button class="chat-close-btn" id="btnChatClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <div class="chat-messages-body" id="chatMessagesBody">
+                <div class="chat-system-message">
+                    Halo! Ada yang bisa kami bantu mengenai bracket turnamen? Tulis pertanyaanmu di bawah.
                 </div>
+            </div>
+            
+            <div class="chat-input-wrapper">
+                <input type="text" id="chatInputText" placeholder="Ketik pesan..." autocomplete="off">
+                <button id="btnChatSend"><i class="bi bi-send-fill"></i></button>
             </div>
         </div>
     </div>
 
     <!-- Bootstrap Bundle with Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Session Token Setup
+            let sessionToken = localStorage.getItem('yomuda_chat_session_token');
+            if (!sessionToken) {
+                sessionToken = 'token_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('yomuda_chat_session_token', sessionToken);
+            }
+
+            const btnChatToggle = document.getElementById('btnChatToggle');
+            const btnChatClose = document.getElementById('btnChatClose');
+            const btnLandingChatOpen = document.getElementById('btnLandingChatOpen');
+            const chatBoxContainer = document.getElementById('chatBoxContainer');
+            const chatMessagesBody = document.getElementById('chatMessagesBody');
+            const chatInputText = document.getElementById('chatInputText');
+            const btnChatSend = document.getElementById('btnChatSend');
+            const chatUnreadCount = document.getElementById('chatUnreadCount');
+
+            let isChatOpen = false;
+            let lastMessageId = 0;
+            let chatPollingInterval = null;
+
+            function toggleChat() {
+                isChatOpen = !isChatOpen;
+                if (isChatOpen) {
+                    chatBoxContainer.classList.add('active');
+                    chatUnreadCount.style.display = 'none';
+                    chatUnreadCount.textContent = '0';
+                    scrollChatToBottom();
+                    fetchChatMessages();
+                    if (!chatPollingInterval) {
+                        chatPollingInterval = setInterval(fetchChatMessages, 3000);
+                    }
+                } else {
+                    chatBoxContainer.classList.remove('active');
+                    if (chatPollingInterval) {
+                        clearInterval(chatPollingInterval);
+                        chatPollingInterval = null;
+                    }
+                }
+            }
+
+            btnChatToggle.addEventListener('click', toggleChat);
+            btnChatClose.addEventListener('click', toggleChat);
+            if (btnLandingChatOpen) {
+                btnLandingChatOpen.addEventListener('click', toggleChat);
+            }
+
+            function scrollChatToBottom() {
+                chatMessagesBody.scrollTop = chatMessagesBody.scrollHeight;
+            }
+
+            function fetchChatMessages() {
+                fetch("{{ route('public.season.chat.messages', $slug) }}?session_token=" + sessionToken)
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success && res.messages) {
+                            let newMessagesFound = false;
+                            let unread = 0;
+
+                            res.messages.forEach(msg => {
+                                if (msg.id > lastMessageId) {
+                                    renderMessage(msg);
+                                    lastMessageId = msg.id;
+                                    newMessagesFound = true;
+                                    if (msg.is_admin) {
+                                        unread++;
+                                    }
+                                }
+                            });
+
+                            if (newMessagesFound) {
+                                scrollChatToBottom();
+                                if (!isChatOpen && unread > 0) {
+                                    chatUnreadCount.style.display = 'flex';
+                                    chatUnreadCount.textContent = unread;
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.log("Chat fetch issue:", err));
+            }
+
+            function renderMessage(msg) {
+                const bubble = document.createElement('div');
+                bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
+                bubble.textContent = msg.message;
+                chatMessagesBody.appendChild(bubble);
+            }
+
+            function sendPublicMessage() {
+                const text = chatInputText.value.trim();
+                if (!text) return;
+
+                chatInputText.value = '';
+                
+                // Optimistic render
+                const tempMsg = {
+                    id: 99999999 + Math.random(),
+                    message: text,
+                    is_admin: false
+                };
+                renderMessage(tempMsg);
+                scrollChatToBottom();
+
+                fetch("{{ route('public.season.chat.send', $slug) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        session_token: sessionToken,
+                        message: text
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        lastMessageId = Math.max(lastMessageId, res.chat.id);
+                    }
+                })
+                .catch(err => console.log("Chat send issue:", err));
+            }
+
+            btnChatSend.addEventListener('click', sendPublicMessage);
+            chatInputText.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendPublicMessage();
+                }
+            });
+
+            fetchChatMessages();
+            setInterval(() => {
+                if (!isChatOpen) {
+                    fetchChatMessages();
+                }
+            }, 10000);
+        });
+    </script>
 </body>
 </html>
