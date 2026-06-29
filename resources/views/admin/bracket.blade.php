@@ -25,6 +25,9 @@
                     </p>
                 </div>
                 <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
+                        <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
+                    </button>
                     <a href="{{ route('public.season.bracket', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
@@ -529,6 +532,52 @@
                     <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold rounded-pill shadow-sm" id="btnSaveMatch">Simpan Hasil</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- Admin Live Chat Dashboard Modal --}}
+<div class="modal fade" id="modalAdminLiveChat" tabindex="-1" aria-labelledby="modalAdminLiveChatLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden bg-dark text-white">
+            <div class="modal-header bg-black text-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h6 class="modal-title fw-bold" id="modalAdminLiveChatLabel">
+                    <i class="bi bi-chat-left-heart-fill text-warning me-2"></i> Live Chat Konsol Admin
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 d-flex" style="height: 500px;">
+                <!-- Left panel: Threads list -->
+                <div class="border-end border-secondary border-opacity-25" style="width: 250px; flex-shrink: 0; background-color: rgba(0,0,0,0.15); display: flex; flex-direction: column;">
+                    <div class="p-3 border-bottom border-secondary border-opacity-25 text-secondary small fw-bold text-uppercase">
+                        Pesan Masuk
+                    </div>
+                    <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
+                        <div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>
+                    </div>
+                </div>
+                <!-- Right panel: Active Chat Thread -->
+                <div class="flex-grow-1 d-flex flex-column" style="background-color: rgba(255,255,255,0.01);">
+                    <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.1);">
+                        <div id="adminActiveThreadTitle" class="fw-bold text-warning small">Pilih percakapan untuk memulai</div>
+                        <span id="adminThreadSessionToken" style="display:none;"></span>
+                    </div>
+                    
+                    <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2">
+                        <div class="text-center text-secondary my-auto py-5 small">
+                            <i class="bi bi-chat-dots" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2">Silakan pilih salah satu user anonim di samping untuk membalas pertanyaan.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center" style="background-color: rgba(0,0,0,0.2);">
+                        <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
+                        <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" disabled>
+                            <i class="bi bi-send-fill text-dark"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1638,5 +1687,188 @@ function openEditMatchModal(match) {
     const modal = new bootstrap.Modal(document.getElementById('editMatchModal'));
     modal.show();
 }
+
+// ----------------------------------------------------
+// Admin Live Chat Dashboard Scripting
+// ----------------------------------------------------
+const threadsList = document.getElementById('adminChatThreadsList');
+const activeThreadTitle = document.getElementById('adminActiveThreadTitle');
+const threadSessionTokenInput = document.getElementById('adminThreadSessionToken');
+const adminChatMessagesBody = document.getElementById('adminChatMessagesBody');
+const adminReplyInput = document.getElementById('adminReplyInput');
+const adminBtnReplySend = document.getElementById('adminBtnReplySend');
+const adminGlobalUnreadBadge = document.getElementById('adminGlobalUnreadBadge');
+
+let activeThreadToken = null;
+let activeThreadName = null;
+let adminLastMessageId = 0;
+let adminThreadsInterval = null;
+let adminMessagesInterval = null;
+
+// Thread List Styling helpers
+function renderThreadListHTML(threads) {
+    if (!threads || threads.length === 0) {
+        threadsList.innerHTML = '<div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>';
+        return;
+    }
+
+    let listHTML = '';
+    threads.forEach(t => {
+        const isSelected = activeThreadToken === t.sender_session_token;
+        const activeClass = isSelected ? 'bg-secondary bg-opacity-25 border-start border-3 border-warning' : '';
+        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.55rem;">${t.unread_count}</span>` : '';
+        
+        // Truncate message
+        let textTruncated = t.last_message || '';
+        if (textTruncated.length > 22) {
+            textTruncated = textTruncated.substring(0, 20) + '...';
+        }
+        
+        listHTML += `
+            <div class="p-3 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass}" style="cursor: pointer;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small text-white">${t.sender_name}</span>
+                    ${unreadBadge}
+                </div>
+                <div class="small text-secondary mt-1 text-truncate">${t.last_message_is_admin ? 'Anda: ' : ''}${textTruncated}</div>
+            </div>
+        `;
+    });
+    threadsList.innerHTML = listHTML;
+}
+
+window.selectChatThread = function(token, name) {
+    activeThreadToken = token;
+    activeThreadName = name;
+    activeThreadTitle.textContent = `Percakapan dengan ${name}`;
+    threadSessionTokenInput.textContent = token;
+    adminReplyInput.disabled = false;
+    adminBtnReplySend.disabled = false;
+    adminReplyInput.focus();
+
+    // Reset last message id to reload messages correctly
+    adminLastMessageId = 0;
+    adminChatMessagesBody.innerHTML = '<div class="text-center text-secondary py-5 small"><i class="bi bi-arrow-repeat spin"></i> Memuat pesan...</div>';
+
+    // Mark as read immediately
+    fetch(`/admin/dashboard/{{ $season->id }}/chat/read/${token}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+    });
+
+    fetchThreadMessages();
+    fetchAdminChatThreads(); // refresh list to clear badge count
+};
+
+function fetchAdminChatThreads() {
+    fetch("{{ route('admin.season.chat.threads', $season->id) }}")
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.threads) {
+                renderThreadListHTML(res.threads);
+                
+                // Calculate global unread count
+                let globalUnread = 0;
+                res.threads.forEach(t => {
+                    globalUnread += parseInt(t.unread_count || 0);
+                });
+
+                if (globalUnread > 0) {
+                    adminGlobalUnreadBadge.textContent = globalUnread;
+                    adminGlobalUnreadBadge.style.display = 'inline-block';
+                } else {
+                    adminGlobalUnreadBadge.style.display = 'none';
+                }
+            }
+        })
+        .catch(err => console.log("Threads load issue:", err));
+}
+
+function fetchThreadMessages() {
+    if (!activeThreadToken) return;
+
+    fetch(`/admin/dashboard/{{ $season->id }}/chat/messages/${activeThreadToken}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.messages) {
+                let renderList = false;
+                if (adminLastMessageId === 0) {
+                    adminChatMessagesBody.innerHTML = '';
+                    renderList = true;
+                }
+
+                res.messages.forEach(msg => {
+                    if (msg.id > adminLastMessageId) {
+                        const bubble = document.createElement('div');
+                        bubble.className = `p-2 rounded-3 text-white small ${msg.is_admin ? 'bg-secondary bg-opacity-50 align-self-end text-end' : 'bg-dark border border-secondary border-opacity-25 align-self-start'}`;
+                        bubble.style.maxWidth = '80%';
+                        bubble.innerHTML = `
+                            <div class="fw-bold" style="font-size: 0.65rem; color: ${msg.is_admin ? '#cbd5e1' : '#f59e0b'};">${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</div>
+                            <div class="mt-1">${msg.message}</div>
+                        `;
+                        adminChatMessagesBody.appendChild(bubble);
+                        adminLastMessageId = msg.id;
+                        renderList = true;
+                    }
+                });
+
+                if (renderList) {
+                    adminChatMessagesBody.scrollTop = adminChatMessagesBody.scrollHeight;
+                }
+            }
+        })
+        .catch(err => console.log("Messages load issue:", err));
+}
+
+function sendAdminReply() {
+    const text = adminReplyInput.value.trim();
+    if (!text || !activeThreadToken) return;
+
+    adminReplyInput.value = '';
+
+    fetch("{{ route('admin.season.chat.reply', $season->id) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            sender_session_token: activeThreadToken,
+            message: text
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            fetchThreadMessages();
+            fetchAdminChatThreads();
+        }
+    })
+    .catch(err => console.log("Reply issue:", err));
+}
+
+adminBtnReplySend.addEventListener('click', sendAdminReply);
+adminReplyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendAdminReply();
+    }
+});
+
+// Setup admin listeners
+document.getElementById('modalAdminLiveChat').addEventListener('show.bs.modal', () => {
+    fetchAdminChatThreads();
+    adminThreadsInterval = setInterval(fetchAdminChatThreads, 4000);
+    adminMessagesInterval = setInterval(fetchThreadMessages, 3000);
+});
+
+document.getElementById('modalAdminLiveChat').addEventListener('hide.bs.modal', () => {
+    if (adminThreadsInterval) clearInterval(adminThreadsInterval);
+    if (adminMessagesInterval) clearInterval(adminMessagesInterval);
+});
+
+// Initialize polling for thread badge counts (global badge)
+setInterval(fetchAdminChatThreads, 15000);
+fetchAdminChatThreads();
 </script>
 @endsection

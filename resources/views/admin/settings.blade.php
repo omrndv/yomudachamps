@@ -202,6 +202,30 @@
                 </div>
             </div>
 
+            {{-- Card 4.5: Tournament Rules --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-file-earmark-ruled text-warning me-2"></i> Pengaturan Rules Turnamen
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Link Google Drive Rules (Alternative)</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-link-45deg text-secondary"></i></span>
+                        <input type="url" name="global_rules_link" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="https://drive.google.com/..." value="{{ \App\Models\Setting::getVal('global_rules_link') }}">
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Upload File PDF Rules (Utama)</label>
+                    <input type="file" name="rules_file" class="form-control border border-light-subtle rounded-3 shadow-none p-2" accept="application/pdf">
+                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                        Pilih file PDF peraturan turnamen. Jika di-upload, ini akan otomatis menggantikan link Google Drive di atas.
+                    </small>
+                </div>
+            </div>
+
             {{-- Card 5: Maintenance Mode --}}
             <div class="card card-settings border-0 p-4 mb-4 bg-white mt-4">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">

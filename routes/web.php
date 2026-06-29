@@ -136,6 +136,12 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/bracket/rename-ymd-slot', [\App\Http\Controllers\BracketController::class, 'renameYmdSlot'])->name('admin.season.bracket.rename-ymd-slot');
             Route::post('/dashboard/{season_id}/bracket/delete-all-ymd-slots', [\App\Http\Controllers\BracketController::class, 'deleteAllYmdSlots'])->name('admin.season.bracket.delete-all-ymd-slots');
             Route::post('/dashboard/{season_id}/bracket/toggle-bronze-match', [\App\Http\Controllers\BracketController::class, 'toggleBronzeMatch'])->name('admin.season.bracket.toggle-bronze-match');
+            
+            // Admin Live Chat routes (real-time chat management)
+            Route::get('/dashboard/{season_id}/chat/threads', [\App\Http\Controllers\BracketController::class, 'getChatThreads'])->name('admin.season.chat.threads');
+            Route::get('/dashboard/{season_id}/chat/messages/{token}', [\App\Http\Controllers\BracketController::class, 'getThreadMessages'])->name('admin.season.chat.thread-messages');
+            Route::post('/dashboard/{season_id}/chat/reply', [\App\Http\Controllers\BracketController::class, 'replyChatMessage'])->name('admin.season.chat.reply');
+            Route::post('/dashboard/{season_id}/chat/read/{token}', [\App\Http\Controllers\BracketController::class, 'markThreadAsRead'])->name('admin.season.chat.read');
         });
 
         // Finance
@@ -230,3 +236,7 @@ Route::get('/season/{slug}', [\App\Http\Controllers\BracketController::class, 's
 // Public Bracket Viewer Route (Obfuscated slug)
 Route::get('/season/{slug}/bracket', [\App\Http\Controllers\BracketController::class, 'publicBracket'])->name('public.season.bracket');
 Route::get('/season/{slug}/bracket/data', [\App\Http\Controllers\BracketController::class, 'getBracketData'])->name('public.season.bracket.data');
+
+// Public Chat API routes
+Route::get('/season/{slug}/chat/messages', [\App\Http\Controllers\BracketController::class, 'getChatMessages'])->name('public.season.chat.messages');
+Route::post('/season/{slug}/chat/send', [\App\Http\Controllers\BracketController::class, 'sendChatMessage'])->name('public.season.chat.send');

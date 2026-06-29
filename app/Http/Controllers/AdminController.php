@@ -406,7 +406,8 @@ class AdminController extends Controller
             'social_tiktok',
             'social_youtube',
             'maintenance_secret',
-            'log_retention_days'
+            'log_retention_days',
+            'global_rules_link'
         ];
 
         foreach ($keys as $key) {
@@ -417,6 +418,24 @@ class AdminController extends Controller
             \App\Models\Setting::updateOrCreate(
                 ['key' => $key],
                 ['value' => $val]
+            );
+        }
+
+        // Handle rules PDF file upload
+        if ($request->hasFile('rules_file')) {
+            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+                ? base_path('../public_html') 
+                : public_path();
+            $rulesPath = $publicPath . '/rules';
+            if (!file_exists($rulesPath)) {
+                mkdir($rulesPath, 0755, true);
+            }
+            $file = $request->file('rules_file');
+            $file->move($rulesPath, 'rules-turnamen.pdf');
+            
+            \App\Models\Setting::updateOrCreate(
+                ['key' => 'global_rules_link'],
+                ['value' => asset('rules/rules-turnamen.pdf')]
             );
         }
 

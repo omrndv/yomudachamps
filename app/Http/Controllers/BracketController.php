@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bracket;
 use App\Models\Season;
 use App\Models\Team;
+use App\Models\SeasonChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -724,5 +725,161 @@ class BracketController extends Controller
                 'message' => 'Gagal mengubah status Bronze Match: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    // =========================================================================
+    // Real-Time Live Chat Controller Methods
+    // =========================================================================
+
+    /**
+     * Get messages for a specific user session in a season (Public API)
+     */
+    public function getChatMessages(Request $request, $slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) return response()->json(['success' => false, 'message' => 'Invalid Season'], 404);
+
+        $token = $request->query('session_token');
+        if (!$token) return response()->json(['success' => false, 'message' => 'Missing session token'], 400);
+
+        $messages = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messages
+        ]);
+    }
+
+    /**
+     * Send a message from public user (Public API)
+     */
+    public function sendChatMessage(Request $request, $slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) return response()->json(['success' => false, 'message' => 'Invalid Season'], 404);
+
+        $token = $request->input('session_token');
+        $messageText = $request->input('message');
+        if (!$token || !$messageText) {
+            return response()->json(['success' => false, 'message' => 'Missing token or message'], 400);
+        }
+
+        // Get or assign anonymous name
+        $existing = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->first();
+
+        if ($existing) {
+            $senderName = $existing->sender_name;
+        } else {
+            $uniqueUsersCount = SeasonChat::where('season_id', $season_id)
+                ->distinct('sender_session_token')
+                ->count('sender_session_token');
+            $senderName = 'anonim-' . ($uniqueUsersCount + 1);
+        }
+
+        $chat = SeasonChat::create([
+            'season_id' => $season_id,
+            'sender_session_token' => $token,
+            'sender_name' => $senderName,
+            'message' => $messageText,
+            'is_admin' => false,
+            'is_read' => false
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'chat' => $chat
+        ]);
+    }
+
+    /**
+     * Get all active chat threads for a season (Admin API)
+     */
+    public function getChatThreads($season_id)
+    {
+        $threads = SeasonChat::where('season_id', $season_id)
+            ->select('sender_session_token', 'sender_name', DB::raw('MAX(created_at) as last_chat_time'), DB::raw('SUM(CASE WHEN is_admin = 0 AND is_read = 0 THEN 1 ELSE 0 END) as unread_count'))
+            ->groupBy('sender_session_token', 'sender_name')
+            ->orderBy('last_chat_time', 'desc')
+            ->get();
+
+        foreach ($threads as $t) {
+            $lastMsg = SeasonChat::where('season_id', $season_id)
+                ->where('sender_session_token', $t->sender_session_token)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            $t->last_message = $lastMsg ? $lastMsg->message : '';
+            $t->last_message_is_admin = $lastMsg ? $lastMsg->is_admin : false;
+        }
+
+        return response()->json([
+            'success' => true,
+            'threads' => $threads
+        ]);
+    }
+
+    /**
+     * Get all messages in a specific thread (Admin API)
+     */
+    public function getThreadMessages($season_id, $token)
+    {
+        $messages = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messages
+        ]);
+    }
+
+    /**
+     * Mark a thread as read (Admin API)
+     */
+    public function markThreadAsRead($season_id, $token)
+    {
+        SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->where('is_admin', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Admin reply to a chat thread (Admin API)
+     */
+    public function replyChatMessage(Request $request, $season_id)
+    {
+        $token = $request->input('sender_session_token');
+        $messageText = $request->input('message');
+        if (!$token || !$messageText) {
+            return response()->json(['success' => false, 'message' => 'Missing parameter'], 400);
+        }
+
+        $threadInfo = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->first();
+        
+        $senderName = $threadInfo ? $threadInfo->sender_name : 'anonim';
+
+        $chat = SeasonChat::create([
+            'season_id' => $season_id,
+            'sender_session_token' => $token,
+            'sender_name' => $senderName,
+            'message' => $messageText,
+            'is_admin' => true,
+            'is_read' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'chat' => $chat
+        ]);
     }
 }

@@ -292,13 +292,9 @@
 
         <!-- Season Card info -->
         <div class="season-card">
-            @if($season->poster)
-                <img src="{{ asset('storage/' . $season->poster) }}" class="season-poster" alt="{{ $season->name }}">
-            @else
-                <div class="season-poster d-flex align-items-center justify-content-center bg-dark text-warning" style="font-size: 2rem;">
-                    <i class="bi bi-trophy-fill"></i>
-                </div>
-            @endif
+            <div class="season-poster d-flex align-items-center justify-content-center bg-dark text-warning mx-auto" style="font-size: 2.2rem; width: 80px; height: 80px; border-radius: 18px; border: 2px solid var(--border-color); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); margin-bottom: 16px;">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
 
             <h1 class="season-title">{{ $season->name }}</h1>
             <span class="season-badge">{{ $season->status ?? 'ACTIVE' }}</span>
@@ -369,43 +365,37 @@
                 </div>
                 <div class="modal-body p-4">
                     @if($season->schedule_info)
-                        <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-25" style="white-space: pre-line; font-size: 0.85rem;">
+                        <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-25 text-start" style="white-space: pre-line; font-size: 0.85rem; line-height: 1.6;">
                             {{ $season->schedule_info }}
                         </div>
                     @else
-                        <!-- Auto-Generated Schedule Timeline from Brackets -->
-                        <table class="timeline-table">
-                            <thead>
-                                <tr>
-                                    <th>Babak</th>
-                                    <th>Estimasi Jam Tanding</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                                @endphp
-                                @forelse($rounds as $rNum => $rMatches)
-                                    @php
-                                        $firstMatch = $rMatches->first();
-                                        $timeDisplay = $firstMatch->match_time ?? '20:00 WIB';
-                                        if (strpos($timeDisplay, ',') !== false) {
-                                            $parts = explode(',', $timeDisplay);
-                                            $timeDisplay = trim(end($parts));
-                                        }
-                                        $roundName = isset($names[$rNum]) ? $names[$rNum] : "Babak " . $rNum;
-                                    @endphp
-                                    <tr>
-                                        <td><strong>{{ $roundName }}</strong></td>
-                                        <td class="timeline-time">{{ $timeDisplay }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="2" class="text-center text-secondary py-3">Jadwal tanding belum dipublikasikan.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                        <!-- Default WhatsApp template schedule formatting -->
+                        <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-25 text-start" style="white-space: pre-line; font-size: 0.82rem; line-height: 1.5;">
+                            📢 <strong>JADWAL TURNAMEN ML</strong>
+
+                            🗓️ <strong>Mulai:</strong> 20.00 WIB
+
+                            ⏰ <strong>Waktu Main:</strong>
+                            Babak 1 → 20.00 – 20.40
+                            Babak 2 → 20.40 – 21.15
+                            Babak 3 → 21.15 – 21.50
+                            Babak 4 → 21.50 – 22.20
+                            Babak 5 → 22.20 – 22.50
+                            Semifinal → 22.50 – 23.20
+                            Bronze (BO1) & Final (BO3) → 23.20 – Selesai
+
+                            🗡️ <strong>Format Match:</strong>
+                            Babak 1 – Bronze: Draft Pick | BO1
+                            Final: Draft Pick | BO3
+
+                            ⚠️ <strong>Aturan Waktu:</strong>
+                            Toleransi telat 10 menit tiap babak
+                            Babak 1 toleransi 15 menit
+                            Lawan telat → SS lobby (JAM HARUS TERLIHAT)
+                            Lewat toleransi → WO / Diskualifikasi
+
+                            📺 Babak 4 - Final LIVE Streaming
+                        </div>
                     @endif
                 </div>
                 <div class="modal-footer border-0 pt-0 pb-4 px-4">
@@ -431,9 +421,12 @@
                         Peraturan turnamen dirilis dalam bentuk dokumen resmi untuk menjamin transparansi dan kenyamanan bermain.
                     </p>
                     
-                    @if($season->rules_link)
-                        <a href="{{ $season->rules_link }}" target="_blank" class="btn btn-accent px-4 py-2 w-100 justify-content-center">
-                            <i class="bi bi-file-earmark-pdf-fill"></i> Buka PDF Rules (Google Drive)
+                    @php
+                        $rulesLink = \App\Models\Setting::getVal('global_rules_link') ?: $season->rules_link;
+                    @endphp
+                    @if($rulesLink)
+                        <a href="{{ $rulesLink }}" target="_blank" class="btn btn-accent px-4 py-2 w-100 justify-content-center">
+                            <i class="bi bi-file-earmark-pdf-fill"></i> Buka Dokumen Rules Turnamen
                         </a>
                     @else
                         <div class="bg-dark p-3 rounded-4 text-secondary small border border-secondary border-opacity-10 mb-2">
