@@ -1089,4 +1089,137 @@ class BracketController extends Controller
             'message' => 'Percakapan berhasil diaktifkan kembali.'
         ]);
     }
+
+    /**
+     * Cari pertandingan aktif berdasarkan nomor WA kapten (Public API)
+     */
+    public function findActiveMatchForReport(Request $request, $slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) {
+            return response()->json(['success' => false, 'message' => 'Season tidak valid.']);
+        }
+
+        $request->validate([
+            'wa_number' => 'required|string'
+        ]);
+
+        $waRaw = trim($request->wa_number);
+        // Normalize WA
+        $waClean = preg_replace('/[^0-9+]/', '', $waRaw);
+        if (str_starts_with($waClean, '+62')) {
+            $waClean = '0' . substr($waClean, 3);
+        } elseif (str_starts_with($waClean, '628')) {
+            $waClean = '0' . substr($waClean, 2);
+        } elseif (str_starts_with($waClean, '60')) {
+            $waClean = '+' . $waClean;
+        } elseif (str_starts_with($waClean, '01')) {
+            $waClean = '+60' . substr($waClean, 1);
+        } elseif (str_starts_with($waClean, '1')) {
+            $waClean = '+60' . $waClean;
+        } elseif (!str_starts_with($waClean, '0') && !str_starts_with($waClean, '+') && strlen($waClean) > 0) {
+            $waClean = '0' . $waClean;
+        }
+
+        $team = Team::where('season_id', $season_id)
+            ->where('wa_number', $waClean)
+            ->first();
+
+        if (!$team) {
+            return response()->json(['success' => false, 'message' => 'Nomor WhatsApp tidak terdaftar pada season ini.']);
+        }
+
+        // Find active match where winner is TBD (null)
+        $match = Bracket::where('season_id', $season_id)
+            ->whereNull('winner_id')
+            ->whereNotNull('team1_id')
+            ->whereNotNull('team2_id')
+            ->where(function($q) use ($team) {
+                $q->where('team1_id', $team->id)
+                  ->orWhere('team2_id', $team->id);
+            })
+            ->with(['team1', 'team2'])
+            ->first();
+
+        if (!$match) {
+            return response()->json(['success' => false, 'message' => 'Tidak ditemukan pertandingan aktif yang perlu dilaporkan untuk tim Anda saat ini.']);
+        }
+
+        // Check if pending report already exists
+        $existingReport = \App\Models\MatchReport::where('bracket_id', $match->id)
+            ->where('reporter_team_id', $team->id)
+            ->where('status', 'PENDING')
+            ->first();
+
+        if ($existingReport) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah mengirimkan laporan untuk pertandingan ini. Harap tunggu persetujuan admin.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'match' => [
+                'id' => $match->id,
+                'team1_name' => $match->team1->name,
+                'team2_name' => $match->team2->name,
+                'team1_id' => $match->team1_id,
+                'team2_id' => $match->team2_id,
+                'round_number' => $match->round_number,
+                'match_number' => $match->match_number
+            ],
+            'reporter_team_id' => $team->id
+        ]);
+    }
+
+    /**
+     * Submit bukti & hasil laga (Public API)
+     */
+    public function submitMatchReport(Request $request, $slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) {
+            return response()->json(['success' => false, 'message' => 'Season tidak valid.']);
+        }
+
+        $request->validate([
+            'match_id' => 'required|integer',
+            'reporter_team_id' => 'required|integer',
+            'score_team1' => 'required|integer|min:0|max:5',
+            'score_team2' => 'required|integer|min:0|max:5',
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+        ]);
+
+        // Upload screenshot
+        $file = $request->file('image');
+        $filename = 'report_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+        $uploadPath = $publicPath . '/match_results';
+        
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $file->move($uploadPath, $filename);
+        $imageUrl = '/match_results/' . $filename;
+
+        \App\Models\MatchReport::create([
+            'bracket_id' => $request->match_id,
+            'season_id' => $season_id,
+            'reporter_team_id' => $request->reporter_team_id,
+            'score_team1' => $request->score_team1,
+            'score_team2' => $request->score_team2,
+            'image_proof' => $imageUrl,
+            'status' => 'PENDING'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
+        ]);
+    }
 }

@@ -705,9 +705,14 @@
     {{-- Header --}}
     <header class="bracket-header py-2">
         <div class="container d-flex align-items-center justify-content-between">
-            <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border-color: rgba(255,122,0,0.35); color: #ff7a00; padding: 4px 12px; background-color: rgba(255,122,0,0.02);">
-                <i class="bi bi-chevron-left"></i> Kembali
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border-color: rgba(255,255,255,0.15); color: #a1a1aa; padding: 4px 12px; background-color: rgba(255,255,255,0.02);">
+                    <i class="bi bi-chevron-left"></i> Kembali
+                </a>
+                <a href="{{ route('public.season.landing', $slug) }}?report=1" class="btn btn-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; padding: 4px 12px; color: #000;">
+                    <i class="bi bi-trophy-fill"></i> Lapor Skor
+                </a>
+            </div>
             <div class="text-end">
                 <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
                 <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>

@@ -249,6 +249,10 @@ Route::get('/season/{slug}/chat/messages', [\App\Http\Controllers\BracketControl
 Route::post('/season/{slug}/chat/send', [\App\Http\Controllers\BracketController::class, 'sendChatMessage'])->name('public.season.chat.send');
 Route::post('/season/{slug}/chat/upload', [\App\Http\Controllers\BracketController::class, 'uploadChatImage'])->name('public.season.chat.upload');
 
+// Public Match Report routes
+Route::post('/season/{slug}/match-report/find', [\App\Http\Controllers\BracketController::class, 'findActiveMatchForReport'])->name('public.match-report.find');
+Route::post('/season/{slug}/match-report/submit', [\App\Http\Controllers\BracketController::class, 'submitMatchReport'])->name('public.match-report.submit');
+
 Route::get('/chat-debug-files', function() {
     $parentPath = base_path('chat_uploads');
     $publicPath = public_path('chat_uploads');

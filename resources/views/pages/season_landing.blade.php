@@ -572,6 +572,17 @@
                     </div>
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </div>
+
+                <!-- 5. Laporkan Hasil Laga (Upload Bukti) -->
+                <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="border-color: rgba(255, 193, 7, 0.25); background-color: rgba(255, 193, 7, 0.02);">
+                    <div class="menu-content">
+                        <div class="menu-icon-wrapper" style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <span>Laporkan Hasil Laga</span>
+                    </div>
+                    <i class="bi bi-chevron-right menu-arrow" style="color: #ffc107;"></i>
+                </div>
             </div>
         </div>
 
@@ -661,6 +672,91 @@
                 </div>
                 <div class="modal-footer border-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-modal-close w-100" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---------------------------------------------------------------------- -->
+    <!-- Modal Report Score -->
+    <!-- ---------------------------------------------------------------------- -->
+    <div class="modal fade" id="modalReportScore" tabindex="-1" aria-labelledby="modalReportScoreLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,193,7,0.25); border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-white" id="modalReportScoreLabel">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i> Laporkan Hasil Laga
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <!-- Step 1: Verification Form -->
+                <div id="reportStepVerification" class="modal-body p-4 text-start">
+                    <p class="small text-secondary mb-4">
+                        Masukkan nomor WhatsApp Kapten/Perwakilan tim yang terdaftar saat registrasi untuk mencocokkan pertandingan aktif tim Anda.
+                    </p>
+                    <div class="mb-3 text-start">
+                        <label class="small fw-bold text-warning text-uppercase mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
+                            Nomor WhatsApp Kapten
+                        </label>
+                        <input type="tel" id="reportWaInput" class="form-control bg-dark border-secondary text-white rounded-4 p-3 shadow-none" placeholder="Contoh: 08123456789" required autocomplete="off" style="border: 1px solid rgba(255,255,255,0.1);">
+                    </div>
+                    <button type="button" id="btnVerifyReportWa" class="btn btn-warning w-100 py-3 fw-bold rounded-4 text-dark">
+                        CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>
+                    </button>
+                </div>
+
+                <!-- Step 2: Score & Screenshot Form (Initially Hidden) -->
+                <div id="reportStepSubmit" class="modal-body p-4" style="display: none;">
+                    <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-10 mb-4">
+                        <div class="small text-secondary fw-bold text-center text-uppercase mb-1" style="font-size: 0.6rem; letter-spacing: 0.8px;">Pertandingan Aktif Anda</div>
+                        <h6 class="fw-bold text-white text-center mb-0" id="reportMatchTitle">TIM A vs TIM B</h6>
+                        <div class="small text-warning text-center mt-1" style="font-size: 0.68rem;" id="reportMatchRound">Round 1</div>
+                    </div>
+
+                    <form id="formSubmitReport" enctype="multipart/form-data">
+                        <input type="hidden" id="reportMatchId" name="match_id">
+                        <input type="hidden" id="reportReporterTeamId" name="reporter_team_id">
+
+                        <!-- Scores inputs -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam1">Skor Tim 1</label>
+                                <select id="scoreTeam1Input" name="score_team1" class="form-select bg-dark border-secondary text-white rounded-4 p-2.5 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam2">Skor Tim 2</label>
+                                <select id="scoreTeam2Input" name="score_team2" class="form-select bg-dark border-secondary text-white rounded-4 p-2.5 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Screenshot Uploader -->
+                        <div class="mb-4 text-start">
+                            <label class="small fw-bold text-warning text-uppercase mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
+                                Upload Screenshot Hasil Game
+                            </label>
+                            <input type="file" id="reportImageInput" name="image" accept="image/*" class="form-control bg-dark border-secondary text-white rounded-4 p-2 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
+                            <small class="text-secondary d-block mt-1 text-start" style="font-size: 0.68rem;">Format JPG/PNG/WebP, maksimal 2MB</small>
+                        </div>
+
+                        <button type="submit" id="btnSubmitReportScore" class="btn btn-warning w-100 py-3 fw-bold rounded-4 text-dark">
+                            KIRIM LAPORAN SEKARANG
+                        </button>
+                    </form>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-modal-close w-100" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px;">Tutup</button>
                 </div>
             </div>
         </div>
@@ -930,6 +1026,138 @@
                         });
                     }
                 });
+            }
+
+            // ----------------------------------------------------
+            // Match Report Score JavaScript Logic
+            // ----------------------------------------------------
+            const btnVerifyReportWa = document.getElementById('btnVerifyReportWa');
+            const reportWaInput = document.getElementById('reportWaInput');
+            const reportStepVerification = document.getElementById('reportStepVerification');
+            const reportStepSubmit = document.getElementById('reportStepSubmit');
+            const reportMatchTitle = document.getElementById('reportMatchTitle');
+            const reportMatchRound = document.getElementById('reportMatchRound');
+            const reportMatchId = document.getElementById('reportMatchId');
+            const reportReporterTeamId = document.getElementById('reportReporterTeamId');
+            const labelScoreTeam1 = document.getElementById('labelScoreTeam1');
+            const labelScoreTeam2 = document.getElementById('labelScoreTeam2');
+            const formSubmitReport = document.getElementById('formSubmitReport');
+            const btnSubmitReportScore = document.getElementById('btnSubmitReportScore');
+
+            if (btnVerifyReportWa) {
+                btnVerifyReportWa.addEventListener('click', function() {
+                    const wa = reportWaInput.value.trim();
+                    if (!wa) {
+                        alert('Silakan masukkan nomor WhatsApp Anda.');
+                        return;
+                    }
+
+                    btnVerifyReportWa.disabled = true;
+                    btnVerifyReportWa.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mencari...';
+
+                    fetch("{{ route('public.match-report.find', $slug) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ wa_number: wa })
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        btnVerifyReportWa.disabled = false;
+                        btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
+
+                        if (res.success && res.match) {
+                            const match = res.match;
+                            reportMatchId.value = match.id;
+                            reportReporterTeamId.value = res.reporter_team_id;
+                            reportMatchTitle.textContent = `${match.team1_name} vs ${match.team2_name}`;
+                            reportMatchRound.textContent = `Round ${match.round_number} (Bracket Match ${match.match_number})`;
+                            labelScoreTeam1.textContent = `Skor ${match.team1_name}`;
+                            labelScoreTeam2.textContent = `Skor ${match.team2_name}`;
+                            
+                            reportStepVerification.style.display = 'none';
+                            reportStepSubmit.style.display = 'block';
+                        } else {
+                            alert(res.message);
+                        }
+                    })
+                    .catch(err => {
+                        btnVerifyReportWa.disabled = false;
+                        btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
+                        console.error('Error finding match:', err);
+                        alert('Terjadi kesalahan saat mencari pertandingan.');
+                    });
+                });
+            }
+
+            if (formSubmitReport) {
+                formSubmitReport.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const fileInput = document.getElementById('reportImageInput');
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        alert('Silakan pilih berkas bukti screenshot.');
+                        return;
+                    }
+
+                    btnSubmitReportScore.disabled = true;
+                    btnSubmitReportScore.textContent = 'MENGIRIM LAPORAN...';
+
+                    const formData = new FormData(formSubmitReport);
+
+                    fetch("{{ route('public.match-report.submit', $slug) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        btnSubmitReportScore.disabled = false;
+                        btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
+
+                        if (res.success) {
+                            alert(res.message);
+                            // Close modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('modalReportScore'));
+                            if (modal) modal.hide();
+                            
+                            // Reset state
+                            formSubmitReport.reset();
+                            reportWaInput.value = '';
+                            reportStepVerification.style.display = 'block';
+                            reportStepSubmit.style.display = 'none';
+                        } else {
+                            alert(res.message);
+                        }
+                    })
+                    .catch(err => {
+                        btnSubmitReportScore.disabled = false;
+                        btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
+                        console.error('Error submitting report:', err);
+                        alert('Terjadi kesalahan saat mengirimkan laporan.');
+                    });
+                });
+            }
+
+            // Reset modal on close
+            const modalEl = document.getElementById('modalReportScore');
+            if (modalEl) {
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    if (formSubmitReport) formSubmitReport.reset();
+                    if (reportWaInput) reportWaInput.value = '';
+                    if (reportStepVerification) reportStepVerification.style.display = 'block';
+                    if (reportStepSubmit) reportStepSubmit.style.display = 'none';
+                });
+            }
+
+            // Auto open report modal if URL parameter report=1 is set
+            if (new URLSearchParams(window.location.search).get('report') === '1') {
+                const reportModal = new bootstrap.Modal(document.getElementById('modalReportScore'));
+                if (reportModal) reportModal.show();
             }
 
             fetchChatMessages();
