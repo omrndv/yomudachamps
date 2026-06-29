@@ -87,10 +87,20 @@ class HomeController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|max:50',
-            'wa_number' => 'required|min:10',
-            'season_id' => 'required'
+            'name' => 'required|string|max:50|regex:/^[\pL\pN\s._\-]+$/u',
+            'wa_number' => 'required|string|min:10|max:20|regex:/^[0-9+]+$/',
+            'season_id' => 'required|integer'
         ]);
+
+        // Validate that season_id is actually an active & open season
+        $targetSeason = Season::where('id', $request->season_id)
+            ->where('status', 'ACTIVE')
+            ->where('is_open', true)
+            ->first();
+
+        if (!$targetSeason) {
+            return back()->with('error', 'Season tidak valid atau pendaftaran sudah ditutup.');
+        }
 
         $existingTeam = Team::where('season_id', $request->season_id)
             ->where('wa_number', $request->wa_number)
@@ -222,6 +232,27 @@ class HomeController extends Controller
             return back()->with('error', 'URL QRIS tidak ditemukan.');
         }
 
+        // SSRF Protection: Only allow trusted domains
+        $allowedDomains = ['tripay.co.id', 'api.qrserver.com'];
+        $parsedHost = parse_url($url, PHP_URL_HOST);
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+
+        if (!$parsedHost || !in_array($scheme, ['http', 'https'])) {
+            return back()->with('error', 'URL tidak valid.');
+        }
+
+        $domainAllowed = false;
+        foreach ($allowedDomains as $domain) {
+            if ($parsedHost === $domain || str_ends_with($parsedHost, '.' . $domain)) {
+                $domainAllowed = true;
+                break;
+            }
+        }
+
+        if (!$domainAllowed) {
+            return back()->with('error', 'Sumber QRIS tidak diizinkan.');
+        }
+
         try {
             $name = 'QRIS_YOMUDA_' . time() . '.png';
             $content = file_get_contents($url);
@@ -234,7 +265,7 @@ class HomeController extends Controller
                 ->header('Content-Type', 'image/png')
                 ->header('Content-Disposition', "attachment; filename=$name");
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal mengunduh QRIS: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengunduh QRIS.');
         }
     }
 
@@ -274,13 +305,13 @@ class HomeController extends Controller
         }
 
         $request->validate([
-            'wa_number' => 'required'
+            'wa_number' => 'required|string|min:10|max:20|regex:/^[0-9+]+$/'
         ]);
         
         $wa = $request->wa_number;
     
         $teams = Team::with('season')
-            ->where('wa_number', 'LIKE', '%' . $wa . '%')
+            ->where('wa_number', '=', $wa)
             ->orderBy('created_at', 'desc')
             ->get();
     

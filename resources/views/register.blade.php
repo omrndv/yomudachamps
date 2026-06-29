@@ -540,24 +540,22 @@
             return;
         }
 
-        form.addEventListener('submit', function () {
+        form.addEventListener('submit', function (e) {
+            if (form.getAttribute('data-submitting') === 'true') {
+                e.preventDefault();
+                return false;
+            }
+            form.setAttribute('data-submitting', 'true');
+
             const btn = document.getElementById('submitBtn');
-
-            if (!btn) {
-                return true;
-            }
-
-            const btnText = btn.querySelector('.btn-text');
-
-            setTimeout(function() {
+            if (btn) {
                 btn.disabled = true;
-            }, 10);
-            btn.classList.add('loading');
-
-            if (btnText) {
-                btnText.innerText = 'Sedang Memproses...';
+                btn.classList.add('loading');
+                const btnText = btn.querySelector('.btn-text');
+                if (btnText) {
+                    btnText.innerText = 'Sedang Memproses...';
+                }
             }
-
             return true;
         });
     });

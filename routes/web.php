@@ -92,13 +92,13 @@ Route::post('/api/callback', [TripayCallbackController::class, 'handle']);
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');
 Route::get('/daftar-team', [HomeController::class, 'registerTripayForm'])->name('register.tripay');
-Route::post('/register/store', [HomeController::class, 'storeRegistration'])->name('register.store');
+Route::post('/register/store', [HomeController::class, 'storeRegistration'])->middleware('throttle:6,1')->name('register.store');
 Route::get('/success/{trx_id}', [HomeController::class, 'successPage'])->name('payment.success');
 
 Route::get('/download-qris', [HomeController::class, 'downloadQris'])->name('qris.download');
 
 Route::get('/cek-tim', [HomeController::class, 'checkPage'])->name('check.team');
-Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->name('check.team.search');
+Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->middleware('throttle:15,1')->name('check.team.search');
 
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');

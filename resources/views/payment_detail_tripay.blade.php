@@ -228,7 +228,7 @@
                     <div class="accordion-body">
                         <ol class="ps-3 mb-0">
                             @foreach($group->steps as $step)
-                            <li class="mb-2">{!! $step !!}</li>
+                            <li class="mb-2">{!! strip_tags($step, '<b><strong><i><em><br><a><span>') !!}</li>
                             @endforeach
                         </ol>
                     </div>
