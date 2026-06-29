@@ -903,10 +903,7 @@ class BracketController extends Controller
         $file = $request->file('image');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-            ? base_path('../public_html') 
-            : public_path();
-        $uploadPath = $publicPath . '/chat_uploads';
+        $uploadPath = public_path('chat_uploads');
         
         if (!file_exists($uploadPath)) {
             mkdir($uploadPath, 0755, true);
@@ -941,6 +938,37 @@ class BracketController extends Controller
         return response()->json([
             'success' => true,
             'chat' => $chat
+        ]);
+    }
+
+    /**
+     * Delete a chat thread and all its uploaded files (Admin only)
+     */
+    public function deleteChatThread($season_id, $token)
+    {
+        $chats = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->get();
+
+        foreach ($chats as $c) {
+            if (str_starts_with($c->message, '[IMAGE]:')) {
+                $imgUrl = substr($c->message, 8);
+                $filename = basename($imgUrl);
+                $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+                    ? base_path('../public_html') 
+                    : public_path();
+                $filePath = $publicPath . '/chat_uploads/' . $filename;
+                
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            $c->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Percakapan berhasil dihapus beserta berkas media.'
         ]);
     }
 }

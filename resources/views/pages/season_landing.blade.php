@@ -41,10 +41,22 @@
             padding: 24px;
         }
 
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .landing-container {
             max-width: 500px;
             width: 100%;
             text-align: center;
+            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .brand-logo {
@@ -491,6 +503,9 @@
                 width: 280px;
                 height: 360px;
                 bottom: 60px;
+            }
+            .chat-input-wrapper input {
+                font-size: 16px !important;
             }
         }
     </style>

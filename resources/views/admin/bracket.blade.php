@@ -28,7 +28,7 @@
                     <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
                     </button>
-                    <a href="{{ route('public.season.bracket', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                    <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
                     
@@ -561,6 +561,9 @@
                     <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.1);">
                         <div id="adminActiveThreadTitle" class="fw-bold text-warning small">Pilih percakapan untuk memulai</div>
                         <span id="adminThreadSessionToken" style="display:none;"></span>
+                        <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
+                            <i class="bi bi-trash3-fill me-1"></i> Hapus Chat
+                        </button>
                     </div>
                     
                     <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2">
@@ -1744,6 +1747,13 @@ window.selectChatThread = function(token, name) {
     threadSessionTokenInput.textContent = token;
     adminReplyInput.disabled = false;
     adminBtnReplySend.disabled = false;
+    
+    // Show delete button
+    const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
+    if (adminBtnDeleteThread) {
+        adminBtnDeleteThread.style.display = 'inline-block';
+    }
+
     adminReplyInput.focus();
 
     // Reset last message id to reload messages correctly
@@ -1759,6 +1769,43 @@ window.selectChatThread = function(token, name) {
     fetchThreadMessages();
     fetchAdminChatThreads(); // refresh list to clear badge count
 };
+
+// Bind delete thread button once
+document.addEventListener('DOMContentLoaded', () => {
+    const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
+    if (adminBtnDeleteThread) {
+        adminBtnDeleteThread.addEventListener('click', () => {
+            if (!activeThreadToken) return;
+            if (!confirm(`Apakah Anda yakin ingin menghapus seluruh riwayat chat dengan ${activeThreadName} beserta berkas gambar yang dikirim untuk membebaskan kapasitas storage?`)) return;
+            
+            fetch(`/admin/dashboard/{{ $season->id }}/chat/delete/${activeThreadToken}`, {
+                method: 'DELETE',
+                headers: { 
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    activeThreadToken = null;
+                    activeThreadName = null;
+                    activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
+                    adminBtnDeleteThread.style.display = 'none';
+                    adminReplyInput.disabled = true;
+                    adminBtnReplySend.disabled = true;
+                    adminChatMessagesBody.innerHTML = `
+                        <div class="text-center text-secondary my-auto py-5 small">
+                            <i class="bi bi-chat-dots" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2">Percakapan berhasil dihapus.</p>
+                        </div>
+                    `;
+                    fetchAdminChatThreads();
+                }
+            });
+        });
+    }
+});
 
 function fetchAdminChatThreads() {
     fetch("{{ route('admin.season.chat.threads', $season->id) }}")

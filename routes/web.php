@@ -142,6 +142,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::get('/dashboard/{season_id}/chat/messages/{token}', [\App\Http\Controllers\BracketController::class, 'getThreadMessages'])->name('admin.season.chat.thread-messages');
             Route::post('/dashboard/{season_id}/chat/reply', [\App\Http\Controllers\BracketController::class, 'replyChatMessage'])->name('admin.season.chat.reply');
             Route::post('/dashboard/{season_id}/chat/read/{token}', [\App\Http\Controllers\BracketController::class, 'markThreadAsRead'])->name('admin.season.chat.read');
+            Route::delete('/dashboard/{season_id}/chat/delete/{token}', [\App\Http\Controllers\BracketController::class, 'deleteChatThread'])->name('admin.season.chat.delete');
         });
 
         // Finance

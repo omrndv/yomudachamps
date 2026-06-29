@@ -693,6 +693,9 @@
                 height: 360px;
                 bottom: 60px;
             }
+            .chat-input-wrapper input {
+                font-size: 16px !important;
+            }
         }
     </style>
 </head>
