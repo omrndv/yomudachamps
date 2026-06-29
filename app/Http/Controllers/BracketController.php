@@ -913,7 +913,7 @@ class BracketController extends Controller
         }
 
         $file->move($uploadPath, $filename);
-        $imageUrl = asset('chat_uploads/' . $filename);
+        $imageUrl = '/chat_uploads/' . $filename;
 
         // Get display name
         $existing = SeasonChat::where('season_id', $season_id)
