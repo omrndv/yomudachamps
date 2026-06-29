@@ -90,7 +90,7 @@ class CertificateController extends Controller
     public function saveLayout(Request $request, $season_id)
     {
         $request->validate([
-            'template' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'template' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:30720',
             'font' => 'nullable|file|max:5120', // TTF font file
             'font_size' => 'required|integer|min:10|max:200',
             'font_color' => 'required|string|regex:/^#[a-fA-F0-9]{6}$/',
