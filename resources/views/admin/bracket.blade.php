@@ -91,7 +91,7 @@
                         $hasBronze = false;
                         $finalRoundKey = $brackets->max('round_number');
                         if ($finalRoundKey) {
-                            $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->exists();
+                            $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->isNotEmpty();
                         }
                     @endphp
                     <div class="form-check form-switch ps-5">
