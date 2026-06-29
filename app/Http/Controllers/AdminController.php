@@ -423,10 +423,7 @@ class AdminController extends Controller
 
         // Handle rules PDF file upload
         if ($request->hasFile('rules_file')) {
-            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html') 
-                : public_path();
-            $rulesPath = $publicPath . '/rules';
+            $rulesPath = public_path('rules');
             if (!file_exists($rulesPath)) {
                 mkdir($rulesPath, 0755, true);
             }
@@ -441,10 +438,7 @@ class AdminController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html') 
-                : public_path();
-            $logoPath = $publicPath . '/images';
+            $logoPath = public_path('images');
             if (!file_exists($logoPath)) {
                 mkdir($logoPath, 0755, true);
             }
@@ -454,11 +448,8 @@ class AdminController extends Controller
 
         // Handle favicon upload
         if ($request->hasFile('favicon')) {
-            $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                ? base_path('../public_html') 
-                : public_path();
             $file = $request->file('favicon');
-            $file->move($publicPath, 'favicon.ico');
+            $file->move(public_path(), 'favicon.ico');
         }
 
         $secret = $request->input('maintenance_secret', 'yomudasecret');
