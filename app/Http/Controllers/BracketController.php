@@ -1193,7 +1193,8 @@ class BracketController extends Controller
 
         // Upload screenshot
         $file = $request->file('image');
-        $filename = 'report_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        // Force output extension to .jpg due to conversion
+        $filename = 'report_' . time() . '_' . uniqid() . '.jpg';
         
         $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
             ? base_path('../public_html') 
@@ -1204,7 +1205,7 @@ class BracketController extends Controller
             mkdir($uploadPath, 0755, true);
         }
 
-        $file->move($uploadPath, $filename);
+        $this->compressAndSaveImage($file, $uploadPath, $filename);
         $imageUrl = '/match_results/' . $filename;
 
         \App\Models\MatchReport::create([
@@ -1221,5 +1222,176 @@ class BracketController extends Controller
             'success' => true,
             'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
         ]);
+    }
+
+    /**
+     * Helper to compress uploaded image using GD to save up to 95% disk storage
+     */
+    private function compressAndSaveImage($uploadedFile, $uploadPath, $filename)
+    {
+        $sourcePath = $uploadedFile->getRealPath();
+        $targetPath = $uploadPath . '/' . $filename;
+
+        try {
+            if (!function_exists('imagecreatefromjpeg') && !function_exists('imagecreatefrompng') && !function_exists('imagecreatefromwebp')) {
+                $uploadedFile->move($uploadPath, $filename);
+                return true;
+            }
+
+            list($width, $height, $type) = getimagesize($sourcePath);
+            if (!$width || !$height) {
+                $uploadedFile->move($uploadPath, $filename);
+                return true;
+            }
+
+            // Max width 1200px
+            $newWidth = $width;
+            $newHeight = $height;
+            if ($width > 1200) {
+                $newWidth = 1200;
+                $newHeight = intval(($height / $width) * 1200);
+            }
+
+            $thumb = imagecreatetruecolor($newWidth, $newHeight);
+            
+            // Set white background for converted images
+            $white = imagecolorallocate($thumb, 255, 255, 255);
+            imagefill($thumb, 0, 0, $white);
+
+            switch($type) {
+                case IMAGETYPE_JPEG:
+                    $source = imagecreatefromjpeg($sourcePath);
+                    break;
+                case IMAGETYPE_PNG:
+                    $source = imagecreatefrompng($sourcePath);
+                    break;
+                case IMAGETYPE_WEBP:
+                    $source = imagecreatefromwebp($sourcePath);
+                    break;
+                default:
+                    $uploadedFile->move($uploadPath, $filename);
+                    return true;
+            }
+
+            if (!$source) {
+                $uploadedFile->move($uploadPath, $filename);
+                return true;
+            }
+
+            imagecopyresampled($thumb, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            
+            // Save as compressed JPEG
+            imagejpeg($thumb, $targetPath, 75);
+            
+            imagedestroy($thumb);
+            imagedestroy($source);
+            return true;
+        } catch (\Exception $e) {
+            try {
+                $uploadedFile->move($uploadPath, $filename);
+            } catch (\Exception $e2) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Tampilkan daftar laporan hasil tanding dari peserta (Admin Only)
+     */
+    public function adminMatchReports($season_id)
+    {
+        $season = Season::findOrFail($season_id);
+        $reports = \App\Models\MatchReport::where('season_id', $season_id)
+            ->with(['bracket', 'reporterTeam', 'bracket.team1', 'bracket.team2'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.match_reports', compact('season', 'reports'));
+    }
+
+    /**
+     * Setujui Laporan Hasil Laga dan update bagan secara otomatis (Admin Only)
+     */
+    public function approveMatchReport($id)
+    {
+        $report = \App\Models\MatchReport::findOrFail($id);
+        
+        DB::beginTransaction();
+        try {
+            $match = Bracket::findOrFail($report->bracket_id);
+            
+            if (!$match->team1_id || !$match->team2_id) {
+                return back()->with('error', 'Tim belum siap bertanding.');
+            }
+
+            // Set scores from report
+            $match->team1_score = $report->score_team1;
+            $match->team2_score = $report->score_team2;
+            $match->status = 'finished';
+
+            if ($report->score_team1 != $report->score_team2) {
+                $match->winner_id = ($report->score_team1 > $report->score_team2) ? $match->team1_id : $match->team2_id;
+            } else {
+                return back()->with('error', 'Skor tidak boleh seri untuk menentukan pemenang.');
+            }
+
+            $match->save();
+
+            // Advance the winner
+            $this->advanceWinner($match);
+
+            // Update report status
+            $report->status = 'APPROVED';
+            $report->save();
+
+            // Reject all other pending reports for the same match
+            \App\Models\MatchReport::where('bracket_id', $match->id)
+                ->where('id', '!=', $id)
+                ->where('status', 'PENDING')
+                ->update(['status' => 'REJECTED']);
+
+            DB::commit();
+            return back()->with('success', 'Laporan skor disetujui! Bagan otomatis terupdate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menyetujui: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tolak Laporan Hasil Laga (Admin Only)
+     */
+    public function rejectMatchReport($id)
+    {
+        $report = \App\Models\MatchReport::findOrFail($id);
+        $report->status = 'REJECTED';
+        $report->save();
+
+        return back()->with('success', 'Laporan skor berhasil ditolak.');
+    }
+
+    /**
+     * Hapus semua laporan tanding & file fisiknya di server untuk mengosongkan storage (Admin Only)
+     */
+    public function clearAllMatchReports($season_id)
+    {
+        $reports = \App\Models\MatchReport::where('season_id', $season_id)->get();
+        
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+
+        foreach ($reports as $report) {
+            if ($report->image_proof) {
+                $filePath = $publicPath . $report->image_proof;
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            $report->delete();
+        }
+
+        return back()->with('success', 'Semua laporan hasil tanding beserta berkas screenshot di server berhasil dibersihkan!');
     }
 }

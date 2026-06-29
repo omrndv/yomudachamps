@@ -296,8 +296,11 @@
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('manage'))
-            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
+            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
                 <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
+            </a>
+            <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+                <i class="bi bi-hdd-network"></i> <span>Kelola Penyimpanan</span>
             </a>
             @endif
 
@@ -378,8 +381,11 @@
                 @endif
 
                 @if(Auth::check() && Auth::user()->hasPermission('manage'))
-                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage*') ? 'active' : '' }}">
+                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
                     <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
+                </a>
+                <a href="{{ route('admin.storage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+                    <i class="bi bi-hdd-network me-2"></i> <span>Kelola Penyimpanan</span>
                 </a>
                 @endif
 

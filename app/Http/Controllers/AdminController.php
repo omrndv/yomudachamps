@@ -2001,4 +2001,184 @@ class AdminController extends Controller
 
         return back()->with('success', 'Tim solo berhasil dihapus dan player dikembalikan ke pool!');
     }
+
+    /**
+     * Tampilkan halaman pengelolaan disk/storage media (Superadmin Only)
+     */
+    public function storageManager()
+    {
+        if (!Auth::check() || !Auth::user()->hasPermission('manage')) {
+            return redirect()->route('admin.login');
+        }
+
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+
+        $folders = [
+            'chat_uploads' => $publicPath . '/chat_uploads',
+            'match_results' => $publicPath . '/match_results',
+            'posters' => $publicPath . '/storage/posters'
+        ];
+
+        $storageData = [];
+        $totalSystemSize = 0;
+
+        foreach ($folders as $key => $path) {
+            $filesInfo = [];
+            $folderSize = 0;
+            
+            if (file_exists($path) && is_dir($path)) {
+                $dirFiles = scandir($path);
+                foreach ($dirFiles as $file) {
+                    if ($file === '.' || $file === '..') continue;
+                    
+                    $filePath = $path . '/' . $file;
+                    if (is_file($filePath)) {
+                        $size = filesize($filePath);
+                        $folderSize += $size;
+                        
+                        $filesInfo[] = [
+                            'name' => $file,
+                            'size' => $size,
+                            'path' => '/' . ($key === 'posters' ? 'storage/posters' : $key) . '/' . $file,
+                            'date' => filemtime($filePath)
+                        ];
+                    }
+                }
+            }
+
+            // Sort files by date descending
+            usort($filesInfo, function($a, $b) {
+                return $b['date'] - $a['date'];
+            });
+
+            $storageData[$key] = [
+                'name' => $key === 'chat_uploads' ? 'Live Chat Aset' : ($key === 'match_results' ? 'Bukti Hasil Laga' : 'Poster Season'),
+                'path' => $path,
+                'total_size' => $folderSize,
+                'files_count' => count($filesInfo),
+                'files' => $filesInfo
+            ];
+
+            $totalSystemSize += $folderSize;
+        }
+
+        return view('admin.storage_manager', compact('storageData', 'totalSystemSize'));
+    }
+
+    /**
+     * Kosongkan folder penyimpanan tertentu (Superadmin Only)
+     */
+    public function clearStorageFolder(Request $request)
+    {
+        if (!Auth::check() || !Auth::user()->hasPermission('manage')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate(['folder' => 'required|string']);
+        $folderKey = $request->folder;
+
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+
+        $allowedFolders = [
+            'chat_uploads' => $publicPath . '/chat_uploads',
+            'match_results' => $publicPath . '/match_results',
+            'posters' => $publicPath . '/storage/posters'
+        ];
+
+        if (!array_key_exists($folderKey, $allowedFolders)) {
+            return back()->with('error', 'Folder tidak valid.');
+        }
+
+        $path = $allowedFolders[$folderKey];
+        $deletedCount = 0;
+
+        if (file_exists($path) && is_dir($path)) {
+            $dirFiles = scandir($path);
+            foreach ($dirFiles as $file) {
+                if ($file === '.' || $file === '..') continue;
+                
+                $filePath = $path . '/' . $file;
+                if (is_file($filePath)) {
+                    if ($folderKey === 'posters') {
+                        // Skip posters that are currently active in database
+                        $inUse = Season::where('poster', $file)->exists();
+                        if ($inUse) continue;
+                    }
+                    
+                    @unlink($filePath);
+                    $deletedCount++;
+                }
+            }
+        }
+
+        // Also clean corresponding database records if applicable
+        if ($folderKey === 'chat_uploads') {
+            SeasonChat::where('message', 'LIKE', '%[IMAGE]:%')->delete();
+        } elseif ($folderKey === 'match_results') {
+            \App\Models\MatchReport::truncate();
+        }
+
+        AdminActivity::log("Membersihkan folder penyimpanan: {$folderKey}. Terhapus {$deletedCount} berkas.");
+
+        return back()->with('success', "Folder berhasil dibersihkan! {$deletedCount} berkas dihapus.");
+    }
+
+    /**
+     * Hapus berkas tertentu secara spesifik (Superadmin Only)
+     */
+    public function deleteStorageFile(Request $request)
+    {
+        if (!Auth::check() || !Auth::user()->hasPermission('manage')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'file_path' => 'required|string'
+        ]);
+
+        $filePathRelative = $request->file_path;
+        
+        // Prevent directory traversal attacks
+        if (strpos($filePathRelative, '..') !== false) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 400);
+        }
+
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+
+        $absolutePath = $publicPath . $filePathRelative;
+
+        if (file_exists($absolutePath) && is_file($absolutePath)) {
+            $isAllowedDir = false;
+            $allowedDirs = ['/chat_uploads', '/match_results', '/storage/posters'];
+            foreach ($allowedDirs as $dir) {
+                if (strpos($filePathRelative, $dir) === 0) {
+                    $isAllowedDir = true;
+                    break;
+                }
+            }
+
+            if (!$isAllowedDir) {
+                return response()->json(['success' => false, 'message' => 'Direktori tidak diizinkan.'], 403);
+            }
+
+            @unlink($absolutePath);
+
+            // Also clean DB entry
+            if (strpos($filePathRelative, '/match_results/') === 0) {
+                \App\Models\MatchReport::where('image_proof', $filePathRelative)->delete();
+            }
+
+            AdminActivity::log("Menghapus berkas penyimpanan: " . basename($filePathRelative));
+
+            return response()->json(['success' => true, 'message' => 'Berkas berhasil dihapus.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Berkas tidak ditemukan.']);
+    }
 }

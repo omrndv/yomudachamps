@@ -38,6 +38,9 @@
                     <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
                     </button>
+                    <a href="{{ route('admin.season.match-reports', $season->id) }}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-trophy-fill me-1"></i> Laporan Laga
+                    </a>
                     <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>

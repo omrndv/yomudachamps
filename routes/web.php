@@ -138,6 +138,12 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/bracket/delete-all-ymd-slots', [\App\Http\Controllers\BracketController::class, 'deleteAllYmdSlots'])->name('admin.season.bracket.delete-all-ymd-slots');
             Route::post('/dashboard/{season_id}/bracket/toggle-bronze-match', [\App\Http\Controllers\BracketController::class, 'toggleBronzeMatch'])->name('admin.season.bracket.toggle-bronze-match');
             Route::post('/dashboard/{season_id}/bracket/toggle-visibility', [\App\Http\Controllers\BracketController::class, 'toggleBracketVisibility'])->name('admin.season.bracket.toggle-visibility');
+
+            // Match Reports Admin routes
+            Route::get('/dashboard/{season_id}/match-reports', [\App\Http\Controllers\BracketController::class, 'adminMatchReports'])->name('admin.season.match-reports');
+            Route::post('/match-report/approve/{id}', [\App\Http\Controllers\BracketController::class, 'approveMatchReport'])->name('admin.match-report.approve');
+            Route::post('/match-report/reject/{id}', [\App\Http\Controllers\BracketController::class, 'rejectMatchReport'])->name('admin.match-report.reject');
+            Route::post('/dashboard/{season_id}/match-reports/clear-all', [\App\Http\Controllers\BracketController::class, 'clearAllMatchReports'])->name('admin.season.match-reports.clear-all');
             
             // Admin Live Chat routes (real-time chat management)
             Route::get('/dashboard/{season_id}/chat/threads', [\App\Http\Controllers\BracketController::class, 'getChatThreads'])->name('admin.season.chat.threads');
@@ -223,6 +229,10 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.manage.update');
             Route::get('/manage-admins/delete/{id}', [AdminController::class, 'deleteAdmin'])->name('admin.manage.delete');
             Route::post('/manage-admins/toggle-permission', [AdminController::class, 'togglePermission'])->name('admin.manage.toggle-permission');
+
+            Route::get('/storage-manager', [AdminController::class, 'storageManager'])->name('admin.storage');
+            Route::post('/storage-manager/clear-folder', [AdminController::class, 'clearStorageFolder'])->name('admin.storage.clear-folder');
+            Route::post('/storage-manager/delete-file', [AdminController::class, 'deleteStorageFile'])->name('admin.storage.delete-file');
         });
     });
 });
