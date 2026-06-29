@@ -46,6 +46,9 @@
                     </a>
                     
                     @if($brackets->count() > 0)
+                        <button type="button" class="btn btn-outline-danger text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Laga Belum Selesai ({{ $brackets->filter(fn($b) => $b->status !== 'finished' && $b->team1_id && $b->team2_id)->count() }})
+                        </button>
                         <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
                             <i class="bi bi-tag-fill me-1"></i> Detail Slot YMD
                         </button>
@@ -308,6 +311,73 @@
         </div>
     @endif
 </div>
+
+{{-- Modal Pertandingan Belum Selesai (Unfinished Matches Follow-up) --}}
+@if($brackets->count() > 0)
+    @php
+        $unfinishedMatches = $brackets->filter(function($b) {
+            return $b->status !== 'finished' && $b->team1_id !== null && $b->team2_id !== null;
+        });
+    @endphp
+    <div class="modal fade" id="modalUnfinishedMatches" tabindex="-1" aria-labelledby="modalUnfinishedMatchesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white rounded-top-4 border-0 py-3">
+                    <h6 class="modal-title fw-bold" id="modalUnfinishedMatchesLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Daftar Pertandingan Belum Selesai ({{ $unfinishedMatches->count() }})
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <p class="text-secondary small mb-3">
+                        Berikut adalah daftar pertandingan yang kedua timnya sudah siap tetapi hasil tanding/skor belum selesai diinput. Hubungi kapten tim via WhatsApp untuk koordinasi.
+                    </p>
+                    
+                    @if($unfinishedMatches->count() > 0)
+                        <div class="list-group gap-2.5">
+                            @foreach($unfinishedMatches as $match)
+                                <div class="list-group-item border rounded-3 p-3 bg-light d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                                            {{ $match->team1->name }} <span class="text-secondary fw-normal">vs</span> {{ $match->team2->name }}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 small text-secondary">
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
+                                                Babak {{ $match->round_number }} (Match {{ $match->match_number }})
+                                            </span>
+                                            @if($match->match_time)
+                                                <span><i class="bi bi-clock me-1"></i>{{ $match->match_time }}</span>
+                                            @endif
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2">
+                                                {{ strtoupper($match->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        {{-- Contact Team 1 Captain --}}
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $match->team1->wa_number) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" style="font-size: 0.75rem;">
+                                            <i class="bi bi-whatsapp me-1"></i> WA Kapten 1
+                                        </a>
+                                        {{-- Contact Team 2 Captain --}}
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $match->team2->wa_number) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" style="font-size: 0.75rem;">
+                                            <i class="bi bi-whatsapp me-1"></i> WA Kapten 2
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-5 text-secondary">
+                            <i class="bi bi-check-circle-fill text-success d-block mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="fw-bold mb-1">Semua Pertandingan Selesai!</h6>
+                            <p class="small text-muted mb-0">Tidak ada pertandingan yang menunda laporan saat ini.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
 {{-- Modal Detail Slot YMD (Manage Placeholders) --}}
 @if($brackets->count() > 0)
@@ -2147,7 +2217,7 @@ function fetchThreadMessages() {
                         let displayContent = msg.message;
                         if (msg.message.startsWith('[IMAGE]:')) {
                             const imgUrl = msg.message.substring(8);
-                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 150px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')">`;
+                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 150px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="this.closest('.modal-body').querySelector('.d-flex.flex-column').scrollTop = this.closest('.modal-body').querySelector('.d-flex.flex-column').scrollHeight">`;
                         }
 
                         bubble.innerHTML = `
@@ -2161,7 +2231,9 @@ function fetchThreadMessages() {
                 });
 
                 if (renderList) {
-                    adminChatMessagesBody.scrollTop = adminChatMessagesBody.scrollHeight;
+                    setTimeout(() => {
+                        adminChatMessagesBody.scrollTop = adminChatMessagesBody.scrollHeight;
+                    }, 80);
                 }
             }
         })

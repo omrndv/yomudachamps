@@ -102,9 +102,9 @@
         }
     </style>
 
-    {{-- Categories / Tabs Filter --}}
+    {{-- Categories / Tabs Filter & Search Input --}}
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div class="d-flex flex-wrap gap-1" id="reportTabs">
                 <button class="btn btn-sm rounded-pill px-4 py-2.5 fw-bold active d-flex align-items-center gap-2" id="tab-all" data-status="ALL">
                     <i class="bi bi-grid-fill"></i> Semua Laporan 
@@ -122,6 +122,14 @@
                     <i class="bi bi-x-circle-fill"></i> Ditolak 
                     <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill" style="font-size: 0.65rem;">{{ $countRejected }}</span>
                 </button>
+            </div>
+
+            {{-- Instant Search Team Name Input --}}
+            <div class="position-relative" style="min-width: 290px;">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-secondary">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="reportSearchTeam" class="form-control rounded-pill ps-5 py-2.5 border-light-subtle shadow-sm bg-white text-dark small" placeholder="Cari nama tim pelapor / tanding..." style="font-size: 0.82rem; outline: none; border: 1px solid rgba(226, 232, 240, 0.8);">
             </div>
         </div>
     </div>
@@ -270,34 +278,50 @@
             });
         });
 
-        // Client-side category filtering
+        // Client-side category filtering & live search
         const tabButtons = document.querySelectorAll('#reportTabs button');
+        const searchInput = document.getElementById('reportSearchTeam');
         const rows = document.querySelectorAll('tbody tr:not(#row-empty-state)');
         const emptyState = document.getElementById('row-empty-state');
+
+        function filterReports() {
+            const activeTab = document.querySelector('#reportTabs button.active');
+            const status = activeTab ? activeTab.getAttribute('data-status') : 'ALL';
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            
+            let visibleRows = 0;
+
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                const matchText = row.querySelector('.fw-bold.text-dark').textContent.toLowerCase();
+                
+                const matchesStatus = (status === 'ALL' || rowStatus === status);
+                const matchesSearch = (query === '' || matchText.includes(query));
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyState) {
+                emptyState.style.display = (visibleRows === 0) ? '' : 'none';
+            }
+        }
 
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
-
-                const status = this.getAttribute('data-status');
-                let visibleRows = 0;
-
-                rows.forEach(row => {
-                    const rowStatus = row.getAttribute('data-status');
-                    if (status === 'ALL' || rowStatus === status) {
-                        row.style.display = '';
-                        visibleRows++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                if (emptyState) {
-                    emptyState.style.display = (visibleRows === 0) ? '' : 'none';
-                }
+                filterReports();
             });
         });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', filterReports);
+        }
 
         // Web Audio API Synthesizer Chime Notification for new incoming match reports
         function playNewReportChime() {

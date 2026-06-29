@@ -527,6 +527,8 @@
         });
     </script>
     @stack('scripts')
+    <!-- Instant.page: Preloads pages on hover before user clicks for instant (waswuss) navigation in admin -->
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.us.min.js" type="module" defer></script>
 </body>
 
 </html>

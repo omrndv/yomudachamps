@@ -1456,7 +1456,9 @@
         });
 
         function scrollChatToBottom() {
-            chatMessagesBody.scrollTop = chatMessagesBody.scrollHeight;
+            setTimeout(() => {
+                chatMessagesBody.scrollTop = chatMessagesBody.scrollHeight;
+            }, 80);
         }
 
         let isInitialLoad = true;
@@ -1534,7 +1536,7 @@
             bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
             if (msg.message.startsWith('[IMAGE]:')) {
                 const imgUrl = msg.message.substring(8);
-                bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')">`;
+                bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="scrollChatToBottom()">`;
             } else {
                 bubble.textContent = msg.message;
             }
