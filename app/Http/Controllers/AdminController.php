@@ -2113,7 +2113,7 @@ class AdminController extends Controller
 
         // Also clean corresponding database records if applicable
         if ($folderKey === 'chat_uploads') {
-            SeasonChat::where('message', 'LIKE', '%[IMAGE]:%')->delete();
+            \App\Models\SeasonChat::where('message', 'LIKE', '%[IMAGE]:%')->delete();
         } elseif ($folderKey === 'match_results') {
             \App\Models\MatchReport::truncate();
         }
