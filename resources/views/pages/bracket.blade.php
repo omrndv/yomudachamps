@@ -341,8 +341,8 @@
         }
 
         .team-row .text-muted {
-            color: #a1a1aa !important;
-            opacity: 0.85;
+            color: #3f3f46 !important;
+            opacity: 0.3;
         }
 
         .italic {
