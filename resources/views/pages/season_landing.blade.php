@@ -49,8 +49,8 @@
 
         .brand-logo {
             font-weight: 800;
-            font-size: 1.5rem;
-            letter-spacing: -1px;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
             color: #ffffff;
             margin-bottom: 24px;
             display: flex;
@@ -501,7 +501,7 @@
         <!-- Logo -->
         <div class="brand-logo">
             <i class="bi bi-lightning-charge-fill"></i>
-            <span>YOMUDA ADM</span>
+            <span>Peraturan & Bagan Pemain Yomuda</span>
         </div>
 
         <!-- Season Card info -->
