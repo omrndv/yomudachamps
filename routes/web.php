@@ -113,6 +113,7 @@ Route::middleware('admin.auth')->group(function () {
     Route::get('/admin/seasons/delete/{id}', [AdminController::class, 'deleteSeason'])->name('admin.seasons.delete');
     Route::post('/admin/team/update/{id}', [AdminController::class, 'updateTeam'])->name('admin.team.update');
     Route::post('/admin/team/bulk-delete', [AdminController::class, 'bulkDelete'])->name('admin.team.bulkDelete');
+    Route::get('/admin/check-new-payments', [AdminController::class, 'checkNewPayments'])->name('admin.payments.check-new');
     
     Route::middleware('permission:payments')->group(function () {
         Route::get('/admin/payments/sync', [AdminController::class, 'syncPayments'])->name('admin.payments.sync');

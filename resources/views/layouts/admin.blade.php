@@ -442,6 +442,82 @@
                     }
                 });
             }
+
+            // ----------------------------------------------------
+            // Global Live Payment Notifications for Admin
+            // ----------------------------------------------------
+            let lastPaidTeamId = localStorage.getItem('last_paid_team_id');
+
+            function playSuccessPaymentSound() {
+                try {
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Cash register style arpeggio chime (C6 -> E6 -> G6 -> C7)
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(1046.50, context.currentTime); // C6
+                    osc1.frequency.setValueAtTime(1318.51, context.currentTime + 0.08); // E6
+                    osc1.frequency.setValueAtTime(1567.98, context.currentTime + 0.16); // G6
+                    osc1.frequency.setValueAtTime(2093.00, context.currentTime + 0.24); // C7
+                    
+                    gain1.gain.setValueAtTime(0.12, context.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6);
+                    
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    
+                    osc1.start();
+                    osc1.stop(context.currentTime + 0.6);
+                } catch (e) {
+                    console.log("AudioContext failed:", e);
+                }
+            }
+
+            function checkForNewPayments() {
+                fetch("{{ route('admin.payments.check-new') }}")
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success && res.latest_paid) {
+                            const team = res.latest_paid;
+                            
+                            // Initialize lastPaidTeamId if not set, so it won't trigger sound on page load
+                            if (!lastPaidTeamId) {
+                                localStorage.setItem('last_paid_team_id', team.id);
+                                lastPaidTeamId = team.id;
+                                return;
+                            }
+
+                            if (team.id > lastPaidTeamId) {
+                                localStorage.setItem('last_paid_team_id', team.id);
+                                lastPaidTeamId = team.id;
+
+                                // Play money success sound
+                                playSuccessPaymentSound();
+
+                                // Show Toast Notification using SweetAlert
+                                Swal.fire({
+                                    title: '💸 Pembayaran Sukses!',
+                                    html: `Tim <b>${team.name}</b> baru saja melunasi pendaftaran.<br><small class="text-secondary">Trx ID: ${team.trx_id}</small>`,
+                                    icon: 'success',
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 5000,
+                                    timerProgressBar: true,
+                                    background: '#0f172a',
+                                    color: '#ffffff'
+                                });
+                            }
+                        }
+                    })
+                    .catch(err => console.log("New payment check issue:", err));
+            }
+
+            // Start checking every 15 seconds
+            setInterval(checkForNewPayments, 15000);
+            checkForNewPayments(); // Immediate check on load
         });
     </script>
     @stack('scripts')

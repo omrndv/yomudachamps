@@ -174,6 +174,19 @@ class AdminController extends Controller
         ));
     }
 
+    public function checkNewPayments()
+    {
+        $latestPaid = Team::where('status', 'PAID')
+            ->where('updated_at', '>=', now()->subMinutes(2))
+            ->orderBy('updated_at', 'desc')
+            ->first(['id', 'name', 'trx_id', 'updated_at']);
+
+        return response()->json([
+            'success' => true,
+            'latest_paid' => $latestPaid
+        ]);
+    }
+
     public function seasons()
     {
         if (!Auth::check()) {
