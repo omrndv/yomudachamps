@@ -192,7 +192,7 @@
                                                         ],
                                                         'manage' => [
                                                             'label' => 'Kelola Admin (Super)',
-                                                            'desc' => 'Menambah, mengedit informasi, menghapus akun admin, dan mengatur pembagian hak akses ini.',
+                                                            'desc' => 'Menambah, mengedit informasi, menghapus akun admin, mengatur pembagian hak akses, serta mengakses Manajemen Penyimpanan (Storage Manager).',
                                                             'icon' => 'bi-person-gear',
                                                             'color' => '#3b82f6',
                                                             'bg' => '#dbeafe'

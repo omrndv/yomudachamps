@@ -924,7 +924,7 @@ class BracketController extends Controller
         $file = $request->file('image');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        $uploadPath = public_path('chat_uploads');
+        $uploadPath = base_path('chat_uploads');
         
         if (!file_exists($uploadPath)) {
             mkdir($uploadPath, 0755, true);
@@ -975,9 +975,7 @@ class BracketController extends Controller
             if (str_starts_with($c->message, '[IMAGE]:')) {
                 $imgUrl = substr($c->message, 8);
                 $filename = basename($imgUrl);
-                $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                    ? base_path('../public_html') 
-                    : public_path();
+                $publicPath = base_path();
                 $filePath = $publicPath . '/chat_uploads/' . $filename;
                 
                 if (file_exists($filePath)) {
@@ -1018,9 +1016,7 @@ class BracketController extends Controller
             if (str_starts_with($c->message, '[IMAGE]:')) {
                 $imgUrl = substr($c->message, 8);
                 $filename = basename($imgUrl);
-                $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-                    ? base_path('../public_html') 
-                    : public_path();
+                $publicPath = base_path();
                 $filePath = $publicPath . '/chat_uploads/' . $filename;
                 
                 if (file_exists($filePath)) {
@@ -1048,9 +1044,7 @@ class BracketController extends Controller
         $file = $request->file('image');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-            ? base_path('../public_html') 
-            : public_path();
+        $publicPath = base_path();
         $uploadPath = $publicPath . '/chat_uploads';
         
         if (!file_exists($uploadPath)) {
@@ -1196,9 +1190,7 @@ class BracketController extends Controller
         // Force output extension to .jpg due to conversion
         $filename = 'report_' . time() . '_' . uniqid() . '.jpg';
         
-        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-            ? base_path('../public_html') 
-            : public_path();
+        $publicPath = base_path();
         $uploadPath = $publicPath . '/match_results';
         
         if (!file_exists($uploadPath)) {
@@ -1378,9 +1370,7 @@ class BracketController extends Controller
     {
         $reports = \App\Models\MatchReport::where('season_id', $season_id)->get();
         
-        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
-            ? base_path('../public_html') 
-            : public_path();
+        $publicPath = base_path();
 
         foreach ($reports as $report) {
             if ($report->image_proof) {
