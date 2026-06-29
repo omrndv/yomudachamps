@@ -128,10 +128,11 @@
             <div class="bracket-container" id="adminBracketContainer">
                 @foreach($rounds as $roundNum => $matches)
                     @php
-                        $isFinalRound = ($roundNum === $rounds->keys()->max());
+                        $isFinalRound = ($roundNum === $brackets->max('round_number'));
                         $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
                         $roundHeight = 4600;
                         $matchesCount = $columnMatches->count();
+                        $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
                     @endphp
                     <div class="bracket-round">
                         @foreach($columnMatches as $match)
