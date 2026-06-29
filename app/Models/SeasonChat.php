@@ -13,7 +13,8 @@ class SeasonChat extends Model
         'sender_name',
         'message',
         'is_admin',
-        'is_read'
+        'is_read',
+        'is_archived'
     ];
 
     public function season(): BelongsTo

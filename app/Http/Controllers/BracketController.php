@@ -802,6 +802,7 @@ class BracketController extends Controller
     public function getChatThreads($season_id)
     {
         $threads = SeasonChat::where('season_id', $season_id)
+            ->where('is_archived', false)
             ->select('sender_session_token', 'sender_name', DB::raw('MAX(created_at) as last_chat_time'), DB::raw('SUM(CASE WHEN is_admin = 0 AND is_read = 0 THEN 1 ELSE 0 END) as unread_count'))
             ->groupBy('sender_session_token', 'sender_name')
             ->orderBy('last_chat_time', 'desc')
@@ -969,6 +970,88 @@ class BracketController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Percakapan berhasil dihapus beserta berkas media.'
+        ]);
+    }
+
+    /**
+     * Archive a chat thread to hide it from active list (Admin only)
+     */
+    public function archiveChatThread($season_id, $token)
+    {
+        SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->update(['is_archived' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Percakapan berhasil diarsipkan.'
+        ]);
+    }
+
+    /**
+     * Clear all chats and delete all uploaded images in the season (Admin only)
+     */
+    public function clearAllSeasonChats($season_id)
+    {
+        $chats = SeasonChat::where('season_id', $season_id)->get();
+        foreach ($chats as $c) {
+            if (str_starts_with($c->message, '[IMAGE]:')) {
+                $imgUrl = substr($c->message, 8);
+                $filename = basename($imgUrl);
+                $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+                    ? base_path('../public_html') 
+                    : public_path();
+                $filePath = $publicPath . '/chat_uploads/' . $filename;
+                
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            $c->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Seluruh riwayat chat season ini berhasil dibersihkan.'
+        ]);
+    }
+
+    /**
+     * Admin Upload an image to a chat thread (Admin API)
+     */
+    public function adminUploadChatImage(Request $request, $season_id, $token)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+        ]);
+
+        $file = $request->file('image');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+        $uploadPath = $publicPath . '/chat_uploads';
+        
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $file->move($uploadPath, $filename);
+        $imageUrl = '/chat_uploads/' . $filename;
+
+        $chat = SeasonChat::create([
+            'season_id' => $season_id,
+            'sender_session_token' => $token,
+            'sender_name' => 'Admin',
+            'message' => '[IMAGE]:' . $imageUrl,
+            'is_admin' => true,
+            'is_read' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'chat' => $chat
         ]);
     }
 }

@@ -548,9 +548,12 @@
             </div>
             <div class="modal-body p-0 d-flex" style="height: 500px;">
                 <!-- Left panel: Threads list -->
-                <div class="border-end border-secondary border-opacity-25" style="width: 250px; flex-shrink: 0; background-color: rgba(0,0,0,0.15); display: flex; flex-direction: column;">
-                    <div class="p-3 border-bottom border-secondary border-opacity-25 text-secondary small fw-bold text-uppercase">
-                        Pesan Masuk
+                <div class="border-end border-secondary border-opacity-25" style="width: 260px; flex-shrink: 0; background-color: rgba(0,0,0,0.15); display: flex; flex-direction: column;">
+                    <div class="p-3 border-bottom border-secondary border-opacity-25 text-secondary small fw-bold text-uppercase d-flex justify-content-between align-items-center">
+                        <span>Pesan Masuk</span>
+                        <button id="adminBtnClearAllChats" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.6rem;">
+                            Reset All
+                        </button>
                     </div>
                     <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
                         <div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>
@@ -561,9 +564,14 @@
                     <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.1);">
                         <div id="adminActiveThreadTitle" class="fw-bold text-warning small">Pilih percakapan untuk memulai</div>
                         <span id="adminThreadSessionToken" style="display:none;"></span>
-                        <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
-                            <i class="bi bi-trash3-fill me-1"></i> Hapus Chat
-                        </button>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="adminBtnArchiveThread" class="btn btn-outline-warning btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
+                                <i class="bi bi-archive-fill me-1"></i> Arsipkan
+                            </button>
+                            <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
+                                <i class="bi bi-trash3-fill me-1"></i> Hapus Chat
+                            </button>
+                        </div>
                     </div>
                     
                     <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2">
@@ -574,6 +582,10 @@
                     </div>
                     
                     <div class="p-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center" style="background-color: rgba(0,0,0,0.2);">
+                        <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" disabled>
+                            <i class="bi bi-camera-fill"></i>
+                        </button>
+                        <input type="file" id="adminFileInput" accept="image/*" style="display: none;">
                         <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
                         <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" disabled>
                             <i class="bi bi-send-fill text-dark"></i>
@@ -1748,11 +1760,16 @@ window.selectChatThread = function(token, name) {
     adminReplyInput.disabled = false;
     adminBtnReplySend.disabled = false;
     
-    // Show delete button
+    // Enable attachment buttons
+    const adminBtnAttach = document.getElementById('adminBtnAttach');
+    if (adminBtnAttach) adminBtnAttach.disabled = false;
+
+    // Show delete & archive buttons
     const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
-    if (adminBtnDeleteThread) {
-        adminBtnDeleteThread.style.display = 'inline-block';
-    }
+    if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'inline-block';
+    
+    const adminBtnArchiveThread = document.getElementById('adminBtnArchiveThread');
+    if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'inline-block';
 
     adminReplyInput.focus();
 
@@ -1770,13 +1787,19 @@ window.selectChatThread = function(token, name) {
     fetchAdminChatThreads(); // refresh list to clear badge count
 };
 
-// Bind delete thread button once
+// Bind actions on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
+    const adminBtnArchiveThread = document.getElementById('adminBtnArchiveThread');
+    const adminBtnClearAllChats = document.getElementById('adminBtnClearAllChats');
+    const adminBtnAttach = document.getElementById('adminBtnAttach');
+    const adminFileInput = document.getElementById('adminFileInput');
+
+    // 1. Delete thread
     if (adminBtnDeleteThread) {
         adminBtnDeleteThread.addEventListener('click', () => {
             if (!activeThreadToken) return;
-            if (!confirm(`Apakah Anda yakin ingin menghapus seluruh riwayat chat dengan ${activeThreadName} beserta berkas gambar yang dikirim untuk membebaskan kapasitas storage?`)) return;
+            if (!confirm(`Apakah Anda yakin ingin menghapus seluruh riwayat chat dengan ${activeThreadName} beserta berkas gambar yang dikirim?`)) return;
             
             fetch(`/admin/dashboard/{{ $season->id }}/chat/delete/${activeThreadToken}`, {
                 method: 'DELETE',
@@ -1792,6 +1815,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeThreadName = null;
                     activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
                     adminBtnDeleteThread.style.display = 'none';
+                    if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'none';
+                    if (adminBtnAttach) adminBtnAttach.disabled = true;
                     adminReplyInput.disabled = true;
                     adminBtnReplySend.disabled = true;
                     adminChatMessagesBody.innerHTML = `
@@ -1803,6 +1828,107 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchAdminChatThreads();
                 }
             });
+        });
+    }
+
+    // 2. Archive thread
+    if (adminBtnArchiveThread) {
+        adminBtnArchiveThread.addEventListener('click', () => {
+            if (!activeThreadToken) return;
+            if (!confirm(`Apakah Anda yakin ingin mengarsipkan percakapan dengan ${activeThreadName} untuk meredam spam?`)) return;
+
+            fetch(`/admin/dashboard/{{ $season->id }}/chat/archive/${activeThreadToken}`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    activeThreadToken = null;
+                    activeThreadName = null;
+                    activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
+                    if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'none';
+                    adminBtnArchiveThread.style.display = 'none';
+                    if (adminBtnAttach) adminBtnAttach.disabled = true;
+                    adminReplyInput.disabled = true;
+                    adminBtnReplySend.disabled = true;
+                    adminChatMessagesBody.innerHTML = `
+                        <div class="text-center text-secondary my-auto py-5 small">
+                            <i class="bi bi-archive" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2">Percakapan diarsipkan.</p>
+                        </div>
+                    `;
+                    fetchAdminChatThreads();
+                }
+            });
+        });
+    }
+
+    // 3. Clear all chats (entire season)
+    if (adminBtnClearAllChats) {
+        adminBtnClearAllChats.addEventListener('click', () => {
+            if (!confirm("PERINGATAN! Anda yakin ingin menghapus SELURUH riwayat obrolan dan gambar media di season ini? Tindakan ini tidak dapat dibatalkan.")) return;
+
+            fetch(`/admin/dashboard/{{ $season->id }}/chat/clear-all`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    activeThreadToken = null;
+                    activeThreadName = null;
+                    activeThreadTitle.textContent = 'Pilih percakapan untuk memulai';
+                    if (adminBtnDeleteThread) adminBtnDeleteThread.style.display = 'none';
+                    if (adminBtnArchiveThread) adminBtnArchiveThread.style.display = 'none';
+                    if (adminBtnAttach) adminBtnAttach.disabled = true;
+                    adminReplyInput.disabled = true;
+                    adminBtnReplySend.disabled = true;
+                    adminChatMessagesBody.innerHTML = `
+                        <div class="text-center text-secondary my-auto py-5 small">
+                            <i class="bi bi-trash" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2">Seluruh chat berhasil dibersihkan.</p>
+                        </div>
+                    `;
+                    fetchAdminChatThreads();
+                }
+            });
+        });
+    }
+
+    // 4. Admin upload file attachments
+    if (adminBtnAttach && adminFileInput) {
+        adminBtnAttach.addEventListener('click', () => adminFileInput.click());
+        adminFileInput.addEventListener('change', function() {
+            if (this.files && this.files[0] && activeThreadToken) {
+                const file = this.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("Ukuran berkas maksimal 2MB!");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch(`/admin/dashboard/{{ $season->id }}/chat/upload/${activeThreadToken}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        fetchThreadMessages();
+                        fetchAdminChatThreads();
+                    } else {
+                        alert("Gagal mengunggah: " + res.message);
+                    }
+                })
+                .catch(err => console.log("Upload error:", err));
+            }
         });
     }
 });

@@ -687,10 +687,11 @@
             .chat-widget-wrapper {
                 bottom: 16px;
                 right: 16px;
+                left: 16px;
             }
             .chat-box-container {
-                width: 280px;
-                height: 360px;
+                width: 100% !important;
+                height: 380px;
                 bottom: 60px;
             }
             .chat-input-wrapper input {
@@ -702,10 +703,15 @@
 <body>
 
     {{-- Header --}}
-    <header class="bracket-header">
-        <div class="container text-center">
-            <h5 class="fw-bold m-0" style="letter-spacing: 0.5px; font-size: 1.05rem;">{{ strtoupper($season->name) }}</h5>
-            <p class="text-secondary m-0" style="font-size: 0.68rem;">Bagan Tournament Yomuda</p>
+    <header class="bracket-header py-2">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border-color: rgba(255,122,0,0.35); color: #ff7a00; padding: 4px 12px; background-color: rgba(255,122,0,0.02);">
+                <i class="bi bi-chevron-left"></i> Kembali
+            </a>
+            <div class="text-end">
+                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
+                <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>
+            </div>
         </div>
     </header>
 

@@ -498,10 +498,11 @@
             .chat-widget-wrapper {
                 bottom: 16px;
                 right: 16px;
+                left: 16px;
             }
             .chat-box-container {
-                width: 280px;
-                height: 360px;
+                width: 100% !important;
+                height: 380px;
                 bottom: 60px;
             }
             .chat-input-wrapper input {

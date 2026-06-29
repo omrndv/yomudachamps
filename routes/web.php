@@ -143,6 +143,9 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/chat/reply', [\App\Http\Controllers\BracketController::class, 'replyChatMessage'])->name('admin.season.chat.reply');
             Route::post('/dashboard/{season_id}/chat/read/{token}', [\App\Http\Controllers\BracketController::class, 'markThreadAsRead'])->name('admin.season.chat.read');
             Route::delete('/dashboard/{season_id}/chat/delete/{token}', [\App\Http\Controllers\BracketController::class, 'deleteChatThread'])->name('admin.season.chat.delete');
+            Route::post('/dashboard/{season_id}/chat/archive/{token}', [\App\Http\Controllers\BracketController::class, 'archiveChatThread'])->name('admin.season.chat.archive');
+            Route::delete('/dashboard/{season_id}/chat/clear-all', [\App\Http\Controllers\BracketController::class, 'clearAllSeasonChats'])->name('admin.season.chat.clear-all');
+            Route::post('/dashboard/{season_id}/chat/upload/{token}', [\App\Http\Controllers\BracketController::class, 'adminUploadChatImage'])->name('admin.season.chat.upload');
         });
 
         // Finance
