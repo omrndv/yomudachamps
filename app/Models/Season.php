@@ -18,7 +18,8 @@ class Season extends Model
         'poster',     
         'prize_pool',
         'rules_link',
-        'schedule_info'
+        'schedule_info',
+        'is_bracket_visible'
     ];
 
     public function teams(): HasMany

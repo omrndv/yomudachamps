@@ -23,6 +23,16 @@
                             <span class="pulse-dot-admin"></span> LIVE SYNC ACTIVE
                         </span>
                     </p>
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center gap-2">
+                            <input class="form-check-input m-0" type="checkbox" role="switch" id="toggleBracketVisibility" {{ $season->is_bracket_visible ? 'checked' : '' }} style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                            <label class="form-check-label fw-bold m-0" for="toggleBracketVisibility" style="font-size: 0.72rem; cursor: pointer;">
+                                <span id="bracketVisibilityLabel" class="{{ $season->is_bracket_visible ? 'text-success' : 'text-danger' }}">
+                                    {{ $season->is_bracket_visible ? '🟢 Bracket Terlihat oleh Peserta' : '🔴 Bracket Tersembunyi dari Peserta' }}
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
@@ -1716,6 +1726,39 @@ function openEditMatchModal(match) {
 }
 
 // ----------------------------------------------------
+// ----------------------------------------------------
+// Bracket Visibility Toggle
+// ----------------------------------------------------
+document.getElementById('toggleBracketVisibility')?.addEventListener('change', function() {
+    const label = document.getElementById('bracketVisibilityLabel');
+    const isChecked = this.checked;
+    
+    fetch(`/admin/dashboard/{{ $season->id }}/bracket/toggle-visibility`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            if (res.is_bracket_visible) {
+                label.className = 'text-success';
+                label.textContent = '🟢 Bracket Terlihat oleh Peserta';
+            } else {
+                label.className = 'text-danger';
+                label.textContent = '🔴 Bracket Tersembunyi dari Peserta';
+            }
+        }
+    })
+    .catch(err => {
+        // Revert on error
+        this.checked = !isChecked;
+        console.error('Toggle visibility error:', err);
+    });
+});
+
 // Admin Live Chat Dashboard Scripting
 // ----------------------------------------------------
 const threadsList = document.getElementById('adminChatThreadsList');

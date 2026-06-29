@@ -223,6 +223,24 @@ class BracketController extends Controller
     }
 
     /**
+     * Toggle bracket visibility to participants (Admin API)
+     */
+    public function toggleBracketVisibility($season_id)
+    {
+        $season = Season::findOrFail($season_id);
+        $season->is_bracket_visible = !$season->is_bracket_visible;
+        $season->save();
+
+        return response()->json([
+            'success' => true,
+            'is_bracket_visible' => $season->is_bracket_visible,
+            'message' => $season->is_bracket_visible 
+                ? 'Bracket sekarang TERLIHAT oleh peserta.' 
+                : 'Bracket sekarang TERSEMBUNYI dari peserta.'
+        ]);
+    }
+
+    /**
      * Rilis halaman publik bagan tanding untuk season tertentu
      */
     public function publicBracket($slug)
@@ -237,7 +255,7 @@ class BracketController extends Controller
             ->orderBy('match_number')
             ->get();
 
-        if ($brackets->count() === 0) {
+        if ($brackets->count() === 0 || !$season->is_bracket_visible) {
             return view('pages.bracket_empty', compact('season'));
         }
 

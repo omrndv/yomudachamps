@@ -136,6 +136,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/bracket/rename-ymd-slot', [\App\Http\Controllers\BracketController::class, 'renameYmdSlot'])->name('admin.season.bracket.rename-ymd-slot');
             Route::post('/dashboard/{season_id}/bracket/delete-all-ymd-slots', [\App\Http\Controllers\BracketController::class, 'deleteAllYmdSlots'])->name('admin.season.bracket.delete-all-ymd-slots');
             Route::post('/dashboard/{season_id}/bracket/toggle-bronze-match', [\App\Http\Controllers\BracketController::class, 'toggleBronzeMatch'])->name('admin.season.bracket.toggle-bronze-match');
+            Route::post('/dashboard/{season_id}/bracket/toggle-visibility', [\App\Http\Controllers\BracketController::class, 'toggleBracketVisibility'])->name('admin.season.bracket.toggle-visibility');
             
             // Admin Live Chat routes (real-time chat management)
             Route::get('/dashboard/{season_id}/chat/threads', [\App\Http\Controllers\BracketController::class, 'getChatThreads'])->name('admin.season.chat.threads');
