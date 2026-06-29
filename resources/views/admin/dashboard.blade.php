@@ -63,6 +63,10 @@
                     <a href="{{ route('admin.solo.matchmaker', $current_season->id) }}" class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm">
                         <i class="bi bi-people me-1"></i> Solo Matchmaker
                     </a>
+                    {{-- Cetak Sertifikat --}}
+                    <a href="{{ route('admin.season.certificate', $current_season->id) }}" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Cetak Sertifikat
+                    </a>
                     {{-- Bulk Add --}}
                     <button class="btn btn-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalBulk">
                         <i class="bi bi-stack me-1"></i> Bulk Add

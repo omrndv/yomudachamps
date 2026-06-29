@@ -34,37 +34,37 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                    <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
                     </button>
-                    <a href="{{ route('admin.season.match-reports', $season->id) }}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                    <a href="{{ route('admin.season.match-reports', $season->id) }}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
                         <i class="bi bi-trophy-fill me-1"></i> Laporan Laga
                     </a>
-                    <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                    <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
                         <i class="bi bi-eye me-1"></i> Lihat Halaman User
                     </a>
                     
                     @if($brackets->count() > 0)
-                        <button type="button" class="btn btn-outline-danger text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
+                        <button type="button" class="btn btn-outline-danger text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Laga Belum Selesai ({{ $brackets->filter(fn($b) => $b->status !== 'finished' && $b->team1_id && $b->team2_id)->count() }})
                         </button>
-                        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
+                        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
                             <i class="bi bi-tag-fill me-1"></i> Detail Slot YMD
                         </button>
-                        <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
+                        <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
                             <i class="bi bi-clock me-1"></i> Set Jam per Babak
                         </button>
                     @endif
 
-                    <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
+                    <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
                         <i class="bi bi-clipboard me-1"></i> Copy Daftar Tim (Backup)
                     </button>
                     
                     @if($brackets->count() > 0)
-                        <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" onsubmit="return confirm('PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?')">
+                        <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" onsubmit="return confirm('PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?')" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm">
+                            <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
                                 <i class="bi bi-arrow-clockwise me-1"></i> Reset & Acak Ulang
                             </button>
                         </form>

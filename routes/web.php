@@ -156,6 +156,14 @@ Route::middleware('admin.auth')->group(function () {
             Route::delete('/dashboard/{season_id}/chat/clear-all', [\App\Http\Controllers\BracketController::class, 'clearAllSeasonChats'])->name('admin.season.chat.clear-all');
             Route::post('/dashboard/{season_id}/chat/unarchive/{token}', [\App\Http\Controllers\BracketController::class, 'unarchiveChatThread'])->name('admin.season.chat.unarchive');
             Route::post('/dashboard/{season_id}/chat/upload/{token}', [\App\Http\Controllers\BracketController::class, 'adminUploadChatImage'])->name('admin.season.chat.upload');
+
+            // Certificate Generator routes
+            Route::get('/dashboard/{season_id}/certificate', [\App\Http\Controllers\CertificateController::class, 'index'])->name('admin.season.certificate');
+            Route::post('/dashboard/{season_id}/certificate/layout', [\App\Http\Controllers\CertificateController::class, 'saveLayout'])->name('admin.season.certificate.layout');
+            Route::get('/certificate/google-login', [\App\Http\Controllers\CertificateController::class, 'googleLogin'])->name('admin.certificate.google-login');
+            Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
+            Route::post('/dashboard/{season_id}/certificate/generate-drive', [\App\Http\Controllers\CertificateController::class, 'generateToDrive'])->name('admin.season.certificate.generate-drive');
+            Route::get('/certificate/download-single', [\App\Http\Controllers\CertificateController::class, 'downloadSingle'])->name('admin.certificate.download-single');
         });
 
         // Finance
