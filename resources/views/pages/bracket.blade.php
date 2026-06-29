@@ -399,89 +399,6 @@
             stroke-width: 2.2;
         }
 
-        .bracket-canvas {
-            display: inline-flex;
-            position: relative;
-            transform-origin: top left;
-            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        /* Floating Zoom & Sync Controls Widget */
-        .floating-controls {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            background-color: rgba(24, 24, 27, 0.92);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 99px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-            color: var(--text-light);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1) inset;
-        }
-        
-        .sync-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.58rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            color: #10b981;
-        }
-        
-        .pulse-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #10b981;
-            box-shadow: 0 0 8px #10b981;
-            animation: pulse-green 1.5s infinite alternate;
-        }
-        
-        @keyframes pulse-green {
-            from { opacity: 0.4; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1.1); }
-        }
-        
-        .floating-controls .divider {
-            width: 1px;
-            height: 16px;
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-        
-        .control-btn {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            transition: all 0.15s ease;
-            font-size: 0.8rem;
-        }
-        
-        .control-btn:hover {
-            color: #ffffff;
-            background-color: rgba(255, 255, 255, 0.08);
-        }
-        
-        .zoom-level {
-            font-size: 0.68rem;
-            font-weight: 700;
-            width: 36px;
-            text-align: center;
-            user-select: none;
-        }
-
         /* Action Buttons on Result Card */
         .result-actions-wrapper {
             display: flex;
@@ -534,18 +451,6 @@
 
             .match-card {
                 width: 155px;
-            }
-
-            .floating-controls {
-                bottom: 16px;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 6px 12px;
-                gap: 8px;
-            }
-            .zoom-level {
-                width: 28px;
-                font-size: 0.62rem;
             }
 
             .round-connectors {
@@ -644,128 +549,113 @@
 
     {{-- Bracket Field Wrapper --}}
     <div class="bracket-container" id="bracketContainer">
-        <div class="bracket-canvas" id="bracketCanvas">
-            @foreach($rounds as $roundNum => $matches)
-                @php
-                    $isFinalRound = ($roundNum === $brackets->max('round_number'));
-                    $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
-                    $roundHeight = 4600;
-                    $matchesCount = $columnMatches->count();
-                    $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
-                @endphp
-                <div class="bracket-round">
-                    @foreach($columnMatches as $match)
-                        <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
-                            <div class="match-card-header">
-                                <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
-                                <span class="match-card-time">
-                                    @if($match->status === 'live')
-                                        <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
-                                    @else
-                                        @php
-                                            $timeDisplay = $match->match_time ?? '20:00 WIB';
-                                            if (strpos($timeDisplay, ',') !== false) {
-                                                $parts = explode(',', $timeDisplay);
-                                                $timeDisplay = trim(end($parts));
-                                            }
-                                        @endphp
-                                        <i class="bi bi-clock"></i> {{ $timeDisplay }}
-                                    @endif
-                                </span>
+        @foreach($rounds as $roundNum => $matches)
+            @php
+                $isFinalRound = ($roundNum === $brackets->max('round_number'));
+                $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
+                $roundHeight = 4600;
+                $matchesCount = $columnMatches->count();
+                $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
+            @endphp
+            <div class="bracket-round">
+                @foreach($columnMatches as $match)
+                    <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
+                        <div class="match-card-header">
+                            <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
+                            <span class="match-card-time">
+                                @if($match->status === 'live')
+                                    <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
+                                @else
+                                    @php
+                                        $timeDisplay = $match->match_time ?? '20:00 WIB';
+                                        if (strpos($timeDisplay, ',') !== false) {
+                                            $parts = explode(',', $timeDisplay);
+                                            $timeDisplay = trim(end($parts));
+                                        }
+                                    @endphp
+                                    <i class="bi bi-clock"></i> {{ $timeDisplay }}
+                                @endif
+                            </span>
+                        </div>
+                        
+                        {{-- Team 1 Row --}}
+                        <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
+                            <div class="team-info">
+                                @if($match->team1)
+                                    <span class="team-name">{{ $match->team1->name }}</span>
+                                @else
+                                    <span class="team-name text-muted italic">TBD</span>
+                                @endif
                             </div>
-                            
+                            <span class="team-score-box">{{ $match->team1_score }}</span>
+                        </div>
+
+                        {{-- Team 2 Row --}}
+                        <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
+                            <div class="team-info">
+                                @if($match->team2)
+                                    <span class="team-name">{{ $match->team2->name }}</span>
+                                @else
+                                    @if($match->round_number === 1)
+                                        <span class="team-name text-success">BYE (Lolos)</span>
+                                    @else
+                                        <span class="team-name text-muted italic">TBD</span>
+                                    @endif
+                                @endif
+                            </div>
+                            <span class="team-score-box">{{ $match->team2_score }}</span>
+                        </div>
+                    </div>
+                @endforeach
+
+                {{-- Draw dynamic SVG connector lines --}}
+                @if($roundNum < count($rounds))
+                    <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
+                        @for($m = 1; $m <= $matchesCount; $m++)
+                            @php
+                                $nextMatchIndex = ceil($m / 2);
+                                $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
+                                $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
+                                $midX = 40;
+                            @endphp
+                            <path class="connector-line" id="line_{{ $roundNum }}_{{ $m }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                        @endfor
+                    </svg>
+                @endif
+
+                {{-- Render Bronze Match inside the final column --}}
+                @if($isFinalRound && $bronzeMatch)
+                    <div class="bronze-match-wrapper">
+                        <div class="bronze-match-title">3rd Place Match</div>
+                        <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
                             {{-- Team 1 Row --}}
-                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($match->team1)
-                                        <span class="team-name">{{ $match->team1->name }}</span>
+                                    @if($bronzeMatch->team1)
+                                        <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
                                 </div>
-                                <span class="team-score-box">{{ $match->team1_score }}</span>
+                                <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
                             </div>
 
                             {{-- Team 2 Row --}}
-                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
+                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($match->team2)
-                                        <span class="team-name">{{ $match->team2->name }}</span>
+                                    @if($bronzeMatch->team2)
+                                        <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
                                     @else
-                                        @if($match->round_number === 1)
-                                            <span class="team-name text-success">BYE (Lolos)</span>
-                                        @else
-                                            <span class="team-name text-muted italic">TBD</span>
-                                        @endif
+                                        <span class="team-name text-muted italic">TBD</span>
                                     @endif
                                 </div>
-                                <span class="team-score-box">{{ $match->team2_score }}</span>
+                                <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
                             </div>
                         </div>
-                    @endforeach
-
-                    {{-- Draw dynamic SVG connector lines --}}
-                    @if($roundNum < count($rounds))
-                        <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
-                            @for($m = 1; $m <= $matchesCount; $m++)
-                                @php
-                                    $nextMatchIndex = ceil($m / 2);
-                                    $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
-                                    $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
-                                    $midX = 40;
-                                @endphp
-                                <path class="connector-line" id="line_{{ $roundNum }}_{{ $m }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
-                            @endfor
-                        </svg>
-                    @endif
-
-                    {{-- Render Bronze Match inside the final column --}}
-                    @if($isFinalRound && $bronzeMatch)
-                        <div class="bronze-match-wrapper">
-                            <div class="bronze-match-title">3rd Place Match</div>
-                            <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
-                                {{-- Team 1 Row --}}
-                                <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
-                                    <div class="team-info">
-                                        @if($bronzeMatch->team1)
-                                            <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
-                                        @else
-                                            <span class="team-name text-muted italic">TBD</span>
-                                        @endif
-                                    </div>
-                                    <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
-                                </div>
-
-                                {{-- Team 2 Row --}}
-                                <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
-                                    <div class="team-info">
-                                        @if($bronzeMatch->team2)
-                                            <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
-                                        @else
-                                            <span class="team-name text-muted italic">TBD</span>
-                                        @endif
-                                    </div>
-                                    <span class="team-score-box">{{ $bronzeMatch->team2_score }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- Floating Zoom & Sync Controls --}}
-    <div class="floating-controls shadow-lg">
-        <div class="sync-indicator">
-            <span class="pulse-dot"></span>
-            <span class="sync-text">LIVE SYNC</span>
-        </div>
-        <div class="divider"></div>
-        <button class="control-btn" id="btnZoomOut" title="Zoom Out"><i class="bi bi-dash"></i></button>
-        <span class="zoom-level" id="txtZoomLevel">100%</span>
-        <button class="control-btn" id="btnZoomIn" title="Zoom In"><i class="bi bi-plus"></i></button>
-        <button class="control-btn" id="btnZoomReset" title="Reset Zoom"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    </div>
+                @endif
+            </div>
+        @endforeach
     </div>
 
     <script>
@@ -808,46 +698,12 @@
                 e.preventDefault();
                 const x = e.pageX - container.offsetLeft;
                 const y = e.pageY - container.offsetTop;
-                const walkX = ((x - startX) * 1.5) / currentZoom;
-                const walkY = ((y - startY) * 1.5) / currentZoom;
+                const walkX = (x - startX) * 1.5;
+                const walkY = (y - startY) * 1.5;
                 container.scrollLeft = scrollLeft - walkX;
                 container.scrollTop = scrollTop - walkY;
             });
         }
-
-        // ----------------------------------------------------
-        // Zoom Controller Functionality
-        // ----------------------------------------------------
-        let currentZoom = 1.0;
-        const zoomStep = 0.1;
-        const minZoom = 0.4;
-        const maxZoom = 1.5;
-        const canvas = document.getElementById('bracketCanvas');
-        const txtZoom = document.getElementById('txtZoomLevel');
-
-        function updateZoom() {
-            canvas.style.transform = `scale(${currentZoom})`;
-            txtZoom.textContent = Math.round(currentZoom * 100) + '%';
-        }
-
-        document.getElementById('btnZoomIn').addEventListener('click', () => {
-            if (currentZoom < maxZoom) {
-                currentZoom = parseFloat((currentZoom + zoomStep).toFixed(1));
-                updateZoom();
-            }
-        });
-
-        document.getElementById('btnZoomOut').addEventListener('click', () => {
-            if (currentZoom > minZoom) {
-                currentZoom = parseFloat((currentZoom - zoomStep).toFixed(1));
-                updateZoom();
-            }
-        });
-
-        document.getElementById('btnZoomReset').addEventListener('click', () => {
-            currentZoom = 1.0;
-            updateZoom();
-        });
 
         // Hover Highlighting Logic
         const teamRows = document.querySelectorAll('.team-row[data-team-id]');

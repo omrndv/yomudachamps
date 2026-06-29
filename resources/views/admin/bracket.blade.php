@@ -17,7 +17,12 @@
                     <h2 class="fw-bold text-dark m-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">
                         Kelola Bagan Turnamen <span class="text-warning">{{ $season->name }}</span>
                     </h2>
-                    <p class="text-secondary small mb-0 mt-1">Atur jadwal serentak per babak, geser (drag & drop) posisi tim di Babak 1, dan edit skor.</p>
+                    <p class="text-secondary small mb-0 mt-1 d-flex align-items-center flex-wrap gap-2">
+                        <span>Atur jadwal serentak per babak, geser (drag & drop) posisi tim di Babak 1, dan edit skor.</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5" style="font-size: 0.58rem; font-weight: 700;">
+                            <span class="pulse-dot-admin"></span> LIVE SYNC ACTIVE
+                        </span>
+                    </p>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{{ route('public.season.bracket', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm">
@@ -714,6 +719,21 @@
     @keyframes pulse {
         from { opacity: 0.6; }
         to { opacity: 1; }
+    }
+
+    .pulse-dot-admin {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 6px #10b981;
+        animation: pulse-green 1.5s infinite alternate;
+        display: inline-block;
+    }
+
+    @keyframes pulse-green {
+        from { opacity: 0.4; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1.1); }
     }
 
     .bronze-match-wrapper {
