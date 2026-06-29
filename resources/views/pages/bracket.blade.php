@@ -340,6 +340,15 @@
             opacity: 0.45;
         }
 
+        .team-row .text-muted {
+            color: #a1a1aa !important;
+            opacity: 0.85;
+        }
+
+        .italic {
+            font-style: italic;
+        }
+
         .team-highlighted {
             background-color: #373740 !important;
         }
