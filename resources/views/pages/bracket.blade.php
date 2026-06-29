@@ -2039,8 +2039,14 @@
 
                 if (diffMs <= 0) {
                     // Time has passed for today
-                    label.textContent = '🔴 Sedang Berlangsung';
-                    label.className = 'round-countdown-label countdown-active';
+                    // If more than 20 minutes has passed (20 * 60 * 1000 = 1200000 ms), show Finished
+                    if (diffMs <= -1200000) {
+                        label.textContent = '✅ Selesai';
+                        label.className = 'round-countdown-label countdown-done';
+                    } else {
+                        label.textContent = '🔴 Sedang Berlangsung';
+                        label.className = 'round-countdown-label countdown-active';
+                    }
                 } else {
                     // Calculate hours, minutes, seconds remaining
                     const totalSec = Math.floor(diffMs / 1000);
