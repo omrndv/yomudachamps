@@ -1572,6 +1572,10 @@
         function renderMessage(msg) {
             const bubble = document.createElement('div');
             bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
+            if (typeof msg.id === 'string' && msg.id.startsWith('temp-')) {
+                bubble.id = msg.id;
+                bubble.style.opacity = '0.75';
+            }
             if (msg.message.startsWith('[IMAGE]:')) {
                 const imgUrl = msg.message.substring(8);
                 bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="scrollChatToBottom()">`;
@@ -1639,28 +1643,42 @@
                         return;
                     }
                     
-                    // Show uploading state
+                    // 1. Generate local URL for instant preview (Optimistic UI)
+                    const localImgUrl = URL.createObjectURL(file);
+                    const tempId = 'temp-' + Date.now();
+                    
                     const tempMsg = {
-                        id: 88888888 + Math.random(),
-                        message: "Mengunggah gambar...",
+                        id: tempId,
+                        message: "[IMAGE]:" + localImgUrl,
                         is_admin: false
                     };
                     renderMessage(tempMsg);
                     scrollChatToBottom();
                     
-                    const formData = new FormData();
-                    formData.append('image', file);
-                    formData.append('session_token', sessionToken);
-                    
-                    fetch("{{ route('public.season.chat.upload', $slug) }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: formData
+                    // 2. Compress the image before uploading (waswuss)
+                    compressImage(file, 1200, 0.75)
+                    .then(compressedFile => {
+                        const formData = new FormData();
+                        formData.append('image', compressedFile);
+                        formData.append('session_token', sessionToken);
+                        
+                        return fetch("{{ route('public.season.chat.upload', $slug) }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        });
                     })
                     .then(r => r.json())
                     .then(res => {
+                        // Clean up local blob memory
+                        URL.revokeObjectURL(localImgUrl);
+                        
+                        // Remove optimistic preview element before rendering the real one
+                        const tempEl = document.getElementById(tempId);
+                        if (tempEl) tempEl.remove();
+                        
                         if (res.success) {
                             fetchChatMessages();
                         } else {
@@ -1669,6 +1687,9 @@
                     })
                     .catch(err => {
                         console.log("Upload err:", err);
+                        URL.revokeObjectURL(localImgUrl);
+                        const tempEl = document.getElementById(tempId);
+                        if (tempEl) tempEl.remove();
                         alert("Gagal mengunggah gambar.");
                     });
                 }
