@@ -1576,15 +1576,16 @@ function openEditMatchModal(match) {
     const input2 = document.getElementById('modalT2Score');
     const btnSave = document.getElementById('btnSaveMatch');
 
-    if (!match.team1_exists || !match.team2_exists) {
+    if (!match.team1_exists && !match.team2_exists) {
         alertEl.classList.remove('d-none');
+        alertEl.textContent = 'Pertandingan kosong (kedua tim belum ditentukan) tidak dapat diubah skornya.';
         input1.disabled = true;
         input2.disabled = true;
         btnSave.disabled = true;
     } else {
         alertEl.classList.add('d-none');
-        input1.disabled = false;
-        input2.disabled = false;
+        input1.disabled = !match.team1_exists;
+        input2.disabled = !match.team2_exists;
         btnSave.disabled = false;
     }
 
