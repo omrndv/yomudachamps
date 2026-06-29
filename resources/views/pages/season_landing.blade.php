@@ -746,7 +746,7 @@
                                 Upload Screenshot Hasil Game
                             </label>
                             <input type="file" id="reportImageInput" name="image" accept="image/*" class="form-control bg-dark border-secondary text-white rounded-4 p-2 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
-                            <small class="text-secondary d-block mt-1 text-start" style="font-size: 0.68rem;">Format JPG/PNG/WebP, maksimal 2MB</small>
+                            <small class="text-secondary d-block mt-1 text-start" style="font-size: 0.68rem;">Format JPG/PNG/WebP, maksimal 5MB</small>
                         </div>
 
                         <button type="submit" id="btnSubmitReportScore" class="btn btn-warning w-100 py-3 fw-bold rounded-4 text-dark">
@@ -987,8 +987,8 @@
                 chatFileInput.addEventListener('change', function() {
                     if (this.files && this.files[0]) {
                         const file = this.files[0];
-                        if (file.size > 2 * 1024 * 1024) {
-                            alert("Ukuran file maksimal 2MB!");
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert("Ukuran file maksimal 5MB!");
                             return;
                         }
                         

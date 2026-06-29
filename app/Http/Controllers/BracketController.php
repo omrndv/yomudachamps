@@ -918,7 +918,7 @@ class BracketController extends Controller
         }
 
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:5120'
         ]);
 
         $file = $request->file('image');
@@ -1042,7 +1042,7 @@ class BracketController extends Controller
     public function adminUploadChatImage(Request $request, $season_id, $token)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:5120'
         ]);
 
         $file = $request->file('image');
@@ -1188,7 +1188,7 @@ class BracketController extends Controller
             'reporter_team_id' => 'required|integer',
             'score_team1' => 'required|integer|min:0|max:5',
             'score_team2' => 'required|integer|min:0|max:5',
-            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:5120'
         ]);
 
         // Upload screenshot
