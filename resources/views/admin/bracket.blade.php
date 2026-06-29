@@ -1584,8 +1584,29 @@ function openEditMatchModal(match) {
         btnSave.disabled = true;
     } else {
         alertEl.classList.add('d-none');
-        input1.disabled = !match.team1_exists;
-        input2.disabled = !match.team2_exists;
+        input1.disabled = false;
+        input2.disabled = false;
+        
+        input1.readOnly = !match.team1_exists;
+        input2.readOnly = !match.team2_exists;
+        
+        // Styling abu-abu agar terlihat pasif
+        if (!match.team1_exists) {
+            input1.style.opacity = '0.6';
+            input1.style.backgroundColor = '#e9ecef';
+        } else {
+            input1.style.opacity = '1';
+            input1.style.backgroundColor = '#ffffff';
+        }
+        
+        if (!match.team2_exists) {
+            input2.style.opacity = '0.6';
+            input2.style.backgroundColor = '#e9ecef';
+        } else {
+            input2.style.opacity = '1';
+            input2.style.backgroundColor = '#ffffff';
+        }
+        
         btnSave.disabled = false;
     }
 
