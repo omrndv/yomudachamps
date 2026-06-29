@@ -246,10 +246,24 @@ Route::get('/chat-debug-files', function() {
     $parentPath = base_path('chat_uploads');
     $publicPath = public_path('chat_uploads');
 
+    if (!file_exists($publicPath)) {
+        mkdir($publicPath, 0755, true);
+    }
+
+    if (is_dir($parentPath)) {
+        $files = scandir($parentPath);
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..' && is_file($parentPath . '/' . $file)) {
+                rename($parentPath . '/' . $file, $publicPath . '/' . $file);
+            }
+        }
+    }
+
     $parentFiles = is_dir($parentPath) ? scandir($parentPath) : ['Directory does not exist'];
     $publicFiles = is_dir($publicPath) ? scandir($publicPath) : ['Directory does not exist'];
 
     return response()->json([
+        'message' => 'Files migrated successfully!',
         'parent_chat_uploads_path' => $parentPath,
         'parent_files' => $parentFiles,
         'public_chat_uploads_path' => $publicPath,
