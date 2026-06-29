@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\SeasonChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class BracketController extends Controller
 {
@@ -1185,6 +1186,15 @@ class BracketController extends Controller
             'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:5120'
         ]);
 
+        // Guard: Prevent submitting report for a match that is already verified/finished
+        $match = Bracket::find($request->match_id);
+        if ($match && $match->status === 'finished') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pertandingan ini sudah selesai diverifikasi oleh admin. Tidak bisa mengirim laporan lagi.'
+            ]);
+        }
+
         // Upload screenshot
         $file = $request->file('image');
         // Force output extension to .jpg due to conversion
@@ -1317,6 +1327,14 @@ class BracketController extends Controller
                 return back()->with('error', 'Tim belum siap bertanding.');
             }
 
+            // Guard: Prevent approving if match already has a verified result
+            if ($match->status === 'finished') {
+                $report->status = 'REJECTED';
+                $report->save();
+                DB::commit();
+                return back()->with('error', 'Pertandingan ini sudah selesai diverifikasi sebelumnya. Laporan ini otomatis ditolak.');
+            }
+
             // Set scores from report
             $match->team1_score = $report->score_team1;
             $match->team2_score = $report->score_team2;
@@ -1390,10 +1408,12 @@ class BracketController extends Controller
      */
     public function pollMatchReports($season_id)
     {
-        $reports = \App\Models\MatchReport::where('season_id', $season_id)
-            ->select('id', 'status')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $reports = Cache::remember("poll_reports_{$season_id}", 5, function () use ($season_id) {
+            return \App\Models\MatchReport::where('season_id', $season_id)
+                ->select('id', 'status')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
 
         return response()->json([
             'reports' => $reports

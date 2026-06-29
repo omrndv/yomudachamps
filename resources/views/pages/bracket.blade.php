@@ -172,6 +172,37 @@
             text-align: center;
         }
 
+        .round-countdown-wrap {
+            margin-top: 3px;
+        }
+        .round-countdown-label {
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: none;
+            line-height: 1.3;
+        }
+        .countdown-active {
+            background: rgba(255, 122, 0, 0.15);
+            color: var(--accent-orange);
+            animation: countdownPulse 2s ease-in-out infinite;
+        }
+        .countdown-done {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .countdown-waiting {
+            background: rgba(161, 161, 170, 0.1);
+            color: var(--text-dim);
+        }
+        @keyframes countdownPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         /* Bracket container layout */
         .bracket-container {
             padding: 30px 30px 40px 30px;
@@ -760,12 +791,19 @@
     {{-- Sticky Round Header Bar --}}
     <div class="round-headers-bar" id="roundHeadersBar">
         @foreach($rounds as $roundNum => $matches)
+            @php
+                $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
+                $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                $roundTime = $matches->first()->match_time ?? null;
+                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
+            @endphp
             <div class="round-header-item">
-                @php
-                    $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                    $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
-                @endphp
-                {{ $title }}
+                <div>{{ $title }}</div>
+                @if($roundTime)
+                    <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
+                        <span class="round-countdown-label"></span>
+                    </div>
+                @endif
             </div>
         @endforeach
     </div>
@@ -1950,6 +1988,84 @@
             }
         }, 10000);
     });
+    </script>
+
+    <script>
+    // Countdown Timer per Round (Babak)
+    (function() {
+        function updateCountdowns() {
+            const wraps = document.querySelectorAll('.round-countdown-wrap');
+            const now = new Date();
+
+            wraps.forEach(wrap => {
+                const label = wrap.querySelector('.round-countdown-label');
+                const timeStr = wrap.getAttribute('data-round-time'); // e.g. "20:00 WIB"
+                const isFinished = wrap.getAttribute('data-round-finished') === '1';
+
+                if (isFinished) {
+                    label.textContent = '✅ Selesai';
+                    label.className = 'round-countdown-label countdown-done';
+                    return;
+                }
+
+                if (!timeStr) {
+                    label.textContent = 'Jadwal belum diatur';
+                    label.className = 'round-countdown-label countdown-waiting';
+                    return;
+                }
+
+                // Parse "HH:MM WIB" format - extract hours and minutes
+                const timeParts = timeStr.match(/(\d{1,2}):(\d{2})/);
+                if (!timeParts) {
+                    label.textContent = timeStr;
+                    label.className = 'round-countdown-label countdown-waiting';
+                    return;
+                }
+
+                const targetHour = parseInt(timeParts[1], 10);
+                const targetMin = parseInt(timeParts[2], 10);
+
+                // Build target datetime for TODAY in WIB (UTC+7)
+                // We use the user's local timezone and compare with target WIB time
+                const targetDate = new Date();
+                // Calculate WIB offset: UTC+7
+                const utcNow = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const wibNow = new Date(utcNow + (7 * 3600000));
+
+                const targetWib = new Date(wibNow);
+                targetWib.setHours(targetHour, targetMin, 0, 0);
+
+                const diffMs = targetWib.getTime() - wibNow.getTime();
+
+                if (diffMs <= 0) {
+                    // Time has passed for today
+                    label.textContent = '🔴 Sedang Berlangsung';
+                    label.className = 'round-countdown-label countdown-active';
+                } else {
+                    // Calculate hours, minutes, seconds remaining
+                    const totalSec = Math.floor(diffMs / 1000);
+                    const h = Math.floor(totalSec / 3600);
+                    const m = Math.floor((totalSec % 3600) / 60);
+                    const s = totalSec % 60;
+
+                    const pad = (n) => n.toString().padStart(2, '0');
+
+                    if (h > 0) {
+                        label.textContent = `⏳ ${h}j ${pad(m)}m ${pad(s)}d lagi`;
+                    } else if (m > 0) {
+                        label.textContent = `⏳ ${m}m ${pad(s)}d lagi`;
+                    } else {
+                        label.textContent = `⏳ ${s} detik lagi!`;
+                    }
+                    label.className = 'round-countdown-label countdown-active';
+                }
+            });
+        }
+
+        // Run immediately and then every second
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    })();
     </script>
 </body>
 </html>
