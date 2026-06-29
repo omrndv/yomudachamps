@@ -278,7 +278,7 @@ class AdminController extends Controller
         // Pemasukan Otomatis via TriPay
         $tripay_teams = $paid_teams->where('is_solo_team', false)->whereNotNull('tripay_reference');
         $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
-            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+            return !is_null($t->amount) ? $t->amount : $current_season->price;
         });
 
         // Pemasukan Manual / Bulk Add oleh Admin (Kecualikan tim placeholder YMD)
@@ -289,7 +289,7 @@ class AdminController extends Controller
             });
             
         $manual_income = $manual_teams->sum(function($t) use ($current_season) {
-            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+            return !is_null($t->amount) ? $t->amount : $current_season->price;
         });
         
         $team_income = $tripay_income + $manual_income;
