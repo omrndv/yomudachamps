@@ -2055,6 +2055,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+let previousGlobalUnread = 0;
+let lastSoundPlayedTime = 0;
+
+function playNotificationSound() {
+    const now = Date.now();
+    if (now - lastSoundPlayedTime < 3000) return; // Prevent spamming sound within 3 seconds
+    lastSoundPlayedTime = now;
+
+    try {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Synth Chime (Ting sound)
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, context.currentTime); // A5 note
+        osc.frequency.exponentialRampToValueAtTime(1320, context.currentTime + 0.1); // Sweep up to E6 note
+        
+        gain.gain.setValueAtTime(0.12, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6);
+        
+        osc.connect(gain);
+        gain.connect(context.destination);
+        
+        osc.start();
+        osc.stop(context.currentTime + 0.6);
+    } catch (e) {
+        console.log("AudioContext blocked or not supported yet:", e);
+    }
+}
+
 function fetchAdminChatThreads() {
     fetch("{{ route('admin.season.chat.threads', $season->id) }}?status=" + adminChatTab)
         .then(r => r.json())
@@ -2067,6 +2099,12 @@ function fetchAdminChatThreads() {
                 res.threads.forEach(t => {
                     globalUnread += parseInt(t.unread_count || 0);
                 });
+
+                // Play sound if unread count increases (new thread or new message in closed thread)
+                if (globalUnread > previousGlobalUnread) {
+                    playNotificationSound();
+                }
+                previousGlobalUnread = globalUnread;
 
                 if (globalUnread > 0) {
                     adminGlobalUnreadBadge.textContent = globalUnread;
@@ -2094,6 +2132,11 @@ function fetchThreadMessages() {
 
                 res.messages.forEach(msg => {
                     if (msg.id > adminLastMessageId) {
+                        // Play sound on new incoming user message in active open thread
+                        if (adminLastMessageId > 0 && !msg.is_admin) {
+                            playNotificationSound();
+                        }
+
                         const bubble = document.createElement('div');
                         bubble.className = `p-2 rounded-3 text-white small ${msg.is_admin ? 'bg-secondary bg-opacity-50 align-self-end text-end' : 'bg-dark border border-secondary border-opacity-25 align-self-start'}`;
                         bubble.style.maxWidth = '80%';
