@@ -2011,7 +2011,7 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $publicPath = base_path();
+        $publicPath = public_path();
 
         $folders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
@@ -2077,7 +2077,7 @@ class AdminController extends Controller
         $request->validate(['folder' => 'required|string']);
         $folderKey = $request->folder;
 
-        $publicPath = base_path();
+        $publicPath = public_path();
 
         $allowedFolders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
@@ -2143,7 +2143,7 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 400);
         }
 
-        $publicPath = base_path();
+        $publicPath = public_path();
 
         $absolutePath = $publicPath . $filePathRelative;
 

@@ -1103,7 +1103,7 @@
                     }
 
                     btnSubmitReportScore.disabled = true;
-                    btnSubmitReportScore.textContent = 'MENGIRIM LAPORAN...';
+                    btnSubmitReportScore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim & Mengompres Gambar...';
 
                     const formData = new FormData(formSubmitReport);
 
@@ -1117,7 +1117,7 @@
                     .then(r => r.json())
                     .then(res => {
                         btnSubmitReportScore.disabled = false;
-                        btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
+                        btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
 
                         if (res.success) {
                             alert(res.message);
