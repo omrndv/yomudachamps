@@ -1352,6 +1352,36 @@
             chatMessagesBody.scrollTop = chatMessagesBody.scrollHeight;
         }
 
+        let isInitialLoad = true;
+
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1200, audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                
+                osc1.connect(gainNode);
+                osc2.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioCtx.currentTime + 0.5);
+                osc2.stop(audioCtx.currentTime + 0.5);
+            } catch(e) {
+                console.log("Audio play blocked:", e);
+            }
+        }
+
         function fetchChatMessages() {
             fetch("{{ route('public.season.chat.messages', $slug) }}?session_token=" + sessionToken)
                 .then(r => r.json())
@@ -1359,6 +1389,7 @@
                     if (res.success && res.messages) {
                         let newMessagesFound = false;
                         let unread = 0;
+                        let shouldPlaySound = false;
 
                         res.messages.forEach(msg => {
                             if (msg.id > lastMessageId) {
@@ -1367,15 +1398,23 @@
                                 newMessagesFound = true;
                                 if (msg.is_admin) {
                                     unread++;
+                                    if (!isInitialLoad) {
+                                        shouldPlaySound = true;
+                                    }
                                 }
                             }
                         });
+
+                        isInitialLoad = false;
 
                         if (newMessagesFound) {
                             scrollChatToBottom();
                             if (!isChatOpen && unread > 0) {
                                 chatUnreadCount.style.display = 'flex';
                                 chatUnreadCount.textContent = unread;
+                            }
+                            if (shouldPlaySound) {
+                                playNotificationSound();
                             }
                         }
                     }
