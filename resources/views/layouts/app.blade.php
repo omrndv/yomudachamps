@@ -33,9 +33,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Preload Critical Background Images Responsively to Prevent Rendering Delay -->
     <link rel="preload" as="image" href="/images/bg-mobile.jpg" media="(max-width: 768px)">
     <link rel="preload" as="image" href="/images/bg-yomuda.jpg" media="(min-width: 769px)">
+    <link rel="preload" as="image" href="/images/logo-yomuda.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -208,5 +208,7 @@
     @endif
 
     @stack('scripts')
+    <!-- Instant.page: Preloads pages on hover before user clicks for instant (waswuss) navigation -->
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.us.min.js" type="module" defer></script>
 </body>
 </html>
