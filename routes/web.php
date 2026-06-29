@@ -241,3 +241,27 @@ Route::get('/season/{slug}/bracket/data', [\App\Http\Controllers\BracketControll
 Route::get('/season/{slug}/chat/messages', [\App\Http\Controllers\BracketController::class, 'getChatMessages'])->name('public.season.chat.messages');
 Route::post('/season/{slug}/chat/send', [\App\Http\Controllers\BracketController::class, 'sendChatMessage'])->name('public.season.chat.send');
 Route::post('/season/{slug}/chat/upload', [\App\Http\Controllers\BracketController::class, 'uploadChatImage'])->name('public.season.chat.upload');
+
+Route::get('/chat-debug-info', function() {
+    $base = base_path();
+    $public = public_path();
+    $parentPublicHtml = is_dir(base_path('../public_html')) ? 'Exists' : 'Not Exists';
+    $parentPublicHtmlPath = realpath(base_path('../public_html'));
+    
+    $chatUploadsPublic = is_dir(public_path('chat_uploads')) ? 'Exists' : 'Not Exists';
+    $chatUploadsParent = is_dir(base_path('../public_html/chat_uploads')) ? 'Exists' : 'Not Exists';
+
+    $publicFiles = is_dir(public_path()) ? scandir(public_path()) : [];
+    $parentFiles = is_dir(base_path('../public_html')) ? scandir(base_path('../public_html')) : [];
+
+    return response()->json([
+        'base_path' => $base,
+        'public_path' => $public,
+        'parent_public_html_exists' => $parentPublicHtml,
+        'parent_public_html_path' => $parentPublicHtmlPath,
+        'chat_uploads_in_public_path' => $chatUploadsPublic,
+        'chat_uploads_in_parent_public_html' => $chatUploadsParent,
+        'public_files' => $publicFiles,
+        'parent_files' => $parentFiles,
+    ]);
+});
