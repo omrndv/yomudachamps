@@ -240,3 +240,4 @@ Route::get('/season/{slug}/bracket/data', [\App\Http\Controllers\BracketControll
 // Public Chat API routes
 Route::get('/season/{slug}/chat/messages', [\App\Http\Controllers\BracketController::class, 'getChatMessages'])->name('public.season.chat.messages');
 Route::post('/season/{slug}/chat/send', [\App\Http\Controllers\BracketController::class, 'sendChatMessage'])->name('public.season.chat.send');
+Route::post('/season/{slug}/chat/upload', [\App\Http\Controllers\BracketController::class, 'uploadChatImage'])->name('public.season.chat.upload');

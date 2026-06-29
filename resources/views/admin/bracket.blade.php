@@ -1802,9 +1802,16 @@ function fetchThreadMessages() {
                         const bubble = document.createElement('div');
                         bubble.className = `p-2 rounded-3 text-white small ${msg.is_admin ? 'bg-secondary bg-opacity-50 align-self-end text-end' : 'bg-dark border border-secondary border-opacity-25 align-self-start'}`;
                         bubble.style.maxWidth = '80%';
+                        
+                        let displayContent = msg.message;
+                        if (msg.message.startsWith('[IMAGE]:')) {
+                            const imgUrl = msg.message.substring(8);
+                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 150px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')">`;
+                        }
+
                         bubble.innerHTML = `
                             <div class="fw-bold" style="font-size: 0.65rem; color: ${msg.is_admin ? '#cbd5e1' : '#f59e0b'};">${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</div>
-                            <div class="mt-1">${msg.message}</div>
+                            <div class="mt-1">${displayContent}</div>
                         `;
                         adminChatMessagesBody.appendChild(bubble);
                         adminLastMessageId = msg.id;

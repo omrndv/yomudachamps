@@ -735,6 +735,9 @@
                     <button class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.72rem;">
                         Fokuskan ke Bagan
                     </button>
+                    <button class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" id="btnDownloadMatchday" style="font-size: 0.72rem;">
+                        <i class="bi bi-download"></i> Share Matchday
+                    </button>
                 </div>
             </div>
         </div>
@@ -1291,6 +1294,8 @@
                     </div>
                     
                     <div class="chat-input-wrapper">
+                        <button id="btnChatAttach" title="Kirim Screenshot" style="background:none; border:none; color:var(--text-dim); padding:0 4px;"><i class="bi bi-camera-fill"></i></button>
+                        <input type="file" id="chatFileInput" accept="image/*" style="display: none;">
                         <input type="text" id="chatInputText" placeholder="Ketik pesan..." autocomplete="off">
                         <button id="btnChatSend"><i class="bi bi-send-fill"></i></button>
                     </div>
@@ -1425,7 +1430,12 @@
         function renderMessage(msg) {
             const bubble = document.createElement('div');
             bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
-            bubble.textContent = msg.message;
+            if (msg.message.startsWith('[IMAGE]:')) {
+                const imgUrl = msg.message.substring(8);
+                bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')">`;
+            } else {
+                bubble.textContent = msg.message;
+            }
             chatMessagesBody.appendChild(bubble);
         }
 
@@ -1473,9 +1483,185 @@
             }
         });
 
+        // Chat image upload handling
+        const btnChatAttach = document.getElementById('btnChatAttach');
+        const chatFileInput = document.getElementById('chatFileInput');
+
+        if (btnChatAttach && chatFileInput) {
+            btnChatAttach.addEventListener('click', () => chatFileInput.click());
+            chatFileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert("Ukuran file maksimal 2MB!");
+                        return;
+                    }
+                    
+                    // Show uploading state
+                    const tempMsg = {
+                        id: 88888888 + Math.random(),
+                        message: "Mengunggah gambar...",
+                        is_admin: false
+                    };
+                    renderMessage(tempMsg);
+                    scrollChatToBottom();
+                    
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('session_token', sessionToken);
+                    
+                    fetch("{{ route('public.season.chat.upload', $slug) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success) {
+                            fetchChatMessages();
+                        } else {
+                            alert("Gagal mengunggah: " + res.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.log("Upload err:", err);
+                        alert("Gagal mengunggah gambar.");
+                    });
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // Canvas Matchday Generator
+        // ----------------------------------------------------
+        const btnDownloadMatchday = document.getElementById('btnDownloadMatchday');
+        if (btnDownloadMatchday) {
+            btnDownloadMatchday.addEventListener('click', function() {
+                const teamName = document.getElementById('resTeamName').textContent;
+                const opponentName = document.getElementById('resOpponent').textContent;
+                const schedule = document.getElementById('resSchedule').textContent;
+                const round = document.getElementById('resRoundLabel').textContent;
+                const bracket = document.getElementById('resBracketLabel').textContent;
+                
+                if (!teamName || teamName === 'Tim tidak ditemukan') return;
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 1080;
+                canvas.height = 1080;
+                const ctx = canvas.getContext('2d');
+                
+                const gradient = ctx.createRadialGradient(540, 540, 100, 540, 540, 800);
+                gradient.addColorStop(0, '#1c1c1f');
+                gradient.addColorStop(1, '#09090b');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 1080, 1080);
+                
+                ctx.strokeStyle = 'rgba(255, 122, 0, 0.4)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(50, 200);
+                ctx.lineTo(50, 50);
+                ctx.lineTo(200, 50);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(1030, 200);
+                ctx.lineTo(1030, 50);
+                ctx.lineTo(880, 50);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(50, 880);
+                ctx.lineTo(50, 1030);
+                ctx.lineTo(200, 1030);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(1030, 880);
+                ctx.lineTo(1030, 1030);
+                ctx.lineTo(880, 1030);
+                ctx.stroke();
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 1080; i += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, 1080);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(1080, i);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = '#ff7a00';
+                ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#ff7a00';
+                ctx.shadowBlur = 15;
+                ctx.fillText('YOMUDA CHAMPIONSHIP', 540, 140);
+                
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = '700 24px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('MATCHDAY INFORMATION', 540, 190);
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(340, 230);
+                ctx.lineTo(740, 230);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(teamName.toUpperCase(), 540, 390);
+                
+                ctx.fillStyle = '#ff7a00';
+                ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('VS', 540, 470);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(opponentName.toUpperCase(), 540, 560);
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(140, 680, 800, 220, 24);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('JADWAL PERTANDINGAN', 540, 735);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(schedule, 540, 785);
+                
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(`${round.toUpperCase()}  |  ${bracket.toUpperCase()}`, 540, 850);
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('yomudachamps.com', 540, 990);
+                
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Matchday_${teamName}_vs_${opponentName}.png`.replace(/\s+/g, '_');
+                link.href = dataUrl;
+                link.click();
+            });
+        }
+
         // Check messages initially
         fetchChatMessages();
-        // Check for new messages periodically even if closed (less frequent, 10s)
         setInterval(() => {
             if (!isChatOpen) {
                 fetchChatMessages();

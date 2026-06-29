@@ -882,4 +882,65 @@ class BracketController extends Controller
             'chat' => $chat
         ]);
     }
+
+    /**
+     * Upload an image from public user chat (Public API)
+     */
+    public function uploadChatImage(Request $request, $slug)
+    {
+        $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
+        if (!$season_id) return response()->json(['success' => false, 'message' => 'Invalid Season'], 404);
+
+        $token = $request->input('session_token');
+        if (!$token || !$request->hasFile('image')) {
+            return response()->json(['success' => false, 'message' => 'Missing parameter or file'], 400);
+        }
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,webp,jpg|max:2048'
+        ]);
+
+        $file = $request->file('image');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        
+        $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
+            ? base_path('../public_html') 
+            : public_path();
+        $uploadPath = $publicPath . '/storage/chat_uploads';
+        
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $file->move($uploadPath, $filename);
+        $imageUrl = asset('storage/chat_uploads/' . $filename);
+
+        // Get display name
+        $existing = SeasonChat::where('season_id', $season_id)
+            ->where('sender_session_token', $token)
+            ->first();
+
+        if ($existing) {
+            $senderName = $existing->sender_name;
+        } else {
+            $uniqueUsersCount = SeasonChat::where('season_id', $season_id)
+                ->distinct('sender_session_token')
+                ->count('sender_session_token');
+            $senderName = 'anonim-' . ($uniqueUsersCount + 1);
+        }
+
+        $chat = SeasonChat::create([
+            'season_id' => $season_id,
+            'sender_session_token' => $token,
+            'sender_name' => $senderName,
+            'message' => '[IMAGE]:' . $imageUrl,
+            'is_admin' => false,
+            'is_read' => false
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'chat' => $chat
+        ]);
+    }
 }

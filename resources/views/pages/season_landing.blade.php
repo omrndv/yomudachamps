@@ -678,6 +678,8 @@
             </div>
             
             <div class="chat-input-wrapper">
+                <button id="btnChatAttach" title="Kirim Screenshot" style="background:none; border:none; color:var(--text-dim); padding:0 4px;"><i class="bi bi-camera-fill"></i></button>
+                <input type="file" id="chatFileInput" accept="image/*" style="display: none;">
                 <input type="text" id="chatInputText" placeholder="Ketik pesan..." autocomplete="off">
                 <button id="btnChatSend"><i class="bi bi-send-fill"></i></button>
             </div>
@@ -812,7 +814,12 @@
             function renderMessage(msg) {
                 const bubble = document.createElement('div');
                 bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
-                bubble.textContent = msg.message;
+                if (msg.message.startsWith('[IMAGE]:')) {
+                    const imgUrl = msg.message.substring(8);
+                    bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')">`;
+                } else {
+                    bubble.textContent = msg.message;
+                }
                 chatMessagesBody.appendChild(bubble);
             }
 
@@ -858,6 +865,56 @@
                     sendPublicMessage();
                 }
             });
+
+            // Chat image upload handling
+            const btnChatAttach = document.getElementById('btnChatAttach');
+            const chatFileInput = document.getElementById('chatFileInput');
+
+            if (btnChatAttach && chatFileInput) {
+                btnChatAttach.addEventListener('click', () => chatFileInput.click());
+                chatFileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert("Ukuran file maksimal 2MB!");
+                            return;
+                        }
+                        
+                        // Show uploading state
+                        const tempMsg = {
+                            id: 88888888 + Math.random(),
+                            message: "Mengunggah gambar...",
+                            is_admin: false
+                        };
+                        renderMessage(tempMsg);
+                        scrollChatToBottom();
+                        
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        formData.append('session_token', sessionToken);
+                        
+                        fetch("{{ route('public.season.chat.upload', $slug) }}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) {
+                                fetchChatMessages();
+                            } else {
+                                alert("Gagal mengunggah: " + res.message);
+                            }
+                        })
+                        .catch(err => {
+                            console.log("Upload err:", err);
+                            alert("Gagal mengunggah gambar.");
+                        });
+                    }
+                });
+            }
 
             fetchChatMessages();
             setInterval(() => {
