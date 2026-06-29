@@ -119,9 +119,9 @@
                     <input type="hidden" name="pos_y" id="inputPosY" value="{{ $layout->pos_y }}">
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Gambar Template (JPG/PNG)</label>
-                        <input type="file" name="template" class="form-control rounded-3" accept="image/jpeg,image/png">
-                        <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi (rekomendasi 1920x1080px).</div>
+                        <label class="form-label small fw-bold text-secondary">Template Sertifikat (PDF/JPG/PNG)</label>
+                        <input type="file" name="template" class="form-control rounded-3" accept="image/jpeg,image/png,application/pdf">
+                        <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi (PDF atau JPG/PNG).</div>
                     </div>
 
                     <div class="mb-3">
