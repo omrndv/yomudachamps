@@ -162,7 +162,9 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/certificate/layout', [\App\Http\Controllers\CertificateController::class, 'saveLayout'])->name('admin.season.certificate.layout');
             Route::get('/certificate/google-login', [\App\Http\Controllers\CertificateController::class, 'googleLogin'])->name('admin.certificate.google-login');
             Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
-            Route::post('/dashboard/{season_id}/certificate/generate-drive', [\App\Http\Controllers\CertificateController::class, 'generateToDrive'])->name('admin.season.certificate.generate-drive');
+            Route::post('/dashboard/{season_id}/certificate/init-drive', [\App\Http\Controllers\CertificateController::class, 'initGeneration'])->name('admin.season.certificate.init-drive');
+            Route::post('/dashboard/{season_id}/certificate/process-batch', [\App\Http\Controllers\CertificateController::class, 'processBatch'])->name('admin.season.certificate.process-batch');
+            Route::get('/dashboard/{season_id}/certificate/status', [\App\Http\Controllers\CertificateController::class, 'getGenerationStatus'])->name('admin.season.certificate.status');
             Route::get('/certificate/download-single', [\App\Http\Controllers\CertificateController::class, 'downloadSingle'])->name('admin.certificate.download-single');
         });
 

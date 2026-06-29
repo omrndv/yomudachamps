@@ -192,6 +192,12 @@
                             <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger rounded-pill" id="progressBar" role="progressbar" style="width: 0%;"></div>
                         </div>
                     </div>
+
+                    {{-- Terminal Logger Console --}}
+                    <div class="mt-3" id="terminalContainer" style="display: none;">
+                        <label class="form-label small fw-bold text-secondary">Terminal Log Aktivitas</label>
+                        <div id="terminalConsole" class="bg-dark text-success p-3 rounded-3 font-monospace shadow-sm" style="height: 180px; overflow-y: auto; font-size: 0.72rem; line-height: 1.5; border: 1px solid #111;"></div>
+                    </div>
                 @endif
             </div>
 
@@ -329,6 +335,82 @@ document.addEventListener('DOMContentLoaded', function() {
     // SINKRONISASI & GENERATE MASAL KE GOOGLE DRIVE
     // -------------------------------------------------------------
     const btnGenerateToDrive = document.getElementById('btnGenerateToDrive');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText = document.getElementById('progressText');
+    const terminalContainer = document.getElementById('terminalContainer');
+    const terminalConsole = document.getElementById('terminalConsole');
+
+    function updateTerminal(logs) {
+        if (!terminalConsole) return;
+        terminalConsole.innerHTML = logs.map(log => `<div>${log}</div>`).join('');
+        terminalConsole.scrollTop = terminalConsole.scrollHeight;
+    }
+
+    function checkActiveGeneration() {
+        fetch("{{ route('admin.season.certificate.status', $season->id) }}")
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.state && res.state.status === 'processing') {
+                // Resume generation!
+                showProgressUI(true);
+                updateProgress(res.state);
+                processNextBatch();
+            }
+        })
+        .catch(err => console.error('Error checking active status:', err));
+    }
+
+    function showProgressUI(show) {
+        if (progressContainer) progressContainer.style.display = show ? 'block' : 'none';
+        if (terminalContainer) terminalContainer.style.display = show ? 'block' : 'none';
+        if (btnGenerateToDrive) btnGenerateToDrive.disabled = show;
+    }
+
+    function updateProgress(state) {
+        const percent = Math.round((state.current_index / state.total) * 100);
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (progressPercent) progressPercent.textContent = percent + '%';
+        if (progressText) progressText.textContent = `Memproses: ${state.current_index} dari ${state.total} sertifikat...`;
+        updateTerminal(state.logs);
+    }
+
+    function processNextBatch() {
+        fetch("{{ route('admin.season.certificate.process-batch', $season->id) }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.state) {
+                updateProgress(res.state);
+                
+                if (res.state.status === 'processing') {
+                    // Continue loop
+                    processNextBatch();
+                } else if (res.state.status === 'completed') {
+                    // Completed!
+                    setTimeout(() => {
+                        alert('Proses pembuatan sertifikat selesai!');
+                        showProgressUI(false);
+                    }, 500);
+                }
+            } else {
+                alert('Terjadi kesalahan: ' + res.message);
+                showProgressUI(false);
+            }
+        })
+        .catch(err => {
+            console.error('Error processing batch:', err);
+            alert('Koneksi terputus atau server mengalami timeout. Mencoba kembali dalam 3 detik...');
+            setTimeout(processNextBatch, 3000);
+        });
+    }
+
     if (btnGenerateToDrive) {
         btnGenerateToDrive.addEventListener('click', function() {
             const driveLinkInput = document.getElementById('googleDriveLink');
@@ -339,27 +421,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Show progress state
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const progressPercent = document.getElementById('progressPercent');
-            const progressText = document.getElementById('progressText');
-
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '10%';
-            progressPercent.textContent = '10%';
-            progressText.textContent = 'Menghubungkan ke Google Drive API...';
-            btnGenerateToDrive.disabled = true;
+            showProgressUI(true);
+            updateTerminal(['Menghubungkan ke server... 🚀']);
 
             const formData = new FormData();
             formData.append('drive_link', driveLink);
 
-            // Ajax request to start background generate and upload
-            progressBar.style.width = '30%';
-            progressPercent.textContent = '30%';
-            progressText.textContent = 'Memulai proses cetak gambar...';
-
-            fetch("{{ route('admin.season.certificate.generate-drive', $season->id) }}", {
+            fetch("{{ route('admin.season.certificate.init-drive', $season->id) }}", {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -369,30 +437,24 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(r => r.json())
             .then(res => {
-                if (res.success) {
-                    progressBar.style.width = '100%';
-                    progressPercent.textContent = '100%';
-                    progressText.textContent = 'Selesai!';
-                    
-                    setTimeout(() => {
-                        alert(res.message);
-                        progressContainer.style.display = 'none';
-                        btnGenerateToDrive.disabled = false;
-                    }, 500);
+                if (res.success && res.state) {
+                    updateProgress(res.state);
+                    processNextBatch();
                 } else {
-                    alert('Gagal: ' + res.message);
-                    progressContainer.style.display = 'none';
-                    btnGenerateToDrive.disabled = false;
+                    alert('Gagal inisialisasi: ' + res.message);
+                    showProgressUI(false);
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Terjadi kesalahan koneksi atau limit memori server terlampaui saat mencetak sertifikat.');
-                progressContainer.style.display = 'none';
-                btnGenerateToDrive.disabled = false;
+                alert('Gagal menghubungkan ke server.');
+                showProgressUI(false);
             });
         });
     }
+
+    // Panggil saat halaman dimuat untuk mengecek/resume jika ada proses yang berjalan
+    checkActiveGeneration();
 
     // Client-side image compressor for "waswuss" upload of templates
     function compressTemplateImage(file, maxWidth, quality) {
