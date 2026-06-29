@@ -39,6 +39,71 @@
         </div>
     </div>
 
+    @php
+        $countAll = $reports->count();
+        $countPending = $reports->where('status', 'PENDING')->count();
+        $countApproved = $reports->where('status', 'APPROVED')->count();
+        $countRejected = $reports->where('status', 'REJECTED')->count();
+    @endphp
+
+    {{-- CSS Styles for Active Category Tabs --}}
+    <style>
+        #reportTabs .nav-link {
+            color: #64748b;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0 !important;
+            transition: all 0.2s;
+        }
+        #reportTabs .nav-link.active#tab-all {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #0f172a !important;
+        }
+        #reportTabs .nav-link.active#tab-pending {
+            background-color: #f59e0b !important;
+            color: #ffffff !important;
+            border-color: #f59e0b !important;
+        }
+        #reportTabs .nav-link.active#tab-approved {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+            border-color: #10b981 !important;
+        }
+        #reportTabs .nav-link.active#tab-rejected {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+            border-color: #ef4444 !important;
+        }
+    </style>
+
+    {{-- Categories / Tabs Filter --}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-pills gap-2" id="reportTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm" id="tab-all" data-status="ALL">
+                        Semua Laporan <span class="badge bg-secondary ms-1.5">{{ $countAll }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-pending" data-status="PENDING">
+                        Menunggu Persetujuan <span class="badge bg-warning text-dark ms-1.5">{{ $countPending }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-approved" data-status="APPROVED">
+                        Disetujui <span class="badge bg-success ms-1.5">{{ $countApproved }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-rejected" data-status="REJECTED">
+                        Ditolak <span class="badge bg-danger ms-1.5">{{ $countRejected }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     {{-- Main Content Card --}}
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-0">
@@ -57,7 +122,7 @@
                     </thead>
                     <tbody>
                         @forelse($reports as $report)
-                            <tr>
+                            <tr data-status="{{ $report->status }}">
                                 <td class="ps-4 text-secondary small">
                                     {{ $report->created_at->format('d M Y, H:i') }} WIB
                                 </td>
@@ -129,7 +194,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
+                            <tr id="row-empty-state">
                                 <td colspan="7" class="text-center py-5 text-secondary">
                                     <i class="bi bi-journal-x d-block mb-3 text-muted" style="font-size: 3rem;"></i>
                                     <h6 class="fw-bold mb-1">Belum Ada Laporan Laga</h6>
@@ -180,6 +245,35 @@
                 const src = this.getAttribute('data-img');
                 previewImg.src = src;
                 modalPreview.show();
+            });
+        });
+
+        // Client-side category filtering
+        const tabButtons = document.querySelectorAll('#reportTabs button');
+        const rows = document.querySelectorAll('tbody tr:not(#row-empty-state)');
+        const emptyState = document.getElementById('row-empty-state');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                const status = this.getAttribute('data-status');
+                let visibleRows = 0;
+
+                rows.forEach(row => {
+                    const rowStatus = row.getAttribute('data-status');
+                    if (status === 'ALL' || rowStatus === status) {
+                        row.style.display = '';
+                        visibleRows++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (emptyState) {
+                    emptyState.style.display = (visibleRows === 0) ? '' : 'none';
+                }
             });
         });
     });
