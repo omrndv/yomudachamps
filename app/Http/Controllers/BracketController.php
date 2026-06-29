@@ -906,14 +906,14 @@ class BracketController extends Controller
         $publicPath = (is_dir(base_path('../public_html')) && base_path() !== base_path('../public_html')) 
             ? base_path('../public_html') 
             : public_path();
-        $uploadPath = $publicPath . '/storage/chat_uploads';
+        $uploadPath = $publicPath . '/chat_uploads';
         
         if (!file_exists($uploadPath)) {
             mkdir($uploadPath, 0755, true);
         }
 
         $file->move($uploadPath, $filename);
-        $imageUrl = asset('storage/chat_uploads/' . $filename);
+        $imageUrl = asset('chat_uploads/' . $filename);
 
         // Get display name
         $existing = SeasonChat::where('season_id', $season_id)
