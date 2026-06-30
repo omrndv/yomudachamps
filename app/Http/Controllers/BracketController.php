@@ -1472,7 +1472,7 @@ class BracketController extends Controller
                     . "3. Read the match score (kill score) shown at the top of the scoreboard (e.g. 25 on left, 12 on right).\n"
                     . "4. Determine the winner: Is the winner indeed {$reporterName}?\n"
                     . "5. Verify if the screenshot is valid (is it an MLBB scoreboard screenshot? Is it edited/fake? Is it a duplicate?)\n\n"
-                    . "Respond strictly in JSON format with the following fields:\n"
+                    . "Respond strictly in JSON format (do not include extra text, just raw JSON or JSON within markdown blocks) with the following fields:\n"
                     . "{\n"
                     . "  \"is_valid\": true/false,\n"
                     . "  \"detected_winner_side\": \"LEFT\" or \"RIGHT\",\n"
@@ -1497,9 +1497,6 @@ class BracketController extends Controller
                             ]
                         ]
                     ]
-                ],
-                'generationConfig' => [
-                    'response_mime_type' => 'application/json'
                 ]
             ];
 
@@ -1533,6 +1530,13 @@ class BracketController extends Controller
             
             if (empty($jsonText)) {
                 throw new \Exception("Empty response from Gemini API.");
+            }
+
+            // Clean up markdown block if present
+            $jsonText = trim($jsonText);
+            if (strpos($jsonText, '```') === 0) {
+                $jsonText = preg_replace('/^```(?:json)?|```$/i', '', $jsonText);
+                $jsonText = trim($jsonText);
             }
 
             $aiResult = json_decode($jsonText, true);
