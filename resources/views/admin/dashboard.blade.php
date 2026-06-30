@@ -236,7 +236,7 @@
                                 
                                 @if($team->is_loyal)
                                     <span class="badge bg-primary text-white px-2 d-flex align-items-center gap-1" 
-                                          style="font-size: 0.6rem; cursor: help;" 
+                                          style="font-size: 0.6rem; cursor: pointer;" 
                                           data-bs-toggle="tooltip" 
                                           data-bs-html="true" 
                                           title="<strong>Pelanggan Setia!</strong><br>Pernah ikut di:<br> 
