@@ -2289,4 +2289,127 @@ class AdminController extends Controller
 
         return view('admin.laravel_logs', compact('logs'));
     }
+
+    public function aiRecapWinners()
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $seasons = \App\Models\Season::all();
+        $completedTournaments = [];
+
+        foreach ($seasons as $season) {
+            $brackets = \App\Models\Bracket::where('season_id', $season->id)->with(['team1', 'team2', 'winner'])->get();
+            if ($brackets->isEmpty()) {
+                continue;
+            }
+
+            $finalRoundNum = $brackets->max('round_number') ?? 0;
+            if ($finalRoundNum === 0) continue;
+
+            $finalMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 1)->first();
+            $bronzeMatch = $brackets->where('round_number', $finalRoundNum)->where('match_number', 2)->first();
+
+            if ($finalMatch && $finalMatch->status === 'finished' && $finalMatch->winner) {
+                $juara1 = $finalMatch->winner->name;
+                $juara2 = ($finalMatch->winner_id == $finalMatch->team1_id)
+                    ? ($finalMatch->team2->name ?? '[Belum Ditentukan]')
+                    : ($finalMatch->team1->name ?? '[Belum Ditentukan]');
+                
+                $juara3 = '[Tidak Ada / Belum Ditentukan]';
+                if ($bronzeMatch && $bronzeMatch->status === 'finished' && $bronzeMatch->winner) {
+                    $juara3 = $bronzeMatch->winner->name;
+                }
+
+                $completedTournaments[] = [
+                    'season_name' => $season->name,
+                    'juara1' => $juara1,
+                    'juara2' => $juara2,
+                    'juara3' => $juara3,
+                    'team_count' => \App\Models\Team::where('season_id', $season->id)->where('status', 'PAID')->count()
+                ];
+            }
+        }
+
+        if (empty($completedTournaments)) {
+            return response()->json([
+                'success' => true,
+                'html' => '<div class="alert alert-warning border-0 rounded-3 mb-0"><i class="bi bi-exclamation-circle-fill me-2"></i>Belum ada data bagan season yang selesai tanding untuk dianalisis oleh AI saat ini. Pastikan ada minimal 1 bagan final yang selesai di-approve.</div>'
+            ]);
+        }
+
+        try {
+            $apiKey = \App\Models\Setting::getVal('gemini_api_key', env('GEMINI_API_KEY'));
+            if (!$apiKey) {
+                return response()->json([
+                    'success' => false,
+                    'html' => '<div class="alert alert-danger border-0 rounded-3 mb-0"><i class="bi bi-x-circle-fill me-2"></i>Gemini API Key belum dikonfigurasi di menu Pengaturan. Silakan masukkan API Key terlebih dahulu.</div>'
+                ]);
+            }
+
+            $prompt = "You are an expert esports tournament analyst for Yomuda Championship. "
+                    . "Here is the historical data of completed seasons and their winners:\n\n";
+
+            foreach ($completedTournaments as $t) {
+                $prompt .= "- {$t['season_name']} (Total Teams: {$t['team_count']}):\n"
+                        . "  * Juara 1: {$t['juara1']}\n"
+                        . "  * Juara 2: {$t['juara2']}\n"
+                        . "  * Juara 3: {$t['juara3']}\n\n";
+            }
+
+            $prompt .= "Please write a comprehensive, professional, and exciting summary of these winners.\n"
+                    . "Analyze which teams are dominant, the diversity of winners, and provide some cool stats or insights about these achievements.\n"
+                    . "Write the response in Indonesian with a friendly, high-energy esports tone.\n"
+                    . "Use Markdown for formatting, including lists, tables, or bold text to make it read beautifully. Do not include HTML tags in the output.";
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ]
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_TIMEOUT => 25
+            ]);
+
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if (!empty($error)) {
+                throw new \Exception("cURL Error: " . $error);
+            }
+
+            $resData = json_decode($response, true);
+            $markdownText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            if (empty($markdownText)) {
+                throw new \Exception("Empty response from Gemini API.");
+            }
+
+            return response()->json([
+                'success' => true,
+                'markdown' => $markdownText
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'html' => '<div class="alert alert-danger border-0 rounded-3 mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Gagal memanggil AI: ' . $e->getMessage() . '</div>'
+            ]);
+        }
+    }
 }

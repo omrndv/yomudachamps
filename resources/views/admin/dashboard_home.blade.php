@@ -66,13 +66,16 @@
                     <input type="date" name="end_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $end_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px;">
                 </div>
             </div>
-            <div class="col-12 col-md-4 d-flex gap-2 justify-content-center justify-content-md-start mt-2 mt-md-0">
+            <div class="col-12 col-md-5 d-flex gap-2 justify-content-center justify-content-md-start mt-2 mt-md-0 ms-md-auto">
                 <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-3 px-3 shadow-sm" style="height: 34px; font-size: 0.8rem;">
                     Filter Harian
                 </button>
                 <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-3 px-3 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem;">
                     Reset (7 Hari)
                 </a>
+                <button type="button" class="btn btn-success btn-sm fw-bold text-white rounded-3 px-3 shadow-sm d-flex align-items-center gap-1.5 ms-md-auto" style="height: 34px; font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#modalAiRecapWinners">
+                    <i class="bi bi-stars"></i> AI Rekap Pemenang
+                </button>
             </div>
         </form>
     </div>
@@ -653,6 +656,63 @@
             // Run filter on initial page load to only show ACTIVE seasons by default
             filterSeasonsHome();
         }
+    });
+</script>
+
+{{-- MODAL AI RECAP WINNERS --}}
+<div class="modal fade" id="modalAiRecapWinners" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-dark">
+            <div class="modal-header border-bottom border-light p-3">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-stars text-success"></i> AI Rangkuman & Analisis Juara Season
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                <div id="aiRecapContent" class="lh-base">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-success mb-3" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
+                        <p class="text-secondary fw-semibold mb-0">AI sedang mengumpulkan data pemenang dan menyusun laporan analisis...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light p-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold small" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.getElementById('modalAiRecapWinners').addEventListener('show.bs.modal', function () {
+        const contentEl = document.getElementById('aiRecapContent');
+        
+        contentEl.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-success mb-3" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
+                <p class="text-secondary fw-semibold mb-0">AI sedang menganalisis data bagan turnamen dan merekap sejarah pemenang...</p>
+            </div>
+        `;
+        
+        fetch("{{ route('admin.ai.recap_winners') }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.markdown) {
+                        contentEl.innerHTML = `<div class="markdown-body text-slate-800" style="font-size: 0.9rem;">${marked.parse(data.markdown)}</div>`;
+                    } else if (data.html) {
+                        contentEl.innerHTML = data.html;
+                    }
+                } else {
+                    contentEl.innerHTML = data.html || `<div class="alert alert-danger border-0 rounded-3 mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Gagal memuat rekap pemenang AI.</div>`;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                contentEl.innerHTML = `<div class="alert alert-danger border-0 rounded-3 mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Terjadi kesalahan koneksi saat memanggil AI.</div>`;
+            });
     });
 </script>
 @endsection

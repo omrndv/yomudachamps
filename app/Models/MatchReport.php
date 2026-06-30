@@ -14,7 +14,9 @@ class MatchReport extends Model
         'score_team1',
         'score_team2',
         'image_proof',
-        'status'
+        'status',
+        'ai_status',
+        'ai_notes'
     ];
 
     public function bracket(): BelongsTo

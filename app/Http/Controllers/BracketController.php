@@ -1210,7 +1210,7 @@ class BracketController extends Controller
         $this->compressAndSaveImage($file, $uploadPath, $filename);
         $imageUrl = '/match_results/' . $filename;
 
-        \App\Models\MatchReport::create([
+        $report = \App\Models\MatchReport::create([
             'bracket_id' => $request->match_id,
             'season_id' => $season_id,
             'reporter_team_id' => $request->reporter_team_id,
@@ -1220,9 +1220,18 @@ class BracketController extends Controller
             'status' => 'PENDING'
         ]);
 
+        $aiApproved = $this->analyzeReportWithAI($report);
+
+        if ($aiApproved) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Hore! Kemenangan Anda berhasil diverifikasi otomatis oleh AI Yomuda. Bagan turnamen telah diperbarui secara instan!'
+            ]);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
+            'message' => 'Laporan skor berhasil dikirim! Menunggu verifikasi manual oleh panitia admin.'
         ]);
     }
 
@@ -1418,5 +1427,156 @@ class BracketController extends Controller
         return response()->json([
             'reports' => $reports
         ]);
+    }
+
+    private function analyzeReportWithAI($report)
+    {
+        try {
+            $apiKey = \App\Models\Setting::getVal('gemini_api_key', env('GEMINI_API_KEY'));
+            if (!$apiKey) {
+                $report->ai_status = 'SKIPPED';
+                $report->ai_notes = 'Gemini API Key is not set in settings.';
+                $report->save();
+                return false;
+            }
+
+            $match = Bracket::with(['team1', 'team2'])->find($report->bracket_id);
+            if (!$match || !$match->team1_id || !$match->team2_id) {
+                return false;
+            }
+
+            $imagePath = public_path($report->image_proof);
+            if (!file_exists($imagePath)) {
+                return false;
+            }
+
+            $imageData = base64_encode(file_get_contents($imagePath));
+            $imageMime = mime_content_type($imagePath);
+
+            $reporterTeam = ($report->reporter_team_id == $match->team1_id) ? $match->team1 : $match->team2;
+            $opposingTeam = ($report->reporter_team_id == $match->team1_id) ? $match->team2 : $match->team1;
+
+            $reporterName = $reporterTeam->name;
+            $opposingName = $opposingTeam->name;
+
+            $prompt = "You are an automated referee for a Mobile Legends: Bang Bang (MLBB) tournament platform called Yomuda Championship.\n"
+                    . "Your job is to analyze the uploaded screenshot of the end-game scoreboard to verify the match result.\n\n"
+                    . "Match Details:\n"
+                    . "- Team 1: {$match->team1->name}\n"
+                    . "- Team 2: {$match->team2->name}\n"
+                    . "- Reporter Team: {$reporterName} (This team uploaded the screenshot. In MLBB match results, the person taking the screenshot is ALWAYS on the blue/left side, which means the left side of the scoreboard represents the Reporter Team's performance).\n"
+                    . "- Opposing Team: {$opposingName} (Their performance is on the right side of the scoreboard).\n\n"
+                    . "Instructions:\n"
+                    . "1. Analyze the image to detect the victory/defeat banner or victory indicator.\n"
+                    . "2. Check if the left side (Reporter Team) has 'VICTORY' or has a clear victory indicator (higher score, victory title, yellow/gold highlight on user row).\n"
+                    . "3. Read the match score (kill score) shown at the top of the scoreboard (e.g. 25 on left, 12 on right).\n"
+                    . "4. Determine the winner: Is the winner indeed {$reporterName}?\n"
+                    . "5. Verify if the screenshot is valid (is it an MLBB scoreboard screenshot? Is it edited/fake? Is it a duplicate?)\n\n"
+                    . "Respond strictly in JSON format with the following fields:\n"
+                    . "{\n"
+                    . "  \"is_valid\": true/false,\n"
+                    . "  \"detected_winner_side\": \"LEFT\" or \"RIGHT\",\n"
+                    . "  \"score_left\": 25,\n"
+                    . "  \"score_right\": 12,\n"
+                    . "  \"confidence_score\": 0.95,\n"
+                    . "  \"notes\": \"Explanation of your findings\"\n"
+                    . "}";
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt],
+                            [
+                                'inlineData' => [
+                                    'mimeType' => $imageMime,
+                                    'data' => $imageData
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json'
+                ]
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_TIMEOUT => 25
+            ]);
+
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if (!empty($error)) {
+                throw new \Exception("cURL Error: " . $error);
+            }
+
+            $resData = json_decode($response, true);
+            $jsonText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            
+            if (empty($jsonText)) {
+                throw new \Exception("Empty response from Gemini API.");
+            }
+
+            $aiResult = json_decode($jsonText, true);
+            if (!$aiResult) {
+                throw new \Exception("Failed to parse Gemini response as JSON: " . $jsonText);
+            }
+
+            $report->ai_status = ($aiResult['is_valid'] && ($aiResult['confidence_score'] ?? 0) >= 0.90) ? 'SUCCESS' : 'MANUAL_REVIEW';
+            $report->ai_notes = "AI Analysis: " . ($aiResult['notes'] ?? 'No notes');
+            $report->save();
+
+            if ($report->ai_status === 'SUCCESS' && ($aiResult['detected_winner_side'] ?? '') === 'LEFT') {
+                $scoreLeft = intval($aiResult['score_left'] ?? 0);
+                $scoreRight = intval($aiResult['score_right'] ?? 0);
+
+                DB::beginTransaction();
+                try {
+                    $report->score_team1 = ($report->reporter_team_id == $match->team1_id) ? $scoreLeft : $scoreRight;
+                    $report->score_team2 = ($report->reporter_team_id == $match->team1_id) ? $scoreRight : $scoreLeft;
+                    $report->status = 'APPROVED';
+                    $report->save();
+
+                    $match->team1_score = $report->score_team1;
+                    $match->team2_score = $report->score_team2;
+                    $match->status = 'finished';
+                    $match->winner_id = $report->reporter_team_id;
+                    $match->save();
+
+                    $this->advanceWinner($match);
+
+                    \App\Models\MatchReport::where('bracket_id', $match->id)
+                        ->where('id', '!=', $report->id)
+                        ->where('status', 'PENDING')
+                        ->update(['status' => 'REJECTED']);
+
+                    DB::commit();
+                    return true;
+                } catch (\Exception $eEx) {
+                    DB::rollBack();
+                    throw $eEx;
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("AI Report Verification failed: " . $e->getMessage());
+            $report->ai_status = 'FAILED';
+            $report->ai_notes = 'Error: ' . $e->getMessage();
+            $report->save();
+            return false;
+        }
     }
 }
