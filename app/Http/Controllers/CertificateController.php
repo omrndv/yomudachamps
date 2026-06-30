@@ -20,13 +20,20 @@ class CertificateController extends Controller
     {
         if (!class_exists('Setasign\Fpdi\Fpdi')) {
             $fpdfPath = base_path('vendor/setasign/fpdf/fpdf.php');
-            $fpdiAutoload = base_path('vendor/setasign/fpdi/src/autoload.php');
             if (file_exists($fpdfPath)) {
                 require_once $fpdfPath;
             }
-            if (file_exists($fpdiAutoload)) {
-                require_once $fpdiAutoload;
-            }
+            
+            // Register case-insensitive autoloader for Setasign\Fpdi namespace
+            spl_autoload_register(function ($class) {
+                if (stripos($class, 'Setasign\Fpdi\\') === 0) {
+                    $filename = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 14)) . '.php';
+                    $fullpath = base_path('vendor/setasign/fpdi/src/') . $filename;
+                    if (file_exists($fullpath)) {
+                        require_once $fullpath;
+                    }
+                }
+            });
         }
     }
 
