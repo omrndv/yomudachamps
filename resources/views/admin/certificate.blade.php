@@ -160,7 +160,7 @@
                     <p class="text-secondary small mb-3">
                         Hubungkan dengan Google Drive untuk mengunggah seluruh sertifikat secara otomatis ke folder pilihan Anda.
                     </p>
-                    <a href="{{ route('admin.certificate.google-login') }}" class="btn btn-outline-danger w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
+                    <a href="{{ route('admin.certificate.google-login', ['season_id' => $season->id]) }}" class="btn btn-outline-danger w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-google"></i> Hubungkan Google Drive
                     </a>
                 @else

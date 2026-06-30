@@ -57,6 +57,7 @@ class CertificateController extends Controller
      */
     public function index($season_id)
     {
+        Session::put('current_cert_season_id', $season_id);
         $season = Season::findOrFail($season_id);
         $layout = CertificateLayout::firstOrCreate(
             ['season_id' => $season_id],
@@ -158,11 +159,12 @@ class CertificateController extends Controller
         return redirect()->back()->with('success', 'Konfigurasi layout sertifikat berhasil disimpan!');
     }
 
-    /**
-     * Redirect to Google OAuth Consent Page
-     */
-    public function googleLogin()
+    public function googleLogin(Request $request)
     {
+        if ($request->has('season_id')) {
+            Session::put('current_cert_season_id', $request->query('season_id'));
+        }
+
         $client = $this->getGoogleClient();
         // Add profile scope to read email address
         $client->addScope('email');
