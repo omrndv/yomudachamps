@@ -118,6 +118,7 @@ class CertificateController extends Controller
             'font_color' => 'required|string|regex:/^#[a-fA-F0-9]{6}$/',
             'pos_x' => 'required|numeric|min:0|max:100',
             'pos_y' => 'required|numeric|min:0|max:100',
+            'layout_data' => 'nullable|string',
         ]);
 
         $layout = CertificateLayout::where('season_id', $season_id)->firstOrFail();
@@ -125,6 +126,10 @@ class CertificateController extends Controller
         $layout->font_color = $request->font_color;
         $layout->pos_x = $request->pos_x;
         $layout->pos_y = $request->pos_y;
+
+        if ($request->has('layout_data')) {
+            $layout->layout_data = is_string($request->layout_data) ? json_decode($request->layout_data, true) : $request->layout_data;
+        }
 
         // Handling Template Image Upload
         if ($request->hasFile('template')) {
@@ -156,7 +161,39 @@ class CertificateController extends Controller
 
         $layout->save();
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Konfigurasi layout sertifikat berhasil disimpan!']);
+        }
+
         return redirect()->back()->with('success', 'Konfigurasi layout sertifikat berhasil disimpan!');
+    }
+
+    /**
+     * Unggah Aset Gambar Elemen Kustom (Logo/Hero/Tanda Tangan)
+     */
+    public function uploadElement(Request $request, $season_id)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:5120'
+        ]);
+
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = 'element_' . $season_id . '_' . time() . '_' . rand(100, 999) . '.' . $imageFile->getClientOriginalExtension();
+            
+            // Simpan di public/uploads/certificates/elements/
+            if (!file_exists(public_path('uploads/certificates/elements'))) {
+                mkdir(public_path('uploads/certificates/elements'), 0755, true);
+            }
+            $imageFile->move(public_path('uploads/certificates/elements'), $imageName);
+            
+            return response()->json([
+                'success' => true,
+                'path' => '/uploads/certificates/elements/' . $imageName
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal mengunggah file.']);
     }
 
     public function googleLogin(Request $request)
@@ -327,62 +364,7 @@ class CertificateController extends Controller
 
                 // If not exist, generate and upload
                 try {
-                    $pdf = new Fpdi();
-                    
-                    if ($isPdf) {
-                        // For PDF template, use points 'pt' unit
-                        $pdf = new Fpdi('L', 'pt');
-                        $pdf->setSourceFile($templateFullPath);
-                        $tplIdx = $pdf->importPage(1);
-                        $specs = $pdf->getTemplateSize($tplIdx);
-                        $width = $specs['width'];
-                        $height = $specs['height'];
-
-                        $orientation = ($width > $height) ? 'L' : 'P';
-                        $pdf->AddPage($orientation, [$width, $height]);
-                        $pdf->useTemplate($tplIdx);
-
-                        $posX = ($layout->pos_x / 100) * $width;
-                        $posY = ($layout->pos_y / 100) * $height;
-
-                        $fontSize = $layout->font_size / 1.5;
-                        $pdf->SetFont('Arial', 'B', $fontSize);
-
-                        $hex = str_replace('#', '', $layout->font_color);
-                        $r = hexdec(substr($hex, 0, 2));
-                        $g = hexdec(substr($hex, 2, 2));
-                        $b = hexdec(substr($hex, 4, 2));
-                        $pdf->SetTextColor($r, $g, $b);
-
-                        $pdf->SetXY(0, $posY - ($fontSize / 2));
-                        $pdf->Cell($width, $fontSize, $team->name, 0, 0, 'C');
-                    } else {
-                        // For Image template, determine pixel dimensions and convert to PDF
-                        list($imgWidth, $imgHeight) = getimagesize($templateFullPath);
-                        $orientation = ($imgWidth > $imgHeight) ? 'L' : 'P';
-
-                        $pdf = new Fpdi($orientation, 'pt', [$imgWidth, $imgHeight]);
-                        $pdf->AddPage($orientation, [$imgWidth, $imgHeight]);
-
-                        // Background template image
-                        $pdf->Image($templateFullPath, 0, 0, $imgWidth, $imgHeight);
-
-                        $posX = ($layout->pos_x / 100) * $imgWidth;
-                        $posY = ($layout->pos_y / 100) * $imgHeight;
-
-                        $fontSize = $layout->font_size;
-                        $pdf->SetFont('Arial', 'B', $fontSize);
-
-                        $hex = str_replace('#', '', $layout->font_color);
-                        $r = hexdec(substr($hex, 0, 2));
-                        $g = hexdec(substr($hex, 2, 2));
-                        $b = hexdec(substr($hex, 4, 2));
-                        $pdf->SetTextColor($r, $g, $b);
-
-                        $pdf->SetXY(0, $posY - ($fontSize / 2));
-                        $pdf->Cell($imgWidth, $fontSize, $team->name, 0, 0, 'C');
-                    }
-
+                    $pdf = $this->renderPDF($layout, $team->name);
                     $pdf->Output('F', $tempFilePath);
 
                     // Upload to Google Drive
@@ -439,60 +421,7 @@ class CertificateController extends Controller
         $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
 
         try {
-            $pdf = new Fpdi();
-            
-            if ($isPdf) {
-                // For PDF template, use points 'pt' unit
-                $pdf = new Fpdi('L', 'pt');
-                $pdf->setSourceFile($templateFullPath);
-                $tplIdx = $pdf->importPage(1);
-                $specs = $pdf->getTemplateSize($tplIdx);
-                $width = $specs['width'];
-                $height = $specs['height'];
-
-                $orientation = ($width > $height) ? 'L' : 'P';
-                $pdf->AddPage($orientation, [$width, $height]);
-                $pdf->useTemplate($tplIdx);
-
-                $posX = ($layout->pos_x / 100) * $width;
-                $posY = ($layout->pos_y / 100) * $height;
-
-                $fontSize = $layout->font_size / 1.5;
-                $pdf->SetFont('Arial', 'B', $fontSize);
-
-                $hex = str_replace('#', '', $layout->font_color);
-                $r = hexdec(substr($hex, 0, 2));
-                $g = hexdec(substr($hex, 2, 2));
-                $b = hexdec(substr($hex, 4, 2));
-                $pdf->SetTextColor($r, $g, $b);
-
-                $pdf->SetXY(0, $posY - ($fontSize / 2));
-                $pdf->Cell($width, $fontSize, $request->name, 0, 0, 'C');
-            } else {
-                // For Image template, convert to PDF
-                list($imgWidth, $imgHeight) = getimagesize($templateFullPath);
-                $orientation = ($imgWidth > $imgHeight) ? 'L' : 'P';
-                
-                $pdf = new Fpdi($orientation, 'pt', [$imgWidth, $imgHeight]);
-                $pdf->AddPage($orientation, [$imgWidth, $imgHeight]);
-                
-                $pdf->Image($templateFullPath, 0, 0, $imgWidth, $imgHeight);
-
-                $posX = ($layout->pos_x / 100) * $imgWidth;
-                $posY = ($layout->pos_y / 100) * $imgHeight;
-
-                $fontSize = $layout->font_size;
-                $pdf->SetFont('Arial', 'B', $fontSize);
-
-                $hex = str_replace('#', '', $layout->font_color);
-                $r = hexdec(substr($hex, 0, 2));
-                $g = hexdec(substr($hex, 2, 2));
-                $b = hexdec(substr($hex, 4, 2));
-                $pdf->SetTextColor($r, $g, $b);
-
-                $pdf->SetXY(0, $posY - ($fontSize / 2));
-                $pdf->Cell($imgWidth, $fontSize, $request->name, 0, 0, 'C');
-            }
+            $pdf = $this->renderPDF($layout, $request->name);
 
             return response($pdf->Output('S'), 200, [
                 'Content-Type' => 'application/pdf',
@@ -548,5 +477,111 @@ class CertificateController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Render PDF secara dinamis lapis demi lapis berdasarkan layout_data (JSON)
+     */
+    private function renderPDF(CertificateLayout $layout, $participantName)
+    {
+        $templateFullPath = public_path($layout->template_path);
+        $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
+
+        $pdf = new Fpdi();
+        
+        if ($isPdf) {
+            $pdf = new Fpdi('L', 'pt');
+            $pdf->setSourceFile($templateFullPath);
+            $tplIdx = $pdf->importPage(1);
+            $specs = $pdf->getTemplateSize($tplIdx);
+            $width = $specs['width'];
+            $height = $specs['height'];
+            $orientation = ($width > $height) ? 'L' : 'P';
+            $pdf->AddPage($orientation, [$width, $height]);
+            $pdf->useTemplate($tplIdx);
+        } else {
+            list($imgWidth, $imgHeight) = getimagesize($templateFullPath);
+            $orientation = ($imgWidth > $imgHeight) ? 'L' : 'P';
+            $pdf = new Fpdi($orientation, 'pt', [$imgWidth, $imgHeight]);
+            $pdf->AddPage($orientation, [$imgWidth, $imgHeight]);
+            $pdf->Image($templateFullPath, 0, 0, $imgWidth, $imgHeight);
+            $width = $imgWidth;
+            $height = $imgHeight;
+        }
+
+        // Ambil elemen-elemen dari layout_data
+        $elements = $layout->layout_data;
+        if (empty($elements)) {
+            // Fallback untuk layout lama (hanya elemen nama)
+            $elements = [
+                [
+                    'id' => 'participant_name',
+                    'type' => 'text',
+                    'text' => $participantName,
+                    'x' => $layout->pos_x,
+                    'y' => $layout->pos_y,
+                    'font_size' => $layout->font_size,
+                    'color' => $layout->font_color,
+                    'bold' => true,
+                    'align' => 'center'
+                ]
+            ];
+        }
+
+        foreach ($elements as $el) {
+            if ($el['type'] === 'text') {
+                $elText = $el['text'];
+                // Ganti tag/placeholder dengan nama asli peserta
+                $elText = str_replace(
+                    ['< NAMA PESERTA >', '<nama peserta>', '{{NAMA}}', '{{nama}}', '&lt; NAMA PESERTA &gt;'], 
+                    $participantName, 
+                    $elText
+                );
+
+                $fSize = isset($el['font_size']) ? (int)$el['font_size'] : 30;
+                // Skala font untuk PDF template agar ukurannya mirip dengan di browser
+                if ($isPdf) {
+                    $fSize = $fSize / 1.5;
+                }
+
+                $style = (isset($el['bold']) && $el['bold']) ? 'B' : '';
+                $pdf->SetFont('Arial', $style, $fSize);
+
+                $colorHex = isset($el['color']) ? str_replace('#', '', $el['color']) : '000000';
+                if (strlen($colorHex) === 6) {
+                    $r = hexdec(substr($colorHex, 0, 2));
+                    $g = hexdec(substr($colorHex, 2, 2));
+                    $b = hexdec(substr($colorHex, 4, 2));
+                    $pdf->SetTextColor($r, $g, $b);
+                }
+
+                $elX = ($el['x'] / 100) * $width;
+                $elY = ($el['y'] / 100) * $height;
+
+                $align = isset($el['align']) ? $el['align'] : 'center';
+                if ($align === 'center') {
+                    $pdf->SetXY(0, $elY - ($fSize / 2));
+                    $pdf->Cell($width, $fSize, $elText, 0, 0, 'C');
+                } else {
+                    $pdf->SetXY($elX, $elY - ($fSize / 2));
+                    $pdf->Cell(0, $fSize, $elText, 0, 0, 'L');
+                }
+            } elseif ($el['type'] === 'image' && !empty($el['src'])) {
+                $imagePath = public_path($el['src']);
+                if (file_exists($imagePath)) {
+                    // Skala letak gambar
+                    $imgX = ($el['x'] / 100) * $width;
+                    $imgY = ($el['y'] / 100) * $height;
+                    
+                    $imgW = isset($el['width']) ? (float)$el['width'] : 100;
+                    $imgH = isset($el['height']) ? (float)$el['height'] : 100;
+                    
+                    // Center the image relative to its coordinates
+                    $pdf->Image($imagePath, $imgX - ($imgW / 2), $imgY - ($imgH / 2), $imgW, $imgH);
+                }
+            }
+        }
+
+        return $pdf;
     }
 }

@@ -18,7 +18,7 @@
                         Generator Sertifikat <span class="text-warning">{{ $season->name }}</span>
                     </h2>
                     <p class="text-secondary small mb-0 mt-1">
-                        Desain tata letak nama secara visual dengan drag & drop, lalu cetak otomatis ke Google Drive peserta atau download manual.
+                        Desain tata letak sertifikat secara visual sekelas Figma. Geser, tambah teks, atau masukkan logo/hero kustom secara interaktif.
                     </p>
                 </div>
                 <div>
@@ -45,15 +45,30 @@
     @endif
 
     <div class="row g-4">
-        {{-- Kolom Kiri: Editor Visual (Drag & Drop) --}}
+        {{-- Kolom Kiri: Workspace Editor Figma-Level --}}
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-palette text-warning me-2"></i>Desain Letak Nama (Drag & Drop)</h5>
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-palette text-warning me-2"></i>Workspace Editor</h5>
+                    
+                    {{-- Element Toolkit --}}
+                    @if($layout->template_path)
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnAddText" class="btn btn-outline-warning text-dark btn-sm fw-bold rounded-pill px-3">
+                                <i class="bi bi-fonts me-1"></i> + Teks Kustom
+                            </button>
+                            <button type="button" id="btnAddImage" class="btn btn-outline-warning text-dark btn-sm fw-bold rounded-pill px-3">
+                                <i class="bi bi-image me-1"></i> + Logo/Gambar
+                            </button>
+                            <input type="file" id="elementImageLoader" accept="image/*" style="display: none;">
+                        </div>
+                    @endif
+                </div>
                 
                 {{-- Area Canvas/Pratinjau Sertifikat --}}
                 <div class="position-relative border rounded-4 overflow-hidden bg-light shadow-inner d-flex align-items-center justify-content-center" 
                      id="editorWrapper" 
-                     style="min-height: 400px; max-width: 100%;">
+                     style="min-height: 480px; max-width: 100%; user-select: none;">
                     
                     @if($layout->template_path)
                         @php
@@ -69,21 +84,9 @@
                         @if($isPdf)
                             <canvas id="pdfCanvas" class="w-100" style="object-fit: contain; pointer-events: none; user-select: none;"></canvas>
                         @endif
-                        
-                        {{-- Elemen Nama Draggable --}}
-                        <div id="draggableName" 
-                             class="position-absolute cursor-move fw-bold text-nowrap"
-                             style="
-                                left: {{ $layout->pos_x }}%; 
-                                top: {{ $layout->pos_y }}%; 
-                                font-size: calc({{ $layout->font_size }}px * 0.4); 
-                                color: {{ $layout->font_color }}; 
-                                transform: translate(-50%, -50%);
-                                user-select: none;
-                             ">
-                            {{-- Placeholder teks --}}
-                            {{ '< NAMA PESERTA >' }}
-                        </div>
+
+                        {{-- Draggable Elements Container --}}
+                        <div id="elementsContainer" class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none;"></div>
                     @else
                         <div class="text-center py-5 text-secondary">
                             <i class="bi bi-file-earmark-image d-block mb-3 text-muted" style="font-size: 4rem;"></i>
@@ -95,30 +98,101 @@
 
                 @if($layout->template_path)
                     <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
-                        <span><i class="bi bi-info-circle me-1"></i> Klik dan geser kotak <strong>&lt; NAMA PESERTA &gt;</strong> di atas untuk mengatur koordinat cetak.</span>
-                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
-                            X: <span id="posXLabel">{{ $layout->pos_x }}</span>% | Y: <span id="posYLabel">{{ $layout->pos_y }}</span>%
-                        </span>
+                        <span><i class="bi bi-info-circle me-1"></i> Klik dan geser elemen di atas untuk memposisikan letak cetak secara instan.</span>
+                        <button type="button" id="btnSaveConfig" class="btn btn-warning text-dark btn-sm fw-bold rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-cloud-check-fill me-1"></i> Simpan Desain Layout
+                        </button>
                     </div>
                 @endif
             </div>
         </div>
 
-        {{-- Kolom Kanan: Pengaturan & Opsi Cetak --}}
+        {{-- Kolom Kanan: Properties Inspector & Controls --}}
         <div class="col-lg-4">
-            {{-- Card 1: Pengaturan Aset & Font --}}
+            {{-- Card 1: Element Properties Inspector (Figma-Style Properties Panel) --}}
+            @if($layout->template_path)
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" id="propertiesInspector" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-sliders text-warning me-2"></i>Inspektur Elemen</h5>
+                        <button type="button" id="btnDeleteElement" class="btn btn-sm btn-outline-danger border-0 rounded-circle" style="padding: 2px 6px;">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        {{-- Field 1: Konten Teks (Khusus Teks) --}}
+                        <div class="mb-3" id="propTextContainer">
+                            <label class="form-label small fw-bold text-secondary">Isi Teks</label>
+                            <textarea id="propTextContent" class="form-control rounded-3" rows="2" placeholder="Masukkan teks..."></textarea>
+                            <div class="form-text text-muted" id="propTextHelp" style="font-size: 0.68rem;">Gunakan tag `< NAMA PESERTA >` untuk nama peserta dinamis.</div>
+                        </div>
+
+                        {{-- Field 2: Ukuran Font & Warna (Teks Only) --}}
+                        <div class="row g-2 mb-3" id="propFontContainer">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Ukuran Font</label>
+                                <input type="number" id="propFontSize" class="form-control rounded-3" min="10" max="250">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Warna Teks</label>
+                                <input type="color" id="propFontColor" class="form-control form-control-color w-100 rounded-3 border" style="height: 38px; padding: 2px;">
+                            </div>
+                        </div>
+
+                        {{-- Field 3: Align & Style (Teks Only) --}}
+                        <div class="mb-3" id="propStyleContainer">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-secondary">Format & Perataan</span>
+                            </div>
+                            <div class="btn-group w-100" role="group">
+                                <input type="checkbox" class="btn-check" id="propFontBold" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="propFontBold"><i class="bi bi-type-bold"></i> Bold</label>
+
+                                <input type="radio" class="btn-check" name="propAlign" id="propAlignLeft" value="left" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="propAlignLeft"><i class="bi bi-text-left"></i> Rata Kiri</label>
+
+                                <input type="radio" class="btn-check" name="propAlign" id="propAlignCenter" value="center" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="propAlignCenter"><i class="bi bi-text-center"></i> Rata Tengah</label>
+                            </div>
+                        </div>
+
+                        {{-- Field 4: Dimensi Ukuran Gambar (Gambar Only) --}}
+                        <div class="row g-2 mb-3" id="propDimensionContainer" style="display: none;">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Lebar (px)</label>
+                                <input type="number" id="propImageWidth" class="form-control rounded-3" min="10">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Tinggi (px)</label>
+                                <input type="number" id="propImageHeight" class="form-control rounded-3" min="10">
+                            </div>
+                        </div>
+
+                        {{-- Info Koordinat --}}
+                        <div class="bg-light p-2.5 rounded-3 d-flex justify-content-between text-secondary style-info" style="font-size: 0.72rem;">
+                            <span>Koordinat X: <strong id="propPosXLabel">0</strong>%</span>
+                            <span>Koordinat Y: <strong id="propPosYLabel">0</strong>%</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Card 2: Pengaturan Background Template --}}
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-sliders text-warning me-2"></i>Pengaturan Aset</h5>
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-arrow-up text-warning me-2"></i>Ganti Background</h5>
                 
                 <form id="layoutForm" action="{{ route('admin.season.certificate.layout', $season->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="pos_x" id="inputPosX" value="{{ $layout->pos_x }}">
                     <input type="hidden" name="pos_y" id="inputPosY" value="{{ $layout->pos_y }}">
+                    <input type="hidden" name="font_size" id="inputFontSize" value="{{ $layout->font_size }}">
+                    <input type="hidden" name="font_color" id="inputFontColor" value="{{ $layout->font_color }}">
+                    <input type="hidden" name="layout_data" id="layoutDataField">
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Template Sertifikat (PDF/JPG/PNG)</label>
+                        <label class="form-label small fw-bold text-secondary">Upload Background Template (PDF/JPG/PNG)</label>
                         <input type="file" id="certTemplateInput" name="template" class="form-control rounded-3" accept="image/jpeg,image/png,application/pdf">
-                        <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi (PDF atau JPG/PNG).</div>
+                        <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi.</div>
                     </div>
 
                     <div class="mb-3">
@@ -128,31 +202,18 @@
                             @if($layout->font_path)
                                 <span class="text-success fw-bold"><i class="bi bi-file-earmark-check-fill"></i> Font aktif terpasang</span>
                             @else
-                                Menggunakan font bawaan (Poppins Bold).
+                                Menggunakan font bawaan (Arial).
                             @endif
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-secondary">Ukuran Font (px)</label>
-                            <input type="number" name="font_size" id="inputFontSize" class="form-control rounded-3" value="{{ $layout->font_size }}" min="10" max="200" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-secondary">Warna Font</label>
-                            <div class="input-group">
-                                <input type="color" name="font_color" id="inputFontColor" class="form-control form-control-color w-100 rounded-3 border" value="{{ $layout->font_color }}" style="height: 38px; padding: 2px;" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-warning w-100 fw-bold rounded-pill py-2 shadow-sm">
-                        <i class="bi bi-save me-1"></i> Simpan Konfigurasi
+                    <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold rounded-pill py-2 shadow-sm">
+                        <i class="bi bi-save me-1"></i> Upload & Simpan File
                     </button>
                 </form>
             </div>
 
-            {{-- Card 2: Cetak Massal (Google Drive API) --}}
+            {{-- Card 3: Cetak Massal (Google Drive API) --}}
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-google text-warning me-2"></i>Cetak ke Google Drive</h5>
                 
@@ -202,7 +263,7 @@
                 @endif
             </div>
 
-            {{-- Card 3: Cetak Manual / Download Instan --}}
+            {{-- Card 4: Cetak Manual / Download Instan --}}
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-pdf text-warning me-2"></i>Cetak / Edit Manual</h5>
                 <p class="text-secondary small mb-3">
@@ -228,24 +289,41 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
-// Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // -------------------------------------------------------------
-    // LOGIKA DRAG & DROP EDITOR
-    // -------------------------------------------------------------
-    const draggable = document.getElementById('draggableName');
     const wrapper = document.getElementById('editorWrapper');
+    const container = document.getElementById('elementsContainer');
     const templateImg = document.getElementById('certTemplateImg');
     const pdfCanvas = document.getElementById('pdfCanvas');
+    
+    // Properties panel components
+    const inspector = document.getElementById('propertiesInspector');
+    const propTextContainer = document.getElementById('propTextContainer');
+    const propTextContent = document.getElementById('propTextContent');
+    const propFontContainer = document.getElementById('propFontContainer');
+    const propFontSize = document.getElementById('propFontSize');
+    const propFontColor = document.getElementById('propFontColor');
+    const propStyleContainer = document.getElementById('propStyleContainer');
+    const propFontBold = document.getElementById('propFontBold');
+    const propAlignLeft = document.getElementById('propAlignLeft');
+    const propAlignCenter = document.getElementById('propAlignCenter');
+    const propDimensionContainer = document.getElementById('propDimensionContainer');
+    const propImageWidth = document.getElementById('propImageWidth');
+    const propImageHeight = document.getElementById('propImageHeight');
+    const propPosXLabel = document.getElementById('propPosXLabel');
+    const propPosYLabel = document.getElementById('propPosYLabel');
+    const btnDeleteElement = document.getElementById('btnDeleteElement');
 
-    // Render PDF on Canvas if template is PDF
+    // Layout configuration elements
+    let elements = @json($layout->layout_data ?? []);
+    let selectedElementId = null;
+
+    // Load PDF if template is PDF
     if (pdfCanvas) {
         const url = "{{ asset($layout->template_path) }}";
         pdfjsLib.getDocument(url).promise.then(pdf => {
             pdf.getPage(1).then(page => {
-                // Adjust scale based on wrapper width
                 const viewport = page.getViewport({ scale: 1.5 });
                 const context = pdfCanvas.getContext('2d');
                 pdfCanvas.height = viewport.height;
@@ -255,107 +333,466 @@ document.addEventListener('DOMContentLoaded', function() {
                     canvasContext: context,
                     viewport: viewport
                 };
-                page.render(renderContext);
+                page.render(renderContext).promise.then(() => {
+                    renderWorkspace();
+                });
             });
         }).catch(err => {
             console.error('Error rendering PDF:', err);
         });
     }
 
-    const inputPosX = document.getElementById('inputPosX');
-    const inputPosY = document.getElementById('inputPosY');
-    const posXLabel = document.getElementById('posXLabel');
-    const posYLabel = document.getElementById('posYLabel');
+    // Initialize default elements if layout_data is empty
+    if (!elements || elements.length === 0) {
+        elements = [
+            {
+                id: 'participant_name',
+                type: 'text',
+                text: '< NAMA PESERTA >',
+                x: parseFloat("{{ $layout->pos_x }}") || 50.0,
+                y: parseFloat("{{ $layout->pos_y }}") || 50.0,
+                font_size: parseInt("{{ $layout->font_size }}") || 48,
+                color: "{{ $layout->font_color }}" || '#ffc107',
+                bold: true,
+                align: 'center',
+                is_dynamic_name: true
+            }
+        ];
+    }
 
-    const inputFontSize = document.getElementById('inputFontSize');
-    const inputFontColor = document.getElementById('inputFontColor');
+    // Render workspace layer by layer
+    function renderWorkspace() {
+        if (!container) return;
+        container.innerHTML = '';
 
-    if (draggable && wrapper) {
+        let originalWidth = 1920; // fallback scale
+        if (templateImg && templateImg.complete && templateImg.naturalWidth) {
+            originalWidth = templateImg.naturalWidth;
+        } else if (pdfCanvas) {
+            originalWidth = pdfCanvas.width || 1920;
+        }
+        
+        const scale = wrapper.clientWidth / originalWidth;
+
+        elements.forEach(el => {
+            const div = document.createElement('div');
+            div.id = 'el-' + el.id;
+            div.className = 'position-absolute cursor-move';
+            div.style.left = el.x + '%';
+            div.style.top = el.y + '%';
+            div.style.transform = 'translate(-50%, -50%)';
+            div.style.pointerEvents = 'auto'; // allow mouse events on dynamic elements
+            
+            // Selection indicator border
+            if (el.id === selectedElementId) {
+                div.style.border = '2px dashed #f59e0b';
+                div.style.padding = '4px';
+                div.style.borderRadius = '4px';
+                div.style.zIndex = '999';
+            }
+
+            if (el.type === 'text') {
+                div.innerText = el.text;
+                div.style.fontSize = (el.font_size * scale) + 'px';
+                div.style.color = el.color;
+                div.style.fontWeight = el.bold ? 'bold' : 'normal';
+                div.style.whiteSpace = 'nowrap';
+                div.style.textAlign = el.align || 'center';
+            } else if (el.type === 'image') {
+                const img = document.createElement('img');
+                img.src = el.src;
+                img.style.width = (el.width * scale) + 'px';
+                img.style.height = (el.height * scale) + 'px';
+                img.style.pointerEvents = 'none'; // prevent image tags dragging default behaviour
+                img.style.objectFit = 'contain';
+                div.appendChild(img);
+            }
+
+            // Bind click handler for selection
+            div.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectElement(el.id);
+            });
+
+            // Bind drag handler
+            bindDragHandler(div, el);
+
+            container.appendChild(div);
+        });
+
+        // Update Hidden Field value for form submits
+        const layoutDataField = document.getElementById('layoutDataField');
+        if (layoutDataField) {
+            layoutDataField.value = JSON.stringify(elements);
+        }
+    }
+
+    // Drag and Drop core logic
+    function bindDragHandler(elementDiv, el) {
         let isDragging = false;
 
-        draggable.addEventListener('mousedown', function(e) {
+        elementDiv.addEventListener('mousedown', function(e) {
             isDragging = true;
-            draggable.style.cursor = 'grabbing';
+            elementDiv.style.cursor = 'grabbing';
+            selectElement(el.id);
             e.preventDefault();
+            e.stopPropagation();
         });
 
         document.addEventListener('mousemove', function(e) {
             if (!isDragging) return;
 
             const rect = wrapper.getBoundingClientRect();
-            
-            // Dapatkan koordinat mouse relatif terhadap area pratinjau sertifikat
             let x = e.clientX - rect.left;
             let y = e.clientY - rect.top;
 
-            // Batasi agar tidak melimpah keluar container
             x = Math.max(0, Math.min(x, rect.width));
             y = Math.max(0, Math.min(y, rect.height));
 
-            // Konversi ke persentase
-            const percentX = ((x / rect.width) * 100).toFixed(2);
-            const percentY = ((y / rect.height) * 100).toFixed(2);
+            const percentX = parseFloat(((x / rect.width) * 100).toFixed(2));
+            const percentY = parseFloat(((y / rect.height) * 100).toFixed(2));
 
-            // Update layout element posisi
-            draggable.style.left = percentX + '%';
-            draggable.style.top = percentY + '%';
+            // Update item coords in state
+            el.x = percentX;
+            el.y = percentY;
 
-            // Update input tersembunyi & label koordinat
-            inputPosX.value = percentX;
-            inputPosY.value = percentY;
-            
-            if (posXLabel) posXLabel.textContent = percentX;
-            if (posYLabel) posYLabel.textContent = percentY;
+            // Apply style directly for fast rendering
+            elementDiv.style.left = percentX + '%';
+            elementDiv.style.top = percentY + '%';
+
+            // Update properties inspector values in realtime
+            if (selectedElementId === el.id) {
+                propPosXLabel.textContent = percentX;
+                propPosYLabel.textContent = percentY;
+            }
         });
 
         document.addEventListener('mouseup', function() {
             if (isDragging) {
                 isDragging = false;
-                draggable.style.cursor = 'grab';
+                elementDiv.style.cursor = 'grab';
+                renderWorkspace(); // re-render to secure scale changes
             }
         });
-
-        // Responsif Font Size Live Preview
-        function updatePreviewFontSize() {
-            let originalWidth = 1920; // default fallback
-            if (templateImg && templateImg.complete && templateImg.naturalWidth) {
-                originalWidth = templateImg.naturalWidth;
-            } else if (pdfCanvas) {
-                originalWidth = pdfCanvas.width || 1920;
-            }
-
-            const currentWidth = wrapper.clientWidth;
-            const size = inputFontSize.value;
-
-            if (originalWidth && currentWidth) {
-                const scale = currentWidth / originalWidth;
-                draggable.style.fontSize = (size * scale) + 'px';
-            } else {
-                draggable.style.fontSize = `calc(${size}px * 0.4)`;
-            }
-        }
-
-        if (templateImg) {
-            templateImg.addEventListener('load', updatePreviewFontSize);
-        }
-        window.addEventListener('resize', updatePreviewFontSize);
-
-        if (inputFontSize) {
-            inputFontSize.addEventListener('input', function() {
-                updatePreviewFontSize();
-            });
-        }
-
-        if (inputFontColor) {
-            inputFontColor.addEventListener('input', function() {
-                const color = this.value;
-                draggable.style.color = color;
-            });
-        }
-
-        // Run once initially
-        setTimeout(updatePreviewFontSize, 600);
     }
+
+    // Select element and display properties
+    function selectElement(id) {
+        selectedElementId = id;
+        renderWorkspace();
+
+        const el = elements.find(item => item.id === id);
+        if (!el) {
+            if (inspector) inspector.style.display = 'none';
+            return;
+        }
+
+        if (inspector) inspector.style.display = 'block';
+
+        // Load coordinate labels
+        propPosXLabel.textContent = el.x;
+        propPosYLabel.textContent = el.y;
+
+        if (el.type === 'text') {
+            propTextContainer.style.display = 'block';
+            propFontContainer.style.display = 'flex';
+            propStyleContainer.style.display = 'block';
+            propDimensionContainer.style.display = 'none';
+
+            propTextContent.value = el.text;
+            propFontSize.value = el.font_size;
+            propFontColor.value = el.color;
+            propFontBold.checked = el.bold;
+            
+            if (el.align === 'left') {
+                propAlignLeft.checked = true;
+            } else {
+                propAlignCenter.checked = true;
+            }
+
+            // Disable text area if dynamic name tag
+            if (el.is_dynamic_name) {
+                propTextContent.disabled = true;
+                propTextHelp.innerText = "Tag nama peserta utama diatur otomatis oleh sistem.";
+            } else {
+                propTextContent.disabled = false;
+                propTextHelp.innerText = "Ketik teks kustom Anda bebas.";
+            }
+
+        } else if (el.type === 'image') {
+            propTextContainer.style.display = 'none';
+            propFontContainer.style.display = 'none';
+            propStyleContainer.style.display = 'none';
+            propDimensionContainer.style.display = 'flex';
+
+            propImageWidth.value = el.width;
+            propImageHeight.value = el.height;
+        }
+    }
+
+    // Deselect elements when clicking wrapper or canvas
+    if (wrapper) {
+        wrapper.addEventListener('click', function() {
+            selectedElementId = null;
+            if (inspector) inspector.style.display = 'none';
+            renderWorkspace();
+        });
+    }
+
+    // Properties event listeners
+    if (propTextContent) {
+        propTextContent.addEventListener('input', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'text') {
+                    el.text = this.value;
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    if (propFontSize) {
+        propFontSize.addEventListener('input', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'text') {
+                    el.font_size = parseInt(this.value) || 24;
+                    // Auto sync fallback layout variables
+                    if (el.is_dynamic_name) {
+                        document.getElementById('inputFontSize').value = el.font_size;
+                    }
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    if (propFontColor) {
+        propFontColor.addEventListener('input', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'text') {
+                    el.color = this.value;
+                    // Auto sync fallback layout variables
+                    if (el.is_dynamic_name) {
+                        document.getElementById('inputFontColor').value = el.color;
+                    }
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    if (propFontBold) {
+        propFontBold.addEventListener('change', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'text') {
+                    el.bold = this.checked;
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    if (propAlignLeft) {
+        propAlignLeft.addEventListener('change', function() {
+            if (selectedElementId && this.checked) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el) el.align = 'left';
+                renderWorkspace();
+            }
+        });
+    }
+
+    if (propAlignCenter) {
+        propAlignCenter.addEventListener('change', function() {
+            if (selectedElementId && this.checked) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el) el.align = 'center';
+                renderWorkspace();
+            }
+        });
+    }
+
+    if (propImageWidth) {
+        propImageWidth.addEventListener('input', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'image') {
+                    el.width = parseInt(this.value) || 50;
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    if (propImageHeight) {
+        propImageHeight.addEventListener('input', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.type === 'image') {
+                    el.height = parseInt(this.value) || 50;
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    // Delete Element
+    if (btnDeleteElement) {
+        btnDeleteElement.addEventListener('click', function() {
+            if (selectedElementId) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el && el.is_dynamic_name) {
+                    alert('Tag nama peserta utama tidak dapat dihapus!');
+                    return;
+                }
+
+                if (confirm('Hapus elemen terpilih ini?')) {
+                    elements = elements.filter(item => item.id !== selectedElementId);
+                    selectedElementId = null;
+                    if (inspector) inspector.style.display = 'none';
+                    renderWorkspace();
+                }
+            }
+        });
+    }
+
+    // Add Text Element
+    const btnAddText = document.getElementById('btnAddText');
+    if (btnAddText) {
+        btnAddText.addEventListener('click', function() {
+            const newTextEl = {
+                id: 'text_' + Date.now(),
+                type: 'text',
+                text: 'Teks Kustom',
+                x: 50,
+                y: 50,
+                font_size: 28,
+                color: '#ffffff',
+                bold: false,
+                align: 'center'
+            };
+            elements.push(newTextEl);
+            selectElement(newTextEl.id);
+        });
+    }
+
+    // Add Image Element (AJAX element image uploader)
+    const btnAddImage = document.getElementById('btnAddImage');
+    const imageLoader = document.getElementById('elementImageLoader');
+
+    if (btnAddImage && imageLoader) {
+        btnAddImage.addEventListener('click', function() {
+            imageLoader.click();
+        });
+
+        imageLoader.addEventListener('change', function() {
+            if (imageLoader.files && imageLoader.files[0]) {
+                const file = imageLoader.files[0];
+                const formData = new FormData();
+                formData.append('image', file);
+
+                btnAddImage.disabled = true;
+                btnAddImage.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading...';
+
+                fetch("{{ route('admin.season.certificate.upload-element', $season->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(res => {
+                    btnAddImage.disabled = false;
+                    btnAddImage.innerHTML = '<i class="bi bi-image me-1"></i> + Logo/Gambar';
+                    imageLoader.value = ''; // clear input
+
+                    if (res.success) {
+                        const newImgEl = {
+                            id: 'image_' + Date.now(),
+                            type: 'image',
+                            src: res.path,
+                            x: 50,
+                            y: 50,
+                            width: 120,
+                            height: 120
+                        };
+                        elements.push(newImgEl);
+                        selectElement(newImgEl.id);
+                    } else {
+                        alert('Gagal mengunggah aset gambar: ' + res.message);
+                    }
+                })
+                .catch(err => {
+                    btnAddImage.disabled = false;
+                    btnAddImage.innerHTML = '<i class="bi bi-image me-1"></i> + Logo/Gambar';
+                    imageLoader.value = '';
+                    console.error(err);
+                    alert('Terjadi kesalahan saat mengunggah aset.');
+                });
+            }
+        });
+    }
+
+    // AJAX Save Configuration Layout
+    const btnSaveConfig = document.getElementById('btnSaveConfig');
+    if (btnSaveConfig) {
+        btnSaveConfig.addEventListener('click', function() {
+            // Sync fallback name tag position
+            const mainNameEl = elements.find(item => item.is_dynamic_name);
+            if (mainNameEl) {
+                document.getElementById('inputPosX').value = mainNameEl.x;
+                document.getElementById('inputPosY').value = mainNameEl.y;
+                document.getElementById('inputFontSize').value = mainNameEl.font_size;
+                document.getElementById('inputFontColor').value = mainNameEl.color;
+            }
+
+            const formData = new FormData(document.getElementById('layoutForm'));
+            formData.set('layout_data', JSON.stringify(elements));
+
+            btnSaveConfig.disabled = true;
+            btnSaveConfig.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
+
+            fetch("{{ route('admin.season.certificate.layout', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                btnSaveConfig.disabled = false;
+                btnSaveConfig.innerHTML = '<i class="bi bi-cloud-check-fill me-1"></i> Simpan Desain Layout';
+                if (res.success) {
+                    alert('Konfigurasi tata letak berhasil disimpan!');
+                } else {
+                    alert('Gagal: ' + res.message);
+                }
+            })
+            .catch(err => {
+                btnSaveConfig.disabled = false;
+                btnSaveConfig.innerHTML = '<i class="bi bi-cloud-check-fill me-1"></i> Simpan Desain Layout';
+                console.error(err);
+                alert('Terjadi kesalahan koneksi.');
+            });
+        });
+    }
+
+    // Load initial layout elements
+    if (templateImg) {
+        if (templateImg.complete) {
+            renderWorkspace();
+        } else {
+            templateImg.addEventListener('load', renderWorkspace);
+        }
+    }
+    window.addEventListener('resize', renderWorkspace);
 
     // -------------------------------------------------------------
     // SINKRONISASI & GENERATE MASAL KE GOOGLE DRIVE (CONSOLE LOG POLLING)
@@ -379,11 +816,9 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
             .then(r => r.json())
             .then(res => {
-                // Update Progress
                 progressBar.style.width = res.progress + '%';
                 progressPercent.textContent = res.progress + '%';
                 
-                // Update Console Logs
                 if (res.logs && res.logs.length > 0) {
                     terminalConsole.innerHTML = res.logs.map(log => {
                         let colorClass = 'text-success';
@@ -392,7 +827,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         return `<div class="mb-1 ${colorClass}">${log}</div>`;
                     }).join('');
                     
-                    // Auto-scroll to bottom of terminal
                     terminalConsole.scrollTop = terminalConsole.scrollHeight;
                 }
 
@@ -409,7 +843,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-    // Check initially if generation is already running (persists on refresh!)
     fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
     .then(r => r.json())
     .then(res => {
@@ -433,7 +866,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (btnGenerateToDrive) btnGenerateToDrive.disabled = true;
 
-            // Start log polling instantly for waswuss feedback!
             startLogPolling();
 
             fetch("{{ route('admin.season.certificate.generate-drive', $season->id) }}", {
@@ -458,7 +890,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-// Client-side image compressor for "waswuss" upload of templates
+
+    // Image compressor for background template
     function compressTemplateImage(file, maxWidth, quality) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -507,22 +940,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const file = certTemplateInput.files[0];
                 const fileType = file.type;
 
-                // Only compress image templates (don't compress PDF to keep vector quality)
                 if (fileType.startsWith('image/')) {
                     e.preventDefault();
 
                     const submitBtn = layoutForm.querySelector('button[type="submit"]');
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengompresi & Menyimpan... 🚀';
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengompresi & Menyimpan... 🚀';
 
-                    // Compress to max width 2400px (very high res) at 90% quality (waswuss size)
                     compressTemplateImage(file, 2400, 0.90)
                     .then(compressedFile => {
                         const dataTransfer = new DataTransfer();
                         dataTransfer.items.add(compressedFile);
                         certTemplateInput.files = dataTransfer.files;
-
-                        // Submit the form programmatically bypassing the event listener
                         layoutForm.submit();
                     })
                     .catch(err => {

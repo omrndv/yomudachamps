@@ -17,6 +17,11 @@ class CertificateLayout extends Model
         'font_color',
         'pos_x',
         'pos_y',
+        'layout_data',
+    ];
+
+    protected $casts = [
+        'layout_data' => 'array',
     ];
 
     public function season()
