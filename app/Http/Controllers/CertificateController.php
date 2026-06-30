@@ -16,6 +16,20 @@ use Setasign\Fpdi\Fpdi;
 
 class CertificateController extends Controller
 {
+    public function __construct()
+    {
+        if (!class_exists('Setasign\Fpdi\Fpdi')) {
+            $fpdfPath = base_path('vendor/setasign/fpdf/fpdf.php');
+            $fpdiAutoload = base_path('vendor/setasign/fpdi/src/autoload.php');
+            if (file_exists($fpdfPath)) {
+                require_once $fpdfPath;
+            }
+            if (file_exists($fpdiAutoload)) {
+                require_once $fpdiAutoload;
+            }
+        }
+    }
+
     /**
      * Get Google Client Instance
      */
