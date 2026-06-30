@@ -447,11 +447,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Drag and Drop core logic (Live dragging using absolute pixel offset to avoid top-left jumps and lag)
     function bindDragHandler(elementDiv, el) {
         let isDragging = false;
+        let hasMoved = false;
         let startX, startY;
         let initialX, initialY;
 
         elementDiv.addEventListener('mousedown', function(e) {
             isDragging = true;
+            hasMoved = false;
             elementDiv.style.cursor = 'grabbing';
             
             // Pilih elemen tetapi bypass renderWorkspace secara destruktif untuk mencegah node DOM diganti saat drag dimulai
@@ -471,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.addEventListener('mousemove', function(e) {
             if (!isDragging) return;
+            hasMoved = true;
 
             const rect = wrapper.getBoundingClientRect();
             const deltaX = e.clientX - startX;
@@ -504,13 +507,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 isDragging = false;
                 elementDiv.style.cursor = 'grab';
                 
-                const rect = wrapper.getBoundingClientRect();
-                const currentPixelLeft = parseFloat(elementDiv.style.left);
-                const currentPixelTop = parseFloat(elementDiv.style.top);
-                
-                // Konversi kembali koordinat pixel akhir ke persentase untuk database
-                el.x = parseFloat(((currentPixelLeft / rect.width) * 100).toFixed(2));
-                el.y = parseFloat(((currentPixelTop / rect.height) * 100).toFixed(2));
+                if (hasMoved) {
+                    const rect = wrapper.getBoundingClientRect();
+                    const currentPixelLeft = parseFloat(elementDiv.style.left);
+                    const currentPixelTop = parseFloat(elementDiv.style.top);
+                    
+                    // Konversi kembali koordinat pixel akhir ke persentase untuk database
+                    el.x = parseFloat(((currentPixelLeft / rect.width) * 100).toFixed(2));
+                    el.y = parseFloat(((currentPixelTop / rect.height) * 100).toFixed(2));
+                }
                 
                 renderWorkspace();
             }
