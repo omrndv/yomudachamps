@@ -282,7 +282,8 @@ class CertificateController extends Controller
                 $progressPercent = round(($processedCount / $totalTeams) * 100);
 
                 // Generate filename
-                $fileName = 'Sertifikat - ' . $team->name . ($isPdf ? '.pdf' : '.jpg');
+                // Generate filename (always PDF)
+                $fileName = 'Sertifikat - ' . $team->name . '.pdf';
                 $tempFilePath = $tempDir . '/' . $fileName;
 
                 // Check if file already exists in folder
@@ -294,9 +295,12 @@ class CertificateController extends Controller
 
                 // If not exist, generate and upload
                 try {
+                    $pdf = new Fpdi();
+                    
                     if ($isPdf) {
-                        $pdf = new Fpdi();
-                        $pageCount = $pdf->setSourceFile($templateFullPath);
+                        // For PDF template, use points 'pt' unit
+                        $pdf = new Fpdi('L', 'pt');
+                        $pdf->setSourceFile($templateFullPath);
                         $tplIdx = $pdf->importPage(1);
                         $specs = $pdf->getTemplateSize($tplIdx);
                         $width = $specs['width'];
@@ -309,7 +313,8 @@ class CertificateController extends Controller
                         $posX = ($layout->pos_x / 100) * $width;
                         $posY = ($layout->pos_y / 100) * $height;
 
-                        $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
+                        $fontSize = $layout->font_size / 1.5;
+                        $pdf->SetFont('Arial', 'B', $fontSize);
 
                         $hex = str_replace('#', '', $layout->font_color);
                         $r = hexdec(substr($hex, 0, 2));
@@ -317,28 +322,36 @@ class CertificateController extends Controller
                         $b = hexdec(substr($hex, 4, 2));
                         $pdf->SetTextColor($r, $g, $b);
 
-                        $pdf->SetXY(0, $posY - 5);
-                        $pdf->Cell($width, 10, $team->name, 0, 0, 'C');
-
-                        $pdf->Output('F', $tempFilePath);
+                        $pdf->SetXY(0, $posY - ($fontSize / 2));
+                        $pdf->Cell($width, $fontSize, $team->name, 0, 0, 'C');
                     } else {
-                        $img = Image::make($templateFullPath);
-                        $width = $img->width();
-                        $height = $img->height();
-                        $posX = ($layout->pos_x / 100) * $width;
-                        $posY = ($layout->pos_y / 100) * $height;
+                        // For Image template, determine pixel dimensions and convert to PDF
+                        list($imgWidth, $imgHeight) = getimagesize($templateFullPath);
+                        $orientation = ($imgWidth > $imgHeight) ? 'L' : 'P';
 
-                        $img->text($team->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
-                            if ($fontFullPath && file_exists($fontFullPath)) {
-                                    $font->file($fontFullPath);
-                            }
-                            $font->size($layout->font_size);
-                            $font->color($layout->font_color);
-                            $font->align('center');
-                            $font->valign('middle');
-                        });
-                        $img->save($tempFilePath, 90);
+                        $pdf = new Fpdi($orientation, 'pt', [$imgWidth, $imgHeight]);
+                        $pdf->AddPage($orientation, [$imgWidth, $imgHeight]);
+
+                        // Background template image
+                        $pdf->Image($templateFullPath, 0, 0, $imgWidth, $imgHeight);
+
+                        $posX = ($layout->pos_x / 100) * $imgWidth;
+                        $posY = ($layout->pos_y / 100) * $imgHeight;
+
+                        $fontSize = $layout->font_size;
+                        $pdf->SetFont('Arial', 'B', $fontSize);
+
+                        $hex = str_replace('#', '', $layout->font_color);
+                        $r = hexdec(substr($hex, 0, 2));
+                        $g = hexdec(substr($hex, 2, 2));
+                        $b = hexdec(substr($hex, 4, 2));
+                        $pdf->SetTextColor($r, $g, $b);
+
+                        $pdf->SetXY(0, $posY - ($fontSize / 2));
+                        $pdf->Cell($imgWidth, $fontSize, $team->name, 0, 0, 'C');
                     }
+
+                    $pdf->Output('F', $tempFilePath);
 
                     // Upload to Google Drive
                     $fileMetadata = new DriveFile([
@@ -347,7 +360,7 @@ class CertificateController extends Controller
                     ]);
 
                     $content = file_get_contents($tempFilePath);
-                    $mimeType = $isPdf ? 'application/pdf' : 'image/jpeg';
+                    $mimeType = 'application/pdf';
                     
                     $driveService->files->create($fileMetadata, [
                         'data' => $content,
@@ -391,14 +404,15 @@ class CertificateController extends Controller
         }
 
         $templateFullPath = public_path($layout->template_path);
-        $fontFullPath = $layout->font_path ? storage_path('app/' . $layout->font_path) : null;
-
         $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
 
         try {
+            $pdf = new Fpdi();
+            
             if ($isPdf) {
-                $pdf = new Fpdi();
-                $pageCount = $pdf->setSourceFile($templateFullPath);
+                // For PDF template, use points 'pt' unit
+                $pdf = new Fpdi('L', 'pt');
+                $pdf->setSourceFile($templateFullPath);
                 $tplIdx = $pdf->importPage(1);
                 $specs = $pdf->getTemplateSize($tplIdx);
                 $width = $specs['width'];
@@ -411,7 +425,8 @@ class CertificateController extends Controller
                 $posX = ($layout->pos_x / 100) * $width;
                 $posY = ($layout->pos_y / 100) * $height;
 
-                $pdf->SetFont('Arial', 'B', $layout->font_size * 0.75);
+                $fontSize = $layout->font_size / 1.5;
+                $pdf->SetFont('Arial', 'B', $fontSize);
 
                 $hex = str_replace('#', '', $layout->font_color);
                 $r = hexdec(substr($hex, 0, 2));
@@ -419,33 +434,38 @@ class CertificateController extends Controller
                 $b = hexdec(substr($hex, 4, 2));
                 $pdf->SetTextColor($r, $g, $b);
 
-                $pdf->SetXY(0, $posY - 5);
-                $pdf->Cell($width, 10, $request->name, 0, 0, 'C');
-
-                return response($pdf->Output('S'), 200, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="Sertifikat - ' . $request->name . '.pdf"'
-                ]);
+                $pdf->SetXY(0, $posY - ($fontSize / 2));
+                $pdf->Cell($width, $fontSize, $request->name, 0, 0, 'C');
             } else {
-                $img = Image::make($templateFullPath);
-                $width = $img->width();
-                $height = $img->height();
+                // For Image template, convert to PDF
+                list($imgWidth, $imgHeight) = getimagesize($templateFullPath);
+                $orientation = ($imgWidth > $imgHeight) ? 'L' : 'P';
+                
+                $pdf = new Fpdi($orientation, 'pt', [$imgWidth, $imgHeight]);
+                $pdf->AddPage($orientation, [$imgWidth, $imgHeight]);
+                
+                $pdf->Image($templateFullPath, 0, 0, $imgWidth, $imgHeight);
 
-                $posX = ($layout->pos_x / 100) * $width;
-                $posY = ($layout->pos_y / 100) * $height;
+                $posX = ($layout->pos_x / 100) * $imgWidth;
+                $posY = ($layout->pos_y / 100) * $imgHeight;
 
-                $img->text($request->name, $posX, $posY, function($font) use ($fontFullPath, $layout) {
-                    if ($fontFullPath && file_exists($fontFullPath)) {
-                        $font->file($fontFullPath);
-                    }
-                    $font->size($layout->font_size);
-                    $font->color($layout->font_color);
-                    $font->align('center');
-                    $font->valign('middle');
-                });
+                $fontSize = $layout->font_size;
+                $pdf->SetFont('Arial', 'B', $fontSize);
 
-                return $img->response('jpg', 90);
+                $hex = str_replace('#', '', $layout->font_color);
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                $pdf->SetTextColor($r, $g, $b);
+
+                $pdf->SetXY(0, $posY - ($fontSize / 2));
+                $pdf->Cell($imgWidth, $fontSize, $request->name, 0, 0, 'C');
             }
+
+            return response($pdf->Output('S'), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="Sertifikat - ' . $request->name . '.pdf"'
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memproses sertifikat: ' . $e->getMessage());
         }
