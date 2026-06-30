@@ -156,12 +156,40 @@ class CertificateController extends Controller
             // Hapus font lama jika ada
             if ($layout->font_path && file_exists(storage_path('app/' . $layout->font_path))) {
                 @unlink(storage_path('app/' . $layout->font_path));
+                
+                $oldFontName = pathinfo($layout->font_path, PATHINFO_FILENAME);
+                @unlink(storage_path('app/fonts/' . $oldFontName . '.php'));
+                @unlink(storage_path('app/fonts/' . $oldFontName . '.z'));
             }
 
             $fontFile = $request->file('font');
-            $fontName = 'font_' . $season_id . '_' . time() . '.' . $fontFile->getClientOriginalExtension();
-            $path = $fontFile->storeAs('fonts', $fontName);
+            $fontNameOnly = 'font_' . $season_id . '_' . time();
+            $fontExtension = $fontFile->getClientOriginalExtension();
+            $path = $fontFile->storeAs('fonts', $fontNameOnly . '.' . $fontExtension);
             $layout->font_path = $path;
+
+            // Buat direktori tujuan compile jika belum ada
+            if (!file_exists(storage_path('app/fonts'))) {
+                mkdir(storage_path('app/fonts'), 0755, true);
+            }
+
+            // Jalankan MakeFont FPDF secara dinamis
+            try {
+                $ttfPath = storage_path('app/' . $path);
+                $makefontFilePath = public_path('vendor/setasign/fpdf/makefont/makefont.php');
+                if (file_exists($makefontFilePath)) {
+                    require_once($makefontFilePath);
+                    
+                    $oldCwd = getcwd();
+                    chdir(storage_path('app/fonts'));
+                    
+                    MakeFont($ttfPath, 'cp1252', true);
+                    
+                    chdir($oldCwd);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('FPDF MakeFont failed: ' . $e->getMessage());
+            }
         }
 
         $layout->save();
@@ -514,6 +542,21 @@ class CertificateController extends Controller
             $height = $imgHeight;
         }
 
+        // Daftarkan font kustom jika ada file php hasil compile makefont
+        $fontFamily = 'Arial';
+        if ($layout->font_path) {
+            $fontNameOnly = pathinfo($layout->font_path, PATHINFO_FILENAME);
+            $fontPhpPath = storage_path('app/fonts/' . $fontNameOnly . '.php');
+            if (file_exists($fontPhpPath)) {
+                if (!defined('FPDF_FONTPATH')) {
+                    define('FPDF_FONTPATH', storage_path('app/fonts/'));
+                }
+                $pdf->AddFont($fontNameOnly, '', $fontNameOnly . '.php');
+                $pdf->AddFont($fontNameOnly, 'B', $fontNameOnly . '.php');
+                $fontFamily = $fontNameOnly;
+            }
+        }
+
         // Ambil elemen-elemen dari layout_data
         $elements = $layout->layout_data;
         if (empty($elements)) {
@@ -553,8 +596,10 @@ class CertificateController extends Controller
                 $elX = ($el['x'] / 100) * $width;
                 $elY = ($el['y'] / 100) * $height;
                 $align = isset($el['align']) ? $el['align'] : 'center';
+                
+                $defaultBold = (isset($el['bold']) && $el['bold']) ? true : false;
 
-                $this->writeFormattedText($pdf, $elText, $width, $fSize, $elX, $elY, $align, $colorHex);
+                $this->writeFormattedText($pdf, $elText, $width, $fSize, $elX, $elY, $align, $colorHex, $defaultBold, $fontFamily);
             } elseif ($el['type'] === 'image' && !empty($el['src'])) {
                 $imagePath = public_path($el['src']);
                 if (file_exists($imagePath)) {
@@ -577,11 +622,11 @@ class CertificateController extends Controller
     /**
      * Helper untuk merender teks dengan format inline bold (**word**) ke FPDF/FPDI
      */
-    private function writeFormattedText($pdf, $text, $width, $fSize, $x, $y, $align, $colorHex)
+    private function writeFormattedText($pdf, $text, $width, $fSize, $x, $y, $align, $colorHex, $defaultBold = false, $fontFamily = 'Arial')
     {
         $parts = explode('**', $text);
         $segments = [];
-        $isBold = false;
+        $isBold = $defaultBold;
         
         foreach ($parts as $part) {
             $segments[] = [
@@ -595,7 +640,7 @@ class CertificateController extends Controller
         $totalWidth = 0;
         foreach ($segments as $seg) {
             $style = $seg['bold'] ? 'B' : '';
-            $pdf->SetFont('Arial', $style, $fSize);
+            $pdf->SetFont($fontFamily, $style, $fSize);
             $totalWidth += $pdf->GetStringWidth($seg['text']);
         }
 
@@ -607,7 +652,7 @@ class CertificateController extends Controller
 
         foreach ($segments as $seg) {
             $style = $seg['bold'] ? 'B' : '';
-            $pdf->SetFont('Arial', $style, $fSize);
+            $pdf->SetFont($fontFamily, $style, $fSize);
             
             if (strlen($colorHex) === 6) {
                 $r = hexdec(substr($colorHex, 0, 2));
