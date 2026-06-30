@@ -544,28 +544,12 @@ class CertificateController extends Controller
                     $fSize = $fSize / 1.5;
                 }
 
-                $style = (isset($el['bold']) && $el['bold']) ? 'B' : '';
-                $pdf->SetFont('Arial', $style, $fSize);
-
                 $colorHex = isset($el['color']) ? str_replace('#', '', $el['color']) : '000000';
-                if (strlen($colorHex) === 6) {
-                    $r = hexdec(substr($colorHex, 0, 2));
-                    $g = hexdec(substr($colorHex, 2, 2));
-                    $b = hexdec(substr($colorHex, 4, 2));
-                    $pdf->SetTextColor($r, $g, $b);
-                }
-
                 $elX = ($el['x'] / 100) * $width;
                 $elY = ($el['y'] / 100) * $height;
-
                 $align = isset($el['align']) ? $el['align'] : 'center';
-                if ($align === 'center') {
-                    $pdf->SetXY(0, $elY - ($fSize / 2));
-                    $pdf->Cell($width, $fSize, $elText, 0, 0, 'C');
-                } else {
-                    $pdf->SetXY($elX, $elY - ($fSize / 2));
-                    $pdf->Cell(0, $fSize, $elText, 0, 0, 'L');
-                }
+
+                $this->writeFormattedText($pdf, $elText, $width, $fSize, $elX, $elY, $align, $colorHex);
             } elseif ($el['type'] === 'image' && !empty($el['src'])) {
                 $imagePath = public_path($el['src']);
                 if (file_exists($imagePath)) {
@@ -583,5 +567,54 @@ class CertificateController extends Controller
         }
 
         return $pdf;
+    }
+
+    /**
+     * Helper untuk merender teks dengan format inline bold (**word**) ke FPDF/FPDI
+     */
+    private function writeFormattedText($pdf, $text, $width, $fSize, $x, $y, $align, $colorHex)
+    {
+        $parts = explode('**', $text);
+        $segments = [];
+        $isBold = false;
+        
+        foreach ($parts as $part) {
+            $segments[] = [
+                'text' => $part,
+                'bold' => $isBold
+            ];
+            $isBold = !$isBold;
+        }
+
+        // Hitung total lebar seluruh segmen kalimat untuk perataan tengah
+        $totalWidth = 0;
+        foreach ($segments as $seg) {
+            $style = $seg['bold'] ? 'B' : '';
+            $pdf->SetFont('Arial', $style, $fSize);
+            $totalWidth += $pdf->GetStringWidth($seg['text']);
+        }
+
+        if ($align === 'center') {
+            $currentX = $x - ($totalWidth / 2);
+        } else {
+            $currentX = $x;
+        }
+
+        foreach ($segments as $seg) {
+            $style = $seg['bold'] ? 'B' : '';
+            $pdf->SetFont('Arial', $style, $fSize);
+            
+            if (strlen($colorHex) === 6) {
+                $r = hexdec(substr($colorHex, 0, 2));
+                $g = hexdec(substr($colorHex, 2, 2));
+                $b = hexdec(substr($colorHex, 4, 2));
+                $pdf->SetTextColor($r, $g, $b);
+            }
+
+            $pdf->SetXY($currentX, $y - ($fSize / 2));
+            $pdf->Write($fSize, $seg['text']);
+            
+            $currentX += $pdf->GetStringWidth($seg['text']);
+        }
     }
 }

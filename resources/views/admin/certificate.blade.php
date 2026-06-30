@@ -124,7 +124,7 @@
                         <div class="mb-3" id="propTextContainer">
                             <label class="form-label small fw-bold text-secondary">Isi Teks</label>
                             <textarea id="propTextContent" class="form-control rounded-3" rows="2" placeholder="Masukkan teks..."></textarea>
-                            <div class="form-text text-muted" id="propTextHelp" style="font-size: 0.68rem;">Gunakan tag `< NAMA PESERTA >` untuk nama peserta dinamis.</div>
+                            <div class="form-text text-muted" id="propTextHelp" style="font-size: 0.68rem;">Gunakan tag `< NAMA PESERTA >` untuk nama dinamis. Gunakan `**kata**` untuk menebalkan kata tertentu.</div>
                         </div>
 
                         {{-- Field 2: Ukuran Font & Warna (Teks Only) --}}
@@ -392,7 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (el.type === 'text') {
-                div.innerText = el.text;
+                const escapedText = el.text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+                div.innerHTML = escapedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 div.style.fontSize = (el.font_size * scale) + 'px';
                 div.style.color = el.color;
                 div.style.fontWeight = el.bold ? 'bold' : 'normal';
@@ -430,11 +436,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Drag and Drop core logic
     function bindDragHandler(elementDiv, el) {
         let isDragging = false;
+        let startX, startY;
+        let initialX, initialY;
 
         elementDiv.addEventListener('mousedown', function(e) {
             isDragging = true;
             elementDiv.style.cursor = 'grabbing';
             selectElement(el.id);
+            
+            const rect = wrapper.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            // Dapatkan koordinat awal elemen dalam pixel
+            initialX = (el.x / 100) * rect.width;
+            initialY = (el.y / 100) * rect.height;
+            
             e.preventDefault();
             e.stopPropagation();
         });
@@ -443,24 +460,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isDragging) return;
 
             const rect = wrapper.getBoundingClientRect();
-            let x = e.clientX - rect.left;
-            let y = e.clientY - rect.top;
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
 
-            x = Math.max(0, Math.min(x, rect.width));
-            y = Math.max(0, Math.min(y, rect.height));
+            let newX = initialX + deltaX;
+            let newY = initialY + deltaY;
 
-            const percentX = parseFloat(((x / rect.width) * 100).toFixed(2));
-            const percentY = parseFloat(((y / rect.height) * 100).toFixed(2));
+            newX = Math.max(0, Math.min(newX, rect.width));
+            newY = Math.max(0, Math.min(newY, rect.height));
 
-            // Update item coords in state
-            el.x = percentX;
-            el.y = percentY;
+            // Set posisi langsung dalam pixel untuk pergerakan real-time 60fps tanpa lag
+            elementDiv.style.left = newX + 'px';
+            elementDiv.style.top = newY + 'px';
 
-            // Apply style directly for fast rendering
-            elementDiv.style.left = percentX + '%';
-            elementDiv.style.top = percentY + '%';
+            const percentX = parseFloat(((newX / rect.width) * 100).toFixed(2));
+            const percentY = parseFloat(((newY / rect.height) * 100).toFixed(2));
 
-            // Update properties inspector values in realtime
             if (selectedElementId === el.id) {
                 propPosXLabel.textContent = percentX;
                 propPosYLabel.textContent = percentY;
@@ -471,7 +486,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isDragging) {
                 isDragging = false;
                 elementDiv.style.cursor = 'grab';
-                renderWorkspace(); // re-render to secure scale changes
+                
+                const rect = wrapper.getBoundingClientRect();
+                const currentPixelLeft = parseFloat(elementDiv.style.left);
+                const currentPixelTop = parseFloat(elementDiv.style.top);
+                
+                // Konversi kembali koordinat pixel akhir ke persentase untuk database
+                el.x = parseFloat(((currentPixelLeft / rect.width) * 100).toFixed(2));
+                el.y = parseFloat(((currentPixelTop / rect.height) * 100).toFixed(2));
+                
+                renderWorkspace();
             }
         });
     }
@@ -516,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 propTextHelp.innerText = "Tag nama peserta utama diatur otomatis oleh sistem.";
             } else {
                 propTextContent.disabled = false;
-                propTextHelp.innerText = "Ketik teks kustom Anda bebas.";
+                propTextHelp.innerText = "Ketik teks kustom Anda bebas. Gunakan **kata** untuk menebalkan kata tertentu.";
             }
 
         } else if (el.type === 'image') {
