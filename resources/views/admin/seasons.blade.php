@@ -20,17 +20,17 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <select id="filterStatus" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;">
-                    <option value="ACTIVE" selected>Status: Aktif</option>
-                    <option value="FINISHED">Status: Selesai</option>
-                    <option value="ALL">Status: Semua</option>
+                <select id="filterStatus" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;" onchange="applyPhpFilters()">
+                    <option value="ACTIVE" {{ $status == 'ACTIVE' ? 'selected' : '' }}>Status: Aktif</option>
+                    <option value="FINISHED" {{ $status == 'FINISHED' ? 'selected' : '' }}>Status: Selesai</option>
+                    <option value="ALL" {{ $status == 'ALL' ? 'selected' : '' }}>Status: Semua</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <select id="filterSeasonSelect" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;">
-                    <option value="ALL" selected>Pilih Season: Semua</option>
-                    @foreach($seasons as $s)
-                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                <select id="filterSeasonSelect" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;" onchange="applyPhpFilters()">
+                    <option value="ALL" {{ $seasonId == 'ALL' ? 'selected' : '' }}>Pilih Season: Semua</option>
+                    @foreach($all_seasons as $s)
+                    <option value="{{ $s->id }}" {{ $seasonId == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -384,24 +384,24 @@
         }
     }
 
-    // Instan Search with Empty State Feedback & Multi-criteria Filtering
+    // PHP-side Filter redirection
+    function applyPhpFilters() {
+        let status = document.getElementById('filterStatus').value;
+        let seasonId = document.getElementById('filterSeasonSelect').value;
+        window.location.href = `?status=${status}&season_id=${seasonId}`;
+    }
+
+    // Instant Search (Client-side search on loaded cards only)
     function filterSeasons() {
         let searchQuery = document.getElementById('searchSeason').value.toLowerCase();
-        let selectedStatus = document.getElementById('filterStatus').value;
-        let selectedSeasonId = document.getElementById('filterSeasonSelect').value;
         let seasonCards = document.querySelectorAll('.season-card-item');
         let visibleCount = 0;
 
         seasonCards.forEach(item => {
             let title = item.querySelector('.season-title').innerText.toLowerCase();
-            let status = item.getAttribute('data-status');
-            let id = item.getAttribute('data-id');
-
             let matchesSearch = title.includes(searchQuery);
-            let matchesStatus = (selectedStatus === 'ALL' || status === selectedStatus);
-            let matchesSeason = (selectedSeasonId === 'ALL' || id === selectedSeasonId);
 
-            if (matchesSearch && matchesStatus && matchesSeason) {
+            if (matchesSearch) {
                 item.style.display = "";
                 visibleCount++;
             } else {
@@ -417,17 +417,7 @@
         }
     }
 
-    // Attach event listeners
+    // Attach event listeners for search
     document.getElementById('searchSeason').addEventListener('keyup', filterSeasons);
-    document.getElementById('filterStatus').addEventListener('change', filterSeasons);
-    document.getElementById('filterSeasonSelect').addEventListener('change', filterSeasons);
-
-    // Run filter on initial page load to only show ACTIVE seasons by default
-    document.addEventListener('DOMContentLoaded', filterSeasons);
-    
-    // Fallback trigger in case DOMContentLoaded has already fired
-    if (document.readyState === 'interactive' || document.readyState === 'complete') {
-        filterSeasons();
-    }
 </script>
 @endsection

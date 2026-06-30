@@ -187,14 +187,26 @@ class AdminController extends Controller
         ]);
     }
 
-    public function seasons()
+    public function seasons(Request $request)
     {
         if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
-        $seasons = Season::withCount('teams')
-            ->get()
+        $status = $request->get('status', 'ACTIVE');
+        $seasonId = $request->get('season_id', 'ALL');
+
+        $query = Season::withCount('teams');
+
+        if ($status !== 'ALL') {
+            $query->where('status', $status);
+        }
+
+        if ($seasonId !== 'ALL') {
+            $query->where('id', $seasonId);
+        }
+
+        $seasons = $query->get()
             ->sort(function ($a, $b) {
                 // Tampilkan yang ACTIVE terlebih dahulu
                 if ($a->status !== $b->status) {
@@ -204,7 +216,9 @@ class AdminController extends Controller
                 return strnatcasecmp($a->name, $b->name);
             });
 
-        return view('admin.seasons', compact('seasons'));
+        $all_seasons = Season::select('id', 'name', 'status')->get();
+
+        return view('admin.seasons', compact('seasons', 'all_seasons', 'status', 'seasonId'));
     }
 
     public function dashboard($season_id)
