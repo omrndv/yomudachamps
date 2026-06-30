@@ -196,6 +196,8 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/faqs/update/{id}', [AdminController::class, 'updateFaq'])->name('admin.faqs.update');
             Route::get('/faqs/delete/{id}', [AdminController::class, 'deleteFaq'])->name('admin.faqs.delete');
             Route::post('/faqs/reorder/{id}', [AdminController::class, 'reorderFaq'])->name('admin.faqs.reorder');
+            Route::post('/faqs/toggle/{id}', [AdminController::class, 'toggleFaq'])->name('admin.faqs.toggle');
+            Route::post('/faqs/bulk-status', [AdminController::class, 'bulkStatusFaq'])->name('admin.faqs.bulk-status');
         });
 
         // Solo Matchmaker

@@ -1138,6 +1138,50 @@ class AdminController extends Controller
         return back()->with('success', 'FAQ berhasil dihapus!');
     }
 
+    public function toggleFaq($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $faq = Faq::findOrFail($id);
+        $faq->is_active = !$faq->is_active;
+        $faq->save();
+
+        $statusStr = $faq->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        AdminActivity::log('Mengubah status FAQ: "' . Str::limit($faq->question, 40) . '" menjadi ' . $statusStr);
+
+        return response()->json([
+            'success' => true,
+            'is_active' => $faq->is_active,
+            'message' => 'Status FAQ berhasil diperbarui!'
+        ]);
+    }
+
+    public function bulkStatusFaq(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:faqs,id',
+            'status' => 'required|in:active,inactive'
+        ]);
+
+        $isActive = $request->status === 'active';
+        Faq::whereIn('id', $request->ids)->update(['is_active' => $isActive]);
+
+        $statusStr = $isActive ? 'aktif' : 'nonaktif';
+        AdminActivity::log('Mengubah status ' . count($request->ids) . ' FAQ menjadi ' . $statusStr);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status FAQ yang dipilih berhasil diperbarui!'
+        ]);
+    }
+
     public function reorderFaq(Request $request, $id)
     {
         if (!Auth::check()) {
