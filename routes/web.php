@@ -9,6 +9,18 @@ Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
 
+Route::get('/storage/{any}', function ($any) {
+    $path = storage_path('app/public/' . urldecode($any));
+    if (!file_exists($path) || is_dir($path)) {
+        abort(404);
+    }
+    $file = file_get_contents($path);
+    $type = mime_content_type($path);
+    return response($file, 200)
+        ->header('Content-Type', $type)
+        ->header('Cache-Control', 'public, max-age=31536000');
+})->where('any', '.*');
+
 Route::get('/run-symlink', function () {
     $target = storage_path('app/public');
     $link = public_path('storage');
