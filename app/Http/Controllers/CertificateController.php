@@ -520,6 +520,11 @@ class CertificateController extends Controller
         $templateFullPath = public_path($layout->template_path);
         $isPdf = strtolower(pathinfo($templateFullPath, PATHINFO_EXTENSION)) === 'pdf';
 
+        // Definisikan FPDF_FONTPATH sebelum instansiasi Fpdi/FPDF agar tidak menggunakan path internal vendor
+        if (!defined('FPDF_FONTPATH')) {
+            define('FPDF_FONTPATH', storage_path('app/fonts/'));
+        }
+
         $pdf = new Fpdi();
         
         if ($isPdf) {
