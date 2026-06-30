@@ -132,7 +132,7 @@
 
                                 <div class="mb-3" id="driveUploadSection">
                                     <label class="form-label small fw-bold text-secondary">Link Folder Google Drive Tujuan</label>
-                                    <input type="url" id="googleDriveLink" class="form-control rounded-3" placeholder="https://drive.google.com/drive/folders/..." required>
+                                    <input type="url" id="googleDriveLink" class="form-control rounded-3" value="{{ $layout->google_drive_link }}" placeholder="https://drive.google.com/drive/folders/..." required>
                                     <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
                                 </div>
 
@@ -873,6 +873,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(document.getElementById('layoutForm'));
             formData.set('layout_data', JSON.stringify(elements));
+
+            const driveLinkEl = document.getElementById('googleDriveLink');
+            if (driveLinkEl) {
+                formData.set('google_drive_link', driveLinkEl.value.trim());
+            }
 
             btnSaveConfig.disabled = true;
             btnSaveConfig.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';

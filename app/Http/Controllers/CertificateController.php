@@ -119,6 +119,7 @@ class CertificateController extends Controller
             'pos_x' => 'required|numeric|min:0|max:100',
             'pos_y' => 'required|numeric|min:0|max:100',
             'layout_data' => 'nullable|string',
+            'google_drive_link' => 'nullable|string|max:500',
         ]);
 
         $layout = CertificateLayout::where('season_id', $season_id)->firstOrFail();
@@ -129,6 +130,10 @@ class CertificateController extends Controller
 
         if ($request->has('layout_data')) {
             $layout->layout_data = is_string($request->layout_data) ? json_decode($request->layout_data, true) : $request->layout_data;
+        }
+
+        if ($request->has('google_drive_link')) {
+            $layout->google_drive_link = $request->google_drive_link;
         }
 
         // Handling Template Image Upload

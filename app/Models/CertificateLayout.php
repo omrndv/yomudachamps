@@ -18,6 +18,7 @@ class CertificateLayout extends Model
         'pos_x',
         'pos_y',
         'layout_data',
+        'google_drive_link',
     ];
 
     protected $casts = [
