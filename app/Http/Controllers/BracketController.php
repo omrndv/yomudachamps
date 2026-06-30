@@ -1523,6 +1523,12 @@ class BracketController extends Controller
             }
 
             $resData = json_decode($response, true);
+            
+            if (isset($resData['error'])) {
+                $errorMsg = $resData['error']['message'] ?? 'Unknown API error';
+                throw new \Exception("Gemini API Error: " . $errorMsg);
+            }
+            
             $jsonText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? '';
             
             if (empty($jsonText)) {
