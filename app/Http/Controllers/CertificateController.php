@@ -544,13 +544,24 @@ class CertificateController extends Controller
 
         // Daftarkan font kustom jika ada file php hasil compile makefont
         $fontFamily = 'Arial';
+        if (!defined('FPDF_FONTPATH')) {
+            define('FPDF_FONTPATH', storage_path('app/fonts/'));
+        }
+
+        // Daftarkan default Poppins font (Poppins Regular & Poppins Bold)
+        $regularPath = storage_path('app/fonts/Poppins-Regular.php');
+        $boldPath = storage_path('app/fonts/Poppins-Bold.php');
+        if (file_exists($regularPath) && file_exists($boldPath)) {
+            $pdf->AddFont('Poppins', '', 'Poppins-Regular.php');
+            $pdf->AddFont('Poppins', 'B', 'Poppins-Bold.php');
+            $fontFamily = 'Poppins';
+        }
+
+        // Overwrite dengan font kustom spesifik season jika ada
         if ($layout->font_path) {
             $fontNameOnly = pathinfo($layout->font_path, PATHINFO_FILENAME);
             $fontPhpPath = storage_path('app/fonts/' . $fontNameOnly . '.php');
             if (file_exists($fontPhpPath)) {
-                if (!defined('FPDF_FONTPATH')) {
-                    define('FPDF_FONTPATH', storage_path('app/fonts/'));
-                }
                 $pdf->AddFont($fontNameOnly, '', $fontNameOnly . '.php');
                 $pdf->AddFont($fontNameOnly, 'B', $fontNameOnly . '.php');
                 $fontFamily = $fontNameOnly;

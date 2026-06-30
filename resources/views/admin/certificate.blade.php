@@ -389,7 +389,16 @@ document.addEventListener('DOMContentLoaded', function() {
             div.className = 'position-absolute cursor-move';
             div.style.left = el.x + '%';
             div.style.top = el.y + '%';
-            div.style.transform = 'translate(-50%, -50%)';
+            
+            // Set transform horizontal berdasarkan perataan aligment teks agar cocok dengan PDF render engine
+            if (el.type === 'text' && el.align === 'left') {
+                div.style.transform = 'translate(0%, -50%)';
+            } else if (el.type === 'text' && el.align === 'right') {
+                div.style.transform = 'translate(-100%, -50%)';
+            } else {
+                div.style.transform = 'translate(-50%, -50%)';
+            }
+            
             div.style.pointerEvents = 'auto'; // allow mouse events on dynamic elements
             
             // Selection indicator border
