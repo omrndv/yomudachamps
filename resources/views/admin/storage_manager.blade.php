@@ -56,7 +56,7 @@
                     <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="fw-bold text-dark mb-0">{{ $folder['name'] }}</h5>
-                            <code class="text-secondary small" style="font-size: 0.7rem;">/public/{{ $key === 'posters' ? 'storage/posters' : $key }}</code>
+                            <code class="text-secondary small" style="font-size: 0.7rem;">/public/{{ $key === 'posters' ? 'storage/posters' : ($key === 'certificates' ? 'uploads/certificates' : $key) }}</code>
                         </div>
                         <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem; font-weight: 700;">
                             {{ $folder['files_count'] }} File
@@ -78,7 +78,13 @@
                                             <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
                                                 {{-- Mini Image Preview --}}
                                                 <a href="{{ $file['path'] }}" target="_blank">
-                                                    <img src="{{ $file['path'] }}" class="rounded" style="width: 28px; height: 28px; object-fit: cover; background-color: #ddd;">
+                                                    @if(strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) === 'pdf')
+                                                        <div class="rounded bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                                            <i class="bi bi-file-earmark-pdf-fill" style="font-size: 0.95rem;"></i>
+                                                        </div>
+                                                    @else
+                                                        <img src="{{ $file['path'] }}" class="rounded" style="width: 28px; height: 28px; object-fit: cover; background-color: #ddd;">
+                                                    @endif
                                                 </a>
                                                 <div class="overflow-hidden">
                                                     <div class="text-dark fw-semibold text-truncate small" style="max-width: 140px;" title="{{ $file['name'] }}">

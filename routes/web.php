@@ -244,6 +244,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::get('/storage-manager', [AdminController::class, 'storageManager'])->name('admin.storage');
             Route::post('/storage-manager/clear-folder', [AdminController::class, 'clearStorageFolder'])->name('admin.storage.clear-folder');
             Route::post('/storage-manager/delete-file', [AdminController::class, 'deleteStorageFile'])->name('admin.storage.delete-file');
+            Route::get('/system-logs', [AdminController::class, 'laravelLogs'])->name('admin.system-logs');
         });
     });
 });

@@ -299,6 +299,9 @@
             <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
                 <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
             </a>
+            <a href="{{ route('admin.system-logs') }}" class="nav-link {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-text"></i> <span>Log Laravel</span>
+            </a>
             <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
                 <i class="bi bi-hdd-network"></i> <span>Kelola Penyimpanan</span>
             </a>

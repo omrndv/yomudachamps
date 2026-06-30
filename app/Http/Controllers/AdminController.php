@@ -2016,7 +2016,8 @@ class AdminController extends Controller
         $folders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
-            'posters' => storage_path('app/public/posters')
+            'posters' => storage_path('app/public/posters'),
+            'certificates' => $publicPath . '/uploads/certificates'
         ];
 
         $storageData = [];
@@ -2039,7 +2040,7 @@ class AdminController extends Controller
                         $filesInfo[] = [
                             'name' => $file,
                             'size' => $size,
-                            'path' => '/' . ($key === 'posters' ? 'storage/posters' : $key) . '/' . $file,
+                            'path' => '/' . ($key === 'posters' ? 'storage/posters' : ($key === 'certificates' ? 'uploads/certificates' : $key)) . '/' . $file,
                             'date' => filemtime($filePath)
                         ];
                     }
@@ -2052,7 +2053,7 @@ class AdminController extends Controller
             });
 
             $storageData[$key] = [
-                'name' => $key === 'chat_uploads' ? 'Live Chat Aset' : ($key === 'match_results' ? 'Bukti Hasil Laga' : 'Poster Season'),
+                'name' => $key === 'chat_uploads' ? 'Live Chat Aset' : ($key === 'match_results' ? 'Bukti Hasil Laga' : ($key === 'posters' ? 'Poster Season' : 'Template Sertifikat')),
                 'path' => $path,
                 'total_size' => $folderSize,
                 'files_count' => count($filesInfo),
@@ -2082,7 +2083,8 @@ class AdminController extends Controller
         $allowedFolders = [
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
-            'posters' => storage_path('app/public/posters')
+            'posters' => storage_path('app/public/posters'),
+            'certificates' => $publicPath . '/uploads/certificates'
         ];
 
         if (!array_key_exists($folderKey, $allowedFolders)) {
@@ -2102,6 +2104,11 @@ class AdminController extends Controller
                     if ($folderKey === 'posters') {
                         // Skip posters that are currently active in database
                         $inUse = Season::where('poster', $file)->exists();
+                        if ($inUse) continue;
+                    }
+                    if ($folderKey === 'certificates') {
+                        // Skip templates that are active in database
+                        $inUse = CertificateLayout::where('template_path', 'LIKE', '%' . $file)->exists();
                         if ($inUse) continue;
                     }
                     
@@ -2143,6 +2150,8 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 400);
         }
 
+        $publicPath = public_path();
+
         if (strpos($filePathRelative, '/storage/posters/') === 0) {
             $absolutePath = storage_path('app/public/posters/' . basename($filePathRelative));
         } else {
@@ -2151,7 +2160,7 @@ class AdminController extends Controller
 
         if (file_exists($absolutePath) && is_file($absolutePath)) {
             $isAllowedDir = false;
-            $allowedDirs = ['/chat_uploads', '/match_results', '/storage/posters'];
+            $allowedDirs = ['/chat_uploads', '/match_results', '/storage/posters', '/uploads/certificates'];
             foreach ($allowedDirs as $dir) {
                 if (strpos($filePathRelative, $dir) === 0) {
                     $isAllowedDir = true;
@@ -2176,5 +2185,43 @@ class AdminController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'Berkas tidak ditemukan.']);
+    }
+
+    /**
+     * Tampilkan log sistem Laravel dari storage/logs/laravel.log (Superadmin Only)
+     */
+    public function laravelLogs()
+    {
+        if (!Auth::check() || !Auth::user()->hasPermission('manage')) {
+            return redirect()->route('admin.login');
+        }
+
+        $logPath = storage_path('logs/laravel.log');
+        $logs = [];
+
+        if (file_exists($logPath)) {
+            $file = new \SplFileObject($logPath, 'r');
+            $file->seek(PHP_INT_MAX);
+            $totalLines = $file->key();
+            
+            // Baca 150 baris terakhir secara efisien
+            $startLine = max(0, $totalLines - 150);
+            $file->seek($startLine);
+            
+            while (!$file->eof()) {
+                $line = trim($file->current());
+                if ($line) {
+                    $logs[] = $line;
+                }
+                $file->next();
+            }
+            
+            // Balik urutan agar log terbaru muncul di paling atas
+            $logs = array_reverse($logs);
+        } else {
+            $logs = ["Log kosong. Belum ada aktivitas error log yang dicatat Laravel."];
+        }
+
+        return view('admin.laravel_logs', compact('logs'));
     }
 }

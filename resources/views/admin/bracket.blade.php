@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-start align-items-center">
                     <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
                     </button>

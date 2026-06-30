@@ -72,17 +72,14 @@
                         
                         {{-- Elemen Nama Draggable --}}
                         <div id="draggableName" 
-                             class="position-absolute cursor-move px-3 py-1 rounded border border-warning shadow fw-bold d-inline-flex align-items-center justify-content-center"
+                             class="position-absolute cursor-move fw-bold text-nowrap"
                              style="
                                 left: {{ $layout->pos_x }}%; 
                                 top: {{ $layout->pos_y }}%; 
                                 font-size: calc({{ $layout->font_size }}px * 0.4); 
                                 color: {{ $layout->font_color }}; 
-                                background: rgba(0, 0, 0, 0.45);
-                                backdrop-filter: blur(4px);
                                 transform: translate(-50%, -50%);
                                 user-select: none;
-                                white-space: nowrap;
                              ">
                             {{-- Placeholder teks --}}
                             {{ '< NAMA PESERTA >' }}
@@ -409,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(err => console.error('Error polling logs:', err));
-        }, 1000);
+        }, 300);
     }
 
     // Check initially if generation is already running (persists on refresh!)
@@ -436,6 +433,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (btnGenerateToDrive) btnGenerateToDrive.disabled = true;
 
+            // Start log polling instantly for waswuss feedback!
+            startLogPolling();
+
             fetch("{{ route('admin.season.certificate.generate-drive', $season->id) }}", {
                 method: 'POST',
                 headers: {
@@ -446,10 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(r => r.json())
             .then(res => {
-                if (res.success) {
-                    // Start log polling instantly
-                    startLogPolling();
-                } else {
+                if (!res.success) {
                     alert('Gagal: ' + res.message);
                     if (btnGenerateToDrive) btnGenerateToDrive.disabled = false;
                 }
@@ -461,8 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    // Client-side image compressor for "waswuss" upload of templates
+// Client-side image compressor for "waswuss" upload of templates
     function compressTemplateImage(file, maxWidth, quality) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
