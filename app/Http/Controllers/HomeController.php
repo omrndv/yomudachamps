@@ -356,11 +356,25 @@ class HomeController extends Controller
         return redirect('/')->with('error', 'Link sertifikat untuk season ini belum ditentukan.');
     }
 
-    public function redirectCertificateById($season_id)
+    public function redirectCertificateBySlug($season_slug)
     {
-        $layout = \App\Models\CertificateLayout::where('season_id', $season_id)->first();
-        if ($layout && $layout->google_drive_link) {
-            return redirect()->away($layout->google_drive_link);
+        $name = str_replace('-', ' ', $season_slug);
+        
+        $season = \App\Models\Season::where('name', 'like', '%' . $name . '%')
+            ->orWhereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", [strtolower($season_slug)])
+            ->first();
+            
+        if (!$season) {
+            if (is_numeric($season_slug)) {
+                $season = \App\Models\Season::where('name', 'like', '%Season ' . $season_slug . '%')->first();
+            }
+        }
+
+        if ($season) {
+            $layout = \App\Models\CertificateLayout::where('season_id', $season->id)->first();
+            if ($layout && $layout->google_drive_link) {
+                return redirect()->away($layout->google_drive_link);
+            }
         }
 
         return redirect('/')->with('error', 'Link sertifikat untuk season tersebut belum ditentukan.');

@@ -9,7 +9,7 @@ Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
 Route::get('/sertifikat', [HomeController::class, 'redirectCertificate'])->name('public.certificate.redirect');
-Route::get('/sertifikat/{season_id}', [HomeController::class, 'redirectCertificateById'])->name('public.certificate.redirect_id');
+Route::get('/sertifikat/{season_slug}', [HomeController::class, 'redirectCertificateBySlug'])->name('public.certificate.redirect_slug');
 
 Route::get('/storage/{any}', function ($any) {
     $path = storage_path('app/public/' . urldecode($any));

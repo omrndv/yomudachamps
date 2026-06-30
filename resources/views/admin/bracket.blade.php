@@ -2380,7 +2380,7 @@ Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan al
                     </div>
                     <div class="card-body p-3">
                         @php
-                            $shortLink = url("/sertifikat/{$season->id}");
+                            $shortLink = url("/sertifikat/" . \Illuminate\Support\Str::slug($season->name));
                         @endphp
                         <textarea id="textareaSertifikat" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;">Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan all-out di setiap match. Tetap semangat, setiap turnamen adalah pengalaman buat jadi lebih kuat! 💪⚔️
 
