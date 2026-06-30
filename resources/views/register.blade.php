@@ -460,7 +460,7 @@
 
                         <input type="hidden" name="season_id" value="{{ $active_season->id }}">
 
-                        <div class="form-group-custom">
+                         <div class="form-group-custom">
                             <label class="label-v2" for="teamName">Nama Team</label>
                             <input
                                 type="text"
@@ -471,6 +471,11 @@
                                 value="{{ old('name') }}"
                                 required
                             >
+                            @error('name')
+                                <span class="text-danger small fw-bold mt-1.5 d-block" style="font-size: 0.75rem;">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i> {{ $message }}
+                                </span>
+                            @enderror
                         </div>
 
                         <div class="form-group-custom">
@@ -484,6 +489,11 @@
                                 value="{{ old('wa_number') }}"
                                 required
                             >
+                            @error('wa_number')
+                                <span class="text-danger small fw-bold mt-1.5 d-block" style="font-size: 0.75rem;">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i> {{ $message }}
+                                </span>
+                            @enderror
                         </div>
 
                         <div class="text-center mb-3">
