@@ -183,89 +183,65 @@ class CertificateController extends Controller
      */
     public function generateToDrive(Request $request, $season_id)
     {
-        $season = Season::findOrFail($season_id);
-        $layout = CertificateLayout::where('season_id', $season_id)->first();
-
-        if (!$layout || !$layout->template_path) {
-            return response()->json(['success' => false, 'message' => 'Harap unggah gambar template sertifikat terlebih dahulu.'], 400);
-        }
-
-        if (!Session::has('google_oauth_token')) {
-            return response()->json(['success' => false, 'message' => 'Silakan hubungkan akun Google Anda terlebih dahulu.'], 401);
-        }
-
-        $request->validate([
-            'drive_link' => 'required|string',
-        ]);
-
-        // Extract Google Drive Folder ID from URL
-        $folderId = $this->extractFolderId($request->drive_link);
-        if (!$folderId) {
-            return response()->json(['success' => false, 'message' => 'Format link Google Drive Folder tidak valid.'], 400);
-        }
-
-        // Check if generation is already running
-        if (\Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_status_{$season_id}") === 'running') {
-            return response()->json(['success' => true, 'message' => 'Proses sinkronisasi sedang berjalan di latar belakang.']);
-        }
-
-        // Initialize Google Service
-        $client = $this->getGoogleClient();
-        $client->setAccessToken(Session::get('google_oauth_token'));
-        if ($client->isAccessTokenExpired()) {
-            if ($client->getRefreshToken()) {
-                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-                Session::put('google_oauth_token', $client->getAccessToken());
-            } else {
-                return response()->json(['success' => false, 'message' => 'Sesi Google Drive telah habis. Hubungkan ulang akun Anda.'], 401);
-            }
-        }
-
-        // Fetch paid teams/members
-        $teams = Team::where('season_id', $season_id)
-            ->where('status', 'PAID')
-            ->get();
-
-        if ($teams->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada tim terdaftar yang lunas (PAID) untuk season ini.'], 400);
-        }
-
-        // Send early response to browser, then continue in background
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
-        ob_start();
-        echo json_encode([
-            'success' => true,
-            'message' => 'Proses sinkronisasi sertifikat berhasil dimulai di latar belakang!'
-        ]);
-        $size = ob_get_length();
-        header("Content-Length: $size");
-        header('Connection: close');
-        header('Content-Type: application/json');
-        ob_end_flush();
-        ob_flush();
-        flush();
-
-        // Release Laravel session lock so polling getLogs does not block!
-        session_write_close();
-
-        if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
-        }
-
-        // --- BACKGROUND EXECUTION ---
-        ignore_user_abort(true);
-        set_time_limit(0);
-
-        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'running', 1800);
-        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 0, 1800);
-        \Illuminate\Support\Facades\Cache::store('file')->forget("cert_gen_logs_{$season_id}");
-
-        $this->writeGenLog($season_id, "🚀 Memulai proses sinkronisasi sertifikat...");
-        $this->writeGenLog($season_id, "Membaca berkas di folder Google Drive tujuan...");
-
         try {
+            $season = Season::findOrFail($season_id);
+            $layout = CertificateLayout::where('season_id', $season_id)->first();
+
+            if (!$layout || !$layout->template_path) {
+                return response()->json(['success' => false, 'message' => 'Harap unggah gambar template sertifikat terlebih dahulu.'], 400);
+            }
+
+            if (!Session::has('google_oauth_token')) {
+                return response()->json(['success' => false, 'message' => 'Silakan hubungkan akun Google Anda terlebih dahulu.'], 401);
+            }
+
+            $request->validate([
+                'drive_link' => 'required|string',
+            ]);
+
+            // Extract Google Drive Folder ID from URL
+            $folderId = $this->extractFolderId($request->drive_link);
+            if (!$folderId) {
+                return response()->json(['success' => false, 'message' => 'Format link Google Drive Folder tidak valid.'], 400);
+            }
+
+            // Check if generation is already running
+            if (\Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_status_{$season_id}") === 'running') {
+                return response()->json(['success' => true, 'message' => 'Proses sinkronisasi sedang berjalan di latar belakang.']);
+            }
+
+            // Initialize Google Service
+            $client = $this->getGoogleClient();
+            $client->setAccessToken(Session::get('google_oauth_token'));
+            if ($client->isAccessTokenExpired()) {
+                if ($client->getRefreshToken()) {
+                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                    Session::put('google_oauth_token', $client->getAccessToken());
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Sesi Google Drive telah habis. Hubungkan ulang akun Anda.'], 401);
+                }
+            }
+
+            // Fetch paid teams/members
+            $teams = Team::where('season_id', $season_id)
+                ->where('status', 'PAID')
+                ->get();
+
+            if ($teams->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada tim terdaftar yang lunas (PAID) untuk season ini.'], 400);
+            }
+
+            // Release Laravel session lock so polling getLogs does not block!
+            session_write_close();
+
+            // Set running status
+            \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'running', 1800);
+            \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 0, 1800);
+            \Illuminate\Support\Facades\Cache::store('file')->forget("cert_gen_logs_{$season_id}");
+
+            $this->writeGenLog($season_id, "🚀 Memulai proses sinkronisasi sertifikat...");
+            $this->writeGenLog($season_id, "Membaca berkas di folder Google Drive tujuan...");
+
             $driveService = new GoogleDriveService($client);
 
             // Fetch existing certificates in the folder
@@ -389,8 +365,10 @@ class CertificateController extends Controller
             }
 
             $this->writeGenLog($season_id, "🎉 Selesai! Folder sudah bersih dan lengkap. ({$successCount} dibuat baru, {$skippedCount} di-skip, {$totalTeams} total)");
+            return response()->json(['success' => true, 'message' => "Proses sinkronisasi selesai! {$successCount} diunggah, {$skippedCount} di-skip."]);
         } catch (\Exception $e) {
-            $this->writeGenLog($season_id, "🚨 Error proses latar belakang: " . $e->getMessage());
+            $this->writeGenLog($season_id, "🚨 Error inisialisasi: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         } finally {
             \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'idle', 1800);
             \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 100, 1800);
