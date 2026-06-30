@@ -55,6 +55,9 @@
                         <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
                             <i class="bi bi-clock me-1"></i> Set Jam per Babak
                         </button>
+                        <button type="button" class="btn btn-success text-white btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalShareTemplates">
+                            <i class="bi bi-share-fill me-1"></i> Teks Share WA
+                        </button>
                     @endif
 
                     <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
@@ -2290,5 +2293,178 @@ document.getElementById('modalAdminLiveChat').addEventListener('hide.bs.modal', 
 // Initialize polling for thread badge counts (global badge)
 setInterval(fetchAdminChatThreads, 15000);
 fetchAdminChatThreads();
+</script>
+
+{{-- MODAL SHARE TEMPLATES WA --}}
+<div class="modal fade" id="modalShareTemplates" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-dark">
+            <div class="modal-header border-bottom border-light p-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-share-fill text-success me-2"></i>Salin Template Pengumuman & Share WA
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-secondary small mb-4">Pilih dan salin template teks berikut untuk dibagikan ke WhatsApp peserta atau media sosial.</p>
+                
+                {{-- 1. Template Juara --}}
+                <div class="card border border-light-subtle rounded-3 mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2.5 px-3">
+                        <span class="fw-bold text-dark small"><i class="bi bi-trophy-fill text-warning me-1"></i>Template Pengumuman Juara</span>
+                        <button class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-bold text-uppercase" style="font-size: 0.72rem;" onclick="copyText('textareaJuara')">
+                            <i class="bi bi-copy me-1"></i>Salin Teks
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        @php
+                            $finalRoundNumber = $brackets->max('round_number') ?? 0;
+                            $finalMatch = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 1)->first();
+                            $bronzeMatchObj = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 2)->first();
+
+                            $juara1 = '[Belum Ditentukan]';
+                            $juara2 = '[Belum Ditentukan]';
+                            $juara3 = '[Belum Ditentukan]';
+
+                            if ($finalMatch && $finalMatch->status === 'finished' && $finalMatch->winner) {
+                                $juara1 = $finalMatch->winner->name;
+                                $juara2 = ($finalMatch->winner_id == $finalMatch->team1_id) 
+                                    ? ($finalMatch->team2->name ?? '[Belum Ditentukan]') 
+                                    : ($finalMatch->team1->name ?? '[Belum Ditentukan]');
+                            }
+
+                            if ($bronzeMatchObj && $bronzeMatchObj->status === 'finished' && $bronzeMatchObj->winner) {
+                                $juara3 = $bronzeMatchObj->winner->name;
+                            }
+                        @endphp
+                        <textarea id="textareaJuara" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;">*🎉🏆 JUARA YOMUDA CHAMPIONSHIP {{ strtoupper($season->name) }} 🏆🎉*
+Pengumuman Juara Yomuda Championship {{ $season->name }} resmi dirilis! 🎉
+
+Berikut kami umumkan para juara turnamen kali ini:
+
+🥇 *Juara 1: {{ $juara1 }}* 
+🥈 *Juara 2: {{ $juara2 }}* 
+🥉 *Juara 3: {{ $juara3 }}* 
+
+Selamat kepada para pemenang! Kalian udah menunjukkan permainan terbaik dan pantas jadi yang teratas! 🔥💯
+
+Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan all-out di setiap match. Tetap semangat, setiap turnamen adalah pengalaman buat jadi lebih kuat! 💪⚔️</textarea>
+                    </div>
+                </div>
+
+                {{-- 2. Template Roomtour --}}
+                <div class="card border border-light-subtle rounded-3 mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2.5 px-3">
+                        <span class="fw-bold text-dark small"><i class="bi bi-camera-video-fill text-info me-1"></i>List Bracket Roomtour (Acak Adil)</span>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-pill fw-bold text-uppercase" style="font-size: 0.72rem;" onclick="generateRoomtour()">
+                                <i class="bi bi-shuffle me-1"></i>Acak Ulang
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-bold text-uppercase" style="font-size: 0.72rem;" onclick="copyText('roomtourTextarea')">
+                                <i class="bi bi-copy me-1"></i>Salin Teks
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <textarea id="roomtourTextarea" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;"></textarea>
+                    </div>
+                </div>
+
+                {{-- 3. Template Sertifikat --}}
+                <div class="card border border-light-subtle rounded-3">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2.5 px-3">
+                        <span class="fw-bold text-dark small"><i class="bi bi-file-earmark-text-fill text-primary me-1"></i>Template Pembagian Sertifikat</span>
+                        <button class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-bold text-uppercase" style="font-size: 0.72rem;" onclick="copyText('textareaSertifikat')">
+                            <i class="bi bi-copy me-1"></i>Salin Teks
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        @php
+                            $layout = \App\Models\CertificateLayout::where('season_id', $season->id)->first();
+                            $driveLink = ($layout && $layout->google_drive_link) ? $layout->google_drive_link : '[https://bit.ly/Link-Belum-Diset]';
+                        @endphp
+                        <textarea id="textareaSertifikat" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;">Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan all-out di setiap match. Tetap semangat, setiap turnamen adalah pengalaman buat jadi lebih kuat! 💪⚔️
+
+📨 E-sertifikat dapat diunduh melalui link berikut:
+👉 [{{ $driveLink }}]
+
+Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer border-top border-light p-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold small" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Copy to clipboard helper
+    function copyText(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Teks Berhasil Disalin!',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        }).catch(err => alert("Gagal menyalin teks: " + err));
+    }
+
+    // Roomtour bracket random generator logic
+    function generateRoomtour() {
+        const roundsData = @json($startNumbers);
+        const roundKeys = Object.keys(roundsData).map(Number).sort((a,b) => a-b);
+        const roundsCount = roundKeys.length;
+        
+        let text = "*List Bracket yang Pakai Roomtour🏆*\n\n";
+        
+        // Randomly pick for each round starting from round 3 up to semifinals
+        for (let i = 0; i < roundKeys.length; i++) {
+            const rNum = roundKeys[i];
+            
+            // Skip Babak 1 and Babak 2
+            if (rNum < 3) continue;
+            
+            // Final is skip since it's "Final" (handled automatically at bottom)
+            if (rNum === roundsCount) continue;
+            
+            const start = roundsData[rNum];
+            let nextStart = roundsData[rNum + 1];
+            if (!nextStart) {
+                nextStart = start + 1;
+            }
+            
+            const matchCount = nextStart - start;
+            
+            // Choose one random bracket number between start and nextStart - 1
+            const randomBracket = Math.floor(Math.random() * matchCount) + start;
+            
+            let roundLabel = `Babak ${rNum}`;
+            if (rNum === roundsCount - 1) {
+                roundLabel = "Semifinal";
+            } else if (rNum === roundsCount - 2) {
+                roundLabel = "Babak 5 (Quarterfinal)";
+            }
+            
+            text += `${roundLabel} : Bracket ${randomBracket}\n`;
+        }
+        
+        text += "Final\n\n";
+        text += "*Note: yang masuk ke dalam bracket dengan no diatas, mimin yang invite*";
+        
+        document.getElementById('roomtourTextarea').value = text;
+    }
+
+    // Run generateRoomtour once on modal show to prefill
+    document.getElementById('modalShareTemplates').addEventListener('show.bs.modal', generateRoomtour);
 </script>
 @endsection
