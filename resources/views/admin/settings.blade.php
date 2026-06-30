@@ -173,6 +173,24 @@
                 </div>
             </div>
 
+            {{-- Card: Google Gemini API Configuration --}}
+            <div class="card card-settings border-0 p-4 bg-white mb-4 shadow-sm rounded-4">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-stars text-success me-2"></i> Google Gemini AI Configuration
+                </h5>
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Gemini API Key</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-success"></i></span>
+                        <input type="text" name="gemini_api_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="AIzaSy..." value="{{ \App\Models\Setting::getVal('gemini_api_key', env('GEMINI_API_KEY')) }}">
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.72rem;">
+                        Masukkan API Key Gemini untuk mengaktifkan AI Rangkuman Juara & Validasi Laporan Menang otomatis. Dapatkan kunci gratis di <a href="https://aistudio.google.com/" target="_blank" class="text-success fw-bold text-decoration-none">Google AI Studio</a>.
+                    </small>
+                </div>
+            </div>
+
             {{-- Card 4: Web Assets --}}
             <div class="card card-settings border-0 p-4 bg-white">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">

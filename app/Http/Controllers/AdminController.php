@@ -441,7 +441,8 @@ class AdminController extends Controller
             'social_youtube',
             'maintenance_secret',
             'log_retention_days',
-            'global_rules_link'
+            'global_rules_link',
+            'gemini_api_key'
         ];
 
         foreach ($keys as $key) {
