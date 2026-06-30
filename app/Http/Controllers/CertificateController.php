@@ -120,6 +120,7 @@ class CertificateController extends Controller
             'pos_y' => 'required|numeric|min:0|max:100',
             'layout_data' => 'nullable|string',
             'google_drive_link' => 'nullable|string|max:500',
+            'is_released' => 'nullable|in:0,1,true,false',
         ]);
 
         $layout = CertificateLayout::where('season_id', $season_id)->firstOrFail();
@@ -127,6 +128,7 @@ class CertificateController extends Controller
         $layout->font_color = $request->font_color;
         $layout->pos_x = $request->pos_x;
         $layout->pos_y = $request->pos_y;
+        $layout->is_released = $request->boolean('is_released');
 
         if ($request->has('layout_data')) {
             $layout->layout_data = is_string($request->layout_data) ? json_decode($request->layout_data, true) : $request->layout_data;

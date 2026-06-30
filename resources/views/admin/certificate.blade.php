@@ -136,6 +136,14 @@
                                     <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="certIsReleased" {{ $layout->is_released ? 'checked' : '' }} style="cursor: pointer;">
+                                        <label class="form-check-label fw-bold small text-secondary" for="certIsReleased" style="cursor: pointer;">Rilis Link Sertifikat ke Publik</label>
+                                    </div>
+                                    <div class="form-text text-muted" style="font-size: 0.68rem;">Jika aktif, peserta dapat mencari & mengakses link Google Drive sertifikat via shortlink.</div>
+                                </div>
+
                                 <button type="button" id="btnGenerateToDrive" class="btn btn-danger w-100 fw-bold rounded-pill py-2 shadow-sm">
                                     <i class="bi bi-lightning-charge-fill me-1"></i> Generate & Upload ({{ $paidTeamsCount }} Tim)
                                 </button>
@@ -886,6 +894,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const driveLinkEl = document.getElementById('googleDriveLink');
             if (driveLinkEl) {
                 formData.set('google_drive_link', driveLinkEl.value.trim());
+            }
+
+            const isReleasedEl = document.getElementById('certIsReleased');
+            if (isReleasedEl) {
+                formData.set('is_released', isReleasedEl.checked ? '1' : '0');
             }
 
             btnSaveConfig.disabled = true;
