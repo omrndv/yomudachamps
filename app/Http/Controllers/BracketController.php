@@ -1499,7 +1499,7 @@ class BracketController extends Controller
                     ]
                 ],
                 'generationConfig' => [
-                    'responseMimeType' => 'application/json'
+                    'response_mime_type' => 'application/json'
                 ]
             ];
 
