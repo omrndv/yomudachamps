@@ -12,35 +12,37 @@ class TripayController extends Controller
 {
     public function getPaymentChannels()
     {
-        try {
-            $apiKey = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
-            $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE')) === 'sandbox'
-                ? 'https://tripay.co.id/api-sandbox/merchant/payment-channel'
-                : 'https://tripay.co.id/api/merchant/payment-channel';
+        return cache()->remember('tripay_payment_channels', 86400, function () {
+            try {
+                $apiKey = Setting::getVal('tripay_api_key', env('TRIPAY_API_KEY'));
+                $url = Setting::getVal('tripay_mode', env('TRIPAY_MODE')) === 'sandbox'
+                    ? 'https://tripay.co.id/api-sandbox/merchant/payment-channel'
+                    : 'https://tripay.co.id/api/merchant/payment-channel';
 
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_FRESH_CONNECT  => true,
-                CURLOPT_URL            => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HEADER         => false,
-                CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $apiKey],
-                CURLOPT_FAILONERROR    => false,
-                CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4
-            ));
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_FRESH_CONNECT  => true,
+                    CURLOPT_URL            => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_HEADER         => false,
+                    CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $apiKey],
+                    CURLOPT_FAILONERROR    => false,
+                    CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4
+                ));
 
-            $response = curl_exec($curl);
-            $error = curl_error($curl);
-            curl_close($curl);
+                $response = curl_exec($curl);
+                $error = curl_error($curl);
+                curl_close($curl);
 
-            if (!empty($error)) throw new Exception("cURL Error: " . $error);
+                if (!empty($error)) throw new Exception("cURL Error: " . $error);
 
-            $data = json_decode($response);
-            return $data->success ? $data->data : [];
-        } catch (Exception $e) {
-            Log::error('Tripay Channels Error: ' . $e->getMessage());
-            return [];
-        }
+                $data = json_decode($response);
+                return $data->success ? $data->data : [];
+            } catch (Exception $e) {
+                Log::error("Tripay channels fetch failed: " . $e->getMessage());
+                return [];
+            }
+        });
     }
 
     public function requestTransaction($method, $team)
