@@ -179,6 +179,15 @@ class CertificateController extends Controller
     }
 
     /**
+     * Putuskan hubungan akun Google Drive
+     */
+    public function googleDisconnect()
+    {
+        Session::forget('google_oauth_token');
+        return redirect()->back()->with('success', 'Berhasil memutuskan sambungan akun Google.');
+    }
+
+    /**
      * Generate Sertifikat Masal & Unggah langsung ke Google Drive Folder
      */
     public function generateToDrive(Request $request, $season_id)

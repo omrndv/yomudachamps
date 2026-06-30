@@ -162,6 +162,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/certificate/layout', [\App\Http\Controllers\CertificateController::class, 'saveLayout'])->name('admin.season.certificate.layout');
             Route::get('/certificate/google-login', [\App\Http\Controllers\CertificateController::class, 'googleLogin'])->name('admin.certificate.google-login');
             Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
+            Route::get('/certificate/google-disconnect', [\App\Http\Controllers\CertificateController::class, 'googleDisconnect'])->name('admin.certificate.google-disconnect');
             Route::post('/dashboard/{season_id}/certificate/generate-drive', [\App\Http\Controllers\CertificateController::class, 'generateToDrive'])->name('admin.season.certificate.generate-drive');
             Route::get('/dashboard/{season_id}/certificate/logs', [\App\Http\Controllers\CertificateController::class, 'getLogs'])->name('admin.season.certificate.logs');
             Route::get('/certificate/download-single', [\App\Http\Controllers\CertificateController::class, 'downloadSingle'])->name('admin.certificate.download-single');

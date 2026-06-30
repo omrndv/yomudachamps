@@ -169,7 +169,10 @@
                 @else
                     <div class="p-3 border rounded-3 bg-light mb-3">
                         <div class="small text-secondary mb-1">Terhubung sebagai:</div>
-                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.85rem;"><i class="bi bi-person-check-fill text-success me-1"></i>{{ $googleUserEmail ?? 'Akun Google Aktif' }}</div>
+                        <div class="fw-bold text-dark text-truncate mb-2" style="font-size: 0.85rem;"><i class="bi bi-person-check-fill text-success me-1"></i>{{ $googleUserEmail ?? 'Akun Google Aktif' }}</div>
+                        <a href="{{ route('admin.certificate.google-disconnect') }}" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-1 fw-bold" style="font-size: 0.72rem;">
+                            <i class="bi bi-box-arrow-right me-1"></i> Putuskan & Ganti Akun
+                        </a>
                     </div>
 
                     <div class="mb-3" id="driveUploadSection">
