@@ -18,9 +18,15 @@ class HomeController extends Controller
                 $q->where('status', 'PAID');
             }])->get();
 
-        $faqs = Faq::where('is_active', true)->orderBy('order', 'asc')->get();
+        $faqs = Faq::where('is_active', true)->orderBy('order', 'asc')->take(5)->get();
 
         return view('landing', compact('active_seasons', 'faqs'));
+    }
+
+    public function faqs()
+    {
+        $faqs = Faq::where('is_active', true)->orderBy('order', 'asc')->get();
+        return view('faqs', compact('faqs'));
     }
 
     public function registerForm()

@@ -100,6 +100,8 @@ Route::get('/download-qris', [HomeController::class, 'downloadQris'])->name('qri
 Route::get('/cek-tim', [HomeController::class, 'checkPage'])->name('check.team');
 Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->middleware('throttle:15,1')->name('check.team.search');
 
+Route::get('/faq', [HomeController::class, 'faqs'])->name('faq.index');
+
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');

@@ -785,6 +785,12 @@
                 </div>
             @endforeach
         </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ route('faq.index') }}" class="btn btn-outline-warning text-uppercase fw-bold rounded-pill px-5 py-3 shadow-sm" style="font-size: 0.85rem; border-width: 2px;">
+                Lihat Semua FAQ <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
     </section>
     @endif
 
