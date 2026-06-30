@@ -679,13 +679,13 @@
                                 Rp {{ number_format($season->price ?? 0, 0, ',', '.') }}/Team
                             </div>
 
-                            @if($season->poster)
-                                <img src="{{ asset('storage/posters/' . $season->poster) }}" alt="Poster {{ $season->name }}">
-                            @else
+                             @if($season->poster)
+                                <img src="{{ asset('storage/posters/' . $season->poster) }}" alt="Poster {{ $season->name }}" loading="lazy">
+                             @else
                                 <div class="poster-placeholder">
                                     <i class="bi bi-trophy"></i>
                                 </div>
-                            @endif
+                             @endif
 
                             <div class="card-overlay"></div>
                         </div>
@@ -811,6 +811,7 @@
                 <img
                     src="{{ asset('images/getuklogo.png') }}"
                     alt="Getuk Goreng ASRI"
+                    loading="lazy"
                     onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none'); this.nextElementSibling.classList.add('d-flex');"
                 >
 

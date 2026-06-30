@@ -84,7 +84,7 @@
     <div class="footer-content text-center">
         <div class="container" style="max-width: 700px">
 
-            <img src="{{ asset('images/logo-yomuda.png') }}" class="footer-logo" alt="Yomuda Logo">
+            <img src="{{ asset('images/logo-yomuda.png') }}" class="footer-logo" alt="Yomuda Logo" loading="lazy">
 
             <a href="{{ url('/') }}" class="text-decoration-none">
                 <h5 class="text-warning fw-bold mb-3" style="letter-spacing: 1px;">
