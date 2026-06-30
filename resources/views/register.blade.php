@@ -445,6 +445,16 @@
                         </p>
                     </div>
 
+                    @if($errors->any())
+                        <div class="alert alert-danger border-0 shadow-sm rounded-3 py-3 mb-4" style="background: rgba(220, 53, 69, 0.12); border: 1px solid rgba(220, 53, 69, 0.32);">
+                            <ul class="mb-0 small fw-bold text-danger ps-3">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <form id="regForm" action="{{ route('register.store') }}" method="POST">
                         @csrf
 

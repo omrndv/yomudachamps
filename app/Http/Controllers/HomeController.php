@@ -93,7 +93,7 @@ class HomeController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:50|regex:/^[\pL\pN\s._\-]+$/u',
+            'name' => 'required|string|max:50|regex:/^[\pL\pN\s._\-()\[\]]+$/u',
             'wa_number' => 'required|string|min:10|max:20|regex:/^[0-9+]+$/',
             'season_id' => 'required|integer'
         ]);
