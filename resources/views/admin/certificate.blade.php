@@ -45,7 +45,7 @@
     @endif
 
     <div class="row g-4">
-        {{-- Kolom Kiri: Workspace Editor Figma-Level --}}
+        {{-- Kolom Kiri: Workspace Editor Figma-Level & Panel Unduh --}}
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -98,16 +98,94 @@
 
                 @if($layout->template_path)
                     <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
-                        <span><i class="bi bi-info-circle me-1"></i> Klik dan geser elemen di atas untuk memposisikan letak cetak secara instan.</span>
+                        <span><i class="bi bi-info-circle me-1"></i> Klik dan geser elemen di atas untuk memposisikan letak cetak secara instan. Gunakan Arrow Keys ← ↑ → ↓ untuk menggeser presisi.</span>
                         <button type="button" id="btnSaveConfig" class="btn btn-warning text-dark btn-sm fw-bold rounded-pill px-4 shadow-sm">
                             <i class="bi bi-cloud-check-fill me-1"></i> Simpan Desain Layout
                         </button>
                     </div>
                 @endif
             </div>
+
+            {{-- Row Cetak Massal & Cetak Manual (Ditaruh di Bawah Canvas agar Rapi) --}}
+            @if($layout->template_path)
+                <div class="row g-4 mb-4">
+                    {{-- Cetak Massal Google Drive --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-google text-warning me-2"></i>Cetak ke Google Drive</h5>
+                            
+                            @if(!$googleConnected)
+                                <p class="text-secondary small mb-3">
+                                    Hubungkan dengan Google Drive untuk mengunggah seluruh sertifikat secara otomatis ke folder pilihan Anda.
+                                </p>
+                                <a href="{{ route('admin.certificate.google-login', ['season_id' => $season->id]) }}" class="btn btn-outline-danger w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-google"></i> Hubungkan Google Drive
+                                </a>
+                            @else
+                                <div class="p-3 border rounded-3 bg-light mb-3">
+                                    <div class="small text-secondary mb-1">Terhubung sebagai:</div>
+                                    <div class="fw-bold text-dark text-truncate mb-2" style="font-size: 0.85rem;"><i class="bi bi-person-check-fill text-success me-1"></i>{{ $googleUserEmail ?? 'Akun Google Aktif' }}</div>
+                                    <a href="{{ route('admin.certificate.google-disconnect') }}" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-1 fw-bold" style="font-size: 0.72rem;">
+                                        <i class="bi bi-box-arrow-right me-1"></i> Putuskan & Ganti Akun
+                                    </a>
+                                </div>
+
+                                <div class="mb-3" id="driveUploadSection">
+                                    <label class="form-label small fw-bold text-secondary">Link Folder Google Drive Tujuan</label>
+                                    <input type="url" id="googleDriveLink" class="form-control rounded-3" placeholder="https://drive.google.com/drive/folders/..." required>
+                                    <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
+                                </div>
+
+                                <button type="button" id="btnGenerateToDrive" class="btn btn-danger w-100 fw-bold rounded-pill py-2 shadow-sm">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i> Generate & Upload ({{ $paidTeamsCount }} Tim)
+                                </button>
+
+                                {{-- Progress Bar (Dynamic) --}}
+                                <div class="mt-3" id="progressContainer" style="display: none;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1 small text-secondary">
+                                        <span id="progressText">Memproses sertifikat...</span>
+                                        <span id="progressPercent" class="fw-bold">0%</span>
+                                    </div>
+                                    <div class="progress rounded-pill mb-3" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger rounded-pill" id="progressBar" role="progressbar" style="width: 0%;"></div>
+                                    </div>
+
+                                    {{-- Terminal Console Log --}}
+                                    <div class="bg-dark text-success p-3 rounded-3 font-monospace small overflow-y-auto" 
+                                         id="terminalConsole" 
+                                         style="max-height: 150px; font-size: 0.72rem; line-height: 1.4; border: 1px solid #334155;">
+                                        [SYSTEM] Menunggu pemrosesan...
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Cetak Manual / Download Instan --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-pdf text-warning me-2"></i>Cetak / Edit Manual</h5>
+                            <p class="text-secondary small mb-3">
+                                Unduh sertifikat secara manual dengan mengetik nama secara langsung tanpa menyimpan data di database.
+                            </p>
+
+                            <form action="{{ route('admin.certificate.download-single') }}" method="GET" target="_blank" class="mt-auto">
+                                <input type="hidden" name="season_id" value="{{ $season->id }}">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">Ketik Nama Peserta</label>
+                                    <input type="text" name="name" class="form-control rounded-3" placeholder="Contoh: Muhammad Agus" required>
+                                </div>
+                                <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold rounded-pill py-2">
+                                    <i class="bi bi-download me-1"></i> Pratinjau & Download
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
-        {{-- Kolom Kanan: Properties Inspector & Controls --}}
+        {{-- Kolom Kanan: Properties Inspector & Background Settings --}}
         <div class="col-lg-4">
             {{-- Card 1: Element Properties Inspector (Figma-Style Properties Panel) --}}
             @if($layout->template_path)
@@ -209,75 +287,6 @@
 
                     <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold rounded-pill py-2 shadow-sm">
                         <i class="bi bi-save me-1"></i> Upload & Simpan File
-                    </button>
-                </form>
-            </div>
-
-            {{-- Card 3: Cetak Massal (Google Drive API) --}}
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-google text-warning me-2"></i>Cetak ke Google Drive</h5>
-                
-                @if(!$googleConnected)
-                    <p class="text-secondary small mb-3">
-                        Hubungkan dengan Google Drive untuk mengunggah seluruh sertifikat secara otomatis ke folder pilihan Anda.
-                    </p>
-                    <a href="{{ route('admin.certificate.google-login', ['season_id' => $season->id]) }}" class="btn btn-outline-danger w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-google"></i> Hubungkan Google Drive
-                    </a>
-                @else
-                    <div class="p-3 border rounded-3 bg-light mb-3">
-                        <div class="small text-secondary mb-1">Terhubung sebagai:</div>
-                        <div class="fw-bold text-dark text-truncate mb-2" style="font-size: 0.85rem;"><i class="bi bi-person-check-fill text-success me-1"></i>{{ $googleUserEmail ?? 'Akun Google Aktif' }}</div>
-                        <a href="{{ route('admin.certificate.google-disconnect') }}" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-1 fw-bold" style="font-size: 0.72rem;">
-                            <i class="bi bi-box-arrow-right me-1"></i> Putuskan & Ganti Akun
-                        </a>
-                    </div>
-
-                    <div class="mb-3" id="driveUploadSection">
-                        <label class="form-label small fw-bold text-secondary">Link Folder Google Drive Tujuan</label>
-                        <input type="url" id="googleDriveLink" class="form-control rounded-3" placeholder="https://drive.google.com/drive/folders/..." required>
-                        <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
-                    </div>
-
-                    <button type="button" id="btnGenerateToDrive" class="btn btn-danger w-100 fw-bold rounded-pill py-2 shadow-sm" {{ !$layout->template_path ? 'disabled' : '' }}>
-                        <i class="bi bi-lightning-charge-fill me-1"></i> Generate & Upload ({{ $paidTeamsCount }} Tim)
-                    </button>
-
-                    {{-- Progress Bar (Dynamic) --}}
-                    <div class="mt-3" id="progressContainer" style="display: none;">
-                        <div class="d-flex justify-content-between align-items-center mb-1 small text-secondary">
-                            <span id="progressText">Memproses sertifikat...</span>
-                            <span id="progressPercent" class="fw-bold">0%</span>
-                        </div>
-                        <div class="progress rounded-pill mb-3" style="height: 8px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger rounded-pill" id="progressBar" role="progressbar" style="width: 0%;"></div>
-                        </div>
-
-                        {{-- Terminal Console Log --}}
-                        <div class="bg-dark text-success p-3 rounded-3 font-monospace small overflow-y-auto" 
-                             id="terminalConsole" 
-                             style="max-height: 200px; font-size: 0.72rem; line-height: 1.4; border: 1px solid #334155;">
-                            [SYSTEM] Menunggu pemrosesan...
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            {{-- Card 4: Cetak Manual / Download Instan --}}
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-pdf text-warning me-2"></i>Cetak / Edit Manual</h5>
-                <p class="text-secondary small mb-3">
-                    Unduh sertifikat secara manual dengan mengetik nama secara langsung tanpa menyimpan data di database.
-                </p>
-
-                <form action="{{ route('admin.certificate.download-single') }}" method="GET" target="_blank">
-                    <input type="hidden" name="season_id" value="{{ $season->id }}">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Ketik Nama Peserta</label>
-                        <input type="text" name="name" class="form-control rounded-3" placeholder="Contoh: Muhammad Agus" required>
-                    </div>
-                    <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold rounded-pill py-2" {{ !$layout->template_path ? 'disabled' : '' }}>
-                        <i class="bi bi-download me-1"></i> Pratinjau & Download
                     </button>
                 </form>
             </div>
@@ -398,11 +407,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
                     .replace(/'/g, "&#039;");
+                
+                // Ganti markdown bold (**teks**) menjadi HTML <strong> dan pertahankan spasi dengan white-space pre
                 div.innerHTML = escapedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 div.style.fontSize = (el.font_size * scale) + 'px';
                 div.style.color = el.color;
                 div.style.fontWeight = el.bold ? 'bold' : 'normal';
-                div.style.whiteSpace = 'nowrap';
+                div.style.whiteSpace = 'pre'; // Pertahankan spasi agar layaknya span/pre
                 div.style.textAlign = el.align || 'center';
             } else if (el.type === 'image') {
                 const img = document.createElement('img');
@@ -433,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Drag and Drop core logic
+    // Drag and Drop core logic (Live dragging using absolute pixel offset to avoid top-left jumps and lag)
     function bindDragHandler(elementDiv, el) {
         let isDragging = false;
         let startX, startY;
@@ -442,7 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
         elementDiv.addEventListener('mousedown', function(e) {
             isDragging = true;
             elementDiv.style.cursor = 'grabbing';
-            selectElement(el.id);
+            
+            // Pilih elemen tetapi bypass renderWorkspace secara destruktif untuk mencegah node DOM diganti saat drag dimulai
+            selectElementWithoutRedraw(el.id);
             
             const rect = wrapper.getBoundingClientRect();
             startX = e.clientX;
@@ -476,6 +489,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const percentX = parseFloat(((newX / rect.width) * 100).toFixed(2));
             const percentY = parseFloat(((newY / rect.height) * 100).toFixed(2));
 
+            // Update state koordinat internal secara live
+            el.x = percentX;
+            el.y = percentY;
+
             if (selectedElementId === el.id) {
                 propPosXLabel.textContent = percentX;
                 propPosYLabel.textContent = percentY;
@@ -500,11 +517,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Select element and display properties
+    // Select element WITH full redraw (when clicked normally)
     function selectElement(id) {
         selectedElementId = id;
         renderWorkspace();
+        loadProperties(id);
+    }
 
+    // Select element WITHOUT redraw (called on mousedown to prevent deleting/recreating DOM node which causes jumps)
+    function selectElementWithoutRedraw(id) {
+        selectedElementId = id;
+        
+        // Atur border seleksi secara dinamis langsung ke DOM
+        elements.forEach(item => {
+            const div = document.getElementById('el-' + item.id);
+            if (div) {
+                if (item.id === id) {
+                    div.style.border = '2px dashed #f59e0b';
+                    div.style.padding = '4px';
+                    div.style.borderRadius = '4px';
+                    div.style.zIndex = '999';
+                } else {
+                    div.style.border = '';
+                    div.style.padding = '';
+                    div.style.borderRadius = '';
+                    div.style.zIndex = '';
+                }
+            }
+        });
+
+        loadProperties(id);
+    }
+
+    // Load selected element properties to properties panel
+    function loadProperties(id) {
         const el = elements.find(item => item.id === id);
         if (!el) {
             if (inspector) inspector.style.display = 'none';
@@ -513,7 +559,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (inspector) inspector.style.display = 'block';
 
-        // Load coordinate labels
         propPosXLabel.textContent = el.x;
         propPosYLabel.textContent = el.y;
 
@@ -534,7 +579,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 propAlignCenter.checked = true;
             }
 
-            // Disable text area if dynamic name tag
             if (el.is_dynamic_name) {
                 propTextContent.disabled = true;
                 propTextHelp.innerText = "Tag nama peserta utama diatur otomatis oleh sistem.";
@@ -542,7 +586,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 propTextContent.disabled = false;
                 propTextHelp.innerText = "Ketik teks kustom Anda bebas. Gunakan **kata** untuk menebalkan kata tertentu.";
             }
-
         } else if (el.type === 'image') {
             propTextContainer.style.display = 'none';
             propFontContainer.style.display = 'none';
@@ -554,7 +597,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Deselect elements when clicking wrapper or canvas
+    // Keyboard Arrow Keys navigation (Figma-Style Element Positioning)
+    document.addEventListener('keydown', function(e) {
+        if (!selectedElementId) return;
+
+        // Skip jika sedang fokus mengetik di input/textarea
+        const activeEl = document.activeElement;
+        if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+            return;
+        }
+
+        const el = elements.find(item => item.id === selectedElementId);
+        if (!el) return;
+
+        // Shift + Arrow moves 1.0%, normal Arrow moves 0.1%
+        const step = e.shiftKey ? 1.0 : 0.1;
+
+        if (e.key === 'ArrowUp') {
+            el.y = parseFloat((el.y - step).toFixed(2));
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            el.y = parseFloat((el.y + step).toFixed(2));
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+            el.x = parseFloat((el.x - step).toFixed(2));
+            e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+            el.x = parseFloat((el.x + step).toFixed(2));
+            e.preventDefault();
+        } else {
+            return;
+        }
+
+        // Terapkan ke DOM secara real-time tanpa menggambar ulang seluruh kontainer
+        const div = document.getElementById('el-' + el.id);
+        if (div) {
+            div.style.left = el.x + '%';
+            div.style.top = el.y + '%';
+        }
+
+        // Update teks label koordinat di panel kanan
+        propPosXLabel.textContent = el.x;
+        propPosYLabel.textContent = el.y;
+
+        // Update hidden field data
+        const layoutDataField = document.getElementById('layoutDataField');
+        if (layoutDataField) {
+            layoutDataField.value = JSON.stringify(elements);
+        }
+    });
+
+    // Deselect elements when clicking wrapper or canvas background
     if (wrapper) {
         wrapper.addEventListener('click', function() {
             selectedElementId = null;
@@ -582,7 +675,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const el = elements.find(item => item.id === selectedElementId);
                 if (el && el.type === 'text') {
                     el.font_size = parseInt(this.value) || 24;
-                    // Auto sync fallback layout variables
                     if (el.is_dynamic_name) {
                         document.getElementById('inputFontSize').value = el.font_size;
                     }
@@ -598,7 +690,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const el = elements.find(item => item.id === selectedElementId);
                 if (el && el.type === 'text') {
                     el.color = this.value;
-                    // Auto sync fallback layout variables
                     if (el.is_dynamic_name) {
                         document.getElementById('inputFontColor').value = el.color;
                     }
