@@ -611,10 +611,11 @@ class CertificateController extends Controller
                 $pdf->SetTextColor($r, $g, $b);
             }
 
+            $segWidth = $pdf->GetStringWidth($seg['text']);
             $pdf->SetXY($currentX, $y - ($fSize / 2));
-            $pdf->Write($fSize, $seg['text']);
+            $pdf->Cell($segWidth, $fSize, $seg['text'], 0, 0, 'L');
             
-            $currentX += $pdf->GetStringWidth($seg['text']);
+            $currentX += $segWidth;
         }
     }
 }
