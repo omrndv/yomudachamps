@@ -208,7 +208,5 @@
     @endif
 
     @stack('scripts')
-    <!-- Instant.page: Preloads pages on hover before user clicks for instant (waswuss) navigation -->
-    <script src="{{ asset('js/instantpage.js') }}" type="module" defer></script>
 </body>
 </html>
