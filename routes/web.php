@@ -8,6 +8,8 @@ use App\Http\Controllers\TripayCallbackController;
 Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name('payment.confirm');
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
+Route::get('/sertifikat', [HomeController::class, 'redirectCertificate'])->name('public.certificate.redirect');
+Route::get('/sertifikat/{season_id}', [HomeController::class, 'redirectCertificateById'])->name('public.certificate.redirect_id');
 
 Route::get('/storage/{any}', function ($any) {
     $path = storage_path('app/public/' . urldecode($any));

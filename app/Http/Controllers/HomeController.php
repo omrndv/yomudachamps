@@ -340,4 +340,29 @@ class HomeController extends Controller
             'status' => $team->status
         ]);
     }
+
+    public function redirectCertificate()
+    {
+        $active_season = \App\Models\Season::where('status', 'ACTIVE')->first();
+        if (!$active_season) {
+            return redirect('/')->with('error', 'Tidak ada turnamen aktif saat ini.');
+        }
+
+        $layout = \App\Models\CertificateLayout::where('season_id', $active_season->id)->first();
+        if ($layout && $layout->google_drive_link) {
+            return redirect()->away($layout->google_drive_link);
+        }
+
+        return redirect('/')->with('error', 'Link sertifikat untuk season ini belum ditentukan.');
+    }
+
+    public function redirectCertificateById($season_id)
+    {
+        $layout = \App\Models\CertificateLayout::where('season_id', $season_id)->first();
+        if ($layout && $layout->google_drive_link) {
+            return redirect()->away($layout->google_drive_link);
+        }
+
+        return redirect('/')->with('error', 'Link sertifikat untuk season tersebut belum ditentukan.');
+    }
 }

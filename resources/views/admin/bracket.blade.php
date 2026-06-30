@@ -2380,13 +2380,12 @@ Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan al
                     </div>
                     <div class="card-body p-3">
                         @php
-                            $layout = \App\Models\CertificateLayout::where('season_id', $season->id)->first();
-                            $driveLink = ($layout && $layout->google_drive_link) ? $layout->google_drive_link : '[https://bit.ly/Link-Belum-Diset]';
+                            $shortLink = url("/sertifikat/{$season->id}");
                         @endphp
                         <textarea id="textareaSertifikat" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;">Untuk seluruh peserta lainnya, terima kasih sudah berjuang dengan sportif dan all-out di setiap match. Tetap semangat, setiap turnamen adalah pengalaman buat jadi lebih kuat! 💪⚔️
 
 📨 E-sertifikat dapat diunduh melalui link berikut:
-👉 [{{ $driveLink }}]
+👉 [{{ $shortLink }}]
 
 Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
                     </div>
@@ -2452,7 +2451,7 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
             if (rNum === roundsCount - 1) {
                 roundLabel = "Semifinal";
             } else if (rNum === roundsCount - 2) {
-                roundLabel = "Babak 5 (Quarterfinal)";
+                roundLabel = "Babak 5";
             }
             
             text += `${roundLabel} : Bracket ${randomBracket}\n`;
