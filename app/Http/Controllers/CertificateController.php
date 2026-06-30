@@ -205,7 +205,7 @@ class CertificateController extends Controller
         }
 
         // Check if generation is already running
-        if (\Illuminate\Support\Facades\Cache::get("cert_gen_status_{$season_id}") === 'running') {
+        if (\Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_status_{$season_id}") === 'running') {
             return response()->json(['success' => true, 'message' => 'Proses sinkronisasi sedang berjalan di latar belakang.']);
         }
 
@@ -247,6 +247,9 @@ class CertificateController extends Controller
         ob_flush();
         flush();
 
+        // Release Laravel session lock so polling getLogs does not block!
+        session_write_close();
+
         if (function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         }
@@ -255,9 +258,9 @@ class CertificateController extends Controller
         ignore_user_abort(true);
         set_time_limit(0);
 
-        \Illuminate\Support\Facades\Cache::put("cert_gen_status_{$season_id}", 'running', 1800);
-        \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$season_id}", 0, 1800);
-        \Illuminate\Support\Facades\Cache::forget("cert_gen_logs_{$season_id}");
+        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'running', 1800);
+        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 0, 1800);
+        \Illuminate\Support\Facades\Cache::store('file')->forget("cert_gen_logs_{$season_id}");
 
         $this->writeGenLog($season_id, "🚀 Memulai proses sinkronisasi sertifikat...");
         $this->writeGenLog($season_id, "Membaca berkas di folder Google Drive tujuan...");
@@ -389,8 +392,8 @@ class CertificateController extends Controller
         } catch (\Exception $e) {
             $this->writeGenLog($season_id, "🚨 Error proses latar belakang: " . $e->getMessage());
         } finally {
-            \Illuminate\Support\Facades\Cache::put("cert_gen_status_{$season_id}", 'idle', 1800);
-            \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$season_id}", 100, 1800);
+            \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'idle', 1800);
+            \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 100, 1800);
         }
     }
 
@@ -475,11 +478,11 @@ class CertificateController extends Controller
      */
     private function writeGenLog($seasonId, $message, $progress = null)
     {
-        $logs = \Illuminate\Support\Facades\Cache::get("cert_gen_logs_{$seasonId}", []);
+        $logs = \Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_logs_{$seasonId}", []);
         $logs[] = "[" . date('H:i:s') . "] " . $message;
-        \Illuminate\Support\Facades\Cache::put("cert_gen_logs_{$seasonId}", $logs, 1800);
+        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_logs_{$seasonId}", $logs, 1800);
         if ($progress !== null) {
-            \Illuminate\Support\Facades\Cache::put("cert_gen_progress_{$seasonId}", $progress, 1800);
+            \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$seasonId}", $progress, 1800);
         }
     }
 
@@ -489,9 +492,9 @@ class CertificateController extends Controller
     public function getLogs($season_id)
     {
         return response()->json([
-            'status' => \Illuminate\Support\Facades\Cache::get("cert_gen_status_{$season_id}", 'idle'),
-            'progress' => \Illuminate\Support\Facades\Cache::get("cert_gen_progress_{$season_id}", 0),
-            'logs' => \Illuminate\Support\Facades\Cache::get("cert_gen_logs_{$season_id}", [])
+            'status' => \Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_status_{$season_id}", 'idle'),
+            'progress' => \Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_progress_{$season_id}", 0),
+            'logs' => \Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_logs_{$season_id}", [])
         ]);
     }
 
