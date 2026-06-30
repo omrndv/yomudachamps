@@ -195,6 +195,7 @@ class AdminController extends Controller
 
         $status = $request->get('status', 'ACTIVE');
         $seasonId = $request->get('season_id', 'ALL');
+        $series = $request->get('series', 'ALL');
 
         $query = Season::withCount('teams');
 
@@ -204,6 +205,12 @@ class AdminController extends Controller
 
         if ($seasonId !== 'ALL') {
             $query->where('id', $seasonId);
+        }
+
+        if ($series === 'CHAMPIONSHIP') {
+            $query->where('name', 'not like', '%Fast Tour%');
+        } elseif ($series === 'FAST_TOUR') {
+            $query->where('name', 'like', '%Fast Tour%');
         }
 
         $seasons = $query->get()
@@ -218,7 +225,7 @@ class AdminController extends Controller
 
         $all_seasons = Season::select('id', 'name', 'status')->get();
 
-        return view('admin.seasons', compact('seasons', 'all_seasons', 'status', 'seasonId'));
+        return view('admin.seasons', compact('seasons', 'all_seasons', 'status', 'seasonId', 'series'));
     }
 
     public function dashboard($season_id)

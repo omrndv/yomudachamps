@@ -13,17 +13,24 @@
     {{-- Filters Bar --}}
     <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
         <div class="row g-3 align-items-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="input-group rounded-3 border border-light-subtle overflow-hidden bg-light">
                     <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="searchSeason" class="form-control border-0 ps-0 shadow-none bg-light" placeholder="Cari nama season..." style="font-size: 0.85rem;">
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select id="filterStatus" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;" onchange="applyPhpFilters()">
                     <option value="ACTIVE" {{ $status == 'ACTIVE' ? 'selected' : '' }}>Status: Aktif</option>
                     <option value="FINISHED" {{ $status == 'FINISHED' ? 'selected' : '' }}>Status: Selesai</option>
                     <option value="ALL" {{ $status == 'ALL' ? 'selected' : '' }}>Status: Semua</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="filterSeries" class="form-select rounded-3 border-light-subtle shadow-none" style="font-size: 0.85rem;" onchange="applyPhpFilters()">
+                    <option value="ALL" {{ $series == 'ALL' ? 'selected' : '' }}>Series: Semua</option>
+                    <option value="CHAMPIONSHIP" {{ $series == 'CHAMPIONSHIP' ? 'selected' : '' }}>Championship</option>
+                    <option value="FAST_TOUR" {{ $series == 'FAST_TOUR' ? 'selected' : '' }}>Fast Tour</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -388,7 +395,8 @@
     function applyPhpFilters() {
         let status = document.getElementById('filterStatus').value;
         let seasonId = document.getElementById('filterSeasonSelect').value;
-        window.location.href = `?status=${status}&season_id=${seasonId}`;
+        let series = document.getElementById('filterSeries').value;
+        window.location.href = `?status=${status}&season_id=${seasonId}&series=${series}`;
     }
 
     // Instant Search (Client-side search on loaded cards only)
