@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Defer non-critical scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}" defer></script>
 
     <meta name="google-site-verification" content="ErJnugnESZ9vYec5vVLW1evAKh6SQ5xJTG_jlY2WzOg">
 
@@ -168,7 +168,7 @@
     @include('components.footer')
 
     @if(session('success') || session('error') || session('info'))
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const Toast = Swal.mixin({

@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('content')
-<!-- Head to CDN for ApexCharts -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<!-- Local ApexCharts -->
+<script src="{{ asset('js/apexcharts.min.js') }}"></script>
 
 @if(session('welcome_alert'))
 <script>
