@@ -83,7 +83,7 @@
                                                             <i class="bi bi-file-earmark-pdf-fill" style="font-size: 0.95rem;"></i>
                                                         </div>
                                                     @else
-                                                        <img src="{{ $file['path'] }}" class="rounded" style="width: 28px; height: 28px; object-fit: cover; background-color: #ddd;">
+                                                        <img src="{{ $file['path'] }}" class="rounded" loading="lazy" style="width: 28px; height: 28px; object-fit: cover; background-color: #ddd;">
                                                     @endif
                                                 </a>
                                                 <div class="overflow-hidden">

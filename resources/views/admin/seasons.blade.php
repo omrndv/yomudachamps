@@ -181,7 +181,7 @@
                                 <label class="small fw-bold text-secondary mb-1 text-uppercase">Ganti Poster</label>
                                 <input type="file" name="poster" class="form-control rounded-3 shadow-none border-light-subtle" accept="image/*" onchange="previewImage(this, 'editPosterPreview{{ $season->id }}')">
                                 <div class="mt-2 text-center">
-                                    <img id="editPosterPreview{{ $season->id }}" src="{{ $season->poster ? asset('storage/posters/' . $season->poster) : '' }}" class="img-thumbnail rounded-3 shadow-sm" style="max-height: 120px; {{ $season->poster ? '' : 'display: none;' }}">
+                                    <img id="editPosterPreview{{ $season->id }}" src="{{ $season->poster ? asset('storage/posters/' . $season->poster) : '' }}" class="img-thumbnail rounded-3 shadow-sm" loading="lazy" style="max-height: 120px; {{ $season->poster ? '' : 'display: none;' }}">
                                 </div>
                             </div>
 
