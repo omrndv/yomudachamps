@@ -681,16 +681,32 @@
                         }
                     @endphp
                     @if($rulesLink)
-                        <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
-                            <!-- Native PDF embed / Google Drive preview reader with full page controls -->
-                            <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes">
-                                <p>Browser Anda tidak mendukung preview PDF. Silakan klik tombol di bawah untuk mengunduh.</p>
-                            </iframe>
+                        <!-- Desktop View: Embed PDF inside Modal -->
+                        <div class="d-none d-md-block">
+                            <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
+                                <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes">
+                                    <p>Browser Anda tidak mendukung preview PDF. Silakan klik tombol di bawah untuk mengunduh.</p>
+                                </iframe>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                    <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
+                                </a>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-end mt-3">
-                            <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
-                                <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
-                            </a>
+
+                        <!-- Mobile View: Premium Download/Reader Button Card -->
+                        <div class="d-block d-md-none text-center py-3">
+                            <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <i class="bi bi-file-earmark-pdf text-warning mb-3 d-inline-block" style="font-size: 3.5rem; filter: drop-shadow(0 0 15px rgba(255, 122, 0, 0.25));"></i>
+                                <h6 class="fw-bold text-white mb-2" style="font-size: 1.05rem;">Buka Peraturan Turnamen</h6>
+                                <p class="text-secondary small mb-4">
+                                    Dokumen peraturan akan dibuka secara otomatis menggunakan pembaca PDF bawaan HP Anda agar lebih nyaman dibaca dan bisa dizoom secara penuh.
+                                </p>
+                                <a href="{{ $rulesLink }}" target="_blank" class="btn btn-warning w-100 py-3 fw-bold rounded-3 d-inline-flex align-items-center justify-content-center gap-2 shadow" style="background: linear-gradient(135deg, #ff7a00 0%, #d97706 100%) !important; color: #000; border: none; font-size: 0.95rem;">
+                                    <i class="bi bi-book-half fs-5"></i> Baca Rules Turnamen (PDF)
+                                </a>
+                            </div>
                         </div>
                     @else
                         <div class="text-center py-5">
