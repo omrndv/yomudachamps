@@ -565,12 +565,14 @@
                         <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                     </div>
                     <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
-                        Halo Administrator! Saya **Yomuda Admin AI** 📊🤖<br><br>
+                        Halo Administrator! Saya <strong>Yomuda Admin AI</strong> 📊🤖<br><br>
                         Saya terhubung langsung ke database real-time Anda hari ini. Anda bisa menanyakan sejarah tim, rekap finansial, performa turnamen, atau estimasi slot penuh.<br><br>
-                        *Contoh pertanyaan:*
-                        - *"tim griffin pernah daftar di season berapa saja?"*
-                        - *"rekap finansial dan total transaksi saat ini"*
-                        - *"bagaimana perkembangan slot season aktif?"*
+                        <span class="text-secondary fw-semibold">Contoh pertanyaan:</span>
+                        <ul class="list-unstyled mb-0 mt-1 d-flex flex-column gap-1 ps-1">
+                            <li>• <em>"tim griffin pernah daftar di season berapa saja?"</em></li>
+                            <li>• <em>"rekap finansial dan total transaksi saat ini"</em></li>
+                            <li>• <em>"bagaimana perkembangan slot season aktif?"</em></li>
+                        </ul>
 
                         <div class="d-flex flex-wrap gap-1.5 mt-3" id="admin-ai-quick-prompts">
                             <button type="button" class="btn btn-outline-dark btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(0,0,0,0.15);" data-prompt="rekap finansial dan total transaksi saat ini">💵 Rekap Uang</button>
@@ -710,10 +712,6 @@
                 return text;
             }
 
-            const welcomeTextEl = document.querySelector('.ai-message .bg-white');
-            if (welcomeTextEl) {
-                welcomeTextEl.innerHTML = formatMessageText(welcomeTextEl.innerHTML);
-            }
 
             if (clearBtn) {
                 clearBtn.addEventListener('click', function () {
