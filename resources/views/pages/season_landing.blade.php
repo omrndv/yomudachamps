@@ -642,18 +642,17 @@
     </div>
 
     <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Rules -->
+    <!-- Modal Rules (Embedded Reader) -->
     <!-- ---------------------------------------------------------------------- -->
     <div class="modal fade" id="modalRules" tabindex="-1" aria-labelledby="modalRulesLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,122,0,0.25); border-radius: 20px; color: #fff;">
                 <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="modal-title fw-bold" id="modalRulesLabel"><i class="bi bi-file-earmark-ruled text-warning me-2"></i>Rules Turnamen</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 text-center">
-                    <i class="bi bi-shield-lock-fill text-warning mb-3 d-inline-block" style="font-size: 3rem; filter: drop-shadow(0 0 15px rgba(255, 122, 0, 0.2));"></i>
-                    <p class="small text-secondary mb-4 px-2">
+                <div class="modal-body p-4">
+                    <p class="small text-secondary mb-3">
                         Peraturan turnamen dirilis dalam bentuk dokumen resmi untuk menjamin transparansi dan kenyamanan bermain.
                     </p>
                     
@@ -661,17 +660,26 @@
                         $rulesLink = \App\Models\Setting::getVal('global_rules_link') ?: $season->rules_link;
                     @endphp
                     @if($rulesLink)
-                        <a href="{{ $rulesLink }}" target="_blank" class="btn btn-accent px-4 py-2 w-100 justify-content-center">
-                            <i class="bi bi-file-earmark-pdf-fill"></i> Buka Dokumen Rules Turnamen
-                        </a>
+                        <div class="w-100 rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="height: 580px; background-color: #ffffff;">
+                            <!-- Google Docs Viewer to render PDF/Doc directly on site -->
+                            <iframe src="https://docs.google.com/viewer?url={{ urlencode($rulesLink) }}&embedded=true" style="width: 100%; height: 100%; border: none;"></iframe>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
+                            </a>
+                        </div>
                     @else
-                        <div class="bg-dark p-3 rounded-4 text-secondary small border border-secondary border-opacity-10 mb-2">
-                            <i class="bi bi-info-circle me-1"></i> File peraturan belum di-upload oleh admin untuk season ini.
+                        <div class="text-center py-5">
+                            <i class="bi bi-info-circle text-secondary fs-1 mb-3"></i>
+                            <div class="bg-dark p-3 rounded-4 text-secondary small border border-secondary border-opacity-10 max-w-50 mx-auto">
+                                File peraturan belum di-upload oleh admin untuk season ini.
+                            </div>
                         </div>
                     @endif
                 </div>
                 <div class="modal-footer border-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-modal-close w-100" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-modal-close w-100" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px;">Tutup</button>
                 </div>
             </div>
         </div>
