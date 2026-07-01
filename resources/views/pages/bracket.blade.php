@@ -790,10 +790,18 @@
 
     {{-- Sticky Round Header Bar --}}
     <div class="round-headers-bar" id="roundHeadersBar">
+        @php
+            $totalRounds = count($rounds);
+        @endphp
         @foreach($rounds as $roundNum => $matches)
             @php
-                $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                if ($roundNum == $totalRounds) {
+                    $title = "Grand Final";
+                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                    $title = "Semifinal";
+                } else {
+                    $title = "Babak " . $roundNum;
+                }
                 $roundTime = $matches->first()->match_time ?? null;
                 $allFinished = $matches->every(fn($m) => $m->status === 'finished');
             @endphp
@@ -1017,6 +1025,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    const TOTAL_ROUNDS = {{ count($rounds) }};
+    function getRoundName(roundNum) {
+        if (roundNum === TOTAL_ROUNDS) {
+            return 'Grand Final';
+        } else if (roundNum === TOTAL_ROUNDS - 1 && TOTAL_ROUNDS > 1) {
+            return 'Semifinal';
+        } else {
+            return 'Babak ' + roundNum;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const headerBar = document.getElementById('roundHeadersBar');
         const container = document.getElementById('bracketContainer');
@@ -1094,8 +1113,14 @@
                         schedule: "{{ $b->match_time ?? '20:00 WIB' }}",
                         bracket: "Bracket {{ $b->match_number }}",
                         round: "@php
-                            $names = [1 => 'Babak 1', 2 => 'Babak 2', 3 => 'Babak 3', 4 => 'Babak 4', 5 => 'Perempat', 6 => 'Semifinal', 7 => 'Grand Final'];
-                            echo isset($names[$b->round_number]) ? $names[$b->round_number] : 'Babak ' . $b->round_number;
+                            $tr = count($rounds);
+                            if ($b->round_number == $tr) {
+                                echo 'Grand Final';
+                            } elseif ($b->round_number == $tr - 1 && $tr > 1) {
+                                echo 'Semifinal';
+                            } else {
+                                echo 'Babak ' . $b->round_number;
+                            }
                         @endphp",
                         status: "{{ $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main') }}",
                         cardId: "card_m_{{ $b->round_number }}_{{ $b->match_number }}"
@@ -1107,8 +1132,14 @@
                         schedule: "{{ $b->match_time ?? '20:00 WIB' }}",
                         bracket: "Bracket {{ $b->match_number }}",
                         round: "@php
-                            $names = [1 => 'Babak 1', 2 => 'Babak 2', 3 => 'Babak 3', 4 => 'Babak 4', 5 => 'Perempat', 6 => 'Semifinal', 7 => 'Grand Final'];
-                            echo isset($names[$b->round_number]) ? $names[$b->round_number] : 'Babak ' . $b->round_number;
+                            $tr = count($rounds);
+                            if ($b->round_number == $tr) {
+                                echo 'Grand Final';
+                            } elseif ($b->round_number == $tr - 1 && $tr > 1) {
+                                echo 'Semifinal';
+                            } else {
+                                echo 'Babak ' . $b->round_number;
+                            }
                         @endphp",
                         status: "{{ $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main') }}",
                         cardId: "card_m_{{ $b->round_number }}_{{ $b->match_number }}"
@@ -1337,9 +1368,8 @@
                         for (const key in matchesData) {
                             delete matchesData[key];
                         }
-                        const roundNames = {1: 'Babak 1', 2: 'Babak 2', 3: 'Babak 3', 4: 'Babak 4', 5: 'Perempat', 6: 'Semifinal', 7: 'Grand Final'};
                         res.matches.forEach(b => {
-                            const roundName = roundNames[b.round_number] || ('Babak ' + b.round_number);
+                            const roundName = getRoundName(b.round_number);
                             if (b.team1_name && b.team2_name) {
                                 matchesData[b.team1_name.toLowerCase()] = {
                                     name: b.team1_name,
