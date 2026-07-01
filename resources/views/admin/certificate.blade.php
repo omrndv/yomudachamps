@@ -136,13 +136,7 @@
                                     <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="certIsReleased" {{ $layout->is_released ? 'checked' : '' }} style="cursor: pointer;">
-                                        <label class="form-check-label fw-bold small text-secondary" for="certIsReleased" style="cursor: pointer;">Rilis Link Sertifikat ke Publik</label>
-                                    </div>
-                                    <div class="form-text text-muted" style="font-size: 0.68rem;">Jika aktif, peserta dapat mencari & mengakses link Google Drive sertifikat via shortlink.</div>
-                                </div>
+
 
                                 <button type="button" id="btnGenerateToDrive" class="btn btn-danger w-100 fw-bold rounded-pill py-2 shadow-sm">
                                     <i class="bi bi-lightning-charge-fill me-1"></i> Generate & Upload ({{ $paidTeamsCount }} Tim)
@@ -195,6 +189,20 @@
 
         {{-- Kolom Kanan: Properties Inspector & Background Settings --}}
         <div class="col-lg-4">
+            {{-- Card 0: Status Rilis Sertifikat (Selalu Terlihat & Mandiri) --}}
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-broadcast text-warning me-2"></i>Status Publikasi</h5>
+                <div class="mb-0">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="certIsReleased" {{ $layout->is_released ? 'checked' : '' }} style="cursor: pointer; width: 45px; height: 22px;">
+                        <label class="form-check-label fw-bold small text-secondary ms-2" for="certIsReleased" style="cursor: pointer; padding-top: 2px;">Rilis Link Sertifikat ke Publik</label>
+                    </div>
+                    <div class="form-text text-muted mt-2.5" style="font-size: 0.68rem; line-height: 1.4;">
+                        Jika aktif, peserta dapat mencari & mengunduh link sertifikat via halaman pencarian publik.
+                    </div>
+                </div>
+            </div>
+
             {{-- Card 1: Element Properties Inspector (Figma-Style Properties Panel) --}}
             @if($layout->template_path)
                 <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" id="propertiesInspector" style="display: none;">
@@ -1107,6 +1115,60 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             }
+        });
+    }
+
+    // Standalone AJAX change handler for Publikasi Status (Rilis Sertifikat)
+    const certIsReleasedToggle = document.getElementById('certIsReleased');
+    if (certIsReleasedToggle) {
+        certIsReleasedToggle.addEventListener('change', function () {
+            const isChecked = this.checked ? '1' : '0';
+            
+            Swal.fire({
+                title: 'Memproses...',
+                text: 'Memperbarui status publikasi sertifikat...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Gather layoutForm fields to satisfy validator requirements
+            const formData = new FormData();
+            formData.append('is_released', isChecked);
+            formData.append('font_size', document.getElementById('inputFontSize')?.value || '48');
+            formData.append('font_color', document.getElementById('inputFontColor')?.value || '#ffc107');
+            formData.append('pos_x', document.getElementById('inputPosX')?.value || '50');
+            formData.append('pos_y', document.getElementById('inputPosY')?.value || '50');
+
+            fetch("{{ route('admin.season.certificate.layout', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        title: isChecked === '1' ? '🟢 Sertifikat Dirilis!' : '🔴 Rilis Ditutup',
+                        text: isChecked === '1' ? 'Peserta sekarang dapat mencari dan mengunduh sertifikat mereka.' : 'Halaman pencarian sertifikat publik dinonaktifkan.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Gagal', 'Gagal mengubah status: ' + res.message, 'error');
+                    this.checked = !this.checked; // Revert checkbox state
+                }
+            })
+            .catch(err => {
+                console.error("AJAX Error:", err);
+                Swal.fire('Error', 'Terjadi kesalahan jaringan atau server.', 'error');
+                this.checked = !this.checked; // Revert checkbox state
+            });
         });
     }
 });
