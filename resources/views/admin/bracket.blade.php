@@ -2456,7 +2456,7 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
         const roundKeys = Object.keys(roundsData).map(Number).sort((a,b) => a-b);
         const roundsCount = roundKeys.length;
         
-        let text = "*List Bracket yang Pakai Roomtour🏆*\n\n";
+        let text = "*List Bracket yang masuk Live 📺*\n\n";
         
         // Randomly pick for each round starting from round 3 up to semifinals
         for (let i = 0; i < roundKeys.length; i++) {
