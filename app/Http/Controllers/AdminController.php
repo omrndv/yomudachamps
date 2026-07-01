@@ -2448,22 +2448,26 @@ class AdminController extends Controller
                 ];
             });
 
-            // 2. Compile Teams Context (sorted by newest DESC to ensure recent data is included)
+            // 2. Compile Grouped Teams Context (collapsing individual rows to save bandwidth and speed up Gemini response)
             $teamsRaw = \App\Models\Team::select('name', 'season_id', 'status', 'created_at', 'is_solo_team')
                 ->orderBy('created_at', 'desc')
                 ->get();
             
-            $teamsBySeason = [];
+            $groupedTeams = [];
             foreach ($teamsRaw as $t) {
                 $seasonName = $seasons->firstWhere('id', $t->season_id)['name'] ?? "Season #{$t->season_id}";
-                $teamsBySeason[] = [
-                    'team_name' => $t->name,
-                    'season' => $seasonName,
-                    'status' => $t->status,
-                    'registered_at' => $t->created_at ? $t->created_at->format('Y-m-d H:i') : 'N/A',
-                    'type' => $t->is_solo_team ? 'SOLO' : 'SQUAD'
-                ];
+                if (!isset($groupedTeams[$t->name])) {
+                    $groupedTeams[$t->name] = [
+                        'seasons' => [],
+                        'last_registered' => $t->created_at ? $t->created_at->format('Y-m-d H:i') : 'N/A',
+                        'type' => $t->is_solo_team ? 'SOLO' : 'SQUAD'
+                    ];
+                }
+                $groupedTeams[$t->name]['seasons'][] = "{$seasonName} ({$t->status})";
             }
+            
+            // Limit to the most recent 300 unique teams to keep prompt size very small and cURL fast
+            $groupedTeamsLimited = array_slice($groupedTeams, 0, 300, true);
 
             // 3. Compile Solo Players Context
             $solosCount = \App\Models\SoloPlayer::count();
@@ -2483,7 +2487,7 @@ class AdminController extends Controller
                 . "CURRENT SYSTEM TIME: " . now()->format('Y-m-d H:i:s') . " (Use this to anchor today's relative date calculations and distinguish past registrations from today)\n\n"
                 . "DATABASE CONTEXT:\n"
                 . "=== SEASONS ===\n" . json_encode($seasons, JSON_PRETTY_PRINT) . "\n\n"
-                . "=== TEAM REGISTRATIONS ===\n" . json_encode(array_slice($teamsBySeason, 0, 1000), JSON_PRETTY_PRINT) . "\n\n" // Cap at 1000 to prevent overflow
+                . "=== TEAM REGISTRATIONS ===\n" . json_encode($groupedTeamsLimited, JSON_PRETTY_PRINT) . "\n\n"
                 . "=== SOLO PLAYERS ===\nTotal Solo Players Registered: " . $solosCount . "\n\n"
                 . "=== FINANCIAL SUMMARY ===\n" . json_encode($financeSummary, JSON_PRETTY_PRINT) . "\n\n"
                 . "INSTRUCTIONS:\n"
