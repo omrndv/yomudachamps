@@ -476,10 +476,12 @@
                         formattedText = formattedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
                         // Convert bullet list * to bullet points •
                         formattedText = formattedText.replace(/^\s*\*\s+(.+)$/gm, '• $1');
+                        // Convert Markdown links [text](url) to HTML anchors
                         formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" class="text-primary fw-semibold">$1</a>');
-                        formattedText = formattedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
-                            if (url.includes('class="text-primary"')) return url;
-                            return `<a href="${url}" target="_blank" class="text-primary fw-semibold">${url}</a>`;
+                        // Auto-link remaining raw URLs without double-linking existing anchor tags
+                        formattedText = formattedText.replace(/(<a[^>]*>.*?<\/a>)|(https?:\/\/[^\s<]+)/g, (match, group1, group2) => {
+                            if (group1) return group1; // Return existing HTML anchor tags unchanged
+                            return `<a href="${group2}" target="_blank" class="text-primary fw-semibold">${group2}</a>`;
                         });
 
                         aiReply.innerHTML = `
