@@ -2477,6 +2477,7 @@ class AdminController extends Controller
             // Build system instructions
             $systemPrompt = "You are Yomuda AI Admin Assistant, a powerful esports operations dashboard assistant. "
                 . "You have access to real-time database context. Your goal is to help the admin analyze tournament status, team histories, slots, and financials.\n\n"
+                . "CURRENT SYSTEM TIME: " . now()->format('Y-m-d H:i:s') . " (Use this to anchor today's relative date calculations and distinguish past registrations from today)\n\n"
                 . "DATABASE CONTEXT:\n"
                 . "=== SEASONS ===\n" . json_encode($seasons, JSON_PRETTY_PRINT) . "\n\n"
                 . "=== TEAM REGISTRATIONS ===\n" . json_encode(array_slice($teamsBySeason, 0, 1000), JSON_PRETTY_PRINT) . "\n\n" // Cap at 1000 to prevent overflow
