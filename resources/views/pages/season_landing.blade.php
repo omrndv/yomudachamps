@@ -707,8 +707,8 @@
                             </div>
                         @endif
                         <div class="d-flex justify-content-end mt-3">
-                            <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
-                                <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
+                            <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center" style="font-size: 0.78rem;">
+                                <i class="bi bi-box-arrow-up-right me-2"></i> Buka di Tab Baru / Download
                             </a>
                         </div>
                     @else
