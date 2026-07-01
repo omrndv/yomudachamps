@@ -681,32 +681,24 @@
                         }
                     @endphp
                     @if($rulesLink)
-                        <!-- Desktop View: Embed PDF inside Modal -->
-                        <div class="d-none d-md-block">
-                            <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
-                                <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes">
-                                    <p>Browser Anda tidak mendukung preview PDF. Silakan klik tombol di bawah untuk mengunduh.</p>
-                                </iframe>
+                        @if(str_contains($rulesLink, 'drive.google.com'))
+                            <!-- Google Drive preview reader with full page controls -->
+                            <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative">
+                                <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes"></iframe>
                             </div>
-                            <div class="d-flex justify-content-end mt-3">
-                                <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
-                                    <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
-                                </a>
+                        @else
+                            <!-- PDF.js Canvas Render for direct PDF files (gives perfect scrolling & page controls inside modal on both desktop and mobile) -->
+                            <div id="pdf-viewer-container" class="rounded-4 overflow-auto shadow-lg border border-secondary border-opacity-20 p-2" style="height: 60vh; min-height: 400px; max-height: 580px; background-color: #2a2a30;">
+                                <div class="text-center py-5 text-secondary" id="pdf-loader">
+                                    <div class="spinner-border text-warning mb-2" role="status"></div>
+                                    <p class="small text-secondary m-0">Memuat halaman peraturan...</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Mobile View: Premium Download/Reader Button Card -->
-                        <div class="d-block d-md-none text-center py-3">
-                            <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
-                                <i class="bi bi-file-earmark-pdf text-warning mb-3 d-inline-block" style="font-size: 3.5rem; filter: drop-shadow(0 0 15px rgba(255, 122, 0, 0.25));"></i>
-                                <h6 class="fw-bold text-white mb-2" style="font-size: 1.05rem;">Buka Peraturan Turnamen</h6>
-                                <p class="text-secondary small mb-4">
-                                    Dokumen peraturan akan dibuka secara otomatis menggunakan pembaca PDF bawaan HP Anda agar lebih nyaman dibaca dan bisa dizoom secara penuh.
-                                </p>
-                                <a href="{{ $rulesLink }}" target="_blank" class="btn btn-warning w-100 py-3 fw-bold rounded-3 d-inline-flex align-items-center justify-content-center gap-2 shadow" style="background: linear-gradient(135deg, #ff7a00 0%, #d97706 100%) !important; color: #000; border: none; font-size: 0.95rem;">
-                                    <i class="bi bi-book-half fs-5"></i> Baca Rules Turnamen (PDF)
-                                </a>
-                            </div>
+                        @endif
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                                <i class="bi bi-box-arrow-up-right"></i> Buka di Tab Baru / Download
+                            </a>
                         </div>
                     @else
                         <div class="text-center py-5">
@@ -1290,5 +1282,65 @@
             }, 10000);
         });
     </script>
+
+    @if($rulesLink && !str_contains($rulesLink, 'drive.google.com'))
+    <!-- Load PDF.js from CDN to render local PDF files directly as Canvas in the modal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pdfjsLib = window['pdfjs-dist/build/pdf'];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+            const modalRulesEl = document.getElementById('modalRules');
+            let pdfLoaded = false;
+
+            if (modalRulesEl) {
+                modalRulesEl.addEventListener('shown.bs.modal', function () {
+                    if (pdfLoaded) return; // Prevent double rendering
+                    
+                    const url = "{{ $rulesLink }}";
+                    const container = document.getElementById('pdf-viewer-container');
+                    const loader = document.getElementById('pdf-loader');
+
+                    if (!container) return;
+
+                    pdfjsLib.getDocument(url).promise.then(pdf => {
+                        if (loader) loader.remove();
+                        pdfLoaded = true;
+
+                        // Render pages sequentially
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const canvas = document.createElement('canvas');
+                            canvas.className = 'w-100 mb-3 rounded shadow-sm d-block mx-auto';
+                            canvas.style.maxWidth = '100%';
+                            canvas.style.height = 'auto';
+                            container.appendChild(canvas);
+
+                            pdf.getPage(pageNum).then(page => {
+                                // Crisp render scale
+                                const scale = window.innerWidth < 768 ? 1.1 : 1.5;
+                                const viewport = page.getViewport({ scale: scale });
+                                const context = canvas.getContext('2d');
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+
+                                const renderContext = {
+                                    canvasContext: context,
+                                    viewport: viewport
+                                };
+                                page.render(renderContext);
+                            });
+                        }
+                    }).catch(err => {
+                        console.error("PDF.js render error:", err);
+                        if (loader) {
+                            loader.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger fs-2 d-block mb-2"></i><p class="small text-danger m-0">Gagal memuat preview dokumen.</p>`;
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    @endif
 </body>
 </html>
