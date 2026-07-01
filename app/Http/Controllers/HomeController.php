@@ -399,13 +399,9 @@ class HomeController extends Controller
         if ($activeSeasons->isNotEmpty()) {
             $context .= "TURNAMEN AKTIF/PENDAFTARAN DIBUKA:\n";
             foreach ($activeSeasons as $s) {
-                $slotsFilled = \App\Models\Team::where('season_id', $s->id)->where('status', 'PAID')->count();
-                $slotsLeft = max(0, $s->slots - $slotsFilled);
-
                 $context .= "- Nama Season: {$s->name}\n";
                 $context .= "  Biaya Pendaftaran: Rp " . number_format($s->price, 0, ',', '.') . "\n";
-                $context .= "  Total Slot: {$s->slots} Tim\n";
-                $context .= "  Sisa Slot: {$slotsLeft} Tim\n";
+                $context .= "  Status Slot: Pendaftaran Masih Dibuka (Segera daftar sebelum penuh)\n";
                 $context .= "  Syarat Pendaftaran: Tim harus melakukan pembayaran lunas via Tripay di website.\n\n";
             }
         } else {
@@ -418,6 +414,7 @@ class HomeController extends Controller
                 . "User Question: \"{$message}\"\n\n"
                 . "Instructions:\n"
                 . "- Answer in Indonesian with a friendly, professional, and slightly gamer-friendly tone (use 'kamu', 'tim kamu', 'Halo Bro/Sist').\n"
+                . "- CRITICAL: NEVER mention the exact number of slots, remaining slots, or how many teams have registered. If asked about slots or remaining slots, simply say that registration is still open and urge them to register immediately before it fills up.\n"
                 . "- Keep it concise. Emphasize WhatsApp link if they need direct help.\n"
                 . "- Answer directly. Do not make up information.";
 
