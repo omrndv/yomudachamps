@@ -138,13 +138,20 @@
 
         {{-- Bracket Tree Viewer --}}
         <div class="card border-0 shadow-sm rounded-4" style="background-color: #ffffff; overflow: hidden;">
-            <!-- Sticky Round Titles Bar -->
             <div class="round-headers-bar" id="adminRoundHeadersBar">
+                @php
+                    $totalRounds = count($rounds);
+                @endphp
                 @foreach($rounds as $roundNum => $matches)
                     <div class="round-header-item">
                         @php
-                            $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                            $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                            if ($roundNum == $totalRounds) {
+                                $title = "Grand Final";
+                            } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                                $title = "Semifinal";
+                            } else {
+                                $title = "Babak " . $roundNum;
+                            }
                         @endphp
                         {{ $title }}
                     </div>
@@ -346,7 +353,17 @@
                                         </div>
                                         <div class="d-flex align-items-center gap-2 small text-secondary">
                                             <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
-                                                Babak {{ $match->round_number }} (Match {{ $match->match_number }})
+                                                @php
+                                                    $totalRounds = count($rounds);
+                                                    if ($match->round_number == $totalRounds) {
+                                                        $rLabel = "Grand Final";
+                                                    } elseif ($match->round_number == $totalRounds - 1 && $totalRounds > 1) {
+                                                        $rLabel = "Semifinal";
+                                                    } else {
+                                                        $rLabel = "Babak " . $match->round_number;
+                                                    }
+                                                @endphp
+                                                {{ $rLabel }} (Match {{ $match->match_number }})
                                             </span>
                                             @if($match->match_time)
                                                 <span><i class="bi bi-clock me-1"></i>{{ $match->match_time }}</span>
@@ -503,10 +520,18 @@
             <div class="modal-body p-4">
                 <p class="text-secondary small mb-3">Masukkan jadwal (Tanggal & Jam) tanding untuk masing-masing babak di bawah. Jadwal akan langsung terupdate serentak ke semua pertandingan pada babak terkait.</p>
                 <div class="row g-3">
+                    @php
+                        $totalRounds = count($rounds);
+                    @endphp
                     @foreach($rounds as $roundNum => $matches)
                         @php
-                            $names = [1 => "Babak 1", 2 => "Babak 2", 3 => "Babak 3", 4 => "Babak 4", 5 => "Perempat", 6 => "Semifinal", 7 => "Grand Final"];
-                            $title = isset($names[$roundNum]) ? $names[$roundNum] : "Babak " . $roundNum;
+                            if ($roundNum == $totalRounds) {
+                                $title = "Grand Final";
+                            } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                                $title = "Semifinal";
+                            } else {
+                                $title = "Babak " . $roundNum;
+                            }
                             $firstMatch = $matches->first();
                         @endphp
                         <div class="col-md-6 col-lg-4">
@@ -1406,10 +1431,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // ----------------------------------------------------
 function saveRoundTime(roundNum) {
     const inputVal = document.getElementById(`roundTime_${roundNum}`).value;
+    const totalRounds = {{ count($rounds) }};
+    let roundLabel = `Babak ${roundNum}`;
+    if (roundNum === totalRounds) {
+        roundLabel = "Grand Final";
+    } else if (roundNum === totalRounds - 1 && totalRounds > 1) {
+        roundLabel = "Semifinal";
+    }
 
     Swal.fire({
         title: 'Ubah Jadwal Babak?',
-        text: `Semua pertandingan di Babak ${roundNum} akan diubah jadwalnya menjadi: "${inputVal}". Lanjutkan?`,
+        text: `Semua pertandingan di ${roundLabel} akan diubah jadwalnya menjadi: "${inputVal}". Lanjutkan?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#f97316',

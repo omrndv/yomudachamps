@@ -162,8 +162,20 @@
                                         <span class="text-secondary fw-normal px-1">vs</span>
                                         {{ $report->bracket->team2->name ?? 'TBD' }}
                                     </div>
+                                    @php
+                                        $slot = $report->bracket->season->slot ?? 8;
+                                        $tr = (int)log($slot, 2);
+                                        $rNum = $report->bracket->round_number;
+                                        if ($rNum == $tr) {
+                                            $rLabel = "Grand Final";
+                                        } elseif ($rNum == $tr - 1 && $tr > 1) {
+                                            $rLabel = "Semifinal";
+                                        } else {
+                                            $rLabel = "Babak " . $rNum;
+                                        }
+                                    @endphp
                                     <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 mt-1" style="font-size: 0.62rem;">
-                                        Babak {{ $report->bracket->round_number }} (Match {{ $report->bracket->match_number }})
+                                        {{ $rLabel }} (Match {{ $report->bracket->match_number }})
                                     </span>
                                 </td>
                                 <td class="text-center fw-bold text-warning fs-5">
