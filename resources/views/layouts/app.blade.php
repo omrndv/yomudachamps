@@ -245,7 +245,7 @@
             <!-- Footer / Input Form -->
             <div class="card-footer p-2 bg-white border-top border-light rounded-bottom-4">
                 <form id="ai-chat-form" class="input-group input-group-sm">
-                    <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 38px; font-size: 0.82rem;">
+                    <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 38px; font-size: 16px !important;">
                     <button type="submit" class="btn btn-warning rounded-pill-end px-3 shadow-none d-flex align-items-center justify-content-center" style="height: 38px;">
                         <i class="bi bi-send-fill text-dark fs-6"></i>
                     </button>
@@ -255,8 +255,34 @@
     </div>
 
     <style>
+        #ai-chat-toggle {
+            position: relative;
+        }
         #ai-chat-toggle:hover {
             transform: scale(1.1) rotate(5deg);
+        }
+        #ai-chat-toggle::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #ffc107;
+            animation: ai-pulse 2s infinite;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        @keyframes ai-pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.35);
+                opacity: 0;
+            }
         }
         #ai-chat-messages::-webkit-scrollbar {
             width: 4px;
@@ -267,6 +293,18 @@
         }
         .max-w-75 {
             max-width: 80%;
+        }
+        #ai-chat-input {
+            font-size: 16px !important;
+        }
+        @media (max-width: 575.98px) {
+            #ai-chat-window {
+                width: calc(100vw - 32px) !important;
+                right: 0 !important;
+                left: auto !important;
+                bottom: 70px !important;
+                height: 480px !important;
+            }
         }
     </style>
 

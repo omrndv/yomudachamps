@@ -478,7 +478,7 @@ class HomeController extends Controller
             \Illuminate\Support\Facades\Log::error("AI Chatbot error: " . $e->getMessage());
             return response()->json([
                 'success' => true,
-                'reply' => "Halo! Terjadi kendala saat menghubungi AI. Silakan tanyakan langsung ke admin kami melalui WhatsApp di https://wa.me/{$adminWa} ya! Kami siap membantu."
+                'reply' => "Halo! Terjadi kendala saat menghubungi AI (" . $e->getMessage() . "). Silakan tanyakan langsung ke admin kami melalui WhatsApp di https://wa.me/{$adminWa} ya! Kami siap membantu."
             ]);
         }
     }
