@@ -1391,6 +1391,39 @@ class BracketController extends Controller
     }
 
     /**
+     * Batal Verifikasi / Kembalikan ke Pending (Admin Only)
+     */
+    public function rollbackMatchReport($id)
+    {
+        $report = \App\Models\MatchReport::findOrFail($id);
+        
+        DB::beginTransaction();
+        try {
+            $match = Bracket::findOrFail($report->bracket_id);
+            
+            // Revert match status to upcoming and clear scores
+            $match->team1_score = null;
+            $match->team2_score = null;
+            $match->winner_id = null;
+            $match->status = 'upcoming';
+            $match->save();
+            
+            // Revert next round matches recursively
+            $this->advanceWinner($match);
+            
+            // Restore this report back to PENDING
+            $report->status = 'PENDING';
+            $report->save();
+            
+            DB::commit();
+            return back()->with('success', 'Verifikasi berhasil dibatalkan! Bagan dan status laporan ini telah dikembalikan ke PENDING.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membatalkan verifikasi: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Hapus semua laporan tanding & file fisiknya di server untuk mengosongkan storage (Admin Only)
      */
     public function clearAllMatchReports($season_id)
@@ -1548,39 +1581,7 @@ class BracketController extends Controller
             $report->ai_notes = "AI Analysis: " . ($aiResult['notes'] ?? 'No notes');
             $report->save();
 
-            if ($report->ai_status === 'SUCCESS' && ($aiResult['detected_winner_side'] ?? '') === 'LEFT') {
-                $scoreLeft = intval($aiResult['score_left'] ?? 0);
-                $scoreRight = intval($aiResult['score_right'] ?? 0);
-
-                DB::beginTransaction();
-                try {
-                    $report->score_team1 = ($report->reporter_team_id == $match->team1_id) ? $scoreLeft : $scoreRight;
-                    $report->score_team2 = ($report->reporter_team_id == $match->team1_id) ? $scoreRight : $scoreLeft;
-                    $report->status = 'APPROVED';
-                    $report->save();
-
-                    $match->team1_score = $report->score_team1;
-                    $match->team2_score = $report->score_team2;
-                    $match->status = 'finished';
-                    $match->winner_id = $report->reporter_team_id;
-                    $match->save();
-
-                    $this->advanceWinner($match);
-
-                    \App\Models\MatchReport::where('bracket_id', $match->id)
-                        ->where('id', '!=', $report->id)
-                        ->where('status', 'PENDING')
-                        ->update(['status' => 'REJECTED']);
-
-                    DB::commit();
-                    return true;
-                } catch (\Exception $eEx) {
-                    DB::rollBack();
-                    throw $eEx;
-                }
-            }
-
-            return false;
+            return ($report->ai_status === 'SUCCESS');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("AI Report Verification failed: " . $e->getMessage());
             $report->ai_status = 'FAILED';

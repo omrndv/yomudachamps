@@ -248,7 +248,15 @@
                                             </form>
                                         </div>
                                     @else
-                                        <span class="text-muted small">Selesai diperiksa</span>
+                                        <div class="d-inline-flex gap-1.5 align-items-center">
+                                            <span class="text-secondary small me-1">Selesai</span>
+                                            <form action="{{ route('admin.match-report.rollback', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan verifikasi laporan ini? Bagan pertandingan akan di-reset kembali!')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-outline-warning btn-sm px-2.5 py-1 fw-bold rounded-pill shadow-sm" style="font-size: 0.68rem;">
+                                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>

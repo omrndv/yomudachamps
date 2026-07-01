@@ -162,6 +162,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::get('/dashboard/{season_id}/match-reports', [\App\Http\Controllers\BracketController::class, 'adminMatchReports'])->name('admin.season.match-reports');
             Route::post('/match-report/approve/{id}', [\App\Http\Controllers\BracketController::class, 'approveMatchReport'])->name('admin.match-report.approve');
             Route::post('/match-report/reject/{id}', [\App\Http\Controllers\BracketController::class, 'rejectMatchReport'])->name('admin.match-report.reject');
+            Route::post('/match-report/rollback/{id}', [\App\Http\Controllers\BracketController::class, 'rollbackMatchReport'])->name('admin.match-report.rollback');
             Route::post('/dashboard/{season_id}/match-reports/clear-all', [\App\Http\Controllers\BracketController::class, 'clearAllMatchReports'])->name('admin.season.match-reports.clear-all');
             Route::get('/dashboard/{season_id}/match-reports/poll', [\App\Http\Controllers\BracketController::class, 'pollMatchReports'])->name('admin.season.match-reports.poll');
             
