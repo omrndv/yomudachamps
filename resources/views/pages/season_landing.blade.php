@@ -532,7 +532,7 @@
                         <div class="menu-icon-wrapper">
                             <i class="bi bi-diagram-3-fill"></i>
                         </div>
-                        <span>Lihat Bagan Bermain</span>
+                        <span>Lihat Bagan / Musuh Bermain</span>
                     </div>
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </a>
