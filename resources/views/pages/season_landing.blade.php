@@ -687,6 +687,17 @@
                                 <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes"></iframe>
                             </div>
                         @else
+                            <!-- PDF Zoom Control Bar -->
+                            <div class="d-flex align-items-center justify-content-center gap-3 mb-3 p-2 rounded-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <button type="button" class="btn btn-outline-warning btn-sm rounded-circle d-flex align-items-center justify-content-center" id="pdf-zoom-out" style="width: 32px; height: 32px; padding: 0;">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <span class="small fw-bold text-warning" id="pdf-zoom-level" style="min-width: 55px; text-align: center;">100%</span>
+                                <button type="button" class="btn btn-outline-warning btn-sm rounded-circle d-flex align-items-center justify-content-center" id="pdf-zoom-in" style="width: 32px; height: 32px; padding: 0;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            
                             <!-- PDF.js Canvas Render for direct PDF files (gives perfect scrolling & page controls inside modal on both desktop and mobile) -->
                             <div id="pdf-viewer-container" class="rounded-4 overflow-auto shadow-lg border border-secondary border-opacity-20 p-2" style="height: 60vh; min-height: 400px; max-height: 580px; background-color: #2a2a30;">
                                 <div class="text-center py-5 text-secondary" id="pdf-loader">
@@ -1293,6 +1304,41 @@
 
             const modalRulesEl = document.getElementById('modalRules');
             let pdfLoaded = false;
+            let currentScale = window.innerWidth < 768 ? 1.0 : 1.3;
+            let pagesObjects = [];
+
+            function renderPages() {
+                const container = document.getElementById('pdf-viewer-container');
+                if (!container) return;
+
+                // Clear previous canvases
+                container.querySelectorAll('canvas').forEach(c => c.remove());
+
+                // Update zoom label
+                const zoomLabel = document.getElementById('pdf-zoom-level');
+                if (zoomLabel) {
+                    zoomLabel.textContent = Math.round(currentScale * 100) + '%';
+                }
+
+                pagesObjects.forEach((page, index) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'w-100 mb-3 rounded shadow-sm d-block mx-auto';
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.height = 'auto';
+                    container.appendChild(canvas);
+
+                    const viewport = page.getViewport({ scale: currentScale });
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                });
+            }
 
             if (modalRulesEl) {
                 modalRulesEl.addEventListener('shown.bs.modal', function () {
@@ -1305,30 +1351,21 @@
                     if (!container) return;
 
                     pdfjsLib.getDocument(url).promise.then(pdf => {
-                        if (loader) loader.remove();
                         pdfLoaded = true;
+                        
+                        let pagesFetched = 0;
+                        pagesObjects = [];
 
-                        // Render pages sequentially
+                        // Fetch pages sequentially to maintain order, then render
                         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            const canvas = document.createElement('canvas');
-                            canvas.className = 'w-100 mb-3 rounded shadow-sm d-block mx-auto';
-                            canvas.style.maxWidth = '100%';
-                            canvas.style.height = 'auto';
-                            container.appendChild(canvas);
-
                             pdf.getPage(pageNum).then(page => {
-                                // Crisp render scale
-                                const scale = window.innerWidth < 768 ? 1.1 : 1.5;
-                                const viewport = page.getViewport({ scale: scale });
-                                const context = canvas.getContext('2d');
-                                canvas.height = viewport.height;
-                                canvas.width = viewport.width;
+                                pagesObjects[pageNum - 1] = page;
+                                pagesFetched++;
 
-                                const renderContext = {
-                                    canvasContext: context,
-                                    viewport: viewport
-                                };
-                                page.render(renderContext);
+                                if (pagesFetched === pdf.numPages) {
+                                    if (loader) loader.remove();
+                                    renderPages();
+                                }
                             });
                         }
                     }).catch(err => {
@@ -1338,6 +1375,26 @@
                         }
                     });
                 });
+
+                // Attach zoom button event listeners
+                const btnZoomIn = document.getElementById('pdf-zoom-in');
+                const btnZoomOut = document.getElementById('pdf-zoom-out');
+
+                if (btnZoomIn && btnZoomOut) {
+                    btnZoomIn.addEventListener('click', function () {
+                        if (currentScale < 2.5) {
+                            currentScale += 0.2;
+                            renderPages();
+                        }
+                    });
+
+                    btnZoomOut.addEventListener('click', function () {
+                        if (currentScale > 0.6) {
+                            currentScale -= 0.2;
+                            renderPages();
+                        }
+                    });
+                }
             }
         });
     </script>
