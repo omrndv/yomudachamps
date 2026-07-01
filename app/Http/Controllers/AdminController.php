@@ -2448,8 +2448,9 @@ class AdminController extends Controller
                 ];
             });
 
-            // 2. Compile Teams Context (grouped by team name to keep token size low but highly informative)
+            // 2. Compile Teams Context (sorted by newest DESC to ensure recent data is included)
             $teamsRaw = \App\Models\Team::select('name', 'season_id', 'status', 'created_at', 'is_solo_team')
+                ->orderBy('created_at', 'desc')
                 ->get();
             
             $teamsBySeason = [];
@@ -2469,7 +2470,9 @@ class AdminController extends Controller
 
             // 4. Compile Finance Summary Context
             $financeSummary = [
-                'total_income' => \App\Models\Team::where('status', 'PAID')->sum('amount'),
+                'total_income' => \App\Models\Team::where('status', 'PAID')->with('season')->get()->sum(function($t) {
+                    return $t->season->price ?? 0;
+                }),
                 'total_transactions' => \App\Models\Team::count(),
                 'paid_transactions' => \App\Models\Team::where('status', 'PAID')->count()
             ];
