@@ -1322,7 +1322,7 @@
 
                 pagesObjects.forEach((page, index) => {
                     const canvas = document.createElement('canvas');
-                    canvas.className = 'w-100 mb-3 rounded shadow-sm d-block mx-auto';
+                    canvas.className = 'mb-3 rounded shadow-sm d-block mx-auto';
                     canvas.style.maxWidth = '100%';
                     canvas.style.height = 'auto';
                     container.appendChild(canvas);
