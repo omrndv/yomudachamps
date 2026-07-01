@@ -674,11 +674,18 @@
                     
                     @php
                         $rulesLink = \App\Models\Setting::getVal('global_rules_link') ?: $season->rules_link;
+                        $embedLink = $rulesLink;
+                        if ($rulesLink && str_contains($rulesLink, 'drive.google.com')) {
+                            // Convert standard drive view link to /preview so Google Drive's native controls load inside the iframe
+                            $embedLink = str_replace(['/view', '/edit'], '/preview', $rulesLink);
+                        }
                     @endphp
                     @if($rulesLink)
-                        <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative">
-                            <!-- Google Docs Viewer to render PDF/Doc directly on site -->
-                            <iframe src="https://docs.google.com/viewer?url={{ urlencode($rulesLink) }}&embedded=true" style="width: 100%; height: 100%; border: none;"></iframe>
+                        <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="-webkit-overflow-scrolling: touch; overflow-y: auto;">
+                            <!-- Native PDF embed / Google Drive preview reader with full page controls -->
+                            <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes">
+                                <p>Browser Anda tidak mendukung preview PDF. Silakan klik tombol di bawah untuk mengunduh.</p>
+                            </iframe>
                         </div>
                         <div class="d-flex justify-content-end mt-3">
                             <a href="{{ $rulesLink }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
