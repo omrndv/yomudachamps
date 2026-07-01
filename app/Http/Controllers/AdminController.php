@@ -2413,4 +2413,126 @@ class AdminController extends Controller
             ]);
         }
     }
+
+    /**
+     * Admin AI Assistant RAG Chatbot
+     */
+    public function adminChatWithAI(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string'
+        ]);
+
+        $apiKey = \App\Models\Setting::getVal('gemini_api_key');
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'reply' => "Kunci API Gemini belum diatur di halaman Pengaturan. Silakan isi terlebih dahulu."
+            ]);
+        }
+
+        try {
+            // 1. Compile Seasons Context
+            $seasons = \App\Models\Season::withCount(['teams' => function($q) {
+                $q->where('status', 'PAID');
+            }])->get()->map(function($s) {
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'status' => $s->status,
+                    'max_slots' => $s->slot,
+                    'price' => $s->price,
+                    'prize_pool' => $s->prize_pool,
+                    'registered_paid_teams' => $s->teams_count,
+                    'is_open' => $s->is_open ? 'YES' : 'NO'
+                ];
+            });
+
+            // 2. Compile Teams Context (grouped by team name to keep token size low but highly informative)
+            $teamsRaw = \App\Models\Team::select('name', 'season_id', 'status', 'created_at', 'is_solo_team')
+                ->get();
+            
+            $teamsBySeason = [];
+            foreach ($teamsRaw as $t) {
+                $seasonName = $seasons->firstWhere('id', $t->season_id)['name'] ?? "Season #{$t->season_id}";
+                $teamsBySeason[] = [
+                    'team_name' => $t->name,
+                    'season' => $seasonName,
+                    'status' => $t->status,
+                    'registered_at' => $t->created_at ? $t->created_at->format('Y-m-d H:i') : 'N/A',
+                    'type' => $t->is_solo_team ? 'SOLO' : 'SQUAD'
+                ];
+            }
+
+            // 3. Compile Solo Players Context
+            $solosCount = \App\Models\SoloPlayer::count();
+
+            // 4. Compile Finance Summary Context
+            $financeSummary = [
+                'total_income' => \App\Models\Team::where('status', 'PAID')->sum('amount'),
+                'total_transactions' => \App\Models\Team::count(),
+                'paid_transactions' => \App\Models\Team::where('status', 'PAID')->count()
+            ];
+
+            // Build system instructions
+            $systemPrompt = "You are Yomuda AI Admin Assistant, a powerful esports operations dashboard assistant. "
+                . "You have access to real-time database context. Your goal is to help the admin analyze tournament status, team histories, slots, and financials.\n\n"
+                . "DATABASE CONTEXT:\n"
+                . "=== SEASONS ===\n" . json_encode($seasons, JSON_PRETTY_PRINT) . "\n\n"
+                . "=== TEAM REGISTRATIONS ===\n" . json_encode(array_slice($teamsBySeason, 0, 1000), JSON_PRETTY_PRINT) . "\n\n" // Cap at 1000 to prevent overflow
+                . "=== SOLO PLAYERS ===\nTotal Solo Players Registered: " . $solosCount . "\n\n"
+                . "=== FINANCIAL SUMMARY ===\n" . json_encode($financeSummary, JSON_PRETTY_PRINT) . "\n\n"
+                . "INSTRUCTIONS:\n"
+                . "1. Answer the admin's query accurately using the provided database context.\n"
+                . "2. If they ask about team history (e.g. 'team griffin registered in which seasons?'), scan all registrations and list them clearly with dates, seasons, and statuses.\n"
+                . "3. If they ask about slot predictions or fill times, check current registrations vs max slots of the active seasons and provide a logical estimate based on creation dates.\n"
+                . "4. Respond in a helpful, analytical, and professional admin tone in Indonesian.\n"
+                . "5. Format the output with clear bullet points, bold tags, or Markdown tables to look highly premium and readable.";
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey;
+
+            $payload = [
+                'contents' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['text' => $systemPrompt . "\n\nAdmin Query: " . $request->message]
+                        ]
+                    ]
+                ]
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_TIMEOUT => 30
+            ]);
+
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if (!empty($error)) {
+                throw new \Exception("cURL Error: " . $error);
+            }
+
+            $resData = json_decode($response, true);
+            $reply = $resData['candidates'][0]['content']['parts'][0]['text'] ?? 'Maaf, saya gagal merumuskan jawaban.';
+
+            return response()->json([
+                'success' => true,
+                'reply' => $reply
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'reply' => "Gagal menghubungi asisten AI: " . $e->getMessage()
+            ]);
+        }
+    }
 }

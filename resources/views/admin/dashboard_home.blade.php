@@ -48,32 +48,34 @@
 
     {{-- Date Filter Bar --}}
     <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
-        <form action="{{ route('admin.dashboard.home') }}" method="GET" class="row g-2 align-items-center">
-            <div class="col-md-auto text-center text-md-start mb-2 mb-md-0">
+        <form action="{{ route('admin.dashboard.home') }}" method="GET" class="row g-3 align-items-center">
+            <div class="col-12 col-lg-auto text-center text-lg-start">
                 <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                     <i class="bi bi-calendar3 me-1 text-warning"></i> Rentang Waktu:
                 </span>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-sm-6 col-md-3 col-lg-2">
                 <div class="input-group input-group-sm rounded-3 overflow-hidden border border-light-subtle bg-light">
-                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.75rem;">Mulai</span>
-                    <input type="date" name="start_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $start_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px;">
+                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.7rem; padding: 0 8px;">Mulai</span>
+                    <input type="date" name="start_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $start_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px; padding-left: 4px;">
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-sm-6 col-md-3 col-lg-2">
                 <div class="input-group input-group-sm rounded-3 overflow-hidden border border-light-subtle bg-light">
-                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.75rem;">Selesai</span>
-                    <input type="date" name="end_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $end_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px;">
+                    <span class="input-group-text bg-light border-0 text-muted small" style="font-size: 0.7rem; padding: 0 8px;">Selesai</span>
+                    <input type="date" name="end_date" class="form-control border-0 bg-light text-dark shadow-none" value="{{ $end_date->format('Y-m-d') }}" style="font-size: 0.8rem; height: 34px; padding-left: 4px;">
                 </div>
             </div>
-            <div class="col-12 col-md-5 d-flex gap-2 justify-content-center justify-content-md-start mt-2 mt-md-0 ms-md-auto">
-                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-3 px-3 shadow-sm" style="height: 34px; font-size: 0.8rem;">
+            <div class="col-12 col-md-6 col-lg-auto d-flex gap-2 justify-content-center mt-2 mt-md-0">
+                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-3 px-3 shadow-sm" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
                     Filter Harian
                 </button>
-                <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-3 px-3 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem;">
+                <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-3 px-3 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
                     Reset (7 Hari)
                 </a>
-                <button type="button" class="btn btn-success btn-sm fw-bold text-white rounded-3 px-3 shadow-sm d-flex align-items-center gap-1.5 ms-md-auto" style="height: 34px; font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#modalAiRecapWinners">
+            </div>
+            <div class="col-12 col-md-6 col-lg-auto ms-lg-auto d-flex justify-content-center mt-2 mt-lg-0">
+                <button type="button" class="btn btn-success btn-sm fw-bold text-white rounded-3 px-3.5 shadow-sm d-flex align-items-center justify-content-center gap-1.5 w-100 w-sm-auto" style="height: 34px; font-size: 0.8rem; white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#modalAiRecapWinners">
                     <i class="bi bi-stars"></i> AI Rekap Pemenang
                 </button>
             </div>

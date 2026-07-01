@@ -140,6 +140,7 @@ Route::middleware('admin.auth')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
         Route::get('/ai-recap-winners', [AdminController::class, 'aiRecapWinners'])->name('admin.ai.recap_winners');
+        Route::post('/ai-chat', [AdminController::class, 'adminChatWithAI'])->name('admin.ai.chat');
         
         // Seasons
         Route::middleware('permission:seasons')->group(function () {
