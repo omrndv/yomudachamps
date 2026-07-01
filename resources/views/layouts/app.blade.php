@@ -216,38 +216,53 @@
         </button>
 
         <!-- Chat Window -->
-        <div id="ai-chat-window" class="card shadow-lg border-0 rounded-4 d-none" style="width: 360px; height: 460px; position: absolute; bottom: 70px; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); transition: all 0.3s ease;">
+        <div id="ai-chat-window" class="card shadow-2xl border-0 rounded-4 d-none" style="width: 380px; height: 500px; position: absolute; bottom: 70px; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8) !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: scale(0.95); opacity: 0;">
             <!-- Header -->
-            <div class="card-header bg-dark text-white rounded-top-4 p-3 d-flex align-items-center justify-content-between border-0">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+            <div class="card-header bg-dark text-white rounded-top-4 p-3.5 d-flex align-items-center justify-content-between border-0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
                         <i class="bi bi-robot text-dark fs-5"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-0 text-white" style="font-size: 0.9rem;">Yomuda AI Assistant</h6>
-                        <span class="text-success small fw-semibold" style="font-size: 0.7rem;"><i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i> Online 24/7</span>
+                        <h6 class="fw-bold mb-0 text-white" style="font-size: 0.92rem; letter-spacing: -0.3px;">Yomuda AI Assistant</h6>
+                        <span class="text-success small fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; opacity: 0.85;">
+                            <span class="d-inline-block bg-success rounded-circle" style="width: 6px; height: 6px; animation: pulse 1.5s infinite;"></span> Online 24/7
+                        </span>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white shadow-none" id="ai-chat-close-btn" style="font-size: 0.8rem;"></button>
+                <div class="d-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-link text-white-50 p-1.5 rounded-3 hover-bg-white-10" id="ai-chat-clear-btn" title="Hapus riwayat chat">
+                        <i class="bi bi-trash3" style="font-size: 0.9rem;"></i>
+                    </button>
+                    <button type="button" class="btn-close btn-close-white shadow-none" id="ai-chat-close-btn" style="font-size: 0.8rem;"></button>
+                </div>
             </div>
             <!-- Body / Message Area -->
-            <div class="card-body p-3 overflow-y-auto d-flex flex-column gap-2" id="ai-chat-messages" style="height: 300px; font-size: 0.82rem;">
+            <div class="card-body p-3.5 overflow-y-auto d-flex flex-column gap-3" id="ai-chat-messages" style="height: 360px; font-size: 0.85rem; background: #fafafb;">
                 <!-- Welcome Message -->
-                <div class="d-flex gap-2">
-                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
-                        <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                <div class="d-flex gap-2.5 ai-message">
+                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
+                        <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                     </div>
-                    <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75">
-                        Halo Bro/Sist! Selamat datang di Yomuda Championship. Ada yang bisa saya bantu terkait jadwal, biaya pendaftaran, slot turnamen, atau kontak admin?
+                    <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
+                        Halo Bro/Sist! Saya <strong>Yomuda AI</strong> 🚀<br><br>Ada yang bisa saya bantu terkait jadwal turnamen, biaya pendaftaran, aturan tanding, atau kontak admin?
+                        
+                        <!-- Quick Prompts inside welcome message -->
+                        <div class="d-flex flex-wrap gap-1.5 mt-3" id="ai-quick-prompts">
+                            <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Info Turnamen Aktif">🏆 Info Turnamen</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Aturan Turnamen">📖 Aturan Tanding</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Hubungi Admin">📱 Kontak Admin</button>
+                        </div>
                     </div>
                 </div>
             </div>
             <!-- Footer / Input Form -->
-            <div class="card-footer p-2 bg-white border-top border-light rounded-bottom-4">
+            <div class="card-footer p-2.5 bg-white border-top border-light rounded-bottom-4">
                 <form id="ai-chat-form" class="input-group input-group-sm">
-                    <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 38px; font-size: 16px !important;">
-                    <button type="submit" class="btn btn-warning rounded-pill-end px-3 shadow-none d-flex align-items-center justify-content-center" style="height: 38px;">
-                        <i class="bi bi-send-fill text-dark fs-6"></i>
+                    <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3.5 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 42px; font-size: 16px !important; outline: none;">
+                    <button type="submit" class="btn btn-warning rounded-pill-end px-3.5 shadow-none d-flex align-items-center justify-content-center" style="height: 42px; background: #ffc107; border-color: #ffc107;">
+                        <i class="bi bi-send-fill text-dark fs-5" id="ai-send-icon"></i>
+                        <span class="spinner-border spinner-border-sm text-dark d-none" id="ai-send-spinner" role="status"></span>
                     </button>
                 </form>
             </div>
@@ -257,6 +272,8 @@
     <style>
         #ai-chat-toggle {
             position: relative;
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
+            border-color: #ffb300 !important;
         }
         #ai-chat-toggle:hover {
             transform: scale(1.1) rotate(5deg);
@@ -280,7 +297,7 @@
                 opacity: 0.8;
             }
             100% {
-                transform: scale(1.35);
+                transform: scale(1.4);
                 opacity: 0;
             }
         }
@@ -288,7 +305,7 @@
             width: 4px;
         }
         #ai-chat-messages::-webkit-scrollbar-thumb {
-            background-color: rgba(0,0,0,0.1);
+            background-color: rgba(0,0,0,0.08);
             border-radius: 4px;
         }
         .max-w-75 {
@@ -296,6 +313,16 @@
         }
         #ai-chat-input {
             font-size: 16px !important;
+        }
+        #ai-chat-input:focus {
+            background: #fff !important;
+            border: 1px solid rgba(255, 193, 7, 0.4) !important;
+        }
+        .hover-bg-white-10:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .shadow-xs {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         @media (max-width: 575.98px) {
             #ai-chat-window {
@@ -312,17 +339,35 @@
         document.addEventListener('DOMContentLoaded', function () {
             const toggleBtn = document.getElementById('ai-chat-toggle');
             const closeBtn = document.getElementById('ai-chat-close-btn');
+            const clearBtn = document.getElementById('ai-chat-clear-btn');
             const chatWindow = document.getElementById('ai-chat-window');
             const chatMessages = document.getElementById('ai-chat-messages');
             const chatForm = document.getElementById('ai-chat-form');
             const chatInput = document.getElementById('ai-chat-input');
             const aiIcon = document.getElementById('ai-icon');
             const aiCloseIcon = document.getElementById('ai-close-icon');
+            const sendIcon = document.getElementById('ai-send-icon');
+            const sendSpinner = document.getElementById('ai-send-spinner');
 
             function toggleChat() {
-                chatWindow.classList.toggle('d-none');
-                aiIcon.classList.toggle('d-none');
-                aiCloseIcon.classList.toggle('d-none');
+                if (chatWindow.classList.contains('d-none')) {
+                    chatWindow.classList.remove('d-none');
+                    setTimeout(() => {
+                        chatWindow.style.opacity = '1';
+                        chatWindow.style.transform = 'scale(1)';
+                    }, 50);
+                    aiIcon.classList.add('d-none');
+                    aiCloseIcon.classList.remove('d-none');
+                    chatInput.focus();
+                } else {
+                    chatWindow.style.opacity = '0';
+                    chatWindow.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        chatWindow.classList.add('d-none');
+                    }, 250);
+                    aiIcon.classList.remove('d-none');
+                    aiCloseIcon.classList.add('d-none');
+                }
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
@@ -331,6 +376,41 @@
                 closeBtn.addEventListener('click', toggleChat);
             }
 
+            function attachPromptHandlers() {
+                const promptBtns = document.querySelectorAll('#ai-quick-prompts button');
+                promptBtns.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        chatInput.value = btn.getAttribute('data-prompt');
+                        chatForm.dispatchEvent(new Event('submit'));
+                    });
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (confirm('Hapus seluruh riwayat chat dengan Yomuda AI?')) {
+                        chatMessages.innerHTML = `
+                            <div class="d-flex gap-2.5 ai-message">
+                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
+                                    <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
+                                </div>
+                                <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
+                                    Riwayat chat telah di-reset 🔄<br><br>Ada yang bisa saya bantu lagi Bro/Sist?
+                                    <div class="d-flex flex-wrap gap-1.5 mt-3" id="ai-quick-prompts">
+                                        <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Info Turnamen Aktif">🏆 Info Turnamen</button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Aturan Turnamen">📖 Aturan Tanding</button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Hubungi Admin">📱 Kontak Admin</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        attachPromptHandlers();
+                    }
+                });
+            }
+
+            attachPromptHandlers();
+
             if (chatForm) {
                 chatForm.addEventListener('submit', function (e) {
                     e.preventDefault();
@@ -338,11 +418,19 @@
                     if (!text) return;
 
                     chatInput.value = '';
+                    
+                    const qp = document.getElementById('ai-quick-prompts');
+                    if (qp) qp.classList.add('d-none');
+
+                    if (sendIcon && sendSpinner) {
+                        sendIcon.classList.add('d-none');
+                        sendSpinner.classList.remove('d-none');
+                    }
 
                     const userMsg = document.createElement('div');
                     userMsg.className = 'd-flex justify-content-end mb-1';
                     userMsg.innerHTML = `
-                        <div class="bg-warning bg-opacity-25 p-2.5 rounded-3 rounded-end-0 text-dark max-w-75">
+                        <div class="bg-warning bg-opacity-25 border border-warning border-opacity-10 p-3 rounded-4 rounded-end-0 text-dark max-w-75 shadow-xs leading-relaxed">
                             ${text}
                         </div>
                     `;
@@ -353,11 +441,11 @@
                     loader.className = 'd-flex gap-2 align-items-center text-muted mb-1';
                     loader.id = 'ai-typing-indicator';
                     loader.innerHTML = `
-                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
-                            <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
+                            <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                         </div>
                         <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
-                        <span class="small italic">Yomuda AI sedang mengetik...</span>
+                        <span class="small italic" style="font-size: 0.75rem;">Yomuda AI sedang mengetik...</span>
                     `;
                     chatMessages.appendChild(loader);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -372,11 +460,16 @@
                     })
                     .then(res => res.json())
                     .then(data => {
+                        if (sendIcon && sendSpinner) {
+                            sendIcon.classList.remove('d-none');
+                            sendSpinner.classList.add('d-none');
+                        }
+
                         const ind = document.getElementById('ai-typing-indicator');
                         if (ind) ind.remove();
 
                         const aiReply = document.createElement('div');
-                        aiReply.className = 'd-flex gap-2 mb-1';
+                        aiReply.className = 'd-flex gap-2.5 mb-1';
                         
                         let formattedText = data.reply || 'Maaf, saya tidak mengerti.';
                         formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" class="text-primary fw-semibold">$1</a>');
@@ -386,10 +479,10 @@
                         });
 
                         aiReply.innerHTML = `
-                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
-                                <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
+                                <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                             </div>
-                            <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75" style="white-space: pre-line;">
+                            <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed" style="white-space: pre-line;">
                                 ${formattedText}
                             </div>
                         `;
@@ -397,18 +490,22 @@
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                     })
                     .catch(err => {
-                        console.error(err);
+                        if (sendIcon && sendSpinner) {
+                            sendIcon.classList.remove('d-none');
+                            sendSpinner.classList.add('d-none');
+                        }
+
                         const ind = document.getElementById('ai-typing-indicator');
                         if (ind) ind.remove();
 
                         const aiReply = document.createElement('div');
-                        aiReply.className = 'd-flex gap-2 mb-1';
+                        aiReply.className = 'd-flex gap-2.5 mb-1';
                         aiReply.innerHTML = `
-                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
-                                <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
+                                <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                             </div>
-                            <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75">
-                                Koneksi terputus. Silakan tanyakan langsung ke admin WhatsApp.
+                            <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
+                                Koneksi terputus. Silakan tanyakan langsung ke admin WhatsApp di <a href="https://wa.me/{{ $adminWa }}" target="_blank" class="text-primary fw-semibold">WhatsApp Admin</a>.
                             </div>
                         `;
                         chatMessages.appendChild(aiReply);

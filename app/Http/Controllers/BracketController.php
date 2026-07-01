@@ -1220,19 +1220,29 @@ class BracketController extends Controller
             'status' => 'PENDING'
         ]);
 
-        $aiApproved = $this->analyzeReportWithAI($report);
+        $response = response()->json([
+            'success' => true,
+            'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
+        ]);
 
-        if ($aiApproved) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Hore! Kemenangan Anda berhasil diverifikasi otomatis oleh AI Yomuda. Bagan turnamen telah diperbarui secara instan!'
-            ]);
+        if (function_exists('fastcgi_finish_request')) {
+            $response->send();
+            fastcgi_finish_request();
+            try {
+                $this->analyzeReportWithAI($report);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Background AI analysis error: " . $e->getMessage());
+            }
+            exit;
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Laporan skor berhasil dikirim! Menunggu verifikasi manual oleh panitia admin.'
-        ]);
+        try {
+            $this->analyzeReportWithAI($report);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Synchronous AI analysis fallback error: " . $e->getMessage());
+        }
+
+        return $response;
     }
 
     /**
