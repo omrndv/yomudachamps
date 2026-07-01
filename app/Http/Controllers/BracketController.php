@@ -1482,7 +1482,7 @@ class BracketController extends Controller
                     . "  \"notes\": \"Explanation of your findings\"\n"
                     . "}";
 
-            $url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
             $payload = [
                 'contents' => [
