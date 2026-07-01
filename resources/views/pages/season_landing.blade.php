@@ -644,8 +644,24 @@
     <!-- ---------------------------------------------------------------------- -->
     <!-- Modal Rules (Embedded Reader) -->
     <!-- ---------------------------------------------------------------------- -->
+    <style>
+        .rules-pdf-container {
+            width: 100%;
+            height: 65vh;
+            min-height: 450px;
+            max-height: 580px;
+            background-color: #ffffff;
+        }
+        @media (max-width: 768px) {
+            .rules-pdf-container {
+                height: 50vh;
+                min-height: 300px;
+            }
+        }
+    </style>
+
     <div class="modal fade" id="modalRules" tabindex="-1" aria-labelledby="modalRulesLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,122,0,0.25); border-radius: 20px; color: #fff;">
                 <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="modal-title fw-bold" id="modalRulesLabel"><i class="bi bi-file-earmark-ruled text-warning me-2"></i>Rules Turnamen</h5>
@@ -660,7 +676,7 @@
                         $rulesLink = \App\Models\Setting::getVal('global_rules_link') ?: $season->rules_link;
                     @endphp
                     @if($rulesLink)
-                        <div class="w-100 rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative" style="height: 580px; background-color: #ffffff;">
+                        <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative">
                             <!-- Google Docs Viewer to render PDF/Doc directly on site -->
                             <iframe src="https://docs.google.com/viewer?url={{ urlencode($rulesLink) }}&embedded=true" style="width: 100%; height: 100%; border: none;"></iframe>
                         </div>
