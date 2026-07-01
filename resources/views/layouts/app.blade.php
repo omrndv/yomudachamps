@@ -472,6 +472,10 @@
                         aiReply.className = 'd-flex gap-2.5 mb-1';
                         
                         let formattedText = data.reply || 'Maaf, saya tidak mengerti.';
+                        // Convert bold markdown **text** to <strong>text</strong>
+                        formattedText = formattedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                        // Convert bullet list * to bullet points •
+                        formattedText = formattedText.replace(/^\s*\*\s+(.+)$/gm, '• $1');
                         formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" class="text-primary fw-semibold">$1</a>');
                         formattedText = formattedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
                             if (url.includes('class="text-primary"')) return url;
