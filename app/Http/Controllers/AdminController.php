@@ -2525,7 +2525,22 @@ class AdminController extends Controller
             }
 
             $resData = json_decode($response, true);
-            $reply = $resData['candidates'][0]['content']['parts'][0]['text'] ?? 'Maaf, saya gagal merumuskan jawaban.';
+            
+            if (isset($resData['error'])) {
+                \Illuminate\Support\Facades\Log::error("Gemini Admin AI API Error: " . json_encode($resData['error']));
+                return response()->json([
+                    'success' => false,
+                    'reply' => "Gemini API Error: " . ($resData['error']['message'] ?? 'Unknown error')
+                ]);
+            }
+
+            $reply = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            if (!$reply) {
+                // Check if blocked by safety ratings
+                $finishReason = $resData['candidates'][0]['finishReason'] ?? 'Unknown reason';
+                \Illuminate\Support\Facades\Log::warning("Gemini Admin AI response blocked or empty. Finish Reason: {$finishReason}", ['api_response' => $resData]);
+                $reply = "Maaf, saya tidak dapat merumuskan jawaban untuk pertanyaan tersebut karena diblokir oleh sistem keamanan Google (Reason: {$finishReason}). Coba ubah sedikit pertanyaan Anda.";
+            }
 
             return response()->json([
                 'success' => true,
