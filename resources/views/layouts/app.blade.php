@@ -505,7 +505,7 @@
                                 <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
                             </div>
                             <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
-                                Koneksi terputus. Silakan tanyakan langsung ke admin WhatsApp di <a href="https://wa.me/{{ $adminWa }}" target="_blank" class="text-primary fw-semibold">WhatsApp Admin</a>.
+                                Koneksi terputus. Silakan tanyakan langsung ke admin WhatsApp di <a href="https://wa.me/{{ \App\Models\Setting::getVal('admin_wa', '0851-2261-6191') }}" target="_blank" class="text-primary fw-semibold">WhatsApp Admin</a>.
                             </div>
                         `;
                         chatMessages.appendChild(aiReply);
