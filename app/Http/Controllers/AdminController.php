@@ -2364,7 +2364,7 @@ class AdminController extends Controller
                     . "Write the response in Indonesian with a friendly, high-energy esports tone.\n"
                     . "Use Markdown for formatting, including lists, tables, or bold text to make it read beautifully. Do not include HTML tags in the output.";
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" . $apiKey;
 
             $payload = [
                 'contents' => [
