@@ -207,6 +207,180 @@
     </script>
     @endif
 
+    {{-- FLOATING AI CHAT WIDGET --}}
+    <div id="yomuda-ai-chat" class="position-fixed bottom-0 end-0 m-3 m-md-4" style="z-index: 2000; font-family: 'Outfit', sans-serif;">
+        <!-- Chat Toggle Button -->
+        <button id="ai-chat-toggle" class="btn btn-warning rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border: 2px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;">
+            <i class="bi bi-robot fs-3 text-dark" id="ai-icon"></i>
+            <i class="bi bi-x-lg fs-4 text-dark d-none" id="ai-close-icon"></i>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="card shadow-lg border-0 rounded-4 d-none" style="width: 360px; height: 460px; position: absolute; bottom: 70px; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); transition: all 0.3s ease;">
+            <!-- Header -->
+            <div class="card-header bg-dark text-white rounded-top-4 p-3 d-flex align-items-center justify-content-between border-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-robot text-dark fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-white" style="font-size: 0.9rem;">Yomuda AI Assistant</h6>
+                        <span class="text-success small fw-semibold" style="font-size: 0.7rem;"><i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i> Online 24/7</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" id="ai-chat-close-btn" style="font-size: 0.8rem;"></button>
+            </div>
+            <!-- Body / Message Area -->
+            <div class="card-body p-3 overflow-y-auto d-flex flex-column gap-2" id="ai-chat-messages" style="height: 300px; font-size: 0.82rem;">
+                <!-- Welcome Message -->
+                <div class="d-flex gap-2">
+                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+                        <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75">
+                        Halo Bro/Sist! Selamat datang di Yomuda Championship. Ada yang bisa saya bantu terkait jadwal, biaya pendaftaran, slot turnamen, atau kontak admin?
+                    </div>
+                </div>
+            </div>
+            <!-- Footer / Input Form -->
+            <div class="card-footer p-2 bg-white border-top border-light rounded-bottom-4">
+                <form id="ai-chat-form" class="input-group input-group-sm">
+                    <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 38px; font-size: 0.82rem;">
+                    <button type="submit" class="btn btn-warning rounded-pill-end px-3 shadow-none d-flex align-items-center justify-content-center" style="height: 38px;">
+                        <i class="bi bi-send-fill text-dark fs-6"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #ai-chat-toggle:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        #ai-chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        #ai-chat-messages::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        .max-w-75 {
+            max-width: 80%;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('ai-chat-toggle');
+            const closeBtn = document.getElementById('ai-chat-close-btn');
+            const chatWindow = document.getElementById('ai-chat-window');
+            const chatMessages = document.getElementById('ai-chat-messages');
+            const chatForm = document.getElementById('ai-chat-form');
+            const chatInput = document.getElementById('ai-chat-input');
+            const aiIcon = document.getElementById('ai-icon');
+            const aiCloseIcon = document.getElementById('ai-close-icon');
+
+            function toggleChat() {
+                chatWindow.classList.toggle('d-none');
+                aiIcon.classList.toggle('d-none');
+                aiCloseIcon.classList.toggle('d-none');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            if (toggleBtn && closeBtn && chatWindow) {
+                toggleBtn.addEventListener('click', toggleChat);
+                closeBtn.addEventListener('click', toggleChat);
+            }
+
+            if (chatForm) {
+                chatForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const text = chatInput.value.trim();
+                    if (!text) return;
+
+                    chatInput.value = '';
+
+                    const userMsg = document.createElement('div');
+                    userMsg.className = 'd-flex justify-content-end mb-1';
+                    userMsg.innerHTML = `
+                        <div class="bg-warning bg-opacity-25 p-2.5 rounded-3 rounded-end-0 text-dark max-w-75">
+                            ${text}
+                        </div>
+                    `;
+                    chatMessages.appendChild(userMsg);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    const loader = document.createElement('div');
+                    loader.className = 'd-flex gap-2 align-items-center text-muted mb-1';
+                    loader.id = 'ai-typing-indicator';
+                    loader.innerHTML = `
+                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+                            <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                        </div>
+                        <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                        <span class="small italic">Yomuda AI sedang mengetik...</span>
+                    `;
+                    chatMessages.appendChild(loader);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    fetch("{{ route('ai.chat') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ message: text })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const ind = document.getElementById('ai-typing-indicator');
+                        if (ind) ind.remove();
+
+                        const aiReply = document.createElement('div');
+                        aiReply.className = 'd-flex gap-2 mb-1';
+                        
+                        let formattedText = data.reply || 'Maaf, saya tidak mengerti.';
+                        formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" class="text-primary fw-semibold">$1</a>');
+                        formattedText = formattedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+                            if (url.includes('class="text-primary"')) return url;
+                            return `<a href="${url}" target="_blank" class="text-primary fw-semibold">${url}</a>`;
+                        });
+
+                        aiReply.innerHTML = `
+                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+                                <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                            </div>
+                            <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75" style="white-space: pre-line;">
+                                ${formattedText}
+                            </div>
+                        `;
+                        chatMessages.appendChild(aiReply);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        const ind = document.getElementById('ai-typing-indicator');
+                        if (ind) ind.remove();
+
+                        const aiReply = document.createElement('div');
+                        aiReply.className = 'd-flex gap-2 mb-1';
+                        aiReply.innerHTML = `
+                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+                                <i class="bi bi-robot text-dark" style="font-size: 0.75rem;"></i>
+                            </div>
+                            <div class="bg-light p-2.5 rounded-3 rounded-start-0 text-dark max-w-75">
+                                Koneksi terputus. Silakan tanyakan langsung ke admin WhatsApp.
+                            </div>
+                        `;
+                        chatMessages.appendChild(aiReply);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
+                });
+            }
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

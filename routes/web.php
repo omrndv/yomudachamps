@@ -116,6 +116,8 @@ Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->middleware('thro
 
 Route::get('/faq', [HomeController::class, 'faqs'])->name('faq.index');
 
+Route::post('/ai-chat', [HomeController::class, 'aiChat'])->name('ai.chat');
+
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');

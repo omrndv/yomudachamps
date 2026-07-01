@@ -380,4 +380,109 @@ class HomeController extends Controller
 
         return redirect('/')->with('error', 'Sertifikat untuk season tersebut belum siap dibagikan / belum dirilis!');
     }
+
+    public function aiChat(Request $request)
+    {
+        $message = $request->input('message');
+        if (empty($message)) {
+            return response()->json(['success' => false, 'reply' => 'Pesan tidak boleh kosong.']);
+        }
+
+        $activeSeasons = \App\Models\Season::where('status', 'ACTIVE')->get();
+        $adminWa = \App\Models\Setting::getVal('admin_wa', '628xxx');
+        $rulesLink = \App\Models\Setting::getVal('global_rules_link', '#');
+
+        $context = "INFORMASI WEBSITE YOMUDASCHAMPS SAAT INI:\n";
+        $context .= "- Kontak Admin WhatsApp: https://wa.me/{$adminWa} ({$adminWa})\n";
+        $context .= "- Link Aturan Turnamen: {$rulesLink}\n\n";
+
+        if ($activeSeasons->isNotEmpty()) {
+            $context .= "TURNAMEN AKTIF/PENDAFTARAN DIBUKA:\n";
+            foreach ($activeSeasons as $s) {
+                $slotsFilled = \App\Models\Team::where('season_id', $s->id)->where('status', 'PAID')->count();
+                $slotsLeft = max(0, $s->slots - $slotsFilled);
+
+                $context .= "- Nama Season: {$s->name}\n";
+                $context .= "  Biaya Pendaftaran: Rp " . number_format($s->price, 0, ',', '.') . "\n";
+                $context .= "  Total Slot: {$s->slots} Tim\n";
+                $context .= "  Sisa Slot: {$slotsLeft} Tim\n";
+                $context .= "  Syarat Pendaftaran: Tim harus melakukan pembayaran lunas via Tripay di website.\n\n";
+            }
+        } else {
+            $context .= "Saat ini tidak ada turnamen/season aktif yang membuka pendaftaran.\n\n";
+        }
+
+        $prompt = "You are Yomuda AI, a friendly and helpful 24/7 virtual assistant for Yomuda Championship (an esports platform for Mobile Legends tournaments).\n"
+                . "Your goal is to answer player questions accurately using only the provided context. If the answer is not in the context, guide them to contact the admin via the WhatsApp link provided.\n\n"
+                . "Context:\n{$context}\n\n"
+                . "User Question: \"{$message}\"\n\n"
+                . "Instructions:\n"
+                . "- Answer in Indonesian with a friendly, professional, and slightly gamer-friendly tone (use 'kamu', 'tim kamu', 'Halo Bro/Sist').\n"
+                . "- Keep it concise. Emphasize WhatsApp link if they need direct help.\n"
+                . "- Answer directly. Do not make up information.";
+
+        try {
+            $apiKey = \App\Models\Setting::getVal('gemini_api_key', env('GEMINI_API_KEY'));
+            if (!$apiKey) {
+                return response()->json([
+                    'success' => true,
+                    'reply' => "Halo! Saya Yomuda AI. Maaf saat ini layanan AI sedang dinonaktifkan oleh administrator. Silakan hubungi langsung admin kami via WhatsApp di https://wa.me/{$adminWa} ya!"
+                ]);
+            }
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ]
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_TIMEOUT => 15
+            ]);
+
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if (!empty($error)) {
+                throw new \Exception("cURL Error: " . $error);
+            }
+
+            $resData = json_decode($response, true);
+            
+            if (isset($resData['error'])) {
+                throw new \Exception($resData['error']['message'] ?? 'API Error');
+            }
+
+            $reply = $resData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            if (empty($reply)) {
+                throw new \Exception("Empty response from AI.");
+            }
+
+            return response()->json([
+                'success' => true,
+                'reply' => trim($reply)
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("AI Chatbot error: " . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'reply' => "Halo! Terjadi kendala saat menghubungi AI. Silakan tanyakan langsung ke admin kami melalui WhatsApp di https://wa.me/{$adminWa} ya! Kami siap membantu."
+            ]);
+        }
+    }
 }
