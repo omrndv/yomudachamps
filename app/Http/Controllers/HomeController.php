@@ -170,7 +170,7 @@ class HomeController extends Controller
             $channels[] = (object)[
                 'code' => 'IPAYMU_QRIS',
                 'name' => 'QRIS (iPaymu)',
-                'icon_url' => asset('images/qris-logo.png'),
+                'icon_url' => asset('images/qris-logo.svg'),
                 'active' => true,
             ];
         }
