@@ -106,10 +106,20 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
             <div class="row g-3 align-items-center">
                 {{-- Search Box --}}
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
-                        <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Cari nama tim untuk mencari & fokus ke bagan...">
+                        <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Cari nama tim...">
+                        <button class="btn btn-outline-warning text-dark btn-sm d-flex align-items-center gap-1 px-3 fw-bold border-start-0" type="button" id="toggleSearchModeBtn" style="font-size: 0.72rem;">
+                            <i class="bi bi-person-fill"></i> Nama
+                        </button>
+                    </div>
+                </div>
+                {{-- Dark/Light Theme Switch --}}
+                <div class="col-md-3 text-start">
+                    <div class="form-check form-switch ps-5">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBracketThemeSwitch" checked style="cursor: pointer;">
+                        <label class="form-check-label small fw-bold text-dark" for="toggleBracketThemeSwitch" style="cursor: pointer;">Tema Bagan Gelap (Dark)</label>
                     </div>
                 </div>
                 {{-- Bronze Match Toggle Switch --}}
@@ -122,22 +132,21 @@
                         }
                     @endphp
                     <div class="form-check form-switch ps-5">
-                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)">
-                        <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch">Aktifkan Bronze Match (Juara 3/4)</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)" style="cursor: pointer;">
+                        <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch" style="cursor: pointer;">Bronze Match (Juara 3/4)</label>
                     </div>
                 </div>
                 {{-- Info text --}}
-                <div class="col-md-4">
-                    <div class="d-flex align-items-center gap-2 small text-secondary">
-                        <i class="bi bi-info-circle text-warning fs-5"></i>
-                        <span><strong>Tips:</strong> Bagan terupdate secara <strong>LIVE</strong>. Di Babak 1, seret (drag) baris tim mana saja untuk swap posisi.</span>
-                    </div>
+                <div class="col-md-2 text-end">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-bold" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
+                        <i class="bi bi-clock-fill text-warning me-1"></i> Jam Babak
+                    </button>
                 </div>
             </div>
         </div>
 
         {{-- Bracket Tree Viewer --}}
-        <div class="card border-0 shadow-sm rounded-4" style="background-color: #ffffff; overflow: hidden;">
+        <div id="bracketCardContainer" class="card border-0 shadow-sm rounded-4 theme-dark" style="overflow: hidden; transition: all 0.3s ease;">
             <div class="round-headers-bar" id="adminRoundHeadersBar">
                 @php
                     $totalRounds = count($rounds);
@@ -208,13 +217,14 @@
                                 <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
                                      data-team-id="{{ $match->team1_id ?? '' }}"
                                      data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
+                                     data-team-wa="{{ $match->team1 ? strtolower($match->team1->wa_number) : '' }}"
                                      data-match-id="{{ $match->id }}"
                                      data-slot="1"
                                      data-round="{{ $match->round_number }}"
                                      @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                      <div class="team-info">
                                         @if($match->team1)
-                                            <span class="team-name text-dark fw-semibold">{{ $match->team1->name }}</span>
+                                            <span class="team-name fw-semibold">{{ $match->team1->name }}</span>
                                         @else
                                             <span class="team-name text-muted italic">Belum Ada Tim</span>
                                         @endif
@@ -226,13 +236,14 @@
                                 <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
                                      data-team-id="{{ $match->team2_id ?? '' }}"
                                      data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
+                                     data-team-wa="{{ $match->team2 ? strtolower($match->team2->wa_number) : '' }}"
                                      data-match-id="{{ $match->id }}"
                                      data-slot="2"
                                      data-round="{{ $match->round_number }}"
                                      @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                      <div class="team-info">
                                         @if($match->team2)
-                                            <span class="team-name text-dark fw-semibold">{{ $match->team2->name }}</span>
+                                            <span class="team-name fw-semibold">{{ $match->team2->name }}</span>
                                         @else
                                             @if($match->round_number === 1)
                                                 <span class="team-name text-success fw-bold">BYE (Lolos)</span>
@@ -283,12 +294,13 @@
                                     <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
                                          data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
                                          data-team-name="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->name) : '' }}"
+                                         data-team-wa="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->wa_number) : '' }}"
                                          data-match-id="{{ $bronzeMatch->id }}"
                                          data-slot="1"
                                          data-round="{{ $bronzeMatch->round_number }}">
                                          <div class="team-info">
                                             @if($bronzeMatch->team1)
-                                                <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team1->name }}</span>
+                                                <span class="team-name fw-semibold">{{ $bronzeMatch->team1->name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
@@ -300,12 +312,13 @@
                                     <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
                                          data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
                                          data-team-name="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->name) : '' }}"
+                                         data-team-wa="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->wa_number) : '' }}"
                                          data-match-id="{{ $bronzeMatch->id }}"
                                          data-slot="2"
                                          data-round="{{ $bronzeMatch->round_number }}">
                                          <div class="team-info">
                                             @if($bronzeMatch->team2)
-                                                <span class="team-name text-dark fw-semibold">{{ $bronzeMatch->team2->name }}</span>
+                                                <span class="team-name fw-semibold">{{ $bronzeMatch->team2->name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
@@ -350,6 +363,10 @@
                                     <div>
                                         <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
                                             {{ $match->team1->name }} <span class="text-secondary fw-normal">vs</span> {{ $match->team2->name }}
+                                        </div>
+                                        <div class="small text-muted mb-2" style="font-size: 0.75rem;">
+                                            WA Kapten 1: <code class="text-dark fw-bold">{{ $match->team1->wa_number ?? '-' }}</code> | 
+                                            WA Kapten 2: <code class="text-dark fw-bold">{{ $match->team2->wa_number ?? '-' }}</code>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 small text-secondary">
                                             <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
@@ -567,10 +584,17 @@
             <div class="modal-body p-4">
                 <p class="text-secondary small mb-3">Salin daftar tim lunas di bawah untuk di-import langsung ke Challonge (satu tim per baris) sebagai cadangan.</p>
                 <textarea class="form-control bg-light" id="teamsListArea" rows="10" readonly style="font-family: monospace; font-size: 0.85rem;">@php
+                    $added = [];
                     $babak1Matches = $brackets->where('round_number', 1)->sortBy('match_number');
                     foreach($babak1Matches as $m) {
-                        echo ($m->team1 ? $m->team1->name : 'BYE') . "\n";
-                        echo ($m->team2 ? $m->team2->name : 'BYE') . "\n";
+                        if ($m->team1 && !in_array($m->team1->name, $added)) {
+                            echo $m->team1->name . "\n";
+                            $added[] = $m->team1->name;
+                        }
+                        if ($m->team2 && !in_array($m->team2->name, $added)) {
+                            echo $m->team2->name . "\n";
+                            $added[] = $m->team2->name;
+                        }
                     }
                 @endphp</textarea>
             </div>
@@ -638,7 +662,8 @@
                     </div>
 
                 </div>
-                <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
+                <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4 d-flex align-items-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-bold rounded-pill me-auto" id="btnResetMatch">Reset Match</button>
                     <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill" data-bs-dismiss="modal">Tutup</button>
                     <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold rounded-pill shadow-sm" id="btnSaveMatch">Simpan Hasil</button>
                 </div>
@@ -947,6 +972,71 @@
         margin-bottom: 6px;
         text-align: center;
     }
+
+    /* ---------------------------------------------------- */
+    /* Theme Dark Styles for Bracket Container */
+    /* ---------------------------------------------------- */
+    #bracketCardContainer.theme-dark {
+        background-color: #09090b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    #bracketCardContainer.theme-dark .round-headers-bar {
+        background-color: #18181b !important;
+        border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+        color: #a1a1aa !important;
+    }
+    #bracketCardContainer.theme-dark .bracket-container {
+        scrollbar-color: rgba(255,255,255,0.1) #09090b;
+    }
+    #bracketCardContainer.theme-dark .match-card {
+        background-color: #18181b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    #bracketCardContainer.theme-dark .match-card:hover {
+        border-color: rgba(255, 122, 0, 0.4) !important;
+    }
+    #bracketCardContainer.theme-dark .match-card-header {
+        background-color: #202024 !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        color: #71717a !important;
+    }
+    #bracketCardContainer.theme-dark .team-row {
+        background-color: #18181b !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        color: #e4e4e7 !important;
+    }
+    #bracketCardContainer.theme-dark .team-name {
+        color: #e4e4e7 !important;
+    }
+    #bracketCardContainer.theme-dark .team-name.text-muted {
+        color: #71717a !important;
+    }
+    #bracketCardContainer.theme-dark .team-score-box {
+        background-color: #27272a !important;
+        border-left-color: rgba(255, 255, 255, 0.08) !important;
+        color: #ffffff !important;
+    }
+    #bracketCardContainer.theme-dark .team-row.winner {
+        background-color: rgba(22, 101, 52, 0.15) !important;
+    }
+    #bracketCardContainer.theme-dark .team-row.winner .team-name {
+        color: #4ade80 !important;
+        font-weight: 700 !important;
+    }
+    #bracketCardContainer.theme-dark .team-row.winner .team-score-box {
+        background-color: #166534 !important;
+        color: #ffffff !important;
+    }
+    #bracketCardContainer.theme-dark .team-row.loser {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    #bracketCardContainer.theme-dark .team-row.loser .team-name {
+        color: #71717a !important;
+    }
+    #bracketCardContainer.theme-dark .round-connectors path {
+        stroke: rgba(255, 255, 255, 0.1) !important;
+    }
 </style>
 
 <script>
@@ -1024,6 +1114,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('editMatchForm');
     const modalEl = document.getElementById('editMatchModal');
     const modal = new bootstrap.Modal(modalEl);
+
+    // Reset Match Button Handler
+    const btnResetMatch = document.getElementById('btnResetMatch');
+    if (btnResetMatch) {
+        btnResetMatch.addEventListener('click', function() {
+            const matchId = document.getElementById('modalMatchId').value;
+            if (!matchId) return;
+
+            Swal.fire({
+                title: 'Reset Pertandingan?',
+                text: 'Semua skor akan di-nol-kan dan status dikembalikan ke awal. Bagan di babak selanjutnya yang terpengaruh juga akan dibersihkan secara otomatis.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Reset!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const formData = new FormData();
+                    formData.append('match_id', matchId);
+                    formData.append('team1_score', '0');
+                    formData.append('team2_score', '0');
+                    formData.append('status', 'upcoming');
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    fetch("{{ route('admin.season.bracket.update-match', $season->id) }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            modal.hide();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Pertandingan berhasil direset.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                saveScrollAndReload();
+                            });
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Gagal meriset pertandingan.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire('Error', 'Terjadi kesalahan koneksi saat meriset pertandingan.', 'error');
+                    });
+                }
+            });
+        });
+    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -1238,16 +1393,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ----------------------------------------------------
-    // Search Engine inside Admin View
+    // Search Engine & Theme Switcher inside Admin View
     // ----------------------------------------------------
     const adminSearchInput = document.getElementById('adminTeamSearch');
+    const toggleSearchModeBtn = document.getElementById('toggleSearchModeBtn');
+    let searchMode = 'name'; // 'name' or 'wa'
+
+    if (toggleSearchModeBtn) {
+        toggleSearchModeBtn.addEventListener('click', function() {
+            if (searchMode === 'name') {
+                searchMode = 'wa';
+                toggleSearchModeBtn.innerHTML = '<i class="bi bi-whatsapp"></i> No. WA';
+                adminSearchInput.placeholder = 'Cari nomor WA kapten...';
+            } else {
+                searchMode = 'name';
+                toggleSearchModeBtn.innerHTML = '<i class="bi bi-person-fill"></i> Nama';
+                adminSearchInput.placeholder = 'Cari nama tim...';
+            }
+            // Trigger input event to re-evaluate search with new mode
+            adminSearchInput.dispatchEvent(new Event('input'));
+        });
+    }
+
     adminSearchInput.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
         document.querySelectorAll('.match-card').forEach(card => card.classList.remove('search-focus-glow'));
 
         if (!query) return;
 
-        const matchRows = document.querySelectorAll(`.team-row[data-team-name*="${query}"]`);
+        let selector = `.team-row[data-team-name*="${query}"]`;
+        if (searchMode === 'wa') {
+            selector = `.team-row[data-team-wa*="${query}"]`;
+        }
+
+        const matchRows = document.querySelectorAll(selector);
         let firstCard = null;
         matchRows.forEach(matchRow => {
             const targetCard = matchRow.closest('.match-card');
@@ -1276,6 +1455,37 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // Theme Switcher Logic
+    const toggleBracketThemeSwitch = document.getElementById('toggleBracketThemeSwitch');
+    const bracketCardContainer = document.getElementById('bracketCardContainer');
+
+    if (toggleBracketThemeSwitch && bracketCardContainer) {
+        // Default theme is dark
+        const savedTheme = localStorage.getItem('admin_bracket_theme') || 'dark';
+        
+        if (savedTheme === 'dark') {
+            toggleBracketThemeSwitch.checked = true;
+            bracketCardContainer.classList.add('theme-dark');
+            bracketCardContainer.classList.remove('theme-light');
+        } else {
+            toggleBracketThemeSwitch.checked = false;
+            bracketCardContainer.classList.add('theme-light');
+            bracketCardContainer.classList.remove('theme-dark');
+        }
+
+        toggleBracketThemeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                bracketCardContainer.classList.add('theme-dark');
+                bracketCardContainer.classList.remove('theme-light');
+                localStorage.setItem('admin_bracket_theme', 'dark');
+            } else {
+                bracketCardContainer.classList.add('theme-light');
+                bracketCardContainer.classList.remove('theme-dark');
+                localStorage.setItem('admin_bracket_theme', 'light');
+            }
+        });
+    }
 
     // ----------------------------------------------------
     // Search & Filter inside YMD Slots Modal
@@ -1795,12 +2005,15 @@ function openEditMatchModal(match) {
     const input2 = document.getElementById('modalT2Score');
     const btnSave = document.getElementById('btnSaveMatch');
 
+    const btnReset = document.getElementById('btnResetMatch');
+
     if (!match.team1_exists && !match.team2_exists) {
         alertEl.classList.remove('d-none');
         alertEl.textContent = 'Pertandingan kosong (kedua tim belum ditentukan) tidak dapat diubah skornya.';
         input1.disabled = true;
         input2.disabled = true;
         btnSave.disabled = true;
+        if (btnReset) btnReset.disabled = true;
     } else {
         alertEl.classList.add('d-none');
         input1.disabled = false;
@@ -1827,6 +2040,7 @@ function openEditMatchModal(match) {
         }
         
         btnSave.disabled = false;
+        if (btnReset) btnReset.disabled = false;
     }
 
     const modal = new bootstrap.Modal(document.getElementById('editMatchModal'));

@@ -610,8 +610,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (el.is_dynamic_name) {
-                propTextContent.disabled = true;
-                propTextHelp.innerText = "Tag nama peserta utama diatur otomatis oleh sistem.";
+                propTextContent.disabled = false;
+                propTextHelp.innerText = "Gunakan tag < NAMA PESERTA > untuk nama dinamis. Anda bebas mengubah atau mengosongkannya.";
             } else {
                 propTextContent.disabled = false;
                 propTextHelp.innerText = "Ketik teks kustom Anda bebas. Gunakan **kata** untuk menebalkan kata tertentu.";
@@ -789,12 +789,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnDeleteElement) {
         btnDeleteElement.addEventListener('click', function() {
             if (selectedElementId) {
-                const el = elements.find(item => item.id === selectedElementId);
-                if (el && el.is_dynamic_name) {
-                    alert('Tag nama peserta utama tidak dapat dihapus!');
-                    return;
-                }
-
                 if (confirm('Hapus elemen terpilih ini?')) {
                     elements = elements.filter(item => item.id !== selectedElementId);
                     selectedElementId = null;
@@ -888,7 +882,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnSaveConfig) {
         btnSaveConfig.addEventListener('click', function() {
             // Sync fallback name tag position
-            const mainNameEl = elements.find(item => item.is_dynamic_name);
+            let mainNameEl = elements.find(item => item.is_dynamic_name);
+            if (!mainNameEl) {
+                // Try finding any text element containing the tag "< NAMA PESERTA >" or similar case-insensitive
+                mainNameEl = elements.find(item => item.type === 'text' && /<\s*nama\s+peserta\s*>/i.test(item.text));
+            }
+            if (!mainNameEl) {
+                // If still not found, fall back to the first text element
+                mainNameEl = elements.find(item => item.type === 'text');
+            }
+            
             if (mainNameEl) {
                 document.getElementById('inputPosX').value = mainNameEl.x;
                 document.getElementById('inputPosY').value = mainNameEl.y;

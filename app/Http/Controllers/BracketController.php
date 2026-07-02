@@ -103,7 +103,7 @@ class BracketController extends Controller
                 $bracket->match_number = $matchNum;
                 $bracket->team1_id = $team1 ? $team1->id : null;
                 $bracket->team2_id = $team2 ? $team2->id : null;
-                $bracket->match_time = "20:00 WIB"; // Default time
+                $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount); // Default time
                 $bracket->status = 'upcoming';
 
                 // Handle BYE automatically
@@ -130,7 +130,7 @@ class BracketController extends Controller
                     $bracket->team2_id = null;
                     $bracket->team1_score = 0;
                     $bracket->team2_score = 0;
-                    $bracket->match_time = $this->getDefaultTimeForRound($round);
+                    $bracket->match_time = $this->getDefaultTimeForRound($round, $roundsCount);
                     $bracket->status = 'upcoming';
                     $bracket->save();
                 }
@@ -301,25 +301,29 @@ class BracketController extends Controller
                 }
             } else {
                 // If match is reset or status is not finished, clear the team slot in the next round
+                $revertNext = false;
                 if ($isTeam1) {
-                    if ($nextMatch->team1_id == $match->winner_id || $nextMatch->team1_id == $match->team1_id || $nextMatch->team1_id == $match->team2_id) {
+                    if ($nextMatch->team1_id && ($nextMatch->team1_id == $match->team1_id || $nextMatch->team1_id == $match->team2_id || $nextMatch->team1_id == $match->winner_id)) {
                         $nextMatch->team1_id = null;
-                        $nextMatch->winner_id = null;
-                        $nextMatch->status = 'upcoming';
+                        $revertNext = true;
                     }
                 } else {
-                    if ($nextMatch->team2_id == $match->winner_id || $nextMatch->team2_id == $match->team1_id || $nextMatch->team2_id == $match->team2_id) {
+                    if ($nextMatch->team2_id && ($nextMatch->team2_id == $match->team1_id || $nextMatch->team2_id == $match->team2_id || $nextMatch->team2_id == $match->winner_id)) {
                         $nextMatch->team2_id = null;
-                        $nextMatch->winner_id = null;
-                        $nextMatch->status = 'upcoming';
+                        $revertNext = true;
                     }
                 }
-            }
-            $nextMatch->save();
-            
-            // Recursively update if the next match was also finished (clears down the line)
-            if ($nextMatch->status === 'finished') {
-                $this->advanceWinner($nextMatch);
+                
+                if ($revertNext || $nextMatch->status === 'finished' || $nextMatch->winner_id) {
+                    $nextMatch->winner_id = null;
+                    $nextMatch->team1_score = 0;
+                    $nextMatch->team2_score = 0;
+                    $nextMatch->status = 'upcoming';
+                    $nextMatch->save();
+                    $this->advanceWinner($nextMatch);
+                } else {
+                    $nextMatch->save();
+                }
             }
         }
 
@@ -358,16 +362,23 @@ class BracketController extends Controller
     /**
      * Get default scheduled match times per round index
      */
-    private function getDefaultTimeForRound($round)
+    private function getDefaultTimeForRound($round, $totalRounds = null)
     {
+        if ($totalRounds) {
+            if ($round == $totalRounds) {
+                return "23:20 WIB";
+            }
+            if ($round == $totalRounds - 1 && $totalRounds > 1) {
+                return "22:50 WIB";
+            }
+        }
+        
         $times = [
             1 => "20:00 WIB",
             2 => "20:40 WIB",
-            3 => "21:20 WIB",
-            4 => "22:00 WIB",
-            5 => "22:40 WIB",
-            6 => "23:20 WIB",
-            7 => "24:00 WIB"
+            3 => "21:15 WIB",
+            4 => "21:50 WIB",
+            5 => "22:20 WIB"
         ];
         return isset($times[$round]) ? $times[$round] : "20:00 WIB";
     }
@@ -1220,29 +1231,10 @@ class BracketController extends Controller
             'status' => 'PENDING'
         ]);
 
-        $response = response()->json([
+        return response()->json([
             'success' => true,
             'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
         ]);
-
-        if (function_exists('fastcgi_finish_request')) {
-            $response->send();
-            fastcgi_finish_request();
-            try {
-                $this->analyzeReportWithAI($report);
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Background AI analysis error: " . $e->getMessage());
-            }
-            exit;
-        }
-
-        try {
-            $this->analyzeReportWithAI($report);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Synchronous AI analysis fallback error: " . $e->getMessage());
-        }
-
-        return $response;
     }
 
     /**
@@ -1337,6 +1329,10 @@ class BracketController extends Controller
     public function approveMatchReport($id)
     {
         $report = \App\Models\MatchReport::findOrFail($id);
+        
+        if ($report->status !== 'PENDING') {
+            return back()->with('info', 'Laporan ini sudah diproses sebelumnya (Status: ' . $report->status . ').');
+        }
         
         DB::beginTransaction();
         try {

@@ -761,29 +761,8 @@
             </div>
 
             {{-- Result Panel --}}
-            <div id="searchResultCard" class="search-results-panel">
-                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-1.5 mb-2">
-                    <strong class="text-warning" id="resTeamName">Nama Tim</strong>
-                    <span class="badge bg-success rounded-pill px-2.5 py-0.5" id="resMatchStatus" style="font-size: 0.6rem;">Selesai</span>
-                </div>
-                <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.75rem;">
-                    <div class="col-6">Team Musuh: <strong class="text-white" id="resOpponent">Tim Lawan</strong></div>
-                    <div class="col-6">Nomer WA Musuh: <strong class="text-warning" id="resOpponentWA">-</strong></div>
-                    <div class="col-6">Jam Main: <strong class="text-white" id="resSchedule">Jam Tanding</strong></div>
-                    <div class="col-6">Babak: <strong class="text-white" id="resRoundLabel">Babak 1</strong></div>
-                    <div class="col-6">Bracket: <strong class="text-white" id="resBracketLabel">Bracket 1</strong></div>
-                </div>
-                <div class="result-actions-wrapper border-top border-secondary border-opacity-25 pt-2">
-                    <a href="#" target="_blank" class="btn-whatsapp-chat" id="btnChatWA">
-                        <i class="bi bi-whatsapp"></i> Hubungi Musuh
-                    </a>
-                    <button class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" id="btnFocusBracket" style="font-size: 0.72rem;">
-                        Fokuskan ke Bagan
-                    </button>
-                    <button class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" id="btnDownloadMatchday" style="font-size: 0.72rem;">
-                        <i class="bi bi-download"></i> Share Matchday
-                    </button>
-                </div>
+            <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto;">
+                <div id="searchResultList"></div>
             </div>
         </div>
     </div>
@@ -1102,11 +1081,12 @@
             });
         });
 
-        // Search engine database generated dynamically by Blade
-        const matchesData = {
+        // Search engine database generated dynamically by Blade as an array to handle multiple results (double slot)
+        const matchesData = [
             @foreach($brackets as $b)
                 @if($b->team1_id && $b->team2_id)
-                    "{{ strtolower($b->team1->name) }}": {
+                    {
+                        teamKey: "{{ strtolower($b->team1->name) }}",
                         name: "{{ $b->team1->name }}",
                         opponent: "{{ $b->team2->name }}",
                         opponentWA: "{{ $b->team2->wa_number ?? '-' }}",
@@ -1125,7 +1105,8 @@
                         status: "{{ $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main') }}",
                         cardId: "card_m_{{ $b->round_number }}_{{ $b->match_number }}"
                     },
-                    "{{ strtolower($b->team2->name) }}": {
+                    {
+                        teamKey: "{{ strtolower($b->team2->name) }}",
                         name: "{{ $b->team2->name }}",
                         opponent: "{{ $b->team1->name }}",
                         opponentWA: "{{ $b->team1->wa_number ?? '-' }}",
@@ -1145,7 +1126,8 @@
                         cardId: "card_m_{{ $b->round_number }}_{{ $b->match_number }}"
                     },
                 @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
-                    "{{ strtolower($b->team1->name) }}": {
+                    {
+                        teamKey: "{{ strtolower($b->team1->name) }}",
                         name: "{{ $b->team1->name }}",
                         opponent: "Lolos (BYE)",
                         opponentWA: "-",
@@ -1157,14 +1139,12 @@
                     },
                 @endif
             @endforeach
-        };
+        ];
 
         const searchInput = document.getElementById('teamSearchInput');
         const resultCard = document.getElementById('searchResultCard');
-        const btnFocus = document.getElementById('btnFocusBracket');
         const searchIconBtn = document.getElementById('searchIconBtn');
         const searchClearBtn = document.getElementById('searchClearBtn');
-        const btnChatWA = document.getElementById('btnChatWA');
         let activeFocusedCardId = null;
 
         function performFocusScroll() {
@@ -1192,9 +1172,25 @@
             });
         }
 
+        // Global functions called from search result action buttons
+        window.focusBracketCard = function(cardId) {
+            activeFocusedCardId = cardId;
+            performFocusScroll();
+        };
+
+        window.shareMatchdayDirect = function(teamName, opponentName, schedule, round, bracket) {
+            if (typeof triggerShareMatchday === 'function') {
+                triggerShareMatchday(teamName, opponentName, schedule, round, bracket);
+            }
+        };
+
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
+
+            const resultList = document.getElementById('searchResultList');
+            if (!resultList) return;
+            resultList.innerHTML = '';
 
             if (!query) {
                 resultCard.style.display = 'none';
@@ -1204,64 +1200,87 @@
 
             searchClearBtn.style.display = 'block';
 
-            let foundKey = null;
-            Object.keys(matchesData).forEach(key => {
-                if (key === query || key.includes(query)) {
-                    foundKey = key;
-                }
-            });
+            // Filter all matches that include query
+            const matched = matchesData.filter(m => m.teamKey.includes(query));
 
-            if (foundKey) {
-                const matchData = matchesData[foundKey];
-                document.getElementById('resTeamName').textContent = matchData.name;
-                
-                const statusBadge = document.getElementById('resMatchStatus');
-                statusBadge.textContent = matchData.status;
-                
-                if (matchData.status === 'Lolos') {
-                    statusBadge.className = 'badge bg-success rounded-pill px-2 py-0.5';
-                } else if (matchData.status === 'Kalah') {
-                    statusBadge.className = 'badge bg-secondary rounded-pill px-2 py-0.5';
-                } else {
-                    statusBadge.className = 'badge bg-warning text-dark rounded-pill px-2 py-0.5';
-                }
-
-                document.getElementById('resOpponent').textContent = matchData.opponent;
-                document.getElementById('resOpponentWA').textContent = matchData.opponentWA;
-                
-                let scheduleClean = matchData.schedule;
-                if (scheduleClean.includes(',')) {
-                    const parts = scheduleClean.split(',');
-                    scheduleClean = parts[parts.length - 1].trim();
-                }
-                document.getElementById('resSchedule').textContent = scheduleClean;
-                
-                document.getElementById('resBracketLabel').textContent = matchData.bracket;
-                document.getElementById('resRoundLabel').textContent = matchData.round;
-
-                if (matchData.opponentWA && matchData.opponentWA !== '-') {
-                    const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
-                    btnChatWA.href = `https://wa.me/${numericWA}`;
-                    btnChatWA.style.display = 'inline-flex';
-                } else {
-                    btnChatWA.style.display = 'none';
-                }
-
-                activeFocusedCardId = matchData.cardId;
+            if (matched.length > 0) {
                 resultCard.style.display = 'block';
+                
+                matched.forEach((matchData, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item pb-3 mb-3';
+                    if (index < matched.length - 1) {
+                        item.classList.add('border-bottom', 'border-secondary', 'border-opacity-25');
+                    }
+                    
+                    let statusBadgeClass = 'badge bg-warning text-dark rounded-pill px-2.5 py-0.5';
+                    if (matchData.status === 'Lolos') {
+                        statusBadgeClass = 'badge bg-success text-white rounded-pill px-2.5 py-0.5';
+                    } else if (matchData.status === 'Kalah') {
+                        statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2.5 py-0.5';
+                    }
+                    
+                    let scheduleClean = matchData.schedule;
+                    if (scheduleClean.includes(',')) {
+                        const parts = scheduleClean.split(',');
+                        scheduleClean = parts[parts.length - 1].trim();
+                    }
+                    
+                    let waButtonHtml = '';
+                    if (matchData.opponentWA && matchData.opponentWA !== '-') {
+                        const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
+                        waButtonHtml = `
+                            <a href="https://wa.me/${numericWA}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none">
+                                <i class="bi bi-whatsapp"></i> Hubungi Musuh
+                            </a>
+                        `;
+                    }
+
+                    // Format data as a clean string for HTML attribute
+                    const escName = matchData.name.replace(/"/g, '&quot;');
+                    const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
+                    const escSchedule = scheduleClean.replace(/"/g, '&quot;');
+                    const escRound = matchData.round.replace(/"/g, '&quot;');
+                    const escBracket = matchData.bracket.replace(/"/g, '&quot;');
+                    
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center pb-1.5 mb-2">
+                            <strong class="text-warning" style="font-size: 0.85rem;">${matchData.name}</strong>
+                            <span class="${statusBadgeClass}" style="font-size: 0.6rem;">${matchData.status}</span>
+                        </div>
+                        <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.72rem;">
+                            <div class="col-6">Team Musuh: <strong class="text-white">${matchData.opponent}</strong></div>
+                            <div class="col-6">Nomer WA Musuh: <strong class="text-warning">${matchData.opponentWA}</strong></div>
+                            <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
+                            <div class="col-6">Babak: <strong class="text-white">${matchData.round}</strong></div>
+                            <div class="col-6">Bracket: <strong class="text-white">${matchData.bracket}</strong></div>
+                        </div>
+                        <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
+                            ${waButtonHtml}
+                            <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">
+                                Fokuskan ke Bagan
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;">
+                                <i class="bi bi-download"></i> Share
+                            </button>
+                        </div>
+                    `;
+                    resultList.appendChild(item);
+                });
+                
+                // Keep track of the first matched card for focus button outside
+                if (matched[0]) {
+                    activeFocusedCardId = matched[0].cardId;
+                }
             } else {
-                document.getElementById('resTeamName').textContent = 'Tim tidak ditemukan';
-                document.getElementById('resMatchStatus').textContent = '-';
-                document.getElementById('resMatchStatus').className = 'badge bg-secondary rounded-pill px-2 py-0.5';
-                document.getElementById('resOpponent').textContent = 'Tidak ada';
-                document.getElementById('resOpponentWA').textContent = '-';
-                document.getElementById('resSchedule').textContent = '-';
-                document.getElementById('resBracketLabel').textContent = '-';
-                document.getElementById('resRoundLabel').textContent = 'Periksa ejaan nama tim Anda';
-                
-                btnChatWA.style.display = 'none';
-                activeFocusedCardId = null;
                 resultCard.style.display = 'block';
+                resultList.innerHTML = `
+                    <div class="text-center py-3 text-secondary">
+                        <i class="bi bi-exclamation-circle fs-3 mb-2 d-block"></i>
+                        <p class="small mb-0">Tim tidak ditemukan. Cek ejaan nama tim Anda.</p>
+                    </div>
+                `;
+                activeFocusedCardId = null;
             }
         });
 
@@ -1727,131 +1746,122 @@
         }
 
         // ----------------------------------------------------
-        // Canvas Matchday Generator
+        // Canvas Matchday Generator (Global Helper)
         // ----------------------------------------------------
-        const btnDownloadMatchday = document.getElementById('btnDownloadMatchday');
-        if (btnDownloadMatchday) {
-            btnDownloadMatchday.addEventListener('click', function() {
-                const teamName = document.getElementById('resTeamName').textContent;
-                const opponentName = document.getElementById('resOpponent').textContent;
-                const schedule = document.getElementById('resSchedule').textContent;
-                const round = document.getElementById('resRoundLabel').textContent;
-                const bracket = document.getElementById('resBracketLabel').textContent;
-                
-                if (!teamName || teamName === 'Tim tidak ditemukan') return;
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = 1080;
-                canvas.height = 1080;
-                const ctx = canvas.getContext('2d');
-                
-                const gradient = ctx.createRadialGradient(540, 540, 100, 540, 540, 800);
-                gradient.addColorStop(0, '#1c1c1f');
-                gradient.addColorStop(1, '#09090b');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 1080, 1080);
-                
-                ctx.strokeStyle = 'rgba(255, 122, 0, 0.4)';
-                ctx.lineWidth = 4;
+        window.triggerShareMatchday = function(teamName, opponentName, schedule, round, bracket) {
+            if (!teamName || teamName === 'Tim tidak ditemukan') return;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createRadialGradient(540, 540, 100, 540, 540, 800);
+            gradient.addColorStop(0, '#1c1c1f');
+            gradient.addColorStop(1, '#09090b');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1080, 1080);
+            
+            ctx.strokeStyle = 'rgba(255, 122, 0, 0.4)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(50, 200);
+            ctx.lineTo(50, 50);
+            ctx.lineTo(200, 50);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(1030, 200);
+            ctx.lineTo(1030, 50);
+            ctx.lineTo(880, 50);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(50, 880);
+            ctx.lineTo(50, 1030);
+            ctx.lineTo(200, 1030);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(1030, 880);
+            ctx.lineTo(1030, 1030);
+            ctx.lineTo(880, 1030);
+            ctx.stroke();
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 1080; i += 60) {
                 ctx.beginPath();
-                ctx.moveTo(50, 200);
-                ctx.lineTo(50, 50);
-                ctx.lineTo(200, 50);
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, 1080);
                 ctx.stroke();
                 
                 ctx.beginPath();
-                ctx.moveTo(1030, 200);
-                ctx.lineTo(1030, 50);
-                ctx.lineTo(880, 50);
+                ctx.moveTo(0, i);
+                ctx.lineTo(1080, i);
                 ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(50, 880);
-                ctx.lineTo(50, 1030);
-                ctx.lineTo(200, 1030);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(1030, 880);
-                ctx.lineTo(1030, 1030);
-                ctx.lineTo(880, 1030);
-                ctx.stroke();
-                
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-                ctx.lineWidth = 1;
-                for (let i = 0; i < 1080; i += 60) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, 1080);
-                    ctx.stroke();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(1080, i);
-                    ctx.stroke();
-                }
-                
-                ctx.fillStyle = '#ff7a00';
-                ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.shadowColor = '#ff7a00';
-                ctx.shadowBlur = 15;
-                ctx.fillText('YOMUDA CHAMPIONSHIP', 540, 140);
-                
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#a1a1aa';
-                ctx.font = '700 24px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('MATCHDAY INFORMATION', 540, 190);
-                
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(340, 230);
-                ctx.lineTo(740, 230);
-                ctx.stroke();
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText(teamName.toUpperCase(), 540, 390);
-                
-                ctx.fillStyle = '#ff7a00';
-                ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('VS', 540, 470);
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText(opponentName.toUpperCase(), 540, 560);
-                
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.roundRect(140, 680, 800, 220, 24);
-                ctx.fill();
-                ctx.stroke();
-                
-                ctx.fillStyle = '#a1a1aa';
-                ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('JADWAL PERTANDINGAN', 540, 735);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText(schedule, 540, 785);
-                
-                ctx.fillStyle = '#a1a1aa';
-                ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText(`${round.toUpperCase()}  |  ${bracket.toUpperCase()}`, 540, 850);
-                
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('yomudachamps.com', 540, 990);
-                
-                const dataUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `Matchday_${teamName}_vs_${opponentName}.png`.replace(/\s+/g, '_');
-                link.href = dataUrl;
-                link.click();
-            });
-        }
+            }
+            
+            ctx.fillStyle = '#ff7a00';
+            ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#ff7a00';
+            ctx.shadowBlur = 15;
+            ctx.fillText('YOMUDA CHAMPIONSHIP', 540, 140);
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '700 24px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('MATCHDAY INFORMATION', 540, 190);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(340, 230);
+            ctx.lineTo(740, 230);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(teamName.toUpperCase(), 540, 390);
+            
+            ctx.fillStyle = '#ff7a00';
+            ctx.font = '800 38px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('VS', 540, 470);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 52px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(opponentName.toUpperCase(), 540, 560);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(140, 680, 800, 220, 24);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('JADWAL PERTANDINGAN', 540, 735);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(schedule, 540, 785);
+            
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(`${round.toUpperCase()}  |  ${bracket.toUpperCase()}`, 540, 850);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('yomudachamps.com', 540, 990);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `Matchday_${teamName}_vs_${opponentName}.png`.replace(/\s+/g, '_');
+            link.href = dataUrl;
+            link.click();
+        };
 
         // ----------------------------------------------------
         // Match Report Score JavaScript Logic

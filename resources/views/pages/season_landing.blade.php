@@ -77,12 +77,14 @@
         }
 
         .season-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
+            background: rgba(24, 24, 27, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
-            padding: 30px 24px;
+            padding: 36px 28px;
             margin-bottom: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             position: relative;
             overflow: hidden;
         }
@@ -90,12 +92,12 @@
         .season-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 122, 0, 0.3), transparent);
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-orange), transparent, var(--accent-orange));
+            z-index: -1;
+            border-radius: 26px;
+            opacity: 0.12;
+            filter: blur(8px);
         }
 
         .season-poster {
@@ -495,6 +497,17 @@
         }
 
         @media (max-width: 576px) {
+            body {
+                padding: 12px;
+            }
+            .season-card {
+                padding: 28px 18px;
+                border-radius: 20px;
+            }
+            .menu-item {
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
             .chat-widget-wrapper {
                 bottom: 16px;
                 right: 16px;
@@ -776,7 +789,6 @@
                                     <option value="0">0</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
-                                    <option value="3">3</option>
                                 </select>
                             </div>
                             <div class="col-6">
@@ -785,7 +797,6 @@
                                     <option value="0">0</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
-                                    <option value="3">3</option>
                                 </select>
                             </div>
                         </div>
@@ -1209,6 +1220,19 @@
             if (formSubmitReport) {
                 formSubmitReport.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    
+                    const score1 = parseInt(document.getElementById('scoreTeam1Input').value) || 0;
+                    const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
+
+                    if (score1 === 0 && score2 === 0) {
+                        alert('Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.');
+                        return;
+                    }
+
+                    if (score1 === score2) {
+                        alert('Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.');
+                        return;
+                    }
                     
                     const fileInput = document.getElementById('reportImageInput');
                     if (!fileInput.files || fileInput.files.length === 0) {

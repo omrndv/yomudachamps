@@ -9,6 +9,7 @@
                 <ol class="breadcrumb mb-2" style="font-size: 0.85rem;">
                     <li class="breadcrumb-item"><a href="{{ route('admin.seasons') }}" class="text-decoration-none text-warning fw-semibold">Daftar Season</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard', $season->id) }}" class="text-decoration-none text-warning fw-semibold">{{ $season->name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.season.bracket', $season->id) }}" class="text-decoration-none text-warning fw-semibold">Bracket</a></li>
                     <li class="breadcrumb-item active text-secondary" aria-current="page">Laporan Skor</li>
                 </ol>
             </nav>
@@ -214,34 +215,6 @@
                                         </span>
                                     @endif
 
-                                    <div class="mt-1">
-                                        @if($report->ai_status === 'SUCCESS')
-                                            <span class="badge bg-success text-white rounded-pill px-2 py-0.5" style="font-size: 0.58rem;" title="{{ $report->ai_notes }}">
-                                                🤖 AI: Terverifikasi
-                                            </span>
-                                        @elseif($report->ai_status === 'MANUAL_REVIEW')
-                                            <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 0.58rem;" title="{{ $report->ai_notes }}">
-                                                🤖 AI: Butuh Review
-                                            </span>
-                                        @elseif($report->ai_status === 'FAILED')
-                                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.58rem;" title="{{ $report->ai_notes }}">
-                                                🤖 AI: Error
-                                            </span>
-                                        @elseif($report->ai_status === 'SKIPPED')
-                                            <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5" style="font-size: 0.58rem;" title="{{ $report->ai_notes }}">
-                                                🤖 AI: Lewati (No Key)
-                                            </span>
-                                        @else
-                                            <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5" style="font-size: 0.58rem;">
-                                                🤖 AI: Diproses
-                                            </span>
-                                        @endif
-                                    </div>
-                                    @if($report->ai_notes)
-                                        <div class="text-muted text-wrap mx-auto mt-1 small" style="font-size: 0.65rem; max-width: 150px; line-height: 1.1;" title="{{ $report->ai_notes }}">
-                                            {{ $report->ai_notes }}
-                                        </div>
-                                    @endif
                                 </td>
                                 <td class="pe-4 text-end">
                                     @if($report->status === 'PENDING')
