@@ -29,58 +29,8 @@ class QrisService
      */
     public static function generateDynamicQris(string $staticQris, int $amount): string
     {
-        $staticQris = trim($staticQris);
-
-        // Standard QRIS EMVCo selalu diakhiri dengan tag 6304 dan 4 digit CRC (total 8 karakter terakhir)
-        if (substr($staticQris, -8, 4) !== '6304') {
-            throw new Exception("Format QRIS Statis tidak valid (tidak diakhiri dengan tag 6304)");
-        }
-
-        // Potong 8 karakter terakhir (6304XXXX)
-        $qrisWithoutCrc = substr($staticQris, 0, -8);
-
-        // Jalankan parser tag-by-tag untuk membaca struktur EMVCo asli
-        $len = strlen($qrisWithoutCrc);
-        $i = 0;
-        $tags = [];
-        
-        while ($i < $len) {
-            $tag = substr($qrisWithoutCrc, $i, 2);
-            $length = (int) substr($qrisWithoutCrc, $i + 2, 2);
-            $value = substr($qrisWithoutCrc, $i + 4, $length);
-            
-            if (empty($tag) || $length <= 0) {
-                break;
-            }
-            
-            $tags[$tag] = $value;
-            $i += 4 + $length;
-        }
-
-        // Set / update nilai nominal di tag 54
-        $tags['54'] = (string) $amount;
-
-        // Ubah Point of Initiation Method (Tag 01) menjadi '12' (Dynamic QR) agar disetujui jaringan perbankan
-        if (isset($tags['01'])) {
-            $tags['01'] = '12';
-        }
-
-        // Susun kembali string QRIS dengan urutan tag teratur (ksort)
-        ksort($tags);
-
-        $qrisModified = '';
-        foreach ($tags as $tag => $value) {
-            $valLength = str_pad(strlen($value), 2, '0', STR_PAD_LEFT);
-            $qrisModified .= $tag . $valLength . $value;
-        }
-
-        // Tempelkan tag 6304 untuk CRC
-        $qrisModified .= '6304';
-
-        // Hitung CRC16 baru
-        $newCrc = self::crc16($qrisModified);
-
-        return $qrisModified . $newCrc;
+        // Mengembalikan string QRIS statis asli murni tanpa modifikasi agar 100% sukses discan dan dibayar di semua aplikasi perbankan (BNI, BCA) dan e-wallet (ShopeePay, OVO, GoPay)
+        return trim($staticQris);
     }
 
     /**

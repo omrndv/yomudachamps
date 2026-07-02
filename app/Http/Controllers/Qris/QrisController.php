@@ -132,4 +132,31 @@ class QrisController extends Controller
             'qris_tx_details' => QrisTransaction::where('trx_id', $trx_id)->get()
         ]);
     }
+
+    /**
+     * Mengunggah bukti transfer manual
+     */
+    public function uploadProof(Request $request, $trx_id)
+    {
+        $request->validate([
+            'proof_file' => 'required|image|mimes:jpeg,png,jpg|max:4096',
+        ]);
+
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->latest()->firstOrFail();
+
+        if ($request->hasFile('proof_file')) {
+            $file = $request->file('proof_file');
+            $filename = 'proof_' . $trx_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/proofs'), $filename);
+
+            $qrisTx->update([
+                'status' => 'CLAIMED',
+                'gopay_reference' => 'PROOFS/' . $filename
+            ]);
+
+            return back()->with('success', 'Bukti transfer berhasil diunggah! Admin akan segera memverifikasi pembayaran Anda.');
+        }
+
+        return back()->with('error', 'Gagal mengunggah file bukti transfer.');
+    }
 }

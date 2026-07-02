@@ -540,6 +540,10 @@
                                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PAID
                                                     </span>
+                                                @elseif($tx->status === 'CLAIMED')
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20 animate-pulse">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> CLAIMED
+                                                    </span>
                                                 @elseif($tx->status === 'PENDING')
                                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-450 border border-yellow-100 dark:border-yellow-500/20">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> PENDING
@@ -551,7 +555,7 @@
                                                 @endif
                                             </td>
                                             <td class="py-4 px-6 text-right space-x-2" onclick="event.stopPropagation()">
-                                                @if($tx->status === 'PENDING')
+                                                @if($tx->status === 'PENDING' || $tx->status === 'CLAIMED')
                                                     <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual?');" class="inline-block">
                                                         @csrf
                                                         <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]">
@@ -776,6 +780,19 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Bukti Transfer Manual Peserta (Jika Ada) -->
+                <div id="drawer-proof-section" class="border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col bg-white dark:bg-slate-900 shadow-sm hidden">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-555 font-bold uppercase mb-3 flex items-center gap-1.5">
+                        <i data-lucide="image" class="w-4 h-4 text-blue-500"></i> Bukti Transfer Peserta
+                    </span>
+                    <a id="drawer-proof-link" href="" target="_blank" class="block group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+                        <img id="drawer-proof-img" src="" alt="Bukti Transfer" class="max-w-full h-auto mx-auto object-contain bg-slate-50 dark:bg-slate-950 p-1">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-all duration-200">
+                            Klik untuk Memperbesar <i data-lucide="external-link" class="w-3.5 h-3.5 ml-1"></i>
+                        </div>
+                    </a>
                 </div>
 
                 <!-- QRIS Dynamic QR Code Display -->
@@ -1087,7 +1104,7 @@
 
             // Set Header Settle Action Button
             const actionsContainer = document.getElementById('drawer-header-actions');
-            if (tx.status === 'PENDING') {
+            if (tx.status === 'PENDING' || tx.status === 'CLAIMED') {
                 actionsContainer.innerHTML = `
                     <form action="/qris-gateway/settle/${tx.trx_id}" method="POST" onsubmit="return confirm('Selesaikan transaksi ini secara manual?');">
                         @csrf
@@ -1109,12 +1126,27 @@
             if (tx.status === 'PAID') {
                 summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">Dibayar</span>`;
                 clearingStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">Selesai (${paidAt})</span>`;
+            } else if (tx.status === 'CLAIMED') {
+                summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100 animate-pulse">Klaim Bukti</span>`;
+                clearingStatus.innerHTML = `<span class="text-blue-650 dark:text-blue-400 font-bold flex items-center gap-1"><i data-lucide="image" class="w-3.5 h-3.5"></i> Menunggu Verifikasi Bukti</span>`;
             } else if (tx.status === 'PENDING') {
                 summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 text-yellow-700 border border-yellow-100">Pending</span>`;
                 clearingStatus.innerHTML = `<span class="text-yellow-600 dark:text-yellow-450 font-bold">Menunggu Pembayaran</span>`;
             } else {
                 summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">Kedaluwarsa</span>`;
                 clearingStatus.innerHTML = `<span class="text-slate-400 font-bold">Gagal</span>`;
+            }
+
+            // Tampilkan Bukti Transfer Peserta jika ada
+            const proofSection = document.getElementById('drawer-proof-section');
+            if (tx.status === 'CLAIMED' && tx.gopay_reference && tx.gopay_reference.startsWith('PROOFS/')) {
+                const filename = tx.gopay_reference.replace('PROOFS/', '');
+                const proofUrl = '/uploads/proofs/' + filename;
+                document.getElementById('drawer-proof-img').src = proofUrl;
+                document.getElementById('drawer-proof-link').href = proofUrl;
+                proofSection.classList.remove('hidden');
+            } else {
+                proofSection.classList.add('hidden');
             }
 
             // Fill Detail Pembayaran

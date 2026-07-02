@@ -18,12 +18,30 @@
         
         <!-- Header -->
         <div class="text-center">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 mb-2">
-                Menunggu Pembayaran
-            </span>
+            @if($qrisTx->status === 'CLAIMED')
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 mb-2 animate-pulse">
+                    Sedang Diverifikasi
+                </span>
+            @else
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 mb-2">
+                    Menunggu Pembayaran
+                </span>
+            @endif
             <h1 class="text-xl font-extrabold text-white">Pembayaran QRIS</h1>
-            <p class="text-xs text-gray-400 mt-1">Scan kode QRIS di bawah ini dengan aplikasi pembayaran</p>
+            <p class="text-xs text-gray-400 mt-1">Scan kode QRIS di bawah ini dengan aplikasi perbankan atau e-wallet Anda</p>
         </div>
+
+        @if(session('success'))
+            <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400 text-center font-medium">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 text-center font-medium">
+                {{ session('error') }}
+            </div>
+        @endif
 
         <!-- Timer -->
         <div class="bg-gray-950/60 border border-gray-800 rounded-2xl p-4 text-center">
@@ -40,41 +58,76 @@
             <hr class="border-gray-800/60">
             <div class="flex justify-between items-start text-xs">
                 <div>
-                    <span class="text-gray-500 font-medium">Jumlah Tagihan</span>
-                    <p class="text-[10px] text-gray-600 mt-0.5">Termasuk kode unik (+Rp {{ $qrisTx->unique_code }})</p>
+                    <span class="text-gray-500 font-medium">Nominal Transfer Wajib</span>
+                    <p class="text-[10px] text-gray-600 mt-0.5">Harus sama persis (termasuk kode unik +Rp {{ $qrisTx->unique_code }})</p>
                 </div>
                 <div class="text-right">
-                    <span class="text-lg font-extrabold text-yellow-500 font-mono">
+                    <span class="text-lg font-black text-yellow-500 font-mono">
                         Rp {{ number_format($qrisTx->amount, 0, ',', '.') }}
                     </span>
                 </div>
             </div>
         </div>
 
-        <!-- QR Code -->
-        <div class="flex flex-col items-center space-y-3 bg-white p-6 rounded-3xl border border-gray-800 shadow-inner">
-            <!-- QRIS Brand Logo -->
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS" class="h-6 object-contain mb-2">
-            
-            <!-- Generated QR Code Image -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($qrisTx->qris_string) }}" 
-                 alt="QR Code QRIS" 
-                 class="w-52 h-52 object-contain">
+        @if($qrisTx->status === 'CLAIMED')
+            <!-- Waiting Approval Screen -->
+            <div class="bg-gray-950/50 border border-gray-850 p-6 rounded-3xl text-center space-y-4">
+                <div class="w-12 h-12 bg-blue-500/15 rounded-full flex items-center justify-center mx-auto text-blue-400">
+                    <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Bukti Transfer Sedang Diverifikasi</h3>
+                    <p class="text-xs text-gray-400 mt-2 leading-relaxed">
+                        Sistem sedang memproses verifikasi manual bukti transfer Anda. Tim Anda akan otomatis terdaftar sebagai <b>LUNAS (PAID)</b> begitu admin menyetujui. Halaman ini akan dialihkan secara otomatis.
+                    </p>
+                </div>
+            </div>
+        @else
+            <!-- QR Code -->
+            <div class="flex flex-col items-center space-y-3 bg-white p-6 rounded-3xl border border-gray-800 shadow-inner">
+                <!-- QRIS Brand Logo -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS" class="h-6 object-contain mb-2">
+                
+                <!-- Generated QR Code Image (Static QRIS) -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($qrisTx->qris_string) }}" 
+                     alt="QR Code QRIS" 
+                     class="w-52 h-52 object-contain">
 
-            <p class="text-[10px] text-gray-500 font-semibold text-center mt-2">
-                Nominal otomatis terdeteksi saat di-scan.<br>
-                Tidak perlu memasukkan nominal manual.
-            </p>
-        </div>
+                <div class="text-[10px] text-red-650 font-extrabold text-center mt-2 leading-normal">
+                    PENTING: MASUKKAN NOMINAL SECARA MANUAL SEBESAR<br>
+                    <span class="text-xs font-black text-slate-900 font-mono">Rp {{ number_format($qrisTx->amount, 0, ',', '.') }}</span>
+                </div>
+            </div>
 
-        <!-- Petunjuk Singkat -->
-        <div class="text-[11px] text-gray-500 space-y-1 sm:px-2">
-            <p class="font-bold text-gray-400 mb-1">Petunjuk Pembayaran:</p>
-            <p>1. Buka aplikasi e-wallet Anda (GoPay, OVO, Dana, ShopeePay) atau mobile banking.</p>
-            <p>2. Pilih menu scan / bayar lalu arahkan kamera ke QR Code di atas.</p>
-            <p>3. Nominal akan otomatis terisi sebesar <strong class="text-yellow-500 font-mono">Rp {{ number_format($qrisTx->amount, 0, ',', '.') }}</strong>.</p>
-            <p>4. Setelah pembayaran sukses di aplikasi Anda, halaman ini akan otomatis dialihkan.</p>
-        </div>
+            <!-- Petunjuk Singkat -->
+            <div class="text-[11px] text-gray-500 space-y-1 sm:px-2">
+                <p class="font-bold text-gray-400 mb-1">Petunjuk Pembayaran:</p>
+                <p>1. Buka aplikasi perbankan (BNI, BCA) atau e-wallet (GoPay, OVO, ShopeePay, Dana).</p>
+                <p>2. Arahkan scanner ke QR Code di atas.</p>
+                <p>3. <b>Ketik nominal transfer secara manual</b> sebesar <strong class="text-yellow-500 font-mono">Rp {{ number_format($qrisTx->amount, 0, ',', '.') }}</strong>.</p>
+                <p>4. Setelah transfer sukses, halaman ini akan otomatis mendeteksi status pembayaran dalam 1-10 detik.</p>
+            </div>
+
+            <!-- Upload Bukti Transfer Form -->
+            <div class="bg-gray-950/40 border border-gray-800/80 rounded-2xl p-4 space-y-3">
+                <h4 class="text-xs font-bold text-white flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Pembayaran Bermasalah / Salah Nominal?
+                </h4>
+                <p class="text-[10px] text-gray-400 leading-normal">Jika pembayaran Anda tidak terdeteksi otomatis atau Anda tidak sengaja mentransfer nominal yang salah, silakan upload bukti transfer Anda di bawah ini untuk klaim manual oleh Admin.</p>
+                
+                <form action="{{ route('qris.pay.proof', $team->trx_id) }}" method="POST" enctype="multipart/form-data" class="space-y-2 mt-2">
+                    @csrf
+                    <input type="file" name="proof_file" required accept="image/*"
+                           class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                    <button type="submit" class="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold py-2 rounded-xl transition-all">
+                        Unggah Bukti Transfer
+                    </button>
+                </form>
+            </div>
+        @endif
 
         <!-- Loading Polling Status -->
         <div class="flex items-center justify-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-850">
