@@ -69,31 +69,11 @@ class QrisService
         // 3. Set Convenience Fee Indicator di tag 55 menjadi '01' (Prompted to enter tip / No fee)
         $tags['55'] = '01';
 
-        // 4. Set Convenience Fee Fixed (Tag 56) menjadi '000000000000' (Rp 0)
-        $tags['56'] = '000000000000';
-
-        // 5. Set Convenience Fee Percentage (Tag 57) menjadi '0000' (0.00%)
-        $tags['57'] = '0000';
-
-        // 6. Pastikan Tag 53 (Currency) adalah '360' (IDR)
+        // 4. Pastikan Tag 53 (Currency) adalah '360' (IDR)
         $tags['53'] = '360';
 
-        // 7. Pastikan Tag 58 (Country Code) adalah 'ID' (Indonesia)
+        // 5. Pastikan Tag 58 (Country Code) adalah 'ID' (Indonesia)
         $tags['58'] = 'ID';
-
-        // 8. Susun / Update Tag 62 (Additional Data Field) secara lengkap
-        // Kita isi sub-tag 01 (Bill Number), sub-tag 05 (Customer Label), sub-tag 06 (Reference Label), dan sub-tag 07 (Terminal ID)
-        $billNo = "TRX" . str_pad($amount, 8, '0', STR_PAD_LEFT);
-        $custLabel = "YOMUDAPAY";
-        $refLabel = "YMD" . $amount;
-        $termLabel = "A01"; // Terminal ID asli bawaan merchant Anda
-        
-        $subTag01 = "01" . str_pad(strlen($billNo), 2, '0', STR_PAD_LEFT) . $billNo;
-        $subTag05 = "05" . str_pad(strlen($custLabel), 2, '0', STR_PAD_LEFT) . $custLabel;
-        $subTag06 = "06" . str_pad(strlen($refLabel), 2, '0', STR_PAD_LEFT) . $refLabel;
-        $subTag07 = "07" . str_pad(strlen($termLabel), 2, '0', STR_PAD_LEFT) . $termLabel;
-        
-        $tags['62'] = $subTag01 . $subTag05 . $subTag06 . $subTag07;
 
         // Susun kembali string QRIS dengan urutan tag teratur (ksort)
         ksort($tags);
