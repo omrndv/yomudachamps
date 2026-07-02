@@ -345,10 +345,10 @@
             </div></div>
         </div>
 
-        {{-- Tombol Submit --}}
-        <div class="col-12 text-end mt-4">
-            <button type="submit" class="btn btn-warning fw-bold px-5 py-3 rounded-pill shadow text-dark transition-all" style="letter-spacing: 0.3px;">
-                <i class="bi bi-check-lg me-1"></i> SIMPAN PENGATURAN
+        {{-- Tombol Submit Melayang --}}
+        <div class="floating-save-bar">
+            <button type="submit" class="btn btn-warning fw-bold px-4 py-3 rounded-pill shadow-lg text-dark transition-all d-flex align-items-center gap-2" style="letter-spacing: 0.5px; border: 2px solid rgba(255, 255, 255, 0.15);">
+                <i class="bi bi-cloud-arrow-up-fill fs-5"></i> SIMPAN PENGATURAN
             </button>
         </div>
     </form>
@@ -366,6 +366,21 @@
     .card-settings:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
+    .floating-save-bar {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+    }
+    .floating-save-bar button {
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .floating-save-bar button:hover {
+        transform: scale(1.05) translateY(-3px);
+        box-shadow: 0 15px 35px rgba(255, 193, 7, 0.6) !important;
     }
 </style>
 
