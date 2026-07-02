@@ -117,9 +117,7 @@ Route::get('/cek-tim', [HomeController::class, 'checkPage'])->name('check.team')
 Route::post('/cek-tim', [HomeController::class, 'searchTeam'])->middleware('throttle:15,1')->name('check.team.search');
 
 Route::get('/faq', [HomeController::class, 'faqs'])->name('faq.index');
-Route::get('/refund-policy', [HomeController::class, 'refundPolicy'])->name('refund-policy');
-Route::get('/terms-and-conditions', [HomeController::class, 'termsAndConditions'])->name('terms');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
 
 Route::post('/ai-chat', [HomeController::class, 'aiChat'])->name('ai.chat');
 
