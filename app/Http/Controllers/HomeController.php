@@ -170,7 +170,7 @@ class HomeController extends Controller
             $channels[] = (object)[
                 'code' => 'IPAYMU_QRIS',
                 'name' => 'QRIS (iPaymu)',
-                'icon_url' => 'https://tripay.co.id/upload/payment-channel/1579730605.png',
+                'icon_url' => asset('images/qris-logo.png'),
                 'active' => true,
             ];
         }
