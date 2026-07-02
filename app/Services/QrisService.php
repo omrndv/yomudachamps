@@ -60,6 +60,58 @@ class QrisService
         // Tetap pertahankan Tag 51 (GPN) karena bank lain membutuhkannya untuk routing dasar
         // Tag 51 tidak boleh dihapus.
 
+        // --- MANIPULASI KRITERIA MERCHANT (Hapus UMI) ---
+        // Kita parse sub-tag dari Tag 26 (GoPay) dan Tag 51 (GPN) untuk menghapus kriteria 'UMI' (Usaha Mikro).
+        // Ini untuk mengelabui filter bank agar mendeteksi merchant sebagai kategori umum (Regular) yang diizinkan untuk transaksi dinamis.
+        
+        // Parse & Bersihkan Tag 26
+        if (isset($tags['26'])) {
+            $tag26Val = $tags['26'];
+            $len26 = strlen($tag26Val);
+            $idx26 = 0;
+            $subTags26 = [];
+            while ($idx26 < $len26) {
+                $subT = substr($tag26Val, $idx26, 2);
+                $subL = (int) substr($tag26Val, $idx26 + 2, 2);
+                $subV = substr($tag26Val, $idx26 + 4, $subL);
+                if (empty($subT) || $subL <= 0) break;
+                if ($subT !== '03') { // Hapus sub-tag 03 (UMI)
+                    $subTags26[$subT] = $subV;
+                }
+                $idx26 += 4 + $subL;
+            }
+            ksort($subTags26);
+            $new26Val = '';
+            foreach ($subTags26 as $st => $sv) {
+                $new26Val .= $st . str_pad(strlen($sv), 2, '0', STR_PAD_LEFT) . $sv;
+            }
+            $tags['26'] = $new26Val;
+        }
+
+        // Parse & Bersihkan Tag 51
+        if (isset($tags['51'])) {
+            $tag51Val = $tags['51'];
+            $len51 = strlen($tag51Val);
+            $idx51 = 0;
+            $subTags51 = [];
+            while ($idx51 < $len51) {
+                $subT = substr($tag51Val, $idx51, 2);
+                $subL = (int) substr($tag51Val, $idx51 + 2, 2);
+                $subV = substr($tag51Val, $idx51 + 4, $subL);
+                if (empty($subT) || $subL <= 0) break;
+                if ($subT !== '03') { // Hapus sub-tag 03 (UMI)
+                    $subTags51[$subT] = $subV;
+                }
+                $idx51 += 4 + $subL;
+            }
+            ksort($subTags51);
+            $new51Val = '';
+            foreach ($subTags51 as $st => $sv) {
+                $new51Val .= $st . str_pad(strlen($sv), 2, '0', STR_PAD_LEFT) . $sv;
+            }
+            $tags['51'] = $new51Val;
+        }
+
         // 1. Ubah Point of Initiation Method menjadi '12' (Dynamic QR)
         $tags['01'] = '12';
 
