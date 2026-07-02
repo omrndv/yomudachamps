@@ -60,15 +60,23 @@ class QrisService
         // Tetap pertahankan Tag 51 (GPN) karena bank lain membutuhkannya untuk routing dasar
         // Tag 51 tidak boleh dihapus.
 
-        // 1. Ubah Point of Initiation Method menjadi '11' (Static QR)
-        // Beberapa bank akan membantu auto-fill nominal jika tag 54 ada, tetapi menganggapnya tetap transaksi statis agar lolos dari blokir acquirer.
-        $tags['01'] = '11';
+        // 1. Ubah Point of Initiation Method menjadi '12' (Dynamic QR)
+        $tags['01'] = '12';
 
         // 2. Set nominal di tag 54
         $tags['54'] = (string) $amount;
 
         // 3. Set Convenience Fee Indicator di tag 55 menjadi '01'
         $tags['55'] = '01';
+
+        // 4. Susun / Update Tag 62 (Additional Data Field)
+        // Kita masukkan Bill Number (sub-tag 01) menggunakan nominal unik atau ID transaksi
+        // agar issuer bank mendapatkan data referensi invoice yang valid saat validasi dynamic.
+        $billNo = "TRX" . str_pad($amount, 8, '0', STR_PAD_LEFT);
+        $subTag01 = "01" . str_pad(strlen($billNo), 2, '0', STR_PAD_LEFT) . $billNo;
+        $subTag07 = "0703A01"; // Terminal ID asli bawaan merchant Anda
+        
+        $tags['62'] = $subTag01 . $subTag07;
 
         // Susun kembali string QRIS dengan urutan tag teratur (ksort)
         ksort($tags);
