@@ -60,6 +60,11 @@ class QrisService
         // Set / update nilai nominal di tag 54
         $tags['54'] = (string) $amount;
 
+        // Ubah Point of Initiation Method (Tag 01) menjadi '12' (Dynamic QR) agar disetujui jaringan perbankan
+        if (isset($tags['01'])) {
+            $tags['01'] = '12';
+        }
+
         // Susun kembali string QRIS dengan urutan tag teratur (ksort)
         ksort($tags);
 
