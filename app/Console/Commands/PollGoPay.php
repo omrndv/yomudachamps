@@ -9,6 +9,7 @@ use App\Services\QrisService;
 use App\Notifications\NewRegistration;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 use Exception;
 
 class PollGoPay extends Command
