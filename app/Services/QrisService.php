@@ -109,9 +109,8 @@ class QrisService
             if ($response->successful()) {
                 $data = $response->json();
                 
-                // Menyesuaikan struktur data response GoPay Merchant
-                // Biasanya daftar transaksi ada di dalam key 'data' atau langsung berupa array
-                return $data['data'] ?? $data ?? [];
+                // Menyesuaikan struktur data response GoPay/GoFood Merchant
+                return $data['transactions'] ?? $data['data'] ?? $data ?? [];
             }
 
             Log::error("GoPay Merchant API Error: Status {$response->status()} - {$response->body()}");
