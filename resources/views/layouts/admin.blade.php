@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin - Yomuda Championship</title>
     
-    <!-- Speed Optimization: DNS Prefetch & Preconnect -->
+    <!-- Speed Optimization: DNS Prefetch & Preconnect for Admin Assets -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
@@ -16,548 +16,452 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Tailwind CSS (BFF / SaaS Modern Dashboard Styling) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons for Premium UI look -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yomuda.png') }}">
-    
-    <script>
-        // Tailwind Config & Dark Mode
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    }
-                }
-            }
-        };
-
-        // Theme Checker
-        if (localStorage.getItem('admin-theme') === 'dark' || (!('admin-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        // Sidebar Collapse Checker
-        if (localStorage.getItem('sidebar-collapsed') === 'true') {
-            document.documentElement.classList.add('sidebar-collapsed');
-        }
-    </script>
-
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+            background-color: #f8fafc;
+            color: #1e293b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ---------------------------------------------------- */
-        /* HYBRID BOOTSTRAP OVERRIDES TO MATCH TAILWIND DESIGN */
-        /* ---------------------------------------------------- */
-        
-        /* Layout Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(156, 163, 175, 0.25);
-            border-radius: 9999px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: rgba(156, 163, 175, 0.15);
+        /* Desktop Sidebar Stylings */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            color: #ffffff;
+            z-index: 1000;
+            padding: 24px 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Cards Override */
-        .card, .card-custom {
-            background-color: #ffffff !important;
-            border: 1px solid #f1f5f9 !important;
-            border-radius: 20px !important;
-            padding: 24px !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
-            color: #1e293b !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-        .dark .card, .dark .card-custom {
-            background-color: #1e293b !important;
-            border-color: #334155 !important;
-            color: #f8fafc !important;
+        .sidebar-header {
+            padding: 10px 8px 30px 8px;
+            text-align: center;
+            transition: all 0.3s ease;
         }
 
-        /* Table Override */
-        .table-responsive {
-            border-radius: 16px !important;
-            border: 1px solid #f1f5f9 !important;
+        .sidebar-brand {
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #0f172a;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-pills .nav-link {
+            color: #94a3b8;
+            padding: 12px 16px;
+            margin-bottom: 6px;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+            white-space: nowrap;
             overflow: hidden;
         }
-        .dark .table-responsive {
-            border-color: #334155 !important;
-        }
-        .table {
-            margin-bottom: 0 !important;
-            background-color: transparent !important;
-        }
-        .table th {
-            background-color: #f8fafc !important;
-            color: #64748b !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            font-size: 0.7rem !important;
-            letter-spacing: 0.8px !important;
-            padding: 16px 20px !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-        }
-        .dark .table th {
-            background-color: #0f172a !important;
-            color: #94a3b8 !important;
-            border-color: #334155 !important;
-        }
-        .table td {
-            padding: 16px 20px !important;
-            vertical-align: middle !important;
-            color: #334155 !important;
-            border-bottom: 1px solid #f1f5f9 !important;
-            font-size: 0.85rem !important;
-            background-color: transparent !important;
-        }
-        .dark .table td {
-            color: #cbd5e1 !important;
-            border-color: #334155 !important;
-        }
-        .table tr:last-child td {
-            border-bottom: none !important;
-        }
-        .table-hover tbody tr:hover td {
-            background-color: #f8fafc !important;
-        }
-        .dark .table-hover tbody tr:hover td {
-            background-color: #1e293b !important;
+
+        .nav-pills .nav-link i {
+            font-size: 1.15rem;
+            margin-right: 12px;
+            transition: margin 0.2s ease, font-size 0.2s ease;
         }
 
-        /* Form Inputs Override */
-        .form-control, .form-select {
-            background-color: #f8fafc !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 12px !important;
-            padding: 10px 16px !important;
-            font-size: 0.875rem !important;
-            color: #1e293b !important;
-            transition: all 0.2s !important;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #ffffff !important;
-            border-color: #6366f1 !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
-        }
-        .dark .form-control, .dark .form-select {
-            background-color: #0f172a !important;
-            border-color: #334155 !important;
-            color: #f8fafc !important;
-        }
-        .dark .form-control:focus, .dark .form-select:focus {
-            background-color: #0f172a !important;
-            border-color: #818cf8 !important;
+        .nav-pills .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
         }
 
-        /* Buttons Override */
-        .btn {
-            border-radius: 12px !important;
-            padding: 10px 18px !important;
-            font-size: 0.875rem !important;
-            font-weight: 600 !important;
-            border: none !important;
-            transition: all 0.2s active:scale-[0.98] !important;
-        }
-        .btn-primary {
-            background-color: #4f46e5 !important;
+        .nav-pills .nav-link.active {
             color: #ffffff !important;
-        }
-        .btn-primary:hover {
-            background-color: #4338ca !important;
-        }
-        .btn-success {
-            background-color: #10b981 !important;
-            color: #ffffff !important;
-        }
-        .btn-success:hover {
-            background-color: #059669 !important;
-        }
-        .btn-danger {
-            background-color: #ef4444 !important;
-            color: #ffffff !important;
-        }
-        .btn-danger:hover {
-            background-color: #dc2626 !important;
-        }
-        .btn-warning {
-            background-color: #f59e0b !important;
-            color: #ffffff !important;
-        }
-        .btn-warning:hover {
-            background-color: #d97706 !important;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
+            font-weight: 600;
         }
 
-        /* Soft Badges Override */
-        .badge {
-            padding: 6px 12px !important;
-            font-weight: 700 !important;
-            font-size: 0.75rem !important;
-            border-radius: 9999px !important;
-            text-transform: uppercase !important;
+        .nav-link.text-danger:hover {
+            color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.1) !important;
         }
-        .badge.bg-success {
-            background-color: rgba(16, 185, 129, 0.1) !important;
-            color: #10b981 !important;
+
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .badge.bg-warning {
-            background-color: rgba(245, 158, 11, 0.1) !important;
-            color: #d97706 !important;
+
+        .card-custom {
+            background: #ffffff;
+            border: none;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
         }
-        .badge.bg-danger {
-            background-color: rgba(239, 68, 68, 0.1) !important;
+
+        /* Mobile Header and Drawer */
+        .navbar-mobile {
+            background: #0f172a;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .offcanvas {
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+        }
+
+        /* Collapsed Sidebar State Rules (Desktop Only) */
+        @media (min-width: 1200px) {
+            body.sidebar-collapsed .sidebar {
+                width: 80px;
+                padding: 24px 12px;
+            }
+            body.sidebar-collapsed .sidebar-header {
+                padding-bottom: 20px;
+            }
+            body.sidebar-collapsed .sidebar-brand span:not(.brand-icon) {
+                display: none !important;
+            }
+            body.sidebar-collapsed .sidebar .nav-link {
+                padding: 12px;
+                justify-content: center;
+                margin-bottom: 8px;
+            }
+            body.sidebar-collapsed .sidebar .nav-link:hover {
+                transform: scale(1.05);
+            }
+            body.sidebar-collapsed .sidebar .nav-link i {
+                margin-right: 0 !important;
+                font-size: 1.3rem;
+            }
+            body.sidebar-collapsed .sidebar .nav-link span {
+                display: none !important;
+            }
+            body.sidebar-collapsed .sidebar small.text-uppercase {
+                display: none !important;
+            }
+            body.sidebar-collapsed .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 25px 15px;
+            }
+        }
+
+        /* Sidebar Backup item special override */
+        .sidebar-nav .nav-link.backup-link {
             color: #ef4444 !important;
         }
-        .badge.bg-secondary {
-            background-color: rgba(100, 116, 139, 0.1) !important;
-            color: #64748b !important;
-        }
-
-        /* Sidebar Collapse Transitions */
-        .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .content-transition {
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .sidebar-nav .nav-link.backup-link:hover {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            color: #dc2626 !important;
+            transform: translateX(4px);
         }
     </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col">
-
-    <!-- DESKTOP SIDEBAR -->
-    <aside id="desktop-sidebar" class="fixed inset-y-0 left-0 z-40 sidebar-transition w-64 bg-slate-900 dark:bg-slate-950 text-white flex flex-col border-r border-slate-800/60 hidden xl:flex">
-        <!-- Sidebar Branding -->
-        <div class="h-20 bg-gradient-to-r from-indigo-600 to-indigo-700 flex items-center px-6 gap-3 shrink-0 relative">
-            <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-sm shrink-0">
-                <i data-lucide="zap" class="w-5 h-5 text-indigo-200"></i>
+<body>
+    <script>
+        // Check sidebar state immediately to prevent layout shift/flash
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+    </script>
+    {{-- Mobile Header --}}
+    <nav class="navbar navbar-mobile d-xl-none shadow-sm sticky-top">
+        <div class="container-fluid p-0">
+            <div class="d-flex align-items-center gap-2">
+                <span class="brand-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </span>
+                <span class="navbar-brand fw-bold text-white m-0" style="font-size: 1.15rem; letter-spacing: 0.5px;">
+                    YOMUDA <span class="fw-light text-white-50">ADM</span>
+                </span>
             </div>
-            <div class="sidebar-brand-text">
-                <h1 class="text-sm font-black tracking-wider leading-none uppercase">Yomuda</h1>
-                <span class="text-[10px] text-indigo-200 font-bold tracking-widest uppercase">Championship</span>
+            <button class="btn btn-outline-warning border-0 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+        </div>
+    </nav>
+
+    {{-- Desktop Sidebar --}}
+    <aside class="sidebar d-none d-xl-block">
+        {{-- Floating Toggle Button --}}
+        <button class="btn btn-warning btn-sm position-absolute rounded-circle shadow-sm border border-light-subtle d-flex align-items-center justify-content-center" 
+                id="toggleSidebar" style="right: -12px; top: 32px; width: 24px; height: 24px; z-index: 1100; padding: 0; transition: transform 0.2s ease;">
+            <i class="bi bi-chevron-left" id="toggleIcon" style="font-size: 0.75rem;"></i>
+        </button>
+
+        <div class="sidebar-header">
+            <div class="sidebar-brand fw-bold d-flex align-items-center justify-content-center gap-2">
+                <span class="brand-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </span>
+                <span>YOMUDA <span class="fw-light text-white-50">ADM</span></span>
             </div>
         </div>
-
-        <!-- Sidebar Navigation Links -->
-        <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scroll">
-            <span class="sidebar-brand-text block text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mb-3">Menu Utama</span>
-
-            <a href="{{ route('admin.dashboard.home') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.dashboard.home') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Dashboard</span>
+        
+        <div class="sidebar-nav nav nav-pills">
+            <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
+            
+            <a href="{{ route('admin.dashboard.home') }}" class="nav-link {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
+                <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
             @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-            <a href="{{ route('admin.seasons') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="trophy" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Daftar Season</span>
+            <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-trophy"></i> <span>Daftar Season</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('teams'))
-            <a href="{{ route('admin.teams') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.teams') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Daftar Team</span>
+            <a href="{{ route('admin.teams') }}" class="nav-link {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
+                <i class="bi bi-people-fill"></i> <span>Daftar Team</span>
             </a>
             @endif
-
+            
             @if(Auth::check() && Auth::user()->hasPermission('payments'))
-            <a href="{{ route('admin.payments') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.payments') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="wallet-2" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Riwayat Pembayaran</span>
+            <a href="{{ route('admin.payments') }}" class="nav-link {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
+                <i class="bi bi-cash-stack"></i> <span>Riwayat Pembayaran</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('notes'))
-            <a href="{{ route('admin.notes.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.notes.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="sticky-note" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Catatan Admin</span>
+            <a href="{{ route('admin.notes.index') }}" class="nav-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
+                <i class="bi bi-sticky"></i> <span>Catatan Admin</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('settings'))
-            <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.settings') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="sliders" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Pengaturan</span>
+            <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+                <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('faqs'))
-            <a href="{{ route('admin.faqs.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.faqs.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="help-circle" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Kelola FAQ</span>
+            <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                <i class="bi bi-question-circle"></i> <span>Kelola FAQ</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
-            <a href="{{ route('admin.activity-log') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.activity-log') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="history" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Log Aktivitas</span>
+            <a href="{{ route('admin.activity-log') }}" class="nav-link {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> <span>Log Aktivitas</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('manage'))
-            <span class="sidebar-brand-text block text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-3">System & Dev</span>
-            <a href="{{ route('admin.manage') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.manage') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Kelola Admin</span>
+            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
+                <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
             </a>
-            <a href="{{ route('admin.system-logs') }}" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.system-logs') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="file-text" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Log Laravel</span>
+            <a href="{{ route('admin.system-logs') }}" class="nav-link {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-text"></i> <span>Log Laravel</span>
             </a>
-            <a href="{{ route('admin.storage') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.storage') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-                <i data-lucide="database" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Kelola Penyimpanan</span>
+            <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+                <i class="bi bi-hdd-network"></i> <span>Kelola Penyimpanan</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('backup'))
-            <a href="{{ route('admin.backup') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all {{ request()->routeIs('admin.backup') ? 'bg-red-500/20' : '' }}">
-                <i data-lucide="download" class="w-5 h-5"></i>
-                <span class="sidebar-brand-text">Backup Database</span>
+            <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+                <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
             @endif
-        </nav>
 
-        <!-- Sidebar Collapse Toggle Button (Floating) -->
-        <button id="toggle-sidebar" class="absolute -right-3 top-8 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-indigo-600 shadow-sm active:scale-95 transition-all">
-            <i data-lucide="chevron-left" id="toggle-icon" class="w-4 h-4 transition-transform duration-300"></i>
-        </button>
+            <div class="mt-auto pt-2 w-100">
+                <hr class="border-secondary opacity-25 mx-3 mb-3">
+                <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100">
+                    <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
+                </a>
+            </div>
+        </div>
     </aside>
 
-    <!-- MOBILE DRAWER SIDEBAR -->
-    <div id="mobile-sidebar" class="fixed inset-0 z-50 overflow-hidden hidden" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div id="mobile-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0 duration-300"></div>
-
-        <div class="fixed inset-y-0 left-0 w-64 bg-slate-900 dark:bg-slate-950 text-white flex flex-col border-r border-slate-800/60 transform -translate-x-full transition-transform duration-300 ease-in-out">
-            <div class="h-20 bg-gradient-to-r from-indigo-600 to-indigo-700 flex items-center justify-between px-6 shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-sm">
-                        <i data-lucide="zap" class="w-5 h-5 text-indigo-200"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-sm font-black tracking-wider leading-none uppercase">Yomuda</h1>
-                        <span class="text-[10px] text-indigo-200 font-bold tracking-widest uppercase">Championship</span>
-                    </div>
-                </div>
-                <button id="close-mobile-sidebar" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center">
-                    <i data-lucide="x" class="w-5 h-5 text-white"></i>
-                </button>
+    {{-- Mobile Sidebar Drawer --}}
+    <div class="offcanvas offcanvas-start text-white" tabindex="-1" id="sidebarMobile" style="width: 280px;">
+        <div class="offcanvas-header border-bottom border-secondary border-opacity-35 p-4">
+            <div class="d-flex align-items-center gap-2">
+                <span class="brand-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </span>
+                <h5 class="offcanvas-title fw-bold text-white m-0" style="letter-spacing: 0.5px;">YOMUDA ADM</h5>
             </div>
+            <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-4 d-flex flex-column h-100">
+            <div class="nav nav-pills flex-column h-100">
+                <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
+                
+                <a href="{{ route('admin.dashboard.home') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
+                    <i class="bi bi-grid-1x2 me-2"></i> <span>Dashboard</span>
+                </a>
 
-            <!-- Drawer Links -->
-            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scroll">
-                <a href="{{ route('admin.dashboard.home') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.dashboard.home') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
-                </a>
                 @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-                <a href="{{ route('admin.seasons') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="trophy" class="w-5 h-5"></i> Daftar Season
+                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('teams'))
-                <a href="{{ route('admin.teams') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.teams') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="users" class="w-5 h-5"></i> Daftar Team
+                <a href="{{ route('admin.teams') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
+                    <i class="bi bi-people-fill me-2"></i> <span>Daftar Team</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('payments'))
-                <a href="{{ route('admin.payments') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.payments') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="wallet-2" class="w-5 h-5"></i> Riwayat Pembayaran
+                <a href="{{ route('admin.payments') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
+                    <i class="bi bi-cash-stack me-2"></i> <span>Riwayat Pembayaran</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('notes'))
-                <a href="{{ route('admin.notes.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.notes.*') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="sticky-note" class="w-5 h-5"></i> Catatan Admin
+                <a href="{{ route('admin.notes.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
+                    <i class="bi bi-sticky me-2"></i> <span>Catatan Admin</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('settings'))
-                <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.settings') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="sliders" class="w-5 h-5"></i> Pengaturan
+                <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+                    <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('faqs'))
-                <a href="{{ route('admin.faqs.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.faqs.*') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="help-circle" class="w-5 h-5"></i> Kelola FAQ
+                <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                    <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
                 </a>
                 @endif
+
                 @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
-                <a href="{{ route('admin.activity-log') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {{ request()->routeIs('admin.activity-log') ? 'bg-indigo-600 text-white' : 'text-slate-400' }}">
-                    <i data-lucide="history" class="w-5 h-5"></i> Log Aktivitas
+                <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
                 </a>
                 @endif
-            </nav>
+
+                @if(Auth::check() && Auth::user()->hasPermission('manage'))
+                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
+                    <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
+                </a>
+                <a href="{{ route('admin.storage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+                    <i class="bi bi-hdd-network me-2"></i> <span>Kelola Penyimpanan</span>
+                </a>
+                @endif
+
+                @if(Auth::check() && Auth::user()->hasPermission('backup'))
+                <a href="{{ route('admin.backup') }}" class="nav-link backup-link mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+                    <i class="bi bi-database-down me-2"></i> <span>Backup Database</span>
+                </a>
+                @endif
+
+                <div class="mt-auto pt-4 w-100">
+                    <hr class="border-secondary opacity-25 mb-3">
+                    <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100">
+                        <i class="bi bi-box-arrow-right me-2"></i> <span>Logout</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="main-container" class="flex-1 flex flex-col min-h-screen content-transition xl:ml-64">
-        
-        <!-- HEADER / NAVBAR -->
-        <header class="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 sm:px-8 sticky top-0 z-30 shrink-0 shadow-sm">
-            <div class="flex items-center gap-4">
-                <!-- Mobile Sidebar Toggle -->
-                <button id="open-mobile-sidebar" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 xl:hidden active:scale-95 transition-all">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-                <h2 class="text-md sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    Panel Admin
-                </h2>
-            </div>
-
-            <!-- Header Controls -->
-            <div class="flex items-center gap-4">
-                <!-- Status Badge -->
-                <div class="hidden sm:flex bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 text-[10px] font-extrabold px-3 py-1.5 rounded-full items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Monitoring
-                </div>
-
-                <!-- Theme Toggle Button -->
-                <button id="theme-toggle" class="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:text-indigo-600 flex items-center justify-center text-slate-500 active:scale-95 transition-all">
-                    <i data-lucide="sun" id="sun-icon" class="w-5 h-5 hidden dark:block"></i>
-                    <i data-lucide="moon" id="moon-icon" class="w-5 h-5 dark:hidden"></i>
-                </button>
-
-                <!-- Admin Profile Info -->
-                <div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center font-bold text-sm">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
-                    </div>
-                    <div class="hidden md:block">
-                        <div class="text-xs font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ Auth::user()->name ?? 'Administrator' }}</div>
-                        <span class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5 block">Admin</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- CONTENT AREA -->
-        <main class="flex-1 p-6 sm:p-8">
-            @yield('content')
-        </main>
-
-    </div>
-
+    {{-- Main Page Content --}}
+    <main class="main-content">
+        @yield('content')
+    </main>
+    
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     
+    {{-- Sidebar Toggle JS Logic --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Initiate Lucide Icons
-            lucide.createIcons();
-
-            // ----------------------------------------------------
-            // Theme Toggle Logic
-            // ----------------------------------------------------
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', function() {
-                    const isDark = document.documentElement.classList.toggle('dark');
-                    localStorage.setItem('admin-theme', isDark ? 'dark' : 'light');
-                });
-            }
-
-            // ----------------------------------------------------
-            // Desktop Sidebar Collapse Logic
-            // ----------------------------------------------------
-            const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-            const desktopSidebar = document.getElementById('desktop-sidebar');
-            const mainContainer = document.getElementById('main-container');
-            const toggleIcon = document.getElementById('toggle-icon');
-
-            function applySidebarState() {
-                const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-                if (isCollapsed) {
-                    document.documentElement.classList.add('sidebar-collapsed');
-                    if (desktopSidebar) desktopSidebar.style.width = '72px';
-                    if (mainContainer) mainContainer.style.marginLeft = '72px';
-                    if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
-                    
-                    // Hide branding text
-                    document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.add('hidden'));
-                } else {
-                    document.documentElement.classList.remove('sidebar-collapsed');
-                    if (desktopSidebar) desktopSidebar.style.width = '256px';
-                    if (mainContainer) mainContainer.style.marginLeft = '256px';
-                    if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
-                    
-                    // Show branding text
-                    document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.remove('hidden'));
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            // Set correct icon if sidebar is already collapsed
+            if (document.body.classList.contains('sidebar-collapsed')) {
+                if (toggleIcon) {
+                    toggleIcon.classList.replace('bi-chevron-left', 'bi-chevron-right');
                 }
             }
-
-            if (toggleSidebarBtn) {
-                toggleSidebarBtn.addEventListener('click', function() {
-                    const currentState = localStorage.getItem('sidebar-collapsed') === 'true';
-                    localStorage.setItem('sidebar-collapsed', !currentState);
-                    applySidebarState();
-                });
-            }
             
-            // Apply immediately on load
-            applySidebarState();
-
-            // ----------------------------------------------------
-            // Mobile Sidebar Drawer Logic
-            // ----------------------------------------------------
-            const openMobileSidebarBtn = document.getElementById('open-mobile-sidebar');
-            const closeMobileSidebarBtn = document.getElementById('close-mobile-sidebar');
-            const mobileSidebar = document.getElementById('mobile-sidebar');
-            const mobileBackdrop = document.getElementById('mobile-backdrop');
-            const mobileMenuContent = mobileSidebar ? mobileSidebar.querySelector('.transform') : null;
-
-            if (openMobileSidebarBtn && mobileSidebar && mobileBackdrop && mobileMenuContent) {
-                openMobileSidebarBtn.addEventListener('click', function() {
-                    mobileSidebar.classList.remove('hidden');
-                    setTimeout(() => {
-                        mobileBackdrop.classList.remove('opacity-0');
-                        mobileBackdrop.classList.add('opacity-100');
-                        mobileMenuContent.classList.remove('-translate-x-full');
-                        mobileMenuContent.classList.add('translate-x-0');
-                    }, 50);
+            if (toggleBtn) {
+                // Hover Scale Effect
+                toggleBtn.addEventListener('mouseenter', () => {
+                    toggleBtn.style.transform = 'scale(1.15)';
+                });
+                toggleBtn.addEventListener('mouseleave', () => {
+                    toggleBtn.style.transform = 'scale(1)';
                 });
 
-                const closeMenu = function() {
-                    mobileBackdrop.classList.remove('opacity-100');
-                    mobileBackdrop.classList.add('opacity-0');
-                    mobileMenuContent.classList.remove('translate-x-0');
-                    mobileMenuContent.classList.add('-translate-x-full');
-                    setTimeout(() => {
-                        mobileSidebar.classList.add('hidden');
-                    }, 300);
-                };
-
-                closeMobileSidebarBtn.addEventListener('click', closeMenu);
-                mobileBackdrop.addEventListener('click', closeMenu);
+                toggleBtn.addEventListener('click', function() {
+                    const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', isCollapsed);
+                    
+                    if (toggleIcon) {
+                        if (isCollapsed) {
+                            toggleIcon.classList.replace('bi-chevron-left', 'bi-chevron-right');
+                        } else {
+                            toggleIcon.classList.replace('bi-chevron-right', 'bi-chevron-left');
+                        }
+                    }
+                });
             }
 
             // ----------------------------------------------------
-            // Global Live Payment Notifications
+            // Global Live Payment Notifications for Admin
             // ----------------------------------------------------
             let lastPaidTeamId = localStorage.getItem('last_paid_team_id');
 
             function playSuccessPaymentSound() {
                 try {
                     const context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Cash register style arpeggio chime (C6 -> E6 -> G6 -> C7)
                     const osc1 = context.createOscillator();
                     const gain1 = context.createGain();
                     
@@ -587,6 +491,7 @@
                         if (res.success && res.latest_paid) {
                             const team = res.latest_paid;
                             
+                            // Initialize lastPaidTeamId if not set, so it won't trigger sound on page load
                             if (!lastPaidTeamId) {
                                 localStorage.setItem('last_paid_team_id', team.id);
                                 lastPaidTeamId = team.id;
@@ -597,8 +502,10 @@
                                 localStorage.setItem('last_paid_team_id', team.id);
                                 lastPaidTeamId = team.id;
 
+                                // Play money success sound
                                 playSuccessPaymentSound();
 
+                                // Show Toast Notification using SweetAlert
                                 Swal.fire({
                                     title: '💸 Pembayaran Sukses!',
                                     html: `Tim <b>${team.name}</b> baru saja melunasi pendaftaran.<br><small class="text-secondary">Trx ID: ${team.trx_id}</small>`,
