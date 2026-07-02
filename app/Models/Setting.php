@@ -17,4 +17,12 @@ class Setting extends Model
         $setting = self::where('key', $key)->first();
         return ($setting && $setting->value !== null) ? $setting->value : $default;
     }
+
+    /**
+     * Helper untuk menyimpan nilai setting berdasarkan key
+     */
+    public static function setVal($key, $value)
+    {
+        return self::updateOrCreate(['key' => $key], ['value' => $value]);
+    }
 }

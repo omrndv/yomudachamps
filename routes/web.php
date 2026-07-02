@@ -330,3 +330,23 @@ Route::get('/chat-debug-files', function() {
         'public_files' => $publicFiles,
     ]);
 });
+
+// ==========================================
+// QRIS GoPay Merchant Gateway (Terisolasi)
+// ==========================================
+Route::prefix('qris-gateway')->name('qris.')->group(function () {
+    // Halaman pembayaran untuk user
+    Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->name('pay');
+    Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
+
+    // Panel Admin Mandiri (Login & Dashboard)
+    Route::get('/login', [\App\Http\Controllers\Qris\QrisAdminController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Qris\QrisAdminController::class, 'login'])->name('login.post');
+    Route::post('/logout', [\App\Http\Controllers\Qris\QrisAdminController::class, 'logout'])->name('logout');
+
+    Route::middleware([\App\Http\Middleware\QrisAuthMiddleware::class])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
+        Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
+        Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
+    });
+});

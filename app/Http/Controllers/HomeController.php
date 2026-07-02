@@ -177,6 +177,16 @@ class HomeController extends Controller
             ];
         }
 
+        // Load GoPay QRIS (Self-hosted) if enabled
+        if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on') {
+            $channels[] = (object)[
+                'code' => 'GOPAY_QRIS',
+                'name' => 'QRIS GoPay (Instan)',
+                'icon_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
+                'active' => true,
+            ];
+        }
+
         return view('payment', compact('team', 'channels'));
     }
 
@@ -198,6 +208,18 @@ class HomeController extends Controller
         ]);
 
         $method = strtoupper(trim($request->payment_method));
+
+        if ($method === 'GOPAY_QRIS') {
+            if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') !== 'on') {
+                return back()->with('error', 'Metode pembayaran QRIS GoPay sedang tidak aktif.');
+            }
+
+            $team->update([
+                'payment_method' => 'GOPAY_QRIS',
+            ]);
+
+            return redirect()->route('qris.pay', $team->trx_id);
+        }
 
         if ($method === 'IPAYMU_QRIS') {
             if (\App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') !== 'on') {
@@ -257,6 +279,10 @@ class HomeController extends Controller
 
         if (!$team->payment_method) {
             return redirect()->route('payment.confirm', $team->trx_id);
+        }
+
+        if ($team->payment_method === 'GOPAY_QRIS') {
+            return redirect()->route('qris.pay', $team->trx_id);
         }
 
         if (str_starts_with($team->payment_method, 'http')) {
