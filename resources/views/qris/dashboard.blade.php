@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;855;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -74,10 +74,10 @@
 <body class="min-h-screen flex text-slate-800 dark:text-slate-100 overflow-hidden p-0 sm:p-4">
 
     <!-- MAIN FRAME CONTAINER (Gives the tablet/window framed look matching the screenshot) -->
-    <div class="flex-1 flex bg-[#f3f4f6] dark:bg-[#0c0a0f] sm:rounded-3xl sm:shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
+    <div class="flex-1 flex h-screen sm:h-[calc(100vh-2rem)] bg-[#f3f4f6] dark:bg-[#0c0a0f] sm:rounded-3xl sm:shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
 
         <!-- SIDEBAR -->
-        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-[#181824] text-white flex flex-col shrink-0 z-40 hidden xl:flex relative">
+        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-[#181824] text-white flex flex-col shrink-0 z-40 hidden xl:flex relative h-full">
             <!-- Sidebar Branding / Logo -->
             <div class="h-24 flex items-center px-8 gap-3 shrink-0">
                 <div class="w-10 h-10 bg-[#bef264] rounded-xl flex items-center justify-center shadow-md shrink-0">
@@ -118,20 +118,6 @@
                     </div>
                 </div>
             </nav>
-
-            <!-- Bottom Promo/Update Banner (Matching the rocket banner in the screenshot) -->
-            <div class="sidebar-brand-text p-4 m-4 bg-[#bef264] rounded-2xl text-[#181824] flex flex-col items-center text-center relative overflow-hidden group shadow-lg shrink-0">
-                <!-- Decorative background elements -->
-                <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-white/20 rounded-full blur-xl group-hover:scale-125 transition-all"></div>
-                <div class="w-12 h-12 bg-[#181824] rounded-full flex items-center justify-center shadow-md mb-3 text-[#bef264]">
-                    <i data-lucide="rocket" class="w-6 h-6 animate-bounce"></i>
-                </div>
-                <h4 class="text-xs font-black tracking-tight mb-1">New update available</h4>
-                <p class="text-[9px] font-semibold text-[#181824]/75 mb-3">Click to upgrade your gateway panel</p>
-                <a href="#" class="w-full bg-[#181824] hover:bg-[#201f30] text-white text-[10px] font-bold py-2 px-3 rounded-xl transition-all active:scale-[0.98]">
-                    Update!
-                </a>
-            </div>
 
             <!-- Sidebar Collapse toggle -->
             <button id="toggle-sidebar" class="absolute -right-3 top-10 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-[#bef264] shadow-sm active:scale-95 transition-all">
@@ -213,13 +199,13 @@
 
                 <!-- Controls -->
                 <div class="flex items-center gap-4">
-                    <!-- Search Bar (Matching screenshot) -->
+                    <!-- Search Bar (Functional) -->
                     <div class="relative hidden lg:block">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
                             <i data-lucide="search" class="w-4 h-4"></i>
                         </span>
-                        <input type="text" placeholder="Search..." readonly
-                            class="w-64 bg-slate-100 dark:bg-slate-850 text-slate-900 dark:text-white rounded-full pl-11 pr-4 py-2.5 text-xs border border-transparent focus:outline-none placeholder-slate-450 dark:placeholder-slate-500">
+                        <input type="text" id="search-input" placeholder="Cari transaksi..." 
+                            class="w-64 bg-slate-150 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full pl-11 pr-4 py-2.5 text-xs border border-slate-200/60 dark:border-slate-700/80 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder-slate-450 dark:placeholder-slate-500">
                     </div>
 
                     <!-- Theme Toggle -->
@@ -228,9 +214,28 @@
                         <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
                     </button>
 
-                    <!-- Avatar profile display (Matching screenshot) -->
-                    <div class="w-10 h-10 rounded-full bg-slate-200 border border-slate-300 dark:border-slate-800 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700">
-                        AD
+                    <!-- Profile Dropdown Container -->
+                    <div class="relative">
+                        <button id="profile-btn" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-750 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 active:scale-95 transition-all">
+                            AD
+                        </button>
+                        <!-- Profile Dropdown Menu -->
+                        <div id="profile-dropdown" class="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 hidden z-50">
+                            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
+                                <p class="text-xs font-black text-slate-900 dark:text-white">Admin Gateway</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">superadmin@gate.com</p>
+                            </div>
+                            <button onclick="switchTab('config')" class="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
+                                <i data-lucide="settings" class="w-3.5 h-3.5"></i> Settings
+                            </button>
+                            <hr class="border-slate-100 dark:border-slate-800">
+                            <form action="{{ route('qris.logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2">
+                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Log out
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -247,10 +252,10 @@
                 <!-- ================= TAB: DASHBOARD ================= -->
                 <div id="tab-dashboard" class="space-y-8 tab-content">
                     
-                    <!-- Stats Summary Grid (Matching the exact look of screenshot) -->
+                    <!-- Stats Summary Grid (Dinamis Get QRIS Gateway) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         
-                        <!-- First Card: Dark Accent Card (Matching Total Income card in screenshot) -->
+                        <!-- First Card: Dark Accent Card -->
                         <div class="bg-[#201f30] text-white border border-[#201f30] rounded-3xl p-6 shadow-md relative overflow-hidden group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
                             <div class="flex justify-between items-start mb-4">
@@ -260,7 +265,7 @@
                                 </div>
                             </div>
                             <div class="text-2xl font-black font-mono">
-                                Rp {{ number_format($transactions->where('status', 'PAID')->sum('amount'), 0, ',', '.') }}
+                                Rp {{ number_format($globalStats->total_volume, 0, ',', '.') }}
                             </div>
                             <div class="text-[10px] text-[#bef264] mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +35.7% settle rate
@@ -276,7 +281,7 @@
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $transactions->where('status', 'PAID')->count() }} txs
+                                {{ $globalStats->paid_count }} txs
                             </div>
                             <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +45.2% last 7 days
@@ -292,7 +297,7 @@
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $transactions->where('status', 'PENDING')->count() }} txs
+                                {{ $globalStats->pending_count }} txs
                             </div>
                             <div class="text-[10px] text-yellow-600 dark:text-yellow-450 mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="clock" class="w-3.5 h-3.5"></i> Waiting for scan
@@ -308,7 +313,7 @@
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $transactions->where('status', 'EXPIRED')->count() }} txs
+                                {{ $globalStats->expired_count }} txs
                             </div>
                             <div class="text-[10px] text-slate-450 dark:text-slate-550 mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Auto clean database
@@ -316,52 +321,54 @@
                         </div>
                     </div>
 
-                    <!-- Charts row (Matching the charts in screenshot) -->
+                    <!-- Charts row (Dinamis Dari Database) -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         
-                        <!-- Chart 1: Flex Bar Chart (Mock Transaction Overview) -->
+                        <!-- Chart 1: Dinamis Monthly Bar Chart -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Transaction Overview</h3>
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Monthly <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></span>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Transaction Overview (6 Months)</h3>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Realtime <i data-lucide="activity" class="w-3.5 h-3.5 text-[#bef264]"></i></span>
                             </div>
                             
+                            @php
+                                $maxMonthly = max(array_merge([1], $monthlyCounts));
+                            @endphp
                             <!-- Graph Bars -->
-                            <div class="h-48 flex items-end justify-between gap-2.5 pt-4">
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264] rounded-t-lg transition-all" style="height: 65%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">Jan</span>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264]/40 rounded-t-lg transition-all" style="height: 45%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">Feb</span>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264] rounded-t-lg transition-all" style="height: 80%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">Mar</span>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264]/40 rounded-t-lg transition-all" style="height: 35%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">Apr</span>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264] rounded-t-lg transition-all" style="height: 90%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">May</span>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                    <div class="w-full bg-[#bef264]/40 rounded-t-lg transition-all" style="height: 70%;"></div>
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">Jun</span>
-                                </div>
+                            <div class="h-48 flex items-end justify-between gap-4 pt-4">
+                                @foreach($monthlyCounts as $index => $count)
+                                    <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                        <div class="w-full bg-[#bef264] rounded-t-lg transition-all relative group" style="height: {{ ($count / $maxMonthly) * 80 + 5 }}%;">
+                                            <!-- Tooltip -->
+                                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                                {{ $count }} Txs
+                                            </div>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">{{ $monthlyLabels[$index] }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
-                        <!-- Chart 2: SVG Area Line Chart -->
+                        <!-- Chart 2: Dinamis Weekly Area Line Chart -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Volume Performance</h3>
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Weekly <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></span>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Volume Performance (This Week)</h3>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Realtime <i data-lucide="activity" class="w-3.5 h-3.5 text-[#bef264]"></i></span>
                             </div>
                             
+                            @php
+                                $maxWeekly = max(array_merge([1], $weeklyCounts));
+                                // Generate SVG coordinates dynamically
+                                $points = [];
+                                foreach ($weeklyCounts as $index => $count) {
+                                    $x = ($index / 6) * 300;
+                                    $y = 80 - ($count / $maxWeekly) * 70;
+                                    $points[] = "$x,$y";
+                                }
+                                $pointsString = implode(' ', $points);
+                            @endphp
+
                             <div class="h-48 relative pt-4">
                                 <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
                                     <defs>
@@ -371,9 +378,18 @@
                                         </linearGradient>
                                     </defs>
                                     <!-- Area -->
-                                    <path d="M 0,80 Q 50,20 100,60 T 200,30 T 300,10 L 300,100 L 0,100 Z" fill="url(#gradient-chart)" />
+                                    <path d="M 0,100 L {{ $pointsString }} L 300,100 Z" fill="url(#gradient-chart)" />
                                     <!-- Line -->
-                                    <path d="M 0,80 Q 50,20 100,60 T 200,30 T 300,10" fill="none" stroke="#bef264" stroke-width="2.5" />
+                                    <path d="M {{ $pointsString }}" fill="none" stroke="#bef264" stroke-width="2.5" />
+                                    
+                                    <!-- Draw dots for each point -->
+                                    @foreach($weeklyCounts as $index => $count)
+                                        @php
+                                            $cx = ($index / 6) * 300;
+                                            $cy = 80 - ($count / $maxWeekly) * 70;
+                                        @endphp
+                                        <circle cx="{{ $cx }}" cy="{{ $cy }}" r="3" fill="#bef264" class="hover:r-5 transition-all cursor-pointer" />
+                                    @endforeach
                                 </svg>
                                 
                                 <!-- Days labels -->
@@ -409,7 +425,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="font-black text-sm text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
-                                        <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">{{ $tx->created_at->diffForHumans() }}</span>
+                                        <span class="text-[10px] text-slate-400 dark:text-slate-550 mt-1 block">{{ $tx->created_at->diffForHumans() }}</span>
                                     </div>
                                 </div>
                             @empty
@@ -440,11 +456,11 @@
                                             <td class="py-4 px-6 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">{{ $tx->trx_id }}</td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
                                             </td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
                                             </td>
                                             <td class="py-4 px-6">
                                                 @if($tx->status === 'PAID')
@@ -452,11 +468,11 @@
                                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PAID
                                                     </span>
                                                 @elseif($tx->status === 'PENDING')
-                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-500/20">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-450 border border-yellow-100 dark:border-yellow-500/20">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> PENDING
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> EXPIRED
                                                     </span>
                                                 @endif
@@ -473,7 +489,7 @@
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">-</span>
+                                                    <span class="text-xs text-slate-400 dark:text-slate-555 font-medium">-</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -536,7 +552,7 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
+                                class="w-full bg-[#181824] hover:bg-[#201f30] text-white dark:bg-slate-800 dark:hover:bg-slate-750 font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
                                 <i data-lucide="save" class="w-4 h-4"></i> Simpan Konfigurasi
                             </button>
                         </form>
@@ -551,7 +567,7 @@
             <!-- Drawer Header -->
             <div class="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0">
                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Payment Detail</h3>
-                <button onclick="closeDetailDrawer()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-805 flex items-center justify-center text-slate-500">
+                <button onclick="closeDetailDrawer()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -573,32 +589,32 @@
                 <!-- Details List -->
                 <div class="space-y-4">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Payment ID</span>
+                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">Payment ID</span>
                         <span id="drawer-id" class="font-mono text-slate-800 dark:text-slate-200 font-bold">-</span>
                     </div>
                     <hr class="border-slate-100 dark:border-slate-800">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-550 font-bold uppercase">Tim</span>
+                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Tim</span>
                         <span id="drawer-team" class="font-bold text-slate-900 dark:text-white">-</span>
                     </div>
                     <hr class="border-slate-100 dark:border-slate-800">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Created At</span>
+                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">Created At</span>
                         <span id="drawer-created" class="text-slate-800 dark:text-slate-200 font-bold">-</span>
                     </div>
                     <hr class="border-slate-100 dark:border-slate-800">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-550 font-bold uppercase">Expires At</span>
+                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Expires At</span>
                         <span id="drawer-expires" class="text-slate-800 dark:text-slate-200 font-bold">-</span>
                     </div>
                     <hr class="border-slate-100 dark:border-slate-800">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-550 font-bold uppercase">Paid At</span>
+                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Paid At</span>
                         <span id="drawer-paid" class="text-emerald-600 dark:text-emerald-400 font-black">-</span>
                     </div>
                     <hr class="border-slate-100 dark:border-slate-800">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">GoPay Reference</span>
+                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">GoPay Reference</span>
                         <span id="drawer-gopay-ref" class="font-mono font-bold text-slate-800 dark:text-slate-200">-</span>
                     </div>
                 </div>
@@ -608,7 +624,7 @@
                     <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mb-3">Dynamic QR Code</span>
                     <img id="drawer-qr-img" src="" alt="QR Code QRIS" class="w-40 h-40 object-contain border border-slate-200 dark:border-slate-850 rounded-xl bg-white p-2 mb-3">
                     <div class="w-full">
-                        <span class="text-[9px] text-slate-400 dark:text-slate-550 font-bold block mb-1">RAW QRIS STRING</span>
+                        <span class="text-[9px] text-slate-400 dark:text-slate-555 font-bold block mb-1">RAW QRIS STRING</span>
                         <textarea id="drawer-qris-string" readonly rows="3" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2 text-[9px] font-mono text-slate-500 dark:text-slate-400 focus:outline-none"></textarea>
                     </div>
                 </div>
@@ -630,6 +646,42 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize Icons
             lucide.createIcons();
+
+            // Profile Dropdown Toggle Function
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('hidden');
+                });
+                document.addEventListener('click', () => {
+                    profileDropdown.classList.add('hidden');
+                });
+            }
+
+            // Search Bar Filter Table
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    
+                    // Automatically switch to Payments Tab if search is active
+                    if (query.length > 0) {
+                        switchTab('payments');
+                    }
+                    
+                    const rows = document.querySelectorAll('#tab-payments tbody tr');
+                    rows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        if (text.includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
 
             // Set static QRIS value from config
             const staticQris = @json($config->static_qris);

@@ -57,14 +57,40 @@ class QrisAdminController extends Controller
         return redirect()->route('qris.login')->with('success', 'Berhasil logout.');
     }
 
-    /**
-     * Dashboard Panel Admin QRIS
-     */
     public function dashboard()
     {
         $transactions = QrisTransaction::with('team.season')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
+
+        // Hitung total data secara global untuk seluruh database
+        $globalStats = (object) [
+            'total_volume' => QrisTransaction::where('status', 'PAID')->sum('amount'),
+            'paid_count' => QrisTransaction::where('status', 'PAID')->count(),
+            'pending_count' => QrisTransaction::where('status', 'PENDING')->count(),
+            'expired_count' => QrisTransaction::where('status', 'EXPIRED')->count(),
+        ];
+
+        // Hitung data chart bulanan (6 bulan terakhir)
+        $monthlyCounts = [];
+        $monthlyLabels = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthlyLabels[] = $date->format('M');
+            $monthlyCounts[] = QrisTransaction::where('status', 'PAID')
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        // Hitung data chart mingguan (Senin - Minggu minggu ini)
+        $weeklyCounts = [];
+        for ($d = 1; $d <= 7; $d++) {
+            $date = now()->startOfWeek()->addDays($d - 1);
+            $weeklyCounts[] = QrisTransaction::where('status', 'PAID')
+                ->whereDate('created_at', $date)
+                ->count();
+        }
 
         // Ambil konfigurasi
         $config = (object) [
@@ -74,7 +100,7 @@ class QrisAdminController extends Controller
             'has_token' => !empty(Setting::getVal('gopay_token', ''))
         ];
 
-        return view('qris.dashboard', compact('transactions', 'config'));
+        return view('qris.dashboard', compact('transactions', 'config', 'globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts'));
     }
 
     /**
