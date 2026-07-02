@@ -353,5 +353,6 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
         Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
+        Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
     });
 });

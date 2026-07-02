@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoPay Merchant - Scalify Panel</title>
+    <title>Dips Gateway - Dashboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js (Untuk Grafik Animatif Sangat Smooth & Interaktif) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -16,10 +19,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            lime: '#d9f99d',      // Lime accent
-                            limeDark: '#bef264',  // Solid active lime
-                            darkBg: '#181824',    // Dark Sidebar
-                            cardDark: '#201f30',  // Dark stats card
+                            blue: '#2563eb',       // Biru utama TriPay
+                            blueLight: '#eff6ff',  // Latar aktif menu
+                            grayBg: '#f8fafc',     // Latar abu-abu TriPay
                         }
                     },
                     fontFamily: {
@@ -44,7 +46,7 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f3f4f6; /* Matching the soft gray background in the screenshot */
+            background-color: #f8fafc; 
             transition: background-color 0.3s, color 0.3s;
         }
         .dark body {
@@ -73,28 +75,27 @@
 </head>
 <body class="min-h-screen flex text-slate-800 dark:text-slate-100 overflow-hidden p-0 sm:p-4">
 
-    <!-- MAIN FRAME CONTAINER (Gives the tablet/window framed look matching the screenshot) -->
-    <div class="flex-1 flex h-screen sm:h-[calc(100vh-2rem)] bg-[#f3f4f6] dark:bg-[#0c0a0f] sm:rounded-3xl sm:shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
+    <!-- MAIN FRAME CONTAINER (Framed look) -->
+    <div class="flex-1 flex h-screen sm:h-[calc(100vh-2rem)] bg-[#f8fafc] dark:bg-[#0c0a0f] sm:rounded-3xl sm:shadow-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800/60">
 
-        <!-- SIDEBAR -->
-        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-[#181824] text-white flex flex-col shrink-0 z-40 hidden xl:flex relative h-full">
+        <!-- SIDEBAR (Clean White Aesthetic like TriPay) -->
+        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 flex flex-col shrink-0 z-40 hidden xl:flex relative h-full border-r border-slate-200/80 dark:border-slate-800/80">
             <!-- Sidebar Branding / Logo -->
-            <div class="h-24 flex items-center px-8 gap-3 shrink-0">
-                <div class="w-10 h-10 bg-[#bef264] rounded-xl flex items-center justify-center shadow-md shrink-0">
-                    <i data-lucide="qr-code" class="w-6 h-6 text-[#181824]"></i>
+            <div class="h-24 flex items-center px-8 gap-3 shrink-0 border-b border-slate-100 dark:border-slate-850">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                    <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
                 </div>
                 <div class="sidebar-brand-text">
-                    <h1 class="text-md font-extrabold tracking-tight leading-none text-white">GoPay Gateway</h1>
-                    <span class="text-[9px] text-[#bef264] font-black uppercase tracking-widest block mt-1">Scalify Panel</span>
+                    <h1 class="text-md font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">Dips Gateway</h1>
+                    <span class="text-[9px] text-blue-600 font-bold uppercase tracking-wider block mt-1">Dashboard</span>
                 </div>
             </div>
 
             <!-- Sidebar Navigation -->
-            <nav class="flex-1 px-4 py-4 space-y-6 overflow-y-auto custom-scroll">
-                
+            <nav class="flex-1 px-4 py-6 space-y-6 overflow-y-auto custom-scroll">
                 <!-- Group 1 -->
                 <div>
-                    <span class="sidebar-brand-text block text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-3">Overview</span>
+                    <span class="sidebar-brand-text block text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3">Utama</span>
                     <div class="space-y-1.5">
                         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left">
                             <i data-lucide="layout-grid" class="w-5 h-5"></i>
@@ -102,35 +103,40 @@
                         </button>
                         <button onclick="switchTab('payments')" id="nav-payments" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left">
                             <i data-lucide="receipt" class="w-5 h-5"></i>
-                            <span class="sidebar-brand-text">Payments</span>
+                            <span class="sidebar-brand-text">Daftar Transaksi</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Group 2 -->
                 <div>
-                    <span class="sidebar-brand-text block text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-3">Other</span>
+                    <span class="sidebar-brand-text block text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3">Lainnya</span>
                     <div class="space-y-1.5">
                         <button onclick="switchTab('config')" id="nav-config" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left">
                             <i data-lucide="sliders" class="w-5 h-5"></i>
-                            <span class="sidebar-brand-text">System Settings</span>
+                            <span class="sidebar-brand-text">Pengaturan Sistem</span>
                         </button>
                     </div>
                 </div>
             </nav>
 
             <!-- Sidebar Collapse toggle -->
-            <button id="toggle-sidebar" class="absolute -right-3 top-10 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-[#bef264] shadow-sm active:scale-95 transition-all">
+            <button id="toggle-sidebar" class="absolute -right-3 top-10 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-blue-600 shadow-sm active:scale-95 transition-all">
                 <i data-lucide="chevron-left" id="toggle-icon" class="w-4 h-4 transition-transform duration-300"></i>
             </button>
 
             <!-- Sidebar Footer -->
-            <div class="p-4 border-t border-slate-800/60 shrink-0">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-850 shrink-0">
+                <!-- Button to main Yomuda ADM panel -->
+                <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 hover:bg-blue-600 hover:text-white transition-all text-left mb-2">
+                    <i data-lucide="arrow-left-right" class="w-4 h-4 shrink-0"></i>
+                    <span class="sidebar-brand-text">Kembali ke Yomuda ADM</span>
+                </a>
                 <form action="{{ route('qris.logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left">
+                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
                         <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
-                        <span class="sidebar-brand-text">Log out</span>
+                        <span class="sidebar-brand-text">Keluar</span>
                     </button>
                 </form>
             </div>
@@ -141,15 +147,15 @@
             <!-- Backdrop -->
             <div id="mobile-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0 duration-300"></div>
 
-            <div class="fixed inset-y-0 left-0 w-64 bg-[#181824] text-white flex flex-col border-r border-slate-800/60 transform -translate-x-full transition-transform duration-300 ease-in-out">
-                <div class="h-24 bg-gradient-to-r from-sky-600 to-sky-700 flex items-center justify-between px-6 shrink-0">
+            <div class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-950 text-slate-750 dark:text-white flex flex-col border-r border-slate-200 dark:border-slate-850 transform -translate-x-full transition-transform duration-300 ease-in-out">
+                <div class="h-24 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between px-6 shrink-0 text-white">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-[#bef264] rounded-xl flex items-center justify-center shadow-md">
-                            <i data-lucide="qr-code" class="w-6 h-6 text-[#181824]"></i>
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/25">
+                            <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
-                            <h1 class="text-sm font-black tracking-wider leading-none uppercase">GoPay Gateway</h1>
-                            <span class="text-[9px] text-[#bef264] font-bold tracking-widest uppercase">Scalify Panel</span>
+                            <h1 class="text-sm font-black tracking-wider leading-none uppercase">Dips Gateway</h1>
+                            <span class="text-[9px] text-blue-200 font-bold tracking-widest uppercase">Dashboard</span>
                         </div>
                     </div>
                     <button id="close-mobile-sidebar" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center">
@@ -159,22 +165,25 @@
 
                 <!-- Drawer Links -->
                 <nav class="flex-1 px-4 py-6 space-y-3 overflow-y-auto custom-scroll">
-                    <button onclick="switchTab('dashboard'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-400 hover:text-white text-left">
+                    <button onclick="switchTab('dashboard'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-500 hover:text-blue-600 text-left">
                         <i data-lucide="layout-grid" class="w-5 h-5"></i> Dashboard
                     </button>
-                    <button onclick="switchTab('payments'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-400 hover:text-white text-left">
-                        <i data-lucide="receipt" class="w-5 h-5"></i> Payments
+                    <button onclick="switchTab('payments'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-500 hover:text-blue-600 text-left">
+                        <i data-lucide="receipt" class="w-5 h-5"></i> Daftar Transaksi
                     </button>
-                    <button onclick="switchTab('config'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-400 hover:text-white text-left">
-                        <i data-lucide="sliders" class="w-5 h-5"></i> Configuration
+                    <button onclick="switchTab('config'); closeMobileSidebar();" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-slate-500 hover:text-blue-600 text-left">
+                        <i data-lucide="sliders" class="w-5 h-5"></i> Konfigurasi
                     </button>
                 </nav>
 
-                <div class="p-4 border-t border-slate-800/60 shrink-0">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-850 shrink-0">
+                    <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-150 text-slate-700 hover:bg-blue-600 hover:text-white transition-all text-left mb-2">
+                        <i data-lucide="arrow-left-right" class="w-4 h-4 shrink-0"></i> Kembali ke Yomuda ADM
+                    </a>
                     <form action="{{ route('qris.logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left">
-                            <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i> Log out
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
+                            <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i> Keluar
                         </button>
                     </form>
                 </div>
@@ -182,18 +191,18 @@
         </div>
 
         <!-- MAIN CONTAINER -->
-        <div id="main-container" class="flex-1 flex flex-col overflow-hidden content-transition">
+        <div id="main-container" class="flex-1 flex flex-col overflow-hidden content-transition xl:ml-64">
             
             <!-- HEADER / NAVBAR -->
-            <header class="h-24 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between px-8 shrink-0 transition-colors duration-300">
+            <header class="h-24 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between px-8 shrink-0 relative z-30 shadow-sm transition-colors duration-300">
                 <div class="flex items-center gap-4">
                     <!-- Mobile Trigger -->
                     <button id="open-mobile-sidebar" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-850 flex items-center justify-center text-slate-500 xl:hidden active:scale-95 transition-all">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
                     <div>
-                        <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Welcome back, Admin!</h2>
-                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Here is your transaction summary for today.</p>
+                        <h2 class="text-xl font-black text-slate-900 dark:text-white">Selamat Datang, Admin!</h2>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Berikut adalah ringkasan mutasi transaksi gateway Anda hari ini.</p>
                     </div>
                 </div>
 
@@ -205,34 +214,64 @@
                             <i data-lucide="search" class="w-4 h-4"></i>
                         </span>
                         <input type="text" id="search-input" placeholder="Cari transaksi..." 
-                            class="w-64 bg-slate-150 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full pl-11 pr-4 py-2.5 text-xs border border-slate-200/60 dark:border-slate-700/80 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder-slate-450 dark:placeholder-slate-500">
+                            class="w-64 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700/85 rounded-full pl-11 pr-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-450 dark:placeholder-slate-500">
+                    </div>
+
+                    <!-- Notification bell (Functional) -->
+                    <div class="relative">
+                        <button id="notif-btn" class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 transition-all relative">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            @if($globalStats->pending_count > 0)
+                                <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-black animate-bounce shadow-sm">
+                                    {{ $globalStats->pending_count }}
+                                </span>
+                            @endif
+                        </button>
+                        <!-- Notif Dropdown -->
+                        <div id="notif-dropdown" class="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-3 hidden z-[99]">
+                            <div class="px-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                <h4 class="text-xs font-black text-slate-950 dark:text-white">Pemberitahuan Transaksi</h4>
+                            </div>
+                            <div class="max-h-60 overflow-y-auto custom-scroll py-2 px-1">
+                                @if($globalStats->pending_count > 0)
+                                    <div class="p-3 bg-blue-50/50 dark:bg-blue-500/5 rounded-xl border border-blue-100/55 dark:border-blue-500/10 mb-1 flex items-start gap-2.5">
+                                        <i data-lucide="clock" class="w-4 h-4 text-blue-600 mt-0.5"></i>
+                                        <p class="text-[10px] text-slate-700 dark:text-slate-350 leading-relaxed font-semibold">Ada <b>{{ $globalStats->pending_count }} transaksi</b> yang sedang pending menunggu pembayaran.</p>
+                                    </div>
+                                @else
+                                    <div class="py-4 text-center text-slate-400 text-[10px] font-medium">
+                                        Tidak ada pemberitahuan baru.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:text-indigo-600 flex items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 transition-all">
+                    <button id="theme-toggle" class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 hover:text-blue-600 flex items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 transition-all">
                         <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
                         <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
                     </button>
 
-                    <!-- Profile Dropdown Container -->
-                    <div class="relative">
-                        <button id="profile-btn" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-750 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 active:scale-95 transition-all">
+                    <!-- Profile Dropdown Container (Z-Index fix) -->
+                    <div class="relative z-[999]">
+                        <button id="profile-btn" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 active:scale-95 transition-all">
                             AD
                         </button>
                         <!-- Profile Dropdown Menu -->
-                        <div id="profile-dropdown" class="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 hidden z-50">
-                            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                                <p class="text-xs font-black text-slate-900 dark:text-white">Admin Gateway</p>
+                        <div id="profile-dropdown" class="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-2xl py-2 hidden">
+                            <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                                <p class="text-xs font-black text-slate-950 dark:text-white">Admin Gateway</p>
                                 <p class="text-[10px] text-slate-400 mt-0.5">superadmin@gate.com</p>
                             </div>
                             <button onclick="switchTab('config')" class="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-                                <i data-lucide="settings" class="w-3.5 h-3.5"></i> Settings
+                                <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i> Pengaturan
                             </button>
                             <hr class="border-slate-100 dark:border-slate-800">
                             <form action="{{ route('qris.logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2">
-                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Log out
+                                <button type="submit" class="w-full text-left px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2">
+                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
                                 </button>
                             </form>
                         </div>
@@ -252,156 +291,90 @@
                 <!-- ================= TAB: DASHBOARD ================= -->
                 <div id="tab-dashboard" class="space-y-8 tab-content">
                     
-                    <!-- Stats Summary Grid (Dinamis Get QRIS Gateway) -->
+                    <!-- Stats Summary Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         
-                        <!-- First Card: Dark Accent Card -->
-                        <div class="bg-[#201f30] text-white border border-[#201f30] rounded-3xl p-6 shadow-md relative overflow-hidden group">
+                        <!-- First Card: Dark Blue Theme Card -->
+                        <div class="bg-[#1e293b] text-white border border-[#1e293b] rounded-3xl p-6 shadow-md relative overflow-hidden group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Volume Paid</div>
-                                <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-[#bef264]">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Volume Sukses</div>
+                                <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-blue-400">
                                     <i data-lucide="wallet" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black font-mono">
                                 Rp {{ number_format($globalStats->total_volume, 0, ',', '.') }}
                             </div>
-                            <div class="text-[10px] text-[#bef264] mt-3 font-semibold flex items-center gap-1">
-                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +35.7% settle rate
+                            <div class="text-[10px] text-blue-400 mt-3 font-semibold flex items-center gap-1">
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 100% Settle rate
                             </div>
                         </div>
 
                         <!-- Card 2: White/Dark Spending Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Paid Transactions</div>
-                                <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400">
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Sukses</div>
+                                <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-450">
                                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $globalStats->paid_count }} txs
+                                {{ $globalStats->paid_count }} Tx
                             </div>
                             <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
-                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +45.2% last 7 days
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Transaksi terbayar lunas
                             </div>
                         </div>
 
                         <!-- Card 3: Pending Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Pending Transactions</div>
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Pending</div>
                                 <div class="w-7 h-7 bg-yellow-50 dark:bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-600 dark:text-yellow-450">
                                     <i data-lucide="hourglass" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $globalStats->pending_count }} txs
+                                {{ $globalStats->pending_count }} Tx
                             </div>
                             <div class="text-[10px] text-yellow-600 dark:text-yellow-450 mt-3 font-semibold flex items-center gap-1">
-                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Waiting for scan
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Menunggu pembayaran
                             </div>
                         </div>
 
                         <!-- Card 4: Expired Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Expired Transactions</div>
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Kedaluwarsa</div>
                                 <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-400">
                                     <i data-lucide="slash" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                {{ $globalStats->expired_count }} txs
+                                {{ $globalStats->expired_count }} Tx
                             </div>
                             <div class="text-[10px] text-slate-450 dark:text-slate-550 mt-3 font-semibold flex items-center gap-1">
-                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Auto clean database
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Melewati batas waktu
                             </div>
                         </div>
                     </div>
 
-                    <!-- Charts row (Dinamis Dari Database) -->
+                    <!-- Charts Row with Chart.js (Gorgeous Animations!) -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        
-                        <!-- Chart 1: Dinamis Monthly Bar Chart -->
+                        <!-- Chart 1: Bar Chart (Monthly Overview) -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Transaction Overview (6 Months)</h3>
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Realtime <i data-lucide="activity" class="w-3.5 h-3.5 text-[#bef264]"></i></span>
-                            </div>
-                            
-                            @php
-                                $maxMonthly = max(array_merge([1], $monthlyCounts));
-                            @endphp
-                            <!-- Graph Bars -->
-                            <div class="h-48 flex items-end justify-between gap-4 pt-4">
-                                @foreach($monthlyCounts as $index => $count)
-                                    <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                                        <div class="w-full bg-[#bef264] rounded-t-lg transition-all relative group" style="height: {{ ($count / $maxMonthly) * 80 + 5 }}%;">
-                                            <!-- Tooltip -->
-                                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                                {{ $count }} Txs
-                                            </div>
-                                        </div>
-                                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-550">{{ $monthlyLabels[$index] }}</span>
-                                    </div>
-                                @endforeach
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-6">Analisis Transaksi Bulanan</h3>
+                            <div class="h-56 relative w-full">
+                                <canvas id="monthlyChart"></canvas>
                             </div>
                         </div>
 
-                        <!-- Chart 2: Dinamis Weekly Area Line Chart -->
+                        <!-- Chart 2: Line Chart (Weekly Volume) -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Volume Performance (This Week)</h3>
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">Realtime <i data-lucide="activity" class="w-3.5 h-3.5 text-[#bef264]"></i></span>
-                            </div>
-                            
-                            @php
-                                $maxWeekly = max(array_merge([1], $weeklyCounts));
-                                // Generate SVG coordinates dynamically
-                                $points = [];
-                                foreach ($weeklyCounts as $index => $count) {
-                                    $x = ($index / 6) * 300;
-                                    $y = 80 - ($count / $maxWeekly) * 70;
-                                    $points[] = "$x,$y";
-                                }
-                                $pointsString = implode(' ', $points);
-                            @endphp
-
-                            <div class="h-48 relative pt-4">
-                                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
-                                    <defs>
-                                        <linearGradient id="gradient-chart" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#bef264" stop-opacity="0.4" />
-                                            <stop offset="100%" stop-color="#bef264" stop-opacity="0" />
-                                        </linearGradient>
-                                    </defs>
-                                    <!-- Area -->
-                                    <path d="M 0,100 L {{ $pointsString }} L 300,100 Z" fill="url(#gradient-chart)" />
-                                    <!-- Line -->
-                                    <path d="M {{ $pointsString }}" fill="none" stroke="#bef264" stroke-width="2.5" />
-                                    
-                                    <!-- Draw dots for each point -->
-                                    @foreach($weeklyCounts as $index => $count)
-                                        @php
-                                            $cx = ($index / 6) * 300;
-                                            $cy = 80 - ($count / $maxWeekly) * 70;
-                                        @endphp
-                                        <circle cx="{{ $cx }}" cy="{{ $cy }}" r="3" fill="#bef264" class="hover:r-5 transition-all cursor-pointer" />
-                                    @endforeach
-                                </svg>
-                                
-                                <!-- Days labels -->
-                                <div class="flex justify-between text-[9px] font-bold text-slate-400 dark:text-slate-550 mt-2">
-                                    <span>Mon</span>
-                                    <span>Tue</span>
-                                    <span>Wed</span>
-                                    <span>Thu</span>
-                                    <span>Fri</span>
-                                    <span>Sat</span>
-                                    <span>Sun</span>
-                                </div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-6">Performa Transaksi Mingguan</h3>
+                            <div class="h-56 relative w-full">
+                                <canvas id="weeklyChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -409,7 +382,7 @@
                     <!-- Recent Activities Table list -->
                     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm p-6">
                         <h3 class="text-sm font-extrabold mb-5 flex items-center gap-2 text-slate-900 dark:text-white">
-                            <i data-lucide="activity" class="w-4 h-4 text-[#bef264]"></i> Latest Transactions (Live Stream)
+                            <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i> Mutasi Transaksi Terbaru (Live Stream)
                         </h3>
                         <div class="divide-y divide-slate-100 dark:divide-slate-800">
                             @forelse($transactions->take(5) as $tx)
@@ -445,22 +418,34 @@
                                         <th class="py-4 px-6">ID / Referensi</th>
                                         <th class="py-4 px-6">Nama Tim</th>
                                         <th class="py-4 px-6">Nominal</th>
+                                        <th class="py-4 px-6">Batas Pembayaran</th>
                                         <th class="py-4 px-6">Status</th>
-                                        <th class="py-4 px-6">Tanggal Dibuat</th>
                                         <th class="py-4 px-6 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                     @forelse($transactions as $tx)
-                                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-all cursor-pointer" onclick="openDetailDrawer({{ json_encode($tx) }}, '{{ $tx->team->name ?? 'Tim Terhapus' }}', '{{ $tx->created_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }}', '{{ $tx->expires_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }}', '{{ $tx->paid_at ? $tx->paid_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') : '-' }}')">
+                                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-all cursor-pointer" onclick="openDetailDrawer({{ json_encode($tx) }}, '{{ $tx->team->name ?? 'Tim Terhapus' }}', '{{ $tx->team->email ?? '-' }}', '{{ $tx->team->phone ?? '-' }}', '{{ $tx->created_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }}', '{{ $tx->expires_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }}', '{{ $tx->paid_at ? $tx->paid_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') : '-' }}', '{{ $tx->team->season->name ?? '-' }}')">
                                             <td class="py-4 px-6 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">{{ $tx->trx_id }}</td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
                                             </td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
+                                            </td>
+                                            <td class="py-4 px-6 text-xs font-semibold">
+                                                @if($tx->status === 'PENDING')
+                                                    <!-- Countdown Timer -->
+                                                    <span class="text-blue-600 dark:text-blue-400 flex items-center gap-1 countdown-timer" data-expires="{{ $tx->expires_at->timestamp }}">
+                                                        <i data-lucide="clock" class="w-3.5 h-3.5 shrink-0"></i> Menghitung...
+                                                    </span>
+                                                @else
+                                                    <span class="text-slate-400 dark:text-slate-500">
+                                                        {{ $tx->expires_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }}
+                                                    </span>
+                                                @endif
                                             </td>
                                             <td class="py-4 px-6">
                                                 @if($tx->status === 'PAID')
@@ -472,15 +457,12 @@
                                                         <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> PENDING
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-450 border border-slate-200 dark:border-slate-700">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> EXPIRED
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td class="py-4 px-6 text-xs text-slate-500">
-                                                {{ $tx->created_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
-                                            </td>
-                                            <td class="py-4 px-6 text-right" onclick="event.stopPropagation()">
+                                            <td class="py-4 px-6 text-right space-x-2" onclick="event.stopPropagation()">
                                                 @if($tx->status === 'PENDING')
                                                     <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual?');" class="inline-block">
                                                         @csrf
@@ -488,9 +470,16 @@
                                                             Settle Manual
                                                         </button>
                                                     </form>
-                                                @else
-                                                    <span class="text-xs text-slate-400 dark:text-slate-555 font-medium">-</span>
                                                 @endif
+
+                                                <!-- Delete Button -->
+                                                <form action="{{ route('qris.delete', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini dari database?');" class="inline-block">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="bg-red-50 text-red-650 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-650 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                                                        Hapus
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     @empty
@@ -514,7 +503,7 @@
                 <div id="tab-config" class="space-y-6 tab-content hidden">
                     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm p-6 sm:p-8 max-w-3xl mx-auto transition-colors duration-300">
                         <h3 class="text-md font-extrabold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
-                            <i data-lucide="sliders" class="w-5 h-5 text-sky-500"></i> Pengaturan GoPay Merchant & API
+                            <i data-lucide="sliders" class="w-5 h-5 text-blue-500"></i> Pengaturan GoPay Merchant & API
                         </h3>
 
                         <form action="{{ route('qris.config.update') }}" method="POST" class="space-y-6">
@@ -523,14 +512,14 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Merchant ID</label>
                                     <input type="text" name="merchant_id" value="{{ $config->merchant_id }}" required
-                                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition-all font-mono"
+                                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono"
                                         placeholder="G572567010">
                                 </div>
 
                                 <div>
                                     <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">GoPay API URL</label>
                                     <input type="url" name="api_url" value="{{ $config->api_url }}" required
-                                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition-all font-mono"
+                                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono"
                                         placeholder="https://api.gojekapi.com/v2/transactions">
                                 </div>
                             </div>
@@ -538,7 +527,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Token Otorisasi (GoBiz Bearer Token)</label>
                                 <input type="password" name="token" 
-                                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition-all font-mono placeholder-slate-400 dark:placeholder-slate-650"
+                                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono placeholder-slate-400 dark:placeholder-slate-650"
                                     placeholder="{{ $config->has_token ? '•••••••••••••••••••••••••••••••• (Sudah Tersimpan)' : 'Masukkan token baru' }}">
                                 <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Kosongkan kolom ini jika Anda tidak ingin memperbarui token yang sudah ada di database.</p>
                             </div>
@@ -546,13 +535,13 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">String QRIS Statis</label>
                                 <textarea name="static_qris" rows="5" required
-                                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-sky-500 transition-all"
+                                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-blue-500 transition-all"
                                     placeholder="00020101021126610014COM.GO-JEK.WWW01189..."></textarea>
                                 <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Salin mentah string QRIS statis dari outlet GoPay Merchant Anda. String ini akan diparse menggunakan library EMVCo buatan kita untuk nominal dinamis.</p>
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#181824] hover:bg-[#201f30] text-white dark:bg-slate-800 dark:hover:bg-slate-750 font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
+                                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
                                 <i data-lucide="save" class="w-4 h-4"></i> Simpan Konfigurasi
                             </button>
                         </form>
@@ -562,76 +551,153 @@
             </div>
         </div>
 
-        <!-- PAYMENT DETAIL DRAWER (SIDE SLIDE-OVER) -->
-        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[450px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <!-- PAYMENT DETAIL DRAWER (SIDE SLIDE-OVER - CLEAN SAAS LOOK MATCHING REFERENCED SCREENSHOT) -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-[#f8fafc] dark:bg-slate-950 border-l border-slate-200 dark:border-slate-850 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
             <!-- Drawer Header -->
-            <div class="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0">
-                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Payment Detail</h3>
-                <button onclick="closeDetailDrawer()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+            <div class="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0">
+                <div class="flex items-center gap-2 text-slate-800 dark:text-white">
+                    <button onclick="closeDetailDrawer()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </button>
+                    <h3 class="text-md font-extrabold">Detail Transaksi</h3>
+                </div>
+                <div id="drawer-header-actions">
+                    <!-- Action Form Button -->
+                </div>
             </div>
 
-            <!-- Drawer Content -->
+            <!-- Drawer Content (Structured like TriPay details page) -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll">
                 
-                <!-- Amount & Status Badge -->
-                <div class="bg-slate-50 dark:bg-slate-950 rounded-2xl p-5 border border-slate-100 dark:border-slate-850 flex items-center justify-between">
+                <!-- Summary Card -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-6">
                     <div>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Amount</span>
-                        <div id="drawer-amount" class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">Rp 0</div>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">No Referensi</span>
+                        <div id="drawer-summary-id" class="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-1.5 break-all">-</div>
                     </div>
-                    <div id="drawer-status">
-                        <!-- Status Badge -->
+                    <div>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Jumlah Bayar</span>
+                        <div id="drawer-summary-amount" class="text-sm font-black text-slate-900 dark:text-white mt-1.5">-</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Status</span>
+                        <div id="drawer-summary-status" class="mt-1.5">
+                            <!-- Status Badge -->
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">Channel</span>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1.5">QRIS</div>
                     </div>
                 </div>
 
-                <!-- Details List -->
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">Payment ID</span>
-                        <span id="drawer-id" class="font-mono text-slate-800 dark:text-slate-200 font-bold">-</span>
+                <!-- Detail Pembayaran Table -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                    <h4 class="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider mb-4">Detail Pembayaran</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Nama Merchant</span>
+                            <span class="font-bold text-slate-850 dark:text-slate-200">Yomuda Championship</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Jumlah Dibayar</span>
+                            <span id="drawer-det-amount" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">No. Ref. Merchant</span>
+                            <span id="drawer-det-ref" class="font-bold text-slate-850 dark:text-slate-200 font-mono">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Biaya Merchant</span>
+                            <span class="font-bold text-slate-850 dark:text-slate-200">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Tanggal Request</span>
+                            <span id="drawer-det-created" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Biaya Pelanggan</span>
+                            <span id="drawer-det-customer-fee" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Batas Pembayaran</span>
+                            <span id="drawer-det-expires" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Total Biaya</span>
+                            <span id="drawer-det-total" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Dibayar Pada</span>
+                            <span id="drawer-det-paid" class="font-bold text-slate-850 dark:text-slate-200">-</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold">Status Kliring</span>
+                            <span id="drawer-det-clearing" class="font-bold">-</span>
+                        </div>
                     </div>
-                    <hr class="border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Tim</span>
-                        <span id="drawer-team" class="font-bold text-slate-900 dark:text-white">-</span>
+                </div>
+
+                <!-- Informasi Pelanggan -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                    <h4 class="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider mb-4">Informasi Pelanggan</h4>
+                    <div class="space-y-3 text-xs">
+                        <div class="grid grid-cols-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold col-span-1">Nama</span>
+                            <span id="drawer-cust-name" class="font-bold text-slate-850 dark:text-slate-200 col-span-2">-</span>
+                        </div>
+                        <div class="grid grid-cols-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400 font-semibold col-span-1">Email</span>
+                            <span id="drawer-cust-email" class="font-bold text-slate-850 dark:text-slate-200 col-span-2">-</span>
+                        </div>
+                        <div class="grid grid-cols-3 py-2">
+                            <span class="text-slate-400 font-semibold col-span-1">Telepon</span>
+                            <span id="drawer-cust-phone" class="font-bold text-slate-850 dark:text-slate-200 col-span-2">-</span>
+                        </div>
                     </div>
-                    <hr class="border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">Created At</span>
-                        <span id="drawer-created" class="text-slate-800 dark:text-slate-200 font-bold">-</span>
-                    </div>
-                    <hr class="border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Expires At</span>
-                        <span id="drawer-expires" class="text-slate-800 dark:text-slate-200 font-bold">-</span>
-                    </div>
-                    <hr class="border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase">Paid At</span>
-                        <span id="drawer-paid" class="text-emerald-600 dark:text-emerald-400 font-black">-</span>
-                    </div>
-                    <hr class="border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400 dark:text-slate-555 font-bold uppercase">GoPay Reference</span>
-                        <span id="drawer-gopay-ref" class="font-mono font-bold text-slate-800 dark:text-slate-200">-</span>
-                    </div>
+                </div>
+
+                <!-- Detail Pesanan -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm overflow-hidden">
+                    <h4 class="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider mb-4">Detail Pesanan</h4>
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold">
+                                <th class="py-2.5 px-4">Nama Produk</th>
+                                <th class="py-2.5 px-4 text-center">Jumlah</th>
+                                <th class="py-2.5 px-4 text-right">Harga</th>
+                                <th class="py-2.5 px-4 text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr>
+                                <td id="drawer-order-product" class="py-3 px-4 font-bold text-slate-850 dark:text-slate-200">-</td>
+                                <td class="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">1</td>
+                                <td id="drawer-order-price" class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-200">-</td>
+                                <td id="drawer-order-subtotal" class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-bold text-slate-850 dark:text-slate-200">Biaya Transaksi Pelanggan (Kode Unik)</td>
+                                <td class="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">1</td>
+                                <td id="drawer-order-fee-price" class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-200">-</td>
+                                <td id="drawer-order-fee-subtotal" class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200">-</td>
+                            </tr>
+                            <tr class="font-extrabold text-slate-950 dark:text-white bg-slate-50/50 dark:bg-slate-800/20">
+                                <td colspan="3" class="py-3 px-4 text-right text-xs">Total Pembayaran</td>
+                                <td id="drawer-order-grandtotal" class="py-3 px-4 text-right text-xs font-black">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- QRIS Dynamic QR Code Display -->
-                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-950/50">
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mb-3">Dynamic QR Code</span>
-                    <img id="drawer-qr-img" src="" alt="QR Code QRIS" class="w-40 h-40 object-contain border border-slate-200 dark:border-slate-850 rounded-xl bg-white p-2 mb-3">
+                <div class="border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col items-center justify-center bg-white dark:bg-slate-900 shadow-sm">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mb-3">Dynamic QR Code (Scan to Pay)</span>
+                    <img id="drawer-qr-img" src="" alt="QR Code QRIS" class="w-44 h-44 object-contain border border-slate-200 dark:border-slate-850 rounded-xl bg-white p-2.5 mb-4">
                     <div class="w-full">
-                        <span class="text-[9px] text-slate-400 dark:text-slate-555 font-bold block mb-1">RAW QRIS STRING</span>
-                        <textarea id="drawer-qris-string" readonly rows="3" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2 text-[9px] font-mono text-slate-500 dark:text-slate-400 focus:outline-none"></textarea>
+                        <span class="text-[9px] text-slate-400 dark:text-slate-550 font-bold block mb-1">RAW QRIS STRING</span>
+                        <textarea id="drawer-qris-string" readonly rows="3" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 text-[9px] font-mono text-slate-500 dark:text-slate-400 focus:outline-none"></textarea>
                     </div>
-                </div>
-
-                <!-- Manual Settle button in drawer -->
-                <div id="drawer-actions-container" class="pt-2">
-                    <!-- Action Form Button -->
                 </div>
             </div>
         </div>
@@ -660,6 +726,19 @@
                 });
             }
 
+            // Notification Dropdown Toggle Function
+            const notifBtn = document.getElementById('notif-btn');
+            const notifDropdown = document.getElementById('notif-dropdown');
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('hidden');
+                });
+                document.addEventListener('click', () => {
+                    notifDropdown.classList.add('hidden');
+                });
+            }
+
             // Search Bar Filter Table
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
@@ -683,12 +762,6 @@
                 });
             }
 
-            // Set static QRIS value from config
-            const staticQris = @json($config->static_qris);
-            if (staticQris) {
-                document.querySelector('textarea[name="static_qris"]').value = staticQris;
-            }
-
             // Theme Switcher Logic
             const themeToggleBtn = document.getElementById('theme-toggle');
             themeToggleBtn.addEventListener('click', () => {
@@ -707,11 +780,13 @@
                 if (isCollapsed) {
                     document.documentElement.classList.add('sidebar-collapsed');
                     if (desktopSidebar) desktopSidebar.style.width = '72px';
+                    if (mainContainer) mainContainer.style.marginLeft = '72px';
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
                     document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.add('hidden'));
                 } else {
                     document.documentElement.classList.remove('sidebar-collapsed');
                     if (desktopSidebar) desktopSidebar.style.width = '256px';
+                    if (mainContainer) mainContainer.style.marginLeft = '256px';
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
                     document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.remove('hidden'));
                 }
@@ -759,6 +834,118 @@
 
             applySidebarState();
             switchTab('dashboard');
+
+            // ----------------------------------------------------
+            // INITIALIZE CHART.JS (With Beautiful Entrance Animations!)
+            // ----------------------------------------------------
+            const isDark = document.documentElement.classList.contains('dark');
+            const labelColor = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? '#334155' : '#f1f5f9';
+
+            // 1. Bar Chart (Monthly)
+            const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctxMonthly, {
+                type: 'bar',
+                data: {
+                    labels: @json($monthlyLabels),
+                    datasets: [{
+                        label: 'Transaksi',
+                        data: @json($monthlyCounts),
+                        backgroundColor: '#2563eb', // Blue Navy/Royal
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                        }
+                    }
+                }
+            });
+
+            // 2. Line Chart (Weekly)
+            const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
+            new Chart(ctxWeekly, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Settle',
+                        data: @json($weeklyCounts),
+                        borderColor: '#2563eb',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#2563eb',
+                        pointHoverRadius: 6,
+                        tension: 0.35,
+                        fill: true,
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeOutBack'
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                        }
+                    }
+                }
+            });
+
+            // ----------------------------------------------------
+            // COUNTDOWN TIMER LOGIC (Untuk Setiap Row Pending)
+            // ----------------------------------------------------
+            const timerElements = document.querySelectorAll('.countdown-timer');
+            
+            function updateCountdown() {
+                const now = Math.floor(Date.now() / 1000);
+                timerElements.forEach(el => {
+                    const expiresTimestamp = parseInt(el.getAttribute('data-expires'));
+                    const diff = expiresTimestamp - now;
+                    
+                    if (diff <= 0) {
+                        el.innerHTML = `<span class="text-red-500 font-bold uppercase text-[9px]"><i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i> Kedaluwarsa</span>`;
+                        lucide.createIcons();
+                    } else {
+                        const mins = Math.floor(diff / 60);
+                        const secs = diff % 60;
+                        el.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 shrink-0 inline"></i> ${mins}m ${secs}s`;
+                    }
+                });
+            }
+            
+            if (timerElements.length > 0) {
+                setInterval(updateCountdown, 1000);
+                updateCountdown();
+            }
         });
 
         // Tab switching logic
@@ -767,8 +954,8 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             // Remove active style from all nav buttons
             document.querySelectorAll('nav button').forEach(el => {
-                el.classList.remove('bg-[#bef264]', 'text-[#181824]', 'shadow-md');
-                el.classList.add('text-slate-400');
+                el.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+                el.classList.add('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50');
             });
 
             // Show active content
@@ -776,52 +963,36 @@
             // Set active style to nav button
             const activeNav = document.getElementById('nav-' + tabId);
             if (activeNav) {
-                activeNav.classList.add('bg-[#bef264]', 'text-[#181824]', 'shadow-md');
-                activeNav.classList.remove('text-slate-400');
+                activeNav.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+                activeNav.classList.remove('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50');
             }
 
             // Update page title
             const titles = {
                 'dashboard': 'Dashboard',
-                'payments': 'Payments',
-                'config': 'Configuration'
+                'payments': 'Daftar Transaksi',
+                'config': 'Konfigurasi'
             };
             const pageTitle = document.getElementById('page-title');
             if (pageTitle) pageTitle.innerText = titles[tabId];
         }
 
-        // Open Payment Detail Drawer
-        function openDetailDrawer(tx, teamName, createdAt, expiresAt, paidAt) {
-            document.getElementById('drawer-id').innerText = tx.id;
-            document.getElementById('drawer-team').innerText = teamName;
-            document.getElementById('drawer-created').innerText = createdAt + ' WIB';
-            document.getElementById('drawer-expires').innerText = expiresAt + ' WIB';
-            document.getElementById('drawer-paid').innerText = paidAt !== '-' ? paidAt + ' WIB' : '-';
-            document.getElementById('drawer-gopay-ref').innerText = tx.gopay_reference || '-';
-            document.getElementById('drawer-amount').innerText = 'Rp ' + Number(tx.amount).toLocaleString('id-ID');
-            document.getElementById('drawer-qris-string').value = tx.qris_string;
+        // Open Payment Detail Drawer (Structured like TriPay details)
+        function openDetailDrawer(tx, custName, custEmail, custPhone, createdAt, expiresAt, paidAt, seasonName) {
             
-            // Set QR Code Image via API qrserver
-            document.getElementById('drawer-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(tx.qris_string);
+            // Format amounts
+            const amountFormatted = 'Rp ' + Number(tx.amount).toLocaleString('id-ID');
+            const baseAmountFormatted = 'Rp ' + Number(tx.base_amount).toLocaleString('id-ID');
+            const uniqueFeeFormatted = 'Rp ' + Number(tx.unique_code).toLocaleString('id-ID');
 
-            // Set Status Badge
-            const statusContainer = document.getElementById('drawer-status');
-            if (tx.status === 'PAID') {
-                statusContainer.innerHTML = `<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">PAID</span>`;
-            } else if (tx.status === 'PENDING') {
-                statusContainer.innerHTML = `<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-450 border border-yellow-100 dark:border-yellow-500/20">PENDING</span>`;
-            } else {
-                statusContainer.innerHTML = `<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 border border-slate-200 dark:border-slate-750">EXPIRED</span>`;
-            }
-
-            // Set Action Form (Settle Button)
-            const actionsContainer = document.getElementById('drawer-actions-container');
+            // Set Header Settle Action Button
+            const actionsContainer = document.getElementById('drawer-header-actions');
             if (tx.status === 'PENDING') {
                 actionsContainer.innerHTML = `
                     <form action="/qris-gateway/settle/${tx.trx_id}" method="POST" onsubmit="return confirm('Selesaikan transaksi ini secara manual?');">
                         @csrf
-                        <button type="submit" class="w-full bg-[#181824] hover:bg-[#201f30] text-white dark:bg-slate-800 dark:hover:bg-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
-                            <i data-lucide="check-square" class="w-4 h-4"></i> Settle Transaksi Secara Manual
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md active:scale-[0.98] flex items-center gap-1.5">
+                            <i data-lucide="check" class="w-4 h-4"></i> Settle Manual
                         </button>
                     </form>
                 `;
@@ -829,7 +1000,50 @@
                 actionsContainer.innerHTML = '';
             }
 
-            // Re-render new Lucide Icons in drawer
+            // Fill Summary Card
+            document.getElementById('drawer-summary-id').innerText = tx.trx_id;
+            document.getElementById('drawer-summary-amount').innerText = amountFormatted;
+            
+            const summaryStatus = document.getElementById('drawer-summary-status');
+            const clearingStatus = document.getElementById('drawer-det-clearing');
+            if (tx.status === 'PAID') {
+                summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">Dibayar</span>`;
+                clearingStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">Selesai (${paidAt})</span>`;
+            } else if (tx.status === 'PENDING') {
+                summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 text-yellow-700 border border-yellow-100">Pending</span>`;
+                clearingStatus.innerHTML = `<span class="text-yellow-600 dark:text-yellow-450 font-bold">Menunggu Pembayaran</span>`;
+            } else {
+                summaryStatus.innerHTML = `<span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">Kedaluwarsa</span>`;
+                clearingStatus.innerHTML = `<span class="text-slate-400 font-bold">Gagal</span>`;
+            }
+
+            // Fill Detail Pembayaran
+            document.getElementById('drawer-det-amount').innerText = amountFormatted;
+            document.getElementById('drawer-det-ref').innerText = tx.trx_id;
+            document.getElementById('drawer-det-created').innerText = createdAt + ' WIB';
+            document.getElementById('drawer-det-customer-fee').innerText = uniqueFeeFormatted;
+            document.getElementById('drawer-det-expires').innerText = expiresAt + ' WIB';
+            document.getElementById('drawer-det-total').innerText = amountFormatted;
+            document.getElementById('drawer-det-paid').innerText = paidAt !== '-' ? paidAt + ' WIB' : '-';
+
+            // Fill Customer Info
+            document.getElementById('drawer-cust-name').innerText = custName;
+            document.getElementById('drawer-cust-email').innerText = custEmail;
+            document.getElementById('drawer-cust-phone').innerText = custPhone;
+
+            // Fill Order Details
+            document.getElementById('drawer-order-product').innerText = `Registrasi ${seasonName}`;
+            document.getElementById('drawer-order-price').innerText = baseAmountFormatted;
+            document.getElementById('drawer-order-subtotal').innerText = baseAmountFormatted;
+            document.getElementById('drawer-order-fee-price').innerText = uniqueFeeFormatted;
+            document.getElementById('drawer-order-fee-subtotal').innerText = uniqueFeeFormatted;
+            document.getElementById('drawer-order-grandtotal').innerText = amountFormatted;
+
+            // Fill QR Code
+            document.getElementById('drawer-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(tx.qris_string);
+            document.getElementById('drawer-qris-string').value = tx.qris_string;
+
+            // Re-render Lucide Icons in drawer
             lucide.createIcons();
 
             // Slide in Drawer & show Backdrop

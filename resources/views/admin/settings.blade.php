@@ -4,13 +4,18 @@
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Header --}}
     <div class="row mb-4 align-items-center">
-        <div class="col-md-12">
+        <div class="col-md-8">
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">
                 Pengaturan Umum Sistem
             </h2>
             <p class="text-secondary mb-0" style="font-size: 0.9rem;">
                 Konfigurasi token WhatsApp Fonnte, kredensial Tripay Gateway, sosial media, dan aset visual turnamen.
             </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="/qris-gateway/dashboard" class="btn btn-primary d-inline-flex align-items-center gap-2" style="background-color: #4f46e5; border-color: #4f46e5; border-radius: 12px; font-weight: 600; padding: 10px 18px; font-size: 0.85rem;">
+                <i class="bi bi-wallet2"></i> Kelola Dips Gateway (QRIS)
+            </a>
         </div>
     </div>
 

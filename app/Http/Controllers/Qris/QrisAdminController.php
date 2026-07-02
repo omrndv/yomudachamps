@@ -186,4 +186,14 @@ class QrisAdminController extends Controller
 
         return back()->with('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
     }
+
+    /**
+     * Menghapus transaksi QRIS dari database
+     */
+    public function deleteTransaction($trx_id)
+    {
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $qrisTx->delete();
+        return back()->with('success', "Transaksi dengan ID {$trx_id} berhasil dihapus!");
+    }
 }
