@@ -99,6 +99,30 @@
         $persen_pending = ($total_slot > 0) ? ($total_pending / $total_slot) * 100 : 0;
     @endphp
 
+    @php
+        $overSlots = $filtered_teams->where('status', 'FAILED')
+            ->filter(function($t) {
+                return in_array(strtoupper($t->status_tripay), ['PAID', 'BERHASIL', 'SUCCESS', 'SETTLEMENT']);
+            });
+    @endphp
+
+    @if($overSlots->count() > 0)
+        <div class="alert alert-warning border-0 rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center shadow-sm" style="background-color: #fffbeb; border-left: 5px solid #f59e0b !important;">
+            <div class="d-flex align-items-center gap-3">
+                <span class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-20 text-warning rounded-circle" style="width: 48px; height: 48px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                </span>
+                <div>
+                    <h6 class="fw-bold text-dark mb-1">Ada Pembayaran Bocor / Over-Slot!</h6>
+                    <p class="text-secondary small mb-0">Terdapat <strong>{{ $overSlots->count() }} tim</strong> yang sudah membayar sukses namun status pendaftarannya gagal karena slot turnamen penuh.</p>
+                </div>
+            </div>
+            <button class="btn btn-warning text-dark fw-bold rounded-pill px-4 btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalOverSlot">
+                <i class="bi bi-eye-fill me-1"></i> Tampilkan Tim Over-Slot
+            </button>
+        </div>
+    @endif
+
     {{-- Stats Cards Row --}}
     <div class="row g-3 mb-4">
         {{-- Card 1: Tim Lunas & Slot --}}
@@ -627,4 +651,64 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
         });
     }
 </script>
+
+{{-- Modal Over-Slot --}}
+@if(isset($overSlots) && $overSlots->count() > 0)
+<div class="modal fade" id="modalOverSlot" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom border-light p-3 bg-danger text-white rounded-top-4" style="background: linear-gradient(45deg, #dc3545, #b91c1c) !important;">
+                <h5 class="modal-title fw-bold text-white mb-0">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Laporan Pembayaran Over-Slot (Bocor)
+                </h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-secondary small mb-3">
+                    Tim di bawah ini telah menyelesaikan pembayaran sukses di payment gateway, tetapi slot pendaftaran untuk season ini sudah penuh sesaat sebelum mereka terverifikasi. Anda harus menghubungi mereka untuk memproses pengembalian dana (refund) manual.
+                </p>
+                <div class="table-responsive rounded-3 overflow-hidden border border-light-subtle bg-white">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="ps-3">Nama Tim</th>
+                                <th>WhatsApp Kapten</th>
+                                <th>Metode Bayar</th>
+                                <th>TRX ID</th>
+                                <th class="text-end pe-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($overSlots as $osTeam)
+                                <tr>
+                                    <td class="fw-bold text-dark ps-3">{{ $osTeam->name }}</td>
+                                    <td>
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $osTeam->wa_number) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.75rem;">
+                                            <i class="bi bi-whatsapp me-1"></i> {{ $osTeam->wa_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle text-uppercase px-2 py-1" style="font-size: 0.65rem;">
+                                            {{ str_contains($osTeam->payment_method ?? '', 'http') ? 'iPaymu' : ($osTeam->payment_method ?? 'TriPay') }}
+                                        </span>
+                                    </td>
+                                    <td><code class="text-danger fw-bold">{{ $osTeam->trx_id }}</code></td>
+                                    <td class="text-end pe-3">
+                                        <a href="{{ route('admin.team.delete', $osTeam->id) }}" class="btn btn-sm btn-danger rounded-3" onclick="return confirm('Hapus tim over-slot ini dari daftar?')">
+                                            <i class="bi bi-trash-fill"></i> Hapus
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0 bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

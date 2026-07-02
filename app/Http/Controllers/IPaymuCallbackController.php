@@ -136,6 +136,14 @@ class IPaymuCallbackController extends Controller
             } else {                
                 $team->status = 'FAILED'; 
                 Log::warning("OVER-SLOT: Tim {$team->name} bayar iPaymu tapi slot penuh.");
+
+                // Kirim Notifikasi Over-slot
+                try {
+                    \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
+                    \App\Services\WhatsappService::sendUserOverSlotNotification($team);
+                } catch (\Exception $e) {
+                    Log::error('Gagal kirim notifikasi Over-Slot iPaymu: ' . $e->getMessage());
+                }
             }
         } elseif ($statusCode === -2) { // Expired
             $team->status = 'PENDING';

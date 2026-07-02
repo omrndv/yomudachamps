@@ -32,10 +32,8 @@ class TripayCallbackController extends Controller
             return Response::json(['success' => false, 'message' => 'Invalid data sent by tripay']);
         }
 
-        // Cari tim berdasarkan trx_id dan reference
-        $team = Team::with('season')->where('trx_id', $data->merchant_ref)
-            ->where('tripay_reference', $data->reference)
-            ->first();
+        // Cari tim berdasarkan trx_id saja
+        $team = Team::with('season')->where('trx_id', $data->merchant_ref)->first();
 
         if (!$team) {
             return Response::json(['success' => true, 'message' => 'No team found']);
@@ -72,6 +70,14 @@ class TripayCallbackController extends Controller
                 } else {                
                     $team->status = 'FAILED'; 
                     Log::warning("OVER-SLOT: Tim {$team->name} bayar tapi slot penuh.");
+
+                    // Kirim Notifikasi Over-slot
+                    try {
+                        \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
+                        \App\Services\WhatsappService::sendUserOverSlotNotification($team);
+                    } catch (\Exception $e) {
+                        Log::error('Gagal kirim notifikasi Over-Slot TriPay: ' . $e->getMessage());
+                    }
                 }
                 break;
 

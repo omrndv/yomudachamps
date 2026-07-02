@@ -99,4 +99,59 @@ class WhatsappService
         
         return self::sendMessage($team->wa_number, $message);
     }
+
+    /**
+     * Kirim notifikasi ke admin ketika terjadi over-slot pembayaran
+     */
+    public static function sendAdminOverSlotNotification($team)
+    {
+        $adminWa = Setting::getVal('admin_wa', '6285122616191');
+        $message = "⚠️ *PEMBERITAHUAN OVER-SLOT* ⚠️\n\n"
+            . "Terjadi pembayaran masuk setelah slot turnamen penuh!\n\n"
+            . "• *Nama Tim*: {nama_tim}\n"
+            . "• *Season*: {nama_season}\n"
+            . "• *Metode Bayar*: {metode}\n"
+            . "• *ID Transaksi (TRX)*: {id_transaksi}\n"
+            . "• *WhatsApp Kapten*: {nomor_kapten}\n\n"
+            . "Status tim otomatis disetel menjadi *FAILED*. Mohon segera hubungi kapten tim di atas untuk melakukan refund manual.\n\n"
+            . "-- Sistem Yomuda Champs --";
+
+        $replacements = [
+            '{nama_tim}' => $team->name,
+            '{nama_season}' => $team->season->name,
+            '{metode}' => $team->payment_method ?? '-',
+            '{id_transaksi}' => $team->trx_id,
+            '{nomor_kapten}' => $team->wa_number
+        ];
+
+        $message = str_replace(array_keys($replacements), array_values($replacements), $message);
+        return self::sendMessage($adminWa, $message);
+    }
+
+    /**
+     * Kirim notifikasi ke user bahwa pembayaran mereka over-slot dan akan di-refund
+     */
+    public static function sendUserOverSlotNotification($team)
+    {
+        $adminWa = Setting::getVal('admin_wa', '6285122616191');
+        $message = "Halo Kapten tim *{nama_tim}*,\n\n"
+            . "Kami mendeteksi pembayaran pendaftaran turnamen *Yomuda Championship {nama_season}* sebesar *Rp {harga}* telah sukses.\n\n"
+            . "Namun mohon maaf sebesar-besarnya, *SLOT TURNAMEN TELAH PENUH* oleh pendaftar lain sesaat sebelum pembayaran Anda terverifikasi oleh sistem kami.\n\n"
+            . "Sistem kami telah membatalkan otomatis pendaftaran tim Anda. Silakan hubungi admin kami melalui WhatsApp untuk proses *pengembalian dana (refund) 100%* secara manual:\n"
+            . "👉 wa.me/{nomor_admin}\n\n"
+            . "Mohon sertakan bukti transfer dan ID Transaksi Anda: *{id_transaksi}*.\n\n"
+            . "Terima kasih atas pengertiannya,\n"
+            . "-- Yomuda Championship --";
+
+        $replacements = [
+            '{nama_tim}' => $team->name,
+            '{nama_season}' => $team->season->name,
+            '{harga}' => number_format($team->season->price, 0, ',', '.'),
+            '{id_transaksi}' => $team->trx_id,
+            '{nomor_admin}' => preg_replace('/[^0-9]/', '', $adminWa)
+        ];
+
+        $message = str_replace(array_keys($replacements), array_values($replacements), $message);
+        return self::sendMessage($team->wa_number, $message);
+    }
 }
