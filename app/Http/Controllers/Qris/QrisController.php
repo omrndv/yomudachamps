@@ -34,7 +34,10 @@ class QrisController extends Controller
 
         // Jika tidak ada, buat baru
         if (!$qrisTx) {
-            $baseAmount = (int) ($team->amount ?: $team->season->price);
+            $baseAmount = (int) $team->amount;
+            if ($baseAmount <= 0) {
+                $baseAmount = (int) ($team->season->price ?? 0);
+            }
             $staticQris = Setting::getVal('gopay_static_qris');
 
             if (empty($staticQris)) {
