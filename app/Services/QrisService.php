@@ -57,15 +57,12 @@ class QrisService
             $i += 4 + $length;
         }
 
-        // --- TRICK BYPASS BY REMOVING GPN TAG 51 ---
-        // Menghapus Tag GPN 51 agar bank lain (BNI/ShopeePay) melakukan routing via Tag 26 (GoPay Network).
-        // Ini memaksa transaksi dibaca sebagai On-Us oleh GoPay Host sehingga nominal dinamis lokal disetujui.
-        if (isset($tags['51'])) {
-            unset($tags['51']);
-        }
+        // Tetap pertahankan Tag 51 (GPN) karena bank lain membutuhkannya untuk routing dasar
+        // Tag 51 tidak boleh dihapus.
 
-        // 1. Ubah Point of Initiation Method menjadi '12' (Dynamic QR)
-        $tags['01'] = '12';
+        // 1. Ubah Point of Initiation Method menjadi '11' (Static QR)
+        // Beberapa bank akan membantu auto-fill nominal jika tag 54 ada, tetapi menganggapnya tetap transaksi statis agar lolos dari blokir acquirer.
+        $tags['01'] = '11';
 
         // 2. Set nominal di tag 54
         $tags['54'] = (string) $amount;
