@@ -10,13 +10,13 @@
                     <p>Selamat datang di Yomuda Championship. Kami sangat menghargai privasi Anda dan berkomitmen untuk melindungi data pribadi Anda.</p>
 
                     <h5 class="text-white mt-4">1. Informasi Yang Kami Kumpulkan</h5>
-                    <p>Kami mengumpulkan informasi seperti Nama Tim dan Nomor WhatsApp untuk keperluan koordinasi turnamen dan proses pembayaran melalui gerbang pembayaran Tripay.</p>
+                    <p>Kami mengumpulkan informasi seperti Nama Tim dan Nomor WhatsApp untuk keperluan koordinasi turnamen dan proses pembayaran melalui gerbang pembayaran otomatis yang aman.</p>
 
                     <h5 class="text-white mt-4">2. Penggunaan Data</h5>
                     <p>Data Anda digunakan murni untuk validasi pendaftaran, pengiriman status pembayaran, dan pemberian akses ke grup koordinasi turnamen.</p>
 
                     <h5 class="text-white mt-4">3. Keamanan Data</h5>
-                    <p>Kami tidak menjual atau membagikan data pribadi Anda kepada pihak ketiga selain untuk keperluan proses transaksi keuangan melalui Tripay secara aman.</p>
+                    <p>Kami tidak menjual atau membagikan data pribadi Anda kepada pihak ketiga selain untuk keperluan proses transaksi keuangan melalui payment gateway secara aman.</p>
                 </div>
             </div>
         </div>

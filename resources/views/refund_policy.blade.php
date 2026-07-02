@@ -65,7 +65,7 @@
                     <div class="lh-lg" style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.8);">
                         <h5 class="fw-bold text-white mt-4 mb-2">1. Ketentuan Umum Pembayaran</h5>
                         <p class="mb-3">
-                            Semua pembayaran biaya pendaftaran turnamen yang dilakukan melalui website Yomuda Championship (yomudachamps.com) menggunakan metode pembayaran otomatis (TriPay / iPaymu) bersifat final dan tidak dapat dibatalkan secara sepihak oleh peserta.
+                            Semua pembayaran biaya pendaftaran turnamen yang dilakukan melalui website Yomuda Championship (yomudachamps.com) menggunakan metode pembayaran otomatis bersifat final dan tidak dapat dibatalkan secara sepihak oleh peserta.
                         </p>
 
                         <h5 class="fw-bold text-white mt-4 mb-2">2. Pembatalan oleh Peserta</h5>
@@ -75,12 +75,12 @@
 
                         <h5 class="fw-bold text-white mt-4 mb-2">3. Pembatalan atau Penundaan oleh Penyelenggara</h5>
                         <p class="mb-3">
-                            Apabila turnamen dibatalkan secara total oleh pihak penyelenggara Yomuda Championship, maka seluruh tim peserta yang telah membayar lunas berhak mendapatkan pengembalian dana 100% dari biaya pendaftaran. Proses pengembalian akan dilakukan maksimal dalam waktu 7 hari kerja ke rekening asal atau melalui kesepakatan transfer.
+                            Apabila turnamen dibatalkan secara total oleh pihak penyelenggara Yomuda Championship, maka seluruh tim peserta yang telah membayar lunas berhak mendapatkan pengembalian dana 100% dari biaya pendaftaran. Proses pengembalian akan dilakukan maksimal dalam waktu 3 hari kerja ke rekening asal atau melalui kesepakatan transfer.
                         </p>
 
                         <h5 class="fw-bold text-white mt-4 mb-2">4. Kontak Bantuan</h5>
                         <p class="mb-0">
-                            Jika Anda mengalami masalah pembayaran ganda atau ingin mengajukan pertanyaan lebih lanjut, silakan hubungi tim kami melalui email <strong>{{ \App\Models\Setting::getVal('admin_email', 'monotp94@gmail.com') }}</strong> atau WhatsApp di nomor <strong>{{ \App\Models\Setting::getVal('admin_wa', '08123456789') }}</strong>.
+                            Jika Anda mengalami masalah pembayaran ganda atau ingin mengajukan pertanyaan lebih lanjut, silakan hubungi tim kami melalui email <strong>yomudachampionship@gmail.com</strong> atau WhatsApp di nomor <strong>0851-2261-6191</strong>.
                         </p>
                     </div>
                 </div>
