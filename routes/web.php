@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TripayCallbackController;
+use App\Http\Controllers\IPaymuCallbackController;
 
 Route::get('/payment/{trx_id}', [HomeController::class, 'paymentConfirm'])->name('payment.confirm');
 Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name('payment.checkout');
@@ -102,6 +103,7 @@ Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController:
     ->name('payment.check.status');
     
 Route::post('/api/callback', [TripayCallbackController::class, 'handle']);
+Route::post('/api/ipaymu/callback', [IPaymuCallbackController::class, 'handle']);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');

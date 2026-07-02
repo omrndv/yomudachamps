@@ -137,7 +137,7 @@
                     <i class="bi bi-credit-card-2-front text-warning me-2"></i> Pengaturan TriPay Gateway
                 </h5>
 
-                <div class="mb-3">
+                 <div class="mb-3">
                     <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">TriPay Mode</label>
                     <select name="tripay_mode" class="form-select rounded-3 shadow-none border-light-subtle" required>
                         <option value="sandbox" {{ \App\Models\Setting::getVal('tripay_mode', env('TRIPAY_MODE', 'sandbox')) === 'sandbox' ? 'selected' : '' }}>Sandbox (Testing)</option>
@@ -163,12 +163,59 @@
                     </div>
                 </div>
 
-                <div class="mb-0">
+                <div class="mb-3">
                     <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Private Key</label>
                     <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-shield-lock-fill text-secondary"></i></span>
                         <input type="text" name="tripay_private_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
                             placeholder="Kunci privat..." value="{{ \App\Models\Setting::getVal('tripay_private_key', env('TRIPAY_PRIVATE_KEY')) }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="payment_gateway_tripay" id="payment_gateway_tripay" value="on" {{ \App\Models\Setting::getVal('payment_gateway_tripay', 'on') === 'on' ? 'checked' : '' }}>
+                        <label class="form-check-label small fw-bold text-dark" for="payment_gateway_tripay">Aktifkan Gateway TriPay</label>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Card: iPaymu Gateway Settings --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-credit-card text-warning me-2"></i> Pengaturan iPaymu Gateway
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">iPaymu Mode</label>
+                    <select name="ipaymu_mode" class="form-select rounded-3 shadow-none border-light-subtle">
+                        <option value="sandbox" {{ \App\Models\Setting::getVal('ipaymu_mode', 'sandbox') === 'sandbox' ? 'selected' : '' }}>Sandbox (Testing)</option>
+                        <option value="production" {{ \App\Models\Setting::getVal('ipaymu_mode', 'sandbox') === 'production' ? 'selected' : '' }}>Production (Live)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Virtual Account / VA</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-hash text-secondary"></i></span>
+                        <input type="text" name="ipaymu_va" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="Nomor VA iPaymu..." value="{{ \App\Models\Setting::getVal('ipaymu_va', env('IPAYMU_VA')) }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">API Key / Secret Key</label>
+                    <div class="input-group rounded-3 overflow-hidden border border-light-subtle shadow-none">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-secondary"></i></span>
+                        <input type="text" name="ipaymu_api_key" class="form-control border-0 bg-light shadow-none p-2.5" style="font-size: 0.85rem;"
+                            placeholder="Secret Key..." value="{{ \App\Models\Setting::getVal('ipaymu_api_key', env('IPAYMU_API_KEY')) }}">
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="payment_gateway_ipaymu" id="payment_gateway_ipaymu" value="on" {{ \App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') === 'on' ? 'checked' : '' }}>
+                        <label class="form-check-label small fw-bold text-dark" for="payment_gateway_ipaymu">Aktifkan Gateway iPaymu</label>
                     </div>
                 </div>
             </div>

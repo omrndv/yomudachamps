@@ -212,7 +212,7 @@
         </form>
 
         <p class="text-center text-secondary mt-4 mb-0" style="font-size: 0.7rem;">
-            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by Tripay
+            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Secure Payment by Payment Gateway
         </p>
     </div>
 </div>

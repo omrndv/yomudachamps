@@ -154,8 +154,26 @@ class HomeController extends Controller
             return redirect('/')->with('error', 'Waduh telat! Slot baru saja penuh oleh pendaftar lain.');
         }
 
-        $tripay = new TripayController();
-        $channels = $tripay->getPaymentChannels();
+        $channels = [];
+
+        // Load Tripay if enabled
+        if (\App\Models\Setting::getVal('payment_gateway_tripay', 'on') === 'on') {
+            $tripay = new TripayController();
+            $tripayChannels = $tripay->getPaymentChannels();
+            if (is_array($tripayChannels)) {
+                $channels = array_merge($channels, $tripayChannels);
+            }
+        }
+
+        // Load iPaymu if enabled
+        if (\App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') === 'on') {
+            $channels[] = (object)[
+                'code' => 'IPAYMU_QRIS',
+                'name' => 'QRIS (iPaymu)',
+                'icon_url' => 'https://ipaymu.com/wp-content/themes/ipaymu-v2/assets/img/logo-ipaymu.png',
+                'active' => true,
+            ];
+        }
 
         return view('payment', compact('team', 'channels'));
     }
@@ -178,25 +196,55 @@ class HomeController extends Controller
         ]);
 
         $method = strtoupper(trim($request->payment_method));
-        $tripay = new TripayController();
-        
-        $availableMethods = collect($tripay->getPaymentChannels())->pluck('code')->map(function($code){ return strtoupper($code); })->toArray();
-        if (empty($method) || !in_array($method, $availableMethods)) {
-            return back()->with('error', 'Metode pembayaran tidak tersedia atau tidak dipilih.');
+
+        if ($method === 'IPAYMU_QRIS') {
+            if (\App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') !== 'on') {
+                return back()->with('error', 'Metode pembayaran iPaymu sedang tidak aktif.');
+            }
+
+            $ipaymu = new IPaymuController();
+            $transaction = $ipaymu->requestTransaction($team);
+
+            if ($transaction && $transaction->success) {
+                $qrCodeUrl = !empty($transaction->qr_string)
+                    ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($transaction->qr_string)
+                    : $transaction->qr_image;
+
+                $team->update([
+                    'tripay_reference' => $transaction->transaction_id,
+                    'payment_method'   => $qrCodeUrl,
+                    'payment_gateway'  => 'ipaymu',
+                ]);
+
+                return redirect()->route('payment.detail', $team->trx_id);
+            }
+
+            return back()->with('error', 'iPaymu Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
+        } else {
+            if (\App\Models\Setting::getVal('payment_gateway_tripay', 'on') !== 'on') {
+                return back()->with('error', 'Metode pembayaran TriPay sedang tidak aktif.');
+            }
+
+            $tripay = new TripayController();
+            $availableMethods = collect($tripay->getPaymentChannels())->pluck('code')->map(function($code){ return strtoupper($code); })->toArray();
+            if (empty($method) || !in_array($method, $availableMethods)) {
+                return back()->with('error', 'Metode pembayaran tidak tersedia atau tidak dipilih.');
+            }
+
+            $transaction = $tripay->requestTransaction($method, $team);
+
+            if ($transaction && $transaction->success) {
+                $team->update([
+                    'tripay_reference' => $transaction->data->reference,
+                    'payment_method'   => $method,
+                    'payment_gateway'  => 'tripay',
+                ]);
+
+                return redirect()->route('payment.detail', $team->trx_id);
+            }
+
+            return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
         }
-
-        $transaction = $tripay->requestTransaction($method, $team);
-
-        if ($transaction && $transaction->success) {
-            $team->update([
-                'tripay_reference' => $transaction->data->reference,
-                'payment_method'   => $method,
-            ]);
-
-            return redirect()->route('payment.detail', $team->trx_id);
-        }
-
-        return back()->with('error', 'Tripay Error: ' . ($transaction->message ?? 'Gagal membuat transaksi'));
     }
 
     public function paymentDetail($trx_id)
@@ -211,14 +259,18 @@ class HomeController extends Controller
             return redirect()->route('payment.confirm', $team->trx_id);
         }
 
-        $tripay = new TripayController();
-        $detail = $tripay->getDetailTransaction($team->tripay_reference);
+        if ($team->payment_gateway === 'ipaymu') {
+            return view('payment_detail_ipaymu', compact('team'));
+        } else {
+            $tripay = new TripayController();
+            $detail = $tripay->getDetailTransaction($team->tripay_reference);
 
-        if (!$detail) {
-            return redirect()->route('home');
+            if (!$detail) {
+                return redirect()->route('home');
+            }
+
+            return view('payment_detail_tripay', compact('team', 'detail'));
         }
-
-        return view('payment_detail_tripay', compact('team', 'detail'));
     }
 
     public function successPage($trx_id)
