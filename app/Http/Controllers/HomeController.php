@@ -29,6 +29,21 @@ class HomeController extends Controller
         return view('faqs', compact('faqs'));
     }
 
+    public function refundPolicy()
+    {
+        return view('refund_policy');
+    }
+
+    public function termsAndConditions()
+    {
+        return view('terms');
+    }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
     public function registerForm()
     {
         $active_season = Season::where('status', 'ACTIVE')
