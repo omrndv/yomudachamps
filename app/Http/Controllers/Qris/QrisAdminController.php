@@ -36,8 +36,8 @@ class QrisAdminController extends Controller
             'password' => 'required|string',
         ]);
 
-        $envUser = env('QRIS_ADMIN_USERNAME', 'admin_qris');
-        $envPass = env('QRIS_ADMIN_PASSWORD', 'admin12345'); // Default fallback jika belum di .env
+        $envUser = env('QRIS_ADMIN_USERNAME', 'admin');
+        $envPass = env('QRIS_ADMIN_PASSWORD', 'admin123'); // Default fallback untuk testing
 
         if ($request->username === $envUser && $request->password === $envPass) {
             session(['qris_authenticated' => true]);
