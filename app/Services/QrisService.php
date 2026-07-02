@@ -25,11 +25,10 @@ class QrisService
     }
 
     /**
-     * Mengubah QRIS Statis menjadi Dinamis dengan nominal tertentu
+     * Mengubah QRIS Statis menjadi Dinamis dengan nominal tertentu (EMVCo Parser Aman)
      */
     public static function generateDynamicQris(string $staticQris, int $amount): string
     {
-        // Bersihkan spasi
         $staticQris = trim($staticQris);
 
         // Standard QRIS EMVCo selalu diakhiri dengan tag 6304 dan 4 digit CRC (total 8 karakter terakhir)
@@ -37,36 +36,41 @@ class QrisService
             throw new Exception("Format QRIS Statis tidak valid (tidak diakhiri dengan tag 6304)");
         }
 
-        // Potong CRC bawaan
-        $qrisWithoutCrc = substr($staticQris, 0, -4);
+        // Potong 8 karakter terakhir (6304XXXX)
+        $qrisWithoutCrc = substr($staticQris, 0, -8);
 
-        // Cari tag 54 (Transaction Amount)
-        // Format EMVCo: Tag (2 digit) + Length (2 digit) + Value
-        $tag54Pos = strpos($qrisWithoutCrc, '54');
-        $amountValue = (string) $amount;
-        $amountLength = str_pad(strlen($amountValue), 2, '0', STR_PAD_LEFT);
-        $newAmountTag = '54' . $amountLength . $amountValue;
-
-        if ($tag54Pos !== false && $tag54Pos < strpos($qrisWithoutCrc, '5802ID')) {
-            // Jika tag 54 sudah ada, ganti nilainya
-            // Kita perlu membaca panjang nilai tag 54 lama untuk memotongnya dengan benar
-            $oldLength = (int) substr($qrisWithoutCrc, $tag54Pos + 2, 2);
-            $beforeTag54 = substr($qrisWithoutCrc, 0, $tag54Pos);
-            $afterTag54 = substr($qrisWithoutCrc, $tag54Pos + 4 + $oldLength);
+        // Jalankan parser tag-by-tag untuk membaca struktur EMVCo asli
+        $len = strlen($qrisWithoutCrc);
+        $i = 0;
+        $tags = [];
+        
+        while ($i < $len) {
+            $tag = substr($qrisWithoutCrc, $i, 2);
+            $length = (int) substr($qrisWithoutCrc, $i + 2, 2);
+            $value = substr($qrisWithoutCrc, $i + 4, $length);
             
-            $qrisModified = $beforeTag54 . $newAmountTag . $afterTag54;
-        } else {
-            // Jika belum ada, sisipkan sebelum tag 58 (Country Code "5802ID")
-            $countryCodePos = strpos($qrisWithoutCrc, '5802ID');
-            if ($countryCodePos === false) {
-                throw new Exception("Format QRIS Statis tidak didukung (tag 5802ID tidak ditemukan)");
+            if (empty($tag) || $length <= 0) {
+                break;
             }
-
-            $beforeCountry = substr($qrisWithoutCrc, 0, $countryCodePos);
-            $afterCountry = substr($qrisWithoutCrc, $countryCodePos);
-
-            $qrisModified = $beforeCountry . $newAmountTag . $afterCountry;
+            
+            $tags[$tag] = $value;
+            $i += 4 + $length;
         }
+
+        // Set / update nilai nominal di tag 54
+        $tags['54'] = (string) $amount;
+
+        // Susun kembali string QRIS dengan urutan tag teratur (ksort)
+        ksort($tags);
+
+        $qrisModified = '';
+        foreach ($tags as $tag => $value) {
+            $valLength = str_pad(strlen($value), 2, '0', STR_PAD_LEFT);
+            $qrisModified .= $tag . $valLength . $value;
+        }
+
+        // Tempelkan tag 6304 untuk CRC
+        $qrisModified .= '6304';
 
         // Hitung CRC16 baru
         $newCrc = self::crc16($qrisModified);
