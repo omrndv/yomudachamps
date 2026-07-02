@@ -1,6 +1,9 @@
 @extends('layouts.admin')
 
 @section('content')
+@php
+    $startNumbers = [];
+@endphp
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
     <div class="row mb-4">
