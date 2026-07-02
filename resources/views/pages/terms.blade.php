@@ -14,7 +14,7 @@
                     <p>Proses pendaftaran tim dilakukan secara otomatis melalui platform kami dengan dukungan payment gateway otomatis. Peserta diharapkan segera menyelesaikan pembayaran setelah mendaftar untuk mengamankan slot turnamen.</p>
 
                     <h5 class="text-white mt-4">3. Pengembalian Dana (Refund)</h5>
-                    <p>Biaya pendaftaran bersifat <strong>Non-Refundable</strong> (tidak dapat dikembalikan), kecuali jika turnamen dibatalkan secara resmi oleh pihak penyelenggara (pengembalian 100% diproses maksimal 3 hari kerja).</p>
+                    <p>Biaya pendaftaran yang telah dibayarkan bersifat <strong>Non-Refundable (tidak dapat dikembalikan)</strong> atas pembatalan sepihak oleh peserta. Namun, apabila turnamen secara resmi dibatalkan atau ditunda secara total oleh pihak penyelenggara, seluruh tim berhak mendapatkan <strong>pengembalian dana 100%</strong> yang akan diproses maksimal dalam waktu <strong>3 hari kerja</strong> ke rekening asal atau transfer.</p>
 
                     <h5 class="text-white mt-4">4. Kebijakan Kompetisi</h5>
                     <p>Segala bentuk tindakan tidak sportif seperti penggunaan program ilegal (Cheat/Map Hack) atau penggunaan joki akan berakibat pada diskualifikasi tim tanpa adanya pengembalian biaya pendaftaran.</p>
