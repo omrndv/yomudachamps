@@ -11,7 +11,7 @@
     <!-- Chart.js (Untuk Grafik Animatif Sangat Smooth & Interaktif) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;950&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -54,10 +54,7 @@
         }
         /* Collapsed transitions */
         .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .content-transition {
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         /* Custom scrollbar */
         .custom-scroll::-webkit-scrollbar {
@@ -73,21 +70,21 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex text-slate-800 dark:text-slate-100 overflow-hidden p-0 sm:p-4">
+<body class="min-h-screen flex text-slate-800 dark:text-slate-100 overflow-hidden p-0">
 
-    <!-- MAIN FRAME CONTAINER (Framed look) -->
-    <div class="flex-1 flex h-screen sm:h-[calc(100vh-2rem)] bg-[#f8fafc] dark:bg-[#0c0a0f] sm:rounded-3xl sm:shadow-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800/60">
+    <!-- FULL SCREEN FRAME CONTAINER (No outer border/padding, fits perfectly like TriPay) -->
+    <div class="flex-grow flex h-screen bg-[#f8fafc] dark:bg-[#0c0a0f] overflow-hidden">
 
-        <!-- SIDEBAR (Clean White Aesthetic like TriPay) -->
-        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 flex flex-col shrink-0 z-40 hidden xl:flex relative h-full border-r border-slate-200/80 dark:border-slate-800/80">
+        <!-- SIDEBAR (Clean White Aesthetic like TriPay, No fixed positioning to prevent margin gap) -->
+        <aside id="desktop-sidebar" class="sidebar-transition w-64 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 flex flex-col shrink-0 border-r border-slate-200/80 dark:border-slate-800/80 h-full hidden xl:flex relative">
             <!-- Sidebar Branding / Logo -->
-            <div class="h-24 flex items-center px-8 gap-3 shrink-0 border-b border-slate-100 dark:border-slate-850">
+            <div class="h-24 flex items-center px-8 gap-3 shrink-0 border-b border-slate-100 dark:border-slate-800/60">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shrink-0">
                     <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
                 </div>
                 <div class="sidebar-brand-text">
                     <h1 class="text-md font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">Dips Gateway</h1>
-                    <span class="text-[9px] text-blue-600 font-bold uppercase tracking-wider block mt-1">Dashboard</span>
+                    <span class="text-[9px] text-blue-600 dark:text-blue-450 font-bold uppercase tracking-wider block mt-1">Dashboard</span>
                 </div>
             </div>
 
@@ -121,24 +118,21 @@
             </nav>
 
             <!-- Sidebar Collapse toggle -->
-            <button id="toggle-sidebar" class="absolute -right-3 top-10 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-blue-600 shadow-sm active:scale-95 transition-all">
+            <button id="toggle-sidebar" class="absolute -right-3 top-10 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-blue-600 shadow-sm active:scale-95 transition-all">
                 <i data-lucide="chevron-left" id="toggle-icon" class="w-4 h-4 transition-transform duration-300"></i>
             </button>
 
             <!-- Sidebar Footer -->
-            <div class="p-4 border-t border-slate-100 dark:border-slate-850 shrink-0">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <!-- Button to main Yomuda ADM panel -->
-                <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 hover:bg-blue-600 hover:text-white transition-all text-left mb-2">
+                <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all text-left mb-2">
                     <i data-lucide="arrow-left-right" class="w-4 h-4 shrink-0"></i>
                     <span class="sidebar-brand-text">Kembali ke Yomuda ADM</span>
                 </a>
-                <form action="{{ route('qris.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
-                        <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
-                        <span class="sidebar-brand-text">Keluar</span>
-                    </button>
-                </form>
+                <a href="{{ route('admin.logout') }}" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
+                    <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
+                    <span class="sidebar-brand-text">Keluar</span>
+                </a>
             </div>
         </aside>
 
@@ -147,7 +141,7 @@
             <!-- Backdrop -->
             <div id="mobile-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0 duration-300"></div>
 
-            <div class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-950 text-slate-750 dark:text-white flex flex-col border-r border-slate-200 dark:border-slate-850 transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 text-slate-750 dark:text-white flex flex-col border-r border-slate-200 dark:border-slate-800 transform -translate-x-full transition-transform duration-300 ease-in-out">
                 <div class="h-24 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between px-6 shrink-0 text-white">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/25">
@@ -176,25 +170,22 @@
                     </button>
                 </nav>
 
-                <div class="p-4 border-t border-slate-100 dark:border-slate-850 shrink-0">
-                    <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-150 text-slate-700 hover:bg-blue-600 hover:text-white transition-all text-left mb-2">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                    <a href="/admin/dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl bg-slate-155 text-slate-700 hover:bg-blue-600 hover:text-white transition-all text-left mb-2">
                         <i data-lucide="arrow-left-right" class="w-4 h-4 shrink-0"></i> Kembali ke Yomuda ADM
                     </a>
-                    <form action="{{ route('qris.logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
-                            <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i> Keluar
-                        </button>
-                    </form>
+                    <a href="{{ route('admin.logout') }}" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-left">
+                        <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i> Keluar
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- MAIN CONTAINER -->
-        <div id="main-container" class="flex-1 flex flex-col overflow-hidden content-transition xl:ml-64">
+        <div id="main-container" class="flex-grow flex flex-col overflow-hidden">
             
             <!-- HEADER / NAVBAR -->
-            <header class="h-24 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between px-8 shrink-0 relative z-30 shadow-sm transition-colors duration-300">
+            <header class="h-24 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-8 shrink-0 relative z-30 shadow-sm transition-colors duration-300">
                 <div class="flex items-center gap-4">
                     <!-- Mobile Trigger -->
                     <button id="open-mobile-sidebar" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-850 flex items-center justify-center text-slate-500 xl:hidden active:scale-95 transition-all">
@@ -218,7 +209,7 @@
                     </div>
 
                     <!-- Notification bell (Functional) -->
-                    <div class="relative">
+                    <div class="relative z-[999]">
                         <button id="notif-btn" class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 active:scale-95 transition-all relative">
                             <i data-lucide="bell" class="w-5 h-5"></i>
                             @if($globalStats->pending_count > 0)
@@ -227,22 +218,39 @@
                                 </span>
                             @endif
                         </button>
-                        <!-- Notif Dropdown -->
-                        <div id="notif-dropdown" class="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-3 hidden z-[99]">
+                        <!-- Notif Dropdown (Fixed Z-Index & Overlay) -->
+                        <div id="notif-dropdown" class="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-3 hidden z-[9999]">
                             <div class="px-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <h4 class="text-xs font-black text-slate-950 dark:text-white">Pemberitahuan Transaksi</h4>
+                                <h4 class="text-xs font-black text-slate-950 dark:text-white">Pemberitahuan Transaksi Realtime</h4>
                             </div>
-                            <div class="max-h-60 overflow-y-auto custom-scroll py-2 px-1">
-                                @if($globalStats->pending_count > 0)
-                                    <div class="p-3 bg-blue-50/50 dark:bg-blue-500/5 rounded-xl border border-blue-100/55 dark:border-blue-500/10 mb-1 flex items-start gap-2.5">
-                                        <i data-lucide="clock" class="w-4 h-4 text-blue-600 mt-0.5"></i>
-                                        <p class="text-[10px] text-slate-700 dark:text-slate-350 leading-relaxed font-semibold">Ada <b>{{ $globalStats->pending_count }} transaksi</b> yang sedang pending menunggu pembayaran.</p>
+                            <div class="max-h-64 overflow-y-auto custom-scroll py-2 px-3 space-y-2">
+                                @forelse($transactions->take(5) as $tx)
+                                    <div class="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80 flex items-start gap-2 bg-slate-50/50 dark:bg-slate-850/50 text-[10px]">
+                                        @if($tx->status === 'PAID')
+                                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0"></i>
+                                            <div>
+                                                <p class="font-bold text-slate-900 dark:text-slate-200">Pembayaran Berhasil</p>
+                                                <p class="text-slate-450 dark:text-slate-400 mt-0.5 leading-relaxed">Tim <b>{{ $tx->team->name ?? 'Tim' }}</b> baru saja melunasi pendaftaran Rp {{ number_format($tx->amount, 0, ',', '.') }}.</p>
+                                            </div>
+                                        @elseif($tx->status === 'PENDING')
+                                            <i data-lucide="clock" class="w-4 h-4 text-blue-500 mt-0.5 shrink-0"></i>
+                                            <div>
+                                                <p class="font-bold text-slate-900 dark:text-slate-200">Tagihan Baru Dibuat</p>
+                                                <p class="text-slate-450 dark:text-slate-400 mt-0.5 leading-relaxed">Tim <b>{{ $tx->team->name ?? 'Tim' }}</b> mendaftar dengan tagihan pending Rp {{ number_format($tx->amount, 0, ',', '.') }}.</p>
+                                            </div>
+                                        @else
+                                            <i data-lucide="alert-triangle" class="w-4 h-4 text-slate-450 mt-0.5 shrink-0"></i>
+                                            <div>
+                                                <p class="font-bold text-slate-700 dark:text-slate-400">Transaksi Kedaluwarsa</p>
+                                                <p class="text-slate-450 dark:text-slate-500 mt-0.5 leading-relaxed">Transaksi tim <b>{{ $tx->team->name ?? 'Tim' }}</b> telah melewati batas waktu pembayaran.</p>
+                                            </div>
+                                        @endif
                                     </div>
-                                @else
+                                @empty
                                     <div class="py-4 text-center text-slate-400 text-[10px] font-medium">
                                         Tidak ada pemberitahuan baru.
                                     </div>
-                                @endif
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -253,13 +261,13 @@
                         <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
                     </button>
 
-                    <!-- Profile Dropdown Container (Z-Index fix) -->
-                    <div class="relative z-[999]">
-                        <button id="profile-btn" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 active:scale-95 transition-all">
+                    <!-- Profile Dropdown Container (Z-Index Fixed Overlay) -->
+                    <div class="relative z-[9999]">
+                        <button id="profile-btn" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 overflow-hidden flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-350 active:scale-95 transition-all">
                             AD
                         </button>
                         <!-- Profile Dropdown Menu -->
-                        <div id="profile-dropdown" class="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-2xl py-2 hidden">
+                        <div id="profile-dropdown" class="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-2 hidden z-[9999]">
                             <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                                 <p class="text-xs font-black text-slate-950 dark:text-white">Admin Gateway</p>
                                 <p class="text-[10px] text-slate-400 mt-0.5">superadmin@gate.com</p>
@@ -268,12 +276,9 @@
                                 <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i> Pengaturan
                             </button>
                             <hr class="border-slate-100 dark:border-slate-800">
-                            <form action="{{ route('qris.logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2">
-                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
-                                </button>
-                            </form>
+                            <a href="{{ route('admin.logout') }}" class="w-full text-left px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 block">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -281,13 +286,7 @@
 
             <!-- MAIN SCROLLABLE CONTENT -->
             <div class="flex-1 overflow-y-auto p-6 sm:p-8 custom-scroll relative">
-                @if(session('success'))
-                    <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
-                        <i data-lucide="check-circle" class="w-5 h-5"></i>
-                        <p class="text-sm font-semibold">{{ session('success') }}</p>
-                    </div>
-                @endif
-
+                
                 <!-- ================= TAB: DASHBOARD ================= -->
                 <div id="tab-dashboard" class="space-y-8 tab-content">
                     
@@ -295,18 +294,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         
                         <!-- First Card: Dark Blue Theme Card -->
-                        <div class="bg-[#1e293b] text-white border border-[#1e293b] rounded-3xl p-6 shadow-md relative overflow-hidden group">
+                        <div class="bg-blue-600 dark:bg-blue-700 text-white rounded-3xl p-6 shadow-md relative overflow-hidden group">
                             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Volume Sukses</div>
-                                <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-blue-400">
+                                <div class="text-[10px] font-bold text-blue-100 uppercase tracking-wider">Total Volume Sukses</div>
+                                <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-white">
                                     <i data-lucide="wallet" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black font-mono">
                                 Rp {{ number_format($globalStats->total_volume, 0, ',', '.') }}
                             </div>
-                            <div class="text-[10px] text-blue-400 mt-3 font-semibold flex items-center gap-1">
+                            <div class="text-[10px] text-blue-100 mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 100% Settle rate
                             </div>
                         </div>
@@ -314,7 +313,7 @@
                         <!-- Card 2: White/Dark Spending Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Sukses</div>
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Transaksi Sukses</div>
                                 <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-450">
                                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                                 </div>
@@ -330,7 +329,7 @@
                         <!-- Card 3: Pending Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Pending</div>
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Transaksi Pending</div>
                                 <div class="w-7 h-7 bg-yellow-50 dark:bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-600 dark:text-yellow-450">
                                     <i data-lucide="hourglass" class="w-4 h-4"></i>
                                 </div>
@@ -346,21 +345,21 @@
                         <!-- Card 4: Expired Card -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transaksi Kedaluwarsa</div>
-                                <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-400">
+                                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Transaksi Kedaluwarsa</div>
+                                <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-450">
                                     <i data-lucide="slash" class="w-4 h-4"></i>
                                 </div>
                             </div>
                             <div class="text-2xl font-black text-slate-900 dark:text-white">
                                 {{ $globalStats->expired_count }} Tx
                             </div>
-                            <div class="text-[10px] text-slate-450 dark:text-slate-550 mt-3 font-semibold flex items-center gap-1">
+                            <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
                                 <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Melewati batas waktu
                             </div>
                         </div>
                     </div>
 
-                    <!-- Charts Row with Chart.js (Gorgeous Animations!) -->
+                    <!-- Charts Row with Chart.js -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Chart 1: Bar Chart (Monthly Overview) -->
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
@@ -384,11 +383,11 @@
                         <h3 class="text-sm font-extrabold mb-5 flex items-center gap-2 text-slate-900 dark:text-white">
                             <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i> Mutasi Transaksi Terbaru (Live Stream)
                         </h3>
-                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <div class="divide-y divide-slate-100 dark:divide-slate-800/80">
                             @forelse($transactions->take(5) as $tx)
                                 <div class="py-4 flex items-center justify-between">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-850 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold text-xs uppercase">
                                             {{ substr($tx->team->name ?? 'T', 0, 2) }}
                                         </div>
                                         <div>
@@ -398,7 +397,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="font-black text-sm text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
-                                        <span class="text-[10px] text-slate-400 dark:text-slate-550 mt-1 block">{{ $tx->created_at->diffForHumans() }}</span>
+                                        <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">{{ $tx->created_at->diffForHumans() }}</span>
                                     </div>
                                 </div>
                             @empty
@@ -429,11 +428,11 @@
                                             <td class="py-4 px-6 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">{{ $tx->trx_id }}</td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
                                             </td>
                                             <td class="py-4 px-6">
                                                 <div class="font-bold text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Kode Unik: +{{ $tx->unique_code }}</span>
                                             </td>
                                             <td class="py-4 px-6 text-xs font-semibold">
                                                 @if($tx->status === 'PENDING')
@@ -570,7 +569,7 @@
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll">
                 
                 <!-- Summary Card -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-6">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-6">
                     <div>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">No Referensi</span>
                         <div id="drawer-summary-id" class="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-1.5 break-all">-</div>
@@ -662,7 +661,7 @@
                     <h4 class="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider mb-4">Detail Pesanan</h4>
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold">
+                            <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-450 dark:text-slate-400 font-bold">
                                 <th class="py-2.5 px-4">Nama Produk</th>
                                 <th class="py-2.5 px-4 text-center">Jumlah</th>
                                 <th class="py-2.5 px-4 text-right">Harga</th>
@@ -671,13 +670,13 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr>
-                                <td id="drawer-order-product" class="py-3 px-4 font-bold text-slate-850 dark:text-slate-200">-</td>
+                                <td id="drawer-order-product" class="py-3 px-4 font-bold text-slate-850 dark:text-slate-205">-</td>
                                 <td class="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">1</td>
                                 <td id="drawer-order-price" class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-200">-</td>
                                 <td id="drawer-order-subtotal" class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200">-</td>
                             </tr>
                             <tr>
-                                <td class="py-3 px-4 font-bold text-slate-850 dark:text-slate-200">Biaya Transaksi Pelanggan (Kode Unik)</td>
+                                <td class="py-3 px-4 font-bold text-slate-850 dark:text-slate-205">Biaya Transaksi Pelanggan (Kode Unik)</td>
                                 <td class="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">1</td>
                                 <td id="drawer-order-fee-price" class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-200">-</td>
                                 <td id="drawer-order-fee-subtotal" class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200">-</td>
@@ -726,13 +725,18 @@
                 });
             }
 
-            // Notification Dropdown Toggle Function
+            // Notification Dropdown Toggle Function & Red badge removal
             const notifBtn = document.getElementById('notif-btn');
             const notifDropdown = document.getElementById('notif-dropdown');
             if (notifBtn && notifDropdown) {
                 notifBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     notifDropdown.classList.toggle('hidden');
+                    // Hapus badge merah saat pemberitahuan dibaca
+                    const badge = notifBtn.querySelector('span');
+                    if (badge) {
+                        badge.remove();
+                    }
                 });
                 document.addEventListener('click', () => {
                     notifDropdown.classList.add('hidden');
@@ -767,12 +771,13 @@
             themeToggleBtn.addEventListener('click', () => {
                 const isDark = document.documentElement.classList.toggle('dark');
                 localStorage.setItem('qris-theme', isDark ? 'dark' : 'light');
+                // Reload page to apply new theme grid/text colors to Chart.js
+                setTimeout(() => { location.reload(); }, 150);
             });
 
-            // Desktop Sidebar Collapser
+            // Desktop Sidebar Collapser (FLEXBOX layout: no margin bugs!)
             const toggleSidebarBtn = document.getElementById('toggle-sidebar');
             const desktopSidebar = document.getElementById('desktop-sidebar');
-            const mainContainer = document.getElementById('main-container');
             const toggleIcon = document.getElementById('toggle-icon');
 
             function applySidebarState() {
@@ -780,13 +785,11 @@
                 if (isCollapsed) {
                     document.documentElement.classList.add('sidebar-collapsed');
                     if (desktopSidebar) desktopSidebar.style.width = '72px';
-                    if (mainContainer) mainContainer.style.marginLeft = '72px';
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
                     document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.add('hidden'));
                 } else {
                     document.documentElement.classList.remove('sidebar-collapsed');
                     if (desktopSidebar) desktopSidebar.style.width = '256px';
-                    if (mainContainer) mainContainer.style.marginLeft = '256px';
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
                     document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.remove('hidden'));
                 }
@@ -836,7 +839,7 @@
             switchTab('dashboard');
 
             // ----------------------------------------------------
-            // INITIALIZE CHART.JS (With Beautiful Entrance Animations!)
+            // INITIALIZE CHART.JS (With Beautiful Theme Integration)
             // ----------------------------------------------------
             const isDark = document.documentElement.classList.contains('dark');
             const labelColor = isDark ? '#94a3b8' : '#64748b';
@@ -955,7 +958,7 @@
             // Remove active style from all nav buttons
             document.querySelectorAll('nav button').forEach(el => {
                 el.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-                el.classList.add('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50');
+                el.classList.add('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50', 'dark:text-slate-400', 'dark:hover:text-white', 'dark:hover:bg-slate-800');
             });
 
             // Show active content
@@ -964,7 +967,7 @@
             const activeNav = document.getElementById('nav-' + tabId);
             if (activeNav) {
                 activeNav.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-                activeNav.classList.remove('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50');
+                activeNav.classList.remove('text-slate-500', 'hover:text-blue-600', 'hover:bg-slate-50', 'dark:text-slate-400', 'dark:hover:text-white', 'dark:hover:bg-slate-800');
             }
 
             // Update page title

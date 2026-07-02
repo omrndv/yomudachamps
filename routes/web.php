@@ -344,10 +344,7 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
     Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
     Route::get('/debug/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'debugTrans'])->name('debug');
 
-    // Panel Admin Mandiri (Login & Dashboard)
-    Route::get('/login', [\App\Http\Controllers\Qris\QrisAdminController::class, 'showLogin'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Qris\QrisAdminController::class, 'login'])->name('login.post');
-    Route::post('/logout', [\App\Http\Controllers\Qris\QrisAdminController::class, 'logout'])->name('logout');
+
 
     Route::middleware([\App\Http\Middleware\QrisAuthMiddleware::class])->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
