@@ -83,7 +83,7 @@ class QrisController extends Controller
                     'amount' => $finalAmount,
                     'qris_string' => $dynamicQrisString,
                     'status' => 'PENDING',
-                    'expires_at' => now()->addMinutes(5), // Masa aktif 5 menit
+                    'expires_at' => now()->addMinutes(30), // Masa aktif 30 menit
                 ]);
             } catch (Exception $e) {
                 return back()->with('error', 'Gagal generate QRIS: ' . $e->getMessage());
