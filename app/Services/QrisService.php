@@ -100,15 +100,31 @@ class QrisService
         }
 
         try {
-            // Panggil API GoBiz / GoPay Merchant
+            // Parse URL dan query params dari konfigurasi user
+            $parsedUrl = parse_url($apiUrl);
+            $queryParams = [];
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $queryParams);
+            }
+
+            // Set start_time dan end_time secara dinamis agar API GoPay tidak Bad Request
+            // Mengambil range transaksi dari 2 hari lalu hingga besok
+            $queryParams['start_time'] = gmdate('Y-m-d\TH:i:s.000\Z', time() - 86400 * 2);
+            $queryParams['end_time'] = gmdate('Y-m-d\TH:i:s.999\Z', time() + 86400);
+
+            // Jika limit atau page belum ditentukan di URL, set defaultnya
+            if (!isset($queryParams['size'])) {
+                $queryParams['size'] = 20;
+            }
+
+            // Bangun kembali URL dasar tanpa query string
+            $basePath = ($parsedUrl['scheme'] ?? 'https') . '://' . ($parsedUrl['host'] ?? 'api.gojekapi.com') . ($parsedUrl['path'] ?? '');
+
+            // Panggil API GoPay Merchant
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
-            ])->timeout(15)->get($apiUrl, [
-                'merchant_id' => $merchantId,
-                'limit' => 20,
-                'page' => 1
-            ]);
+            ])->timeout(15)->get($basePath, $queryParams);
 
             if ($response->successful()) {
                 $data = $response->json();
