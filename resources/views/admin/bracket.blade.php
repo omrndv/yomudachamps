@@ -977,65 +977,90 @@
     /* Theme Dark Styles for Bracket Container */
     /* ---------------------------------------------------- */
     #bracketCardContainer.theme-dark {
-        background-color: #09090b !important;
-        border-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: #141416 !important;
+        border-color: #3f3f46 !important;
     }
     #bracketCardContainer.theme-dark .round-headers-bar {
-        background-color: #18181b !important;
-        border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: #1e1e24 !important;
+        border-bottom-color: #3f3f46 !important;
         color: #a1a1aa !important;
     }
     #bracketCardContainer.theme-dark .bracket-container {
-        scrollbar-color: rgba(255,255,255,0.1) #09090b;
+        scrollbar-color: #ff7a00 #141416;
+    }
+    #bracketCardContainer.theme-dark .bracket-container::-webkit-scrollbar-track {
+        background: #141416;
+    }
+    #bracketCardContainer.theme-dark .bracket-container::-webkit-scrollbar-thumb {
+        background: #3f3f46;
+        border-radius: 3px;
+    }
+    #bracketCardContainer.theme-dark .bracket-container::-webkit-scrollbar-thumb:hover {
+        background: #ff7a00;
     }
     #bracketCardContainer.theme-dark .match-card {
-        background-color: #18181b !important;
-        border-color: rgba(255, 255, 255, 0.08) !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        background-color: #2d2d35 !important;
+        border-color: #3f3f46 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     }
     #bracketCardContainer.theme-dark .match-card:hover {
-        border-color: rgba(255, 122, 0, 0.4) !important;
+        border-color: #52525b !important;
     }
     #bracketCardContainer.theme-dark .match-card-header {
         background-color: #202024 !important;
-        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
-        color: #71717a !important;
+        border-bottom-color: #3f3f46 !important;
+        color: #a1a1aa !important;
+    }
+    #bracketCardContainer.theme-dark .match-card-header .match-card-time {
+        color: #ff7a00 !important;
     }
     #bracketCardContainer.theme-dark .team-row {
-        background-color: #18181b !important;
-        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
-        color: #e4e4e7 !important;
+        background-color: #2d2d35 !important;
+        border-bottom-color: rgba(255, 255, 255, 0.03) !important;
+        color: #f4f4f5 !important;
+    }
+    #bracketCardContainer.theme-dark .team-row:hover {
+        background-color: #373740 !important;
+    }
+    #bracketCardContainer.theme-dark .team-seed {
+        color: #a1a1aa !important;
     }
     #bracketCardContainer.theme-dark .team-name {
-        color: #e4e4e7 !important;
+        color: #f4f4f5 !important;
     }
     #bracketCardContainer.theme-dark .team-name.text-muted {
-        color: #71717a !important;
+        color: #3f3f46 !important;
+        opacity: 0.3;
     }
     #bracketCardContainer.theme-dark .team-score-box {
-        background-color: #27272a !important;
-        border-left-color: rgba(255, 255, 255, 0.08) !important;
-        color: #ffffff !important;
+        background-color: #202024 !important;
+        border-left-color: #3f3f46 !important;
+        color: #a1a1aa !important;
     }
     #bracketCardContainer.theme-dark .team-row.winner {
-        background-color: rgba(22, 101, 52, 0.15) !important;
+        background-color: rgba(255, 122, 0, 0.02) !important;
     }
     #bracketCardContainer.theme-dark .team-row.winner .team-name {
-        color: #4ade80 !important;
-        font-weight: 700 !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
     }
     #bracketCardContainer.theme-dark .team-row.winner .team-score-box {
-        background-color: #166534 !important;
-        color: #ffffff !important;
+        background-color: #ff7a00 !important;
+        color: #000000 !important;
     }
     #bracketCardContainer.theme-dark .team-row.loser {
-        background-color: rgba(0, 0, 0, 0.1) !important;
+        opacity: 0.45;
+        background-color: transparent !important;
     }
     #bracketCardContainer.theme-dark .team-row.loser .team-name {
-        color: #71717a !important;
+        color: #f4f4f5 !important;
     }
     #bracketCardContainer.theme-dark .round-connectors path {
-        stroke: rgba(255, 255, 255, 0.1) !important;
+        stroke: #44444f !important;
+        stroke-width: 1.5;
+    }
+    #bracketCardContainer.theme-dark .bronze-match-title {
+        color: #ff7a00 !important;
     }
 </style>
 
