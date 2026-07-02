@@ -38,10 +38,6 @@ class QrisController extends Controller
             if ($baseAmount <= 0) {
                 $baseAmount = (int) ($team->season->price ?? 0);
             }
-            // Batas minimal transaksi QRIS di Indonesia adalah Rp 1.000 agar tidak didecline perbankan/e-wallet
-            if ($baseAmount < 1000) {
-                $baseAmount = 1000;
-            }
             $staticQris = Setting::getVal('gopay_static_qris');
 
             if (empty($staticQris)) {
