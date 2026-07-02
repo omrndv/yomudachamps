@@ -176,24 +176,28 @@
                 .then(data => {
                     if (data.status === 'PAID') {
                         clearInterval(checkInterval);
-                        Swal.fire({
-                            title: 'PEMBAYARAN BERHASIL!',
-                            text: 'Sistem telah memverifikasi pembayaran tim kamu.',
-                            icon: 'success',
-                            background: '#121417',
-                            color: '#fff',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            allowOutsideClick: false,
-                            willClose: () => {
-                                window.location.href = "{{ route('payment.success', $team->trx_id) }}";
-                            }
-                        });
+                        try {
+                            Swal.fire({
+                                title: 'PEMBAYARAN BERHASIL!',
+                                text: 'Sistem telah memverifikasi pembayaran tim kamu.',
+                                icon: 'success',
+                                background: '#121417',
+                                color: '#fff',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true,
+                                allowOutsideClick: false,
+                                willClose: () => {
+                                    window.location.href = "{{ route('payment.success', $team->trx_id) }}";
+                                }
+                            });
+                        } catch (e) {
+                            window.location.href = "{{ route('payment.success', $team->trx_id) }}";
+                        }
                     }
                 })
                 .catch(error => console.error('Error checking status:', error));
-        }, 3000);
+        }, 2000);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
