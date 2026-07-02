@@ -338,6 +338,7 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
     // Halaman pembayaran untuk user
     Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->name('pay');
     Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
+    Route::get('/debug/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'debugTrans'])->name('debug');
 
     // Panel Admin Mandiri (Login & Dashboard)
     Route::get('/login', [\App\Http\Controllers\Qris\QrisAdminController::class, 'showLogin'])->name('login');

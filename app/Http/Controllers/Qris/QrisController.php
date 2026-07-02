@@ -112,4 +112,21 @@ class QrisController extends Controller
             'redirect_url' => $qrisTx->status === 'PAID' ? route('payment.success', $trx_id) : null
         ]);
     }
+
+    /**
+     * Debugging transaksi untuk mendiagnosis nominal 0 / salah
+     */
+    public function debugTrans($trx_id)
+    {
+        $team = Team::with('season')->where('trx_id', $trx_id)->first();
+        if (!$team) {
+            return response()->json(['error' => 'Team not found']);
+        }
+        return response()->json([
+            'team_name' => $team->name,
+            'team_amount' => $team->amount,
+            'season_price' => $team->season->price ?? 'No Season',
+            'qris_tx_details' => QrisTransaction::where('trx_id', $trx_id)->get()
+        ]);
+    }
 }
