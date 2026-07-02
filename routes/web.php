@@ -335,6 +335,10 @@ Route::get('/chat-debug-files', function() {
 // QRIS GoPay Merchant Gateway (Terisolasi)
 // ==========================================
 Route::prefix('qris-gateway')->name('qris.')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('qris.dashboard');
+    });
+
     // Halaman pembayaran untuk user
     Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->name('pay');
     Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
