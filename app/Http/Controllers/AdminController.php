@@ -454,6 +454,10 @@ class AdminController extends Controller
             $val = $request->input($key);
             if ($key === 'wa_notification_enabled') {
                 $val = $request->has('wa_notification_enabled') ? 'true' : 'false';
+            } elseif ($key === 'payment_gateway_tripay') {
+                $val = $request->has('payment_gateway_tripay') ? 'on' : 'off';
+            } elseif ($key === 'payment_gateway_ipaymu') {
+                $val = $request->has('payment_gateway_ipaymu') ? 'on' : 'off';
             }
             \App\Models\Setting::updateOrCreate(
                 ['key' => $key],

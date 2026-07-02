@@ -213,7 +213,6 @@ class HomeController extends Controller
                 $team->update([
                     'tripay_reference' => $transaction->transaction_id,
                     'payment_method'   => $qrCodeUrl,
-                    'payment_gateway'  => 'ipaymu',
                 ]);
 
                 return redirect()->route('payment.detail', $team->trx_id);
@@ -237,7 +236,6 @@ class HomeController extends Controller
                 $team->update([
                     'tripay_reference' => $transaction->data->reference,
                     'payment_method'   => $method,
-                    'payment_gateway'  => 'tripay',
                 ]);
 
                 return redirect()->route('payment.detail', $team->trx_id);
@@ -259,7 +257,7 @@ class HomeController extends Controller
             return redirect()->route('payment.confirm', $team->trx_id);
         }
 
-        if ($team->payment_gateway === 'ipaymu') {
+        if (str_starts_with($team->payment_method, 'http')) {
             return view('payment_detail_ipaymu', compact('team'));
         } else {
             $tripay = new TripayController();
