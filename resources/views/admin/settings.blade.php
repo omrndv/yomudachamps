@@ -334,6 +334,67 @@
                 </div>
             </div>
 
+            {{-- Card: Mail & SMTP Settings --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white">
+                <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">
+                    <i class="bi bi-envelope-paper text-warning me-2"></i> SMTP & Penerima Notifikasi
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Email Penerima Notifikasi</label>
+                    <input type="email" name="admin_notification_email" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                        placeholder="monotp94@gmail.com" value="{{ \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com') }}" required>
+                    <small class="text-muted d-block mt-1" style="font-size: 0.73rem;">Semua notifikasi registrasi lunas dan token expired akan dikirim ke email ini.</small>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">SMTP Host</label>
+                        <input type="text" name="mail_host" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                            placeholder="smtp.gmail.com" value="{{ \App\Models\Setting::getVal('mail_host') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">SMTP Port</label>
+                        <input type="text" name="mail_port" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                            placeholder="587" value="{{ \App\Models\Setting::getVal('mail_port', '587') }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">SMTP Username</label>
+                    <input type="text" name="mail_username" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                        placeholder="yomudachampionship@gmail.com" value="{{ \App\Models\Setting::getVal('mail_username') }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">SMTP Password</label>
+                    <input type="password" name="mail_password" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                        placeholder="Masukkan password SMTP baru (kosongkan jika tidak diubah)">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">SMTP Enkripsi</label>
+                    <select name="mail_encryption" class="form-select rounded-3 shadow-none border-light-subtle" style="font-size: 0.85rem;">
+                        <option value="tls" {{ \App\Models\Setting::getVal('mail_encryption', 'tls') === 'tls' ? 'selected' : '' }}>TLS</option>
+                        <option value="ssl" {{ \App\Models\Setting::getVal('mail_encryption') === 'ssl' ? 'selected' : '' }}>SSL</option>
+                        <option value="none" {{ \App\Models\Setting::getVal('mail_encryption') === 'none' ? 'selected' : '' }}>Tanpa Enkripsi</option>
+                    </select>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pengirim Email (Address)</label>
+                        <input type="email" name="mail_from_address" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                            placeholder="yomudachampionship@gmail.com" value="{{ \App\Models\Setting::getVal('mail_from_address', 'yomudachampionship@gmail.com') }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama Pengirim (Name)</label>
+                        <input type="text" name="mail_from_name" class="form-control rounded-3 shadow-none border-light-subtle p-2.5 bg-light" style="font-size: 0.85rem;"
+                            placeholder="Yomuda Championship" value="{{ \App\Models\Setting::getVal('mail_from_name', 'Yomuda Championship') }}">
+                    </div>
+                </div>
+            </div>
+
             {{-- Card 5: Maintenance Mode --}}
             <div class="card card-settings border-0 p-4 mb-0 bg-white">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">

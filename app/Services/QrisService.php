@@ -146,7 +146,7 @@ class QrisService
         try {
             $cacheKey = 'qris_token_expired_notified';
             if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-                $adminEmail = Setting::getVal('admin_email', 'yomudachampionship@gmail.com');
+                $adminEmail = Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
                 \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
                     ->notify(new \App\Notifications\QrisTokenExpired($errorDetail));
 

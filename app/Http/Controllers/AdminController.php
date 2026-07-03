@@ -448,7 +448,15 @@ class AdminController extends Controller
             'maintenance_secret',
             'log_retention_days',
             'global_rules_link',
-            'gemini_api_key'
+            'gemini_api_key',
+            'admin_notification_email',
+            'mail_host',
+            'mail_port',
+            'mail_username',
+            'mail_password',
+            'mail_encryption',
+            'mail_from_address',
+            'mail_from_name'
         ];
 
         foreach ($keys as $key) {
@@ -461,6 +469,12 @@ class AdminController extends Controller
                 $val = $request->has('payment_gateway_ipaymu') ? 'on' : 'off';
             } elseif ($key === 'payment_gateway_gopay_qris') {
                 $val = $request->has('payment_gateway_gopay_qris') ? 'on' : 'off';
+            } elseif ($key === 'mail_password') {
+                if ($request->filled('mail_password')) {
+                    $val = \Illuminate\Support\Facades\Crypt::encryptString($request->input('mail_password'));
+                } else {
+                    continue; // Skip updating if password not filled (to keep existing encrypted password)
+                }
             }
             \App\Models\Setting::updateOrCreate(
                 ['key' => $key],
@@ -917,7 +931,7 @@ class AdminController extends Controller
 
                             // Kirim email notification
                             try {
-                                $adminEmail = 'monotp94@gmail.com';
+                                $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
                                 \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
                             } catch (\Exception $e) {
                                 \Illuminate\Support\Facades\Log::error('Gagal kirim email saat sync: ' . $e->getMessage());

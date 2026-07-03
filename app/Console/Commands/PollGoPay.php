@@ -157,7 +157,7 @@ class PollGoPay extends Command
             if ($statusLama !== 'PAID') {
                 // Kirim notifikasi email ke admin
                 try {
-                    $adminEmail = 'monotp94@gmail.com';
+                    $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
                     Notification::route('mail', $adminEmail)->notify(new NewRegistration($team));
                 } catch (Exception $e) {
                     Log::error('Gagal kirim email (auto poll): ' . $e->getMessage());
