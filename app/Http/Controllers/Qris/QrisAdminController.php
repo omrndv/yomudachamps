@@ -100,11 +100,21 @@ class QrisAdminController extends Controller
         return view('qris.dashboard', compact('globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts', 'recentTransactions', 'successRate'));
     }
 
-    public function transactions()
+    public function transactions(Request $request)
     {
-        $transactions = QrisTransaction::with('team.season')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = QrisTransaction::with('team.season');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function($q) use ($search) {
+                $q->where('trx_id', 'like', "%{$search}%")
+                  ->orWhereHas('team', function($t) use ($search) {
+                      $t->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $transactions = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         return view('qris.transactions', compact('transactions'));
     }
 

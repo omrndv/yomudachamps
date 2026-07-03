@@ -2,6 +2,24 @@
 @section('title', 'Daftar Transaksi')
 
 @section('content')
+<!-- Search Bar Section -->
+<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="max-w-md w-full">
+        <form action="{{ route('qris.transactions') }}" method="GET" class="relative">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama tim atau ID referensi..." 
+                class="w-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl pl-11 pr-16 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-sm">
+            <div class="absolute left-4 top-3.5 text-slate-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            @if(request('search'))
+                <a href="{{ route('qris.transactions') }}" class="absolute right-4 top-3.5 text-xs font-semibold text-slate-450 hover:text-slate-600 dark:hover:text-white transition-all">
+                    Reset
+                </a>
+            @endif
+        </form>
+    </div>
+</div>
+
 <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm border-collapse">
