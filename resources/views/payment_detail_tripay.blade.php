@@ -330,9 +330,9 @@
         if (btnCheckNow) {
             btnCheckNow.addEventListener('click', function() {
                 btnCheckNow.disabled = true;
-                const originalHtml = btnCheckNow.innerHTML;
                 btnCheckNow.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> MEMERIKSA...`;
                 
+                // Tembak server untuk cek manual ke GoBiz, lalu refresh halaman apapun hasilnya
                 fetch("{{ route('qris.check.force', $team->trx_id) }}", {
                     method: 'POST',
                     headers: {
@@ -340,39 +340,11 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'PAID') {
-                        Swal.fire({
-                            title: 'PEMBAYARAN BERHASIL!',
-                            text: 'Sistem telah memverifikasi pembayaran tim kamu.',
-                            icon: 'success',
-                            background: '#121417',
-                            color: '#fff',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            timerProgressBar: true,
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = data.redirect_url || "{{ route('payment.success', $team->trx_id) }}";
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Belum Terdeteksi',
-                            text: 'Pembayaran belum masuk. Pastikan nominal transfer sesuai atau tunggu 1 menit lalu coba lagi.',
-                            icon: 'info',
-                            background: '#121417',
-                            color: '#fff',
-                            confirmButtonColor: '#ffc107'
-                        });
-                        btnCheckNow.disabled = false;
-                        btnCheckNow.innerHTML = originalHtml;
-                    }
+                .then(() => {
+                    window.location.reload();
                 })
-                .catch(err => {
-                    console.error(err);
-                    btnCheckNow.disabled = false;
-                    btnCheckNow.innerHTML = originalHtml;
+                .catch(() => {
+                    window.location.reload();
                 });
             });
         }
