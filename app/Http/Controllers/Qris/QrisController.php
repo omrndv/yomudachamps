@@ -117,6 +117,69 @@ class QrisController extends Controller
     }
 
     /**
+     * Memaksa pengecekan langsung (manual check) via API GoBiz
+     */
+    public function forceCheckStatus($trx_id)
+    {
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->where('status', 'PENDING')->latest()->first();
+
+        if (!$qrisTx) {
+            $qrisTx = QrisTransaction::where('trx_id', $trx_id)->latest()->first();
+            return response()->json([
+                'status' => $qrisTx ? $qrisTx->status : 'NOT_FOUND',
+                'redirect_url' => ($qrisTx && $qrisTx->status === 'PAID') ? route('payment.success', $trx_id) : null
+            ]);
+        }
+
+        try {
+            // Ambil 20 transaksi terakhir dari GoBiz
+            $mutations = QrisService::fetchGoPayMutations(1, 20);
+
+            if (!empty($mutations)) {
+                foreach ($mutations as $mutation) {
+                    $rawAmount = $mutation['gross_amount'] ?? $mutation['amount'] ?? 0;
+                    $mutationAmount = (int) ($rawAmount / 100);
+                    $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
+                    
+                    // Match amount and status
+                    if ($mutationAmount == $qrisTx->amount && in_array($mutationStatus, ['SETTLEMENT', 'CAPTURE', 'PAID', 'SUCCESS'])) {
+                        
+                        $gopayRef = $mutation['id'] ?? $mutation['transaction_id'] ?? null;
+                        
+                        // Cek duplicate ref
+                        $isDuplicate = false;
+                        if ($gopayRef) {
+                            $isDuplicate = QrisTransaction::where('gopay_reference', $gopayRef)->exists();
+                        }
+                        
+                        if (!$isDuplicate) {
+                            // Settle the payment
+                            $qrisTx->update([
+                                'status' => 'PAID',
+                                'gopay_reference' => $gopayRef
+                            ]);
+                            
+                            $team = Team::where('trx_id', $qrisTx->trx_id)->first();
+                            if ($team) {
+                                $team->status = 'PAID';
+                                $team->save();
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Abaikan error jaringan saat force check, biarkan cron/polling yang urus nanti
+        }
+
+        return response()->json([
+            'status' => $qrisTx->status,
+            'redirect_url' => $qrisTx->status === 'PAID' ? route('payment.success', $trx_id) : null
+        ]);
+    }
+
+    /**
      * Debugging transaksi untuk mendiagnosis nominal 0 / salah
      */
     public function debugTrans($trx_id)

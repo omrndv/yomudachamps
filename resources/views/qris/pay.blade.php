@@ -129,13 +129,23 @@
             </div>
         @endif
 
+        <!-- Tombol Cek Pembayaran Manual -->
+        <div class="px-2">
+            <button id="btnCheckNow" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-black py-3.5 rounded-2xl shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all flex justify-center items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                SAYA SUDAH BAYAR
+            </button>
+        </div>
+
         <!-- Loading Polling Status -->
-        <div class="flex items-center justify-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-850">
-            <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <div class="flex items-center justify-center gap-2 text-[11px] text-gray-500 pt-1 pb-2">
+            <svg class="animate-spin h-3.5 w-3.5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>Mendeteksi pembayaran Anda otomatis...</span>
+            <span>Mendeteksi pembayaran Anda otomatis (estimasi 1 menit)...</span>
         </div>
 
     </div>
@@ -145,6 +155,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const expireTime = new Date("{{ $qrisTx->expires_at->toIso8601String() }}").getTime();
             const checkStatusUrl = "{{ route('qris.check', $team->trx_id) }}";
+            const forceCheckUrl = "{{ route('qris.check.force', $team->trx_id) }}";
+            
+            const btnCheckNow = document.getElementById('btnCheckNow');
             
             // Countdown Timer
             const countdownEl = document.getElementById('countdown');
@@ -170,7 +183,41 @@
                     (seconds < 10 ? "0" + seconds : seconds);
             }, 1000);
 
-            // AJAX Polling Status Pembayaran
+            // Manual Force Check
+            if (btnCheckNow) {
+                btnCheckNow.addEventListener('click', () => {
+                    btnCheckNow.disabled = true;
+                    const originalText = btnCheckNow.innerHTML;
+                    btnCheckNow.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> MEMERIKSA...`;
+                    
+                    fetch(forceCheckUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'PAID') {
+                            clearInterval(timer);
+                            window.location.href = data.redirect_url;
+                        } else {
+                            alert('Pembayaran belum terdeteksi. Pastikan Anda sudah mentransfer sesuai nominal yang diminta. Silakan coba lagi beberapa saat.');
+                            btnCheckNow.disabled = false;
+                            btnCheckNow.innerHTML = originalText;
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error force checking:", err);
+                        alert('Terjadi kesalahan koneksi.');
+                        btnCheckNow.disabled = false;
+                        btnCheckNow.innerHTML = originalText;
+                    });
+                });
+            }
+
+            // AJAX Polling Status Pembayaran (Background)
             const pollInterval = setInterval(() => {
                 fetch(checkStatusUrl)
                     .then(response => response.json())

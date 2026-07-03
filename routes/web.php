@@ -342,6 +342,7 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
     Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->name('pay');
     Route::post('/pay/{trx_id}/proof', [\App\Http\Controllers\Qris\QrisController::class, 'uploadProof'])->name('pay.proof');
     Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
+    Route::post('/check-now/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'forceCheckStatus'])->name('check.force');
     Route::get('/debug/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'debugTrans'])->name('debug');
 
 
