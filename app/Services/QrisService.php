@@ -154,6 +154,16 @@ class QrisService
     public static function notifyAdminTokenExpired(string $errorDetail)
     {
         try {
+            // Catat ke log notifikasi gateway dengan pencegahan banjir data (flood prevention) 5 menit
+            $lastNotification = \App\Models\GatewayNotification::where('type', 'API_ERROR')
+                ->where('created_at', '>=', now()->subMinutes(5))
+                ->latest()
+                ->first();
+
+            if (!$lastNotification || !str_contains($lastNotification->message, substr($errorDetail, 0, 50))) {
+                \App\Models\GatewayNotification::add('API_ERROR', 'GoPay API Bermasalah', $errorDetail);
+            }
+
             $cacheKey = 'qris_token_expired_notified';
             if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
                 $adminEmail = Setting::getVal('admin_notification_email', 'monotp94@gmail.com');

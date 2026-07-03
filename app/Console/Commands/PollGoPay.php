@@ -154,6 +154,13 @@ class PollGoPay extends Command
         if ($currentPaidCount < $team->season->slot) {
             $team->status = 'PAID';
 
+            // Catat notifikasi pembayaran lunas otomatis via poller
+            \App\Models\GatewayNotification::add(
+                'TRANSACTION_PAID',
+                'Pembayaran Terverifikasi (Auto)',
+                "Pembayaran Tim {$team->name} sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}) berhasil terverifikasi otomatis via Background Poller."
+            );
+
             if ($statusLama !== 'PAID') {
                 // Kirim notifikasi email ke admin
                 try {
@@ -173,6 +180,13 @@ class PollGoPay extends Command
         } else {
             $team->status = 'FAILED';
             Log::warning("OVER-SLOT AUTO: Tim {$team->name} terdeteksi bayar tapi slot penuh.");
+
+            // Catat notifikasi over-slot
+            \App\Models\GatewayNotification::add(
+                'API_ERROR',
+                'Pembayaran Over-Slot Terdeteksi',
+                "Tim {$team->name} melakukan pembayaran sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}), tetapi slot Season {$team->season->name} sudah penuh! Status tim ditandai FAILED."
+            );
 
             // Kirim Notifikasi Over-slot
             try {

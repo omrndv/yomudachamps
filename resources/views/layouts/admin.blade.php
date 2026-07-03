@@ -281,6 +281,9 @@
             <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
+            <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
+                <i class="bi bi-bell-fill text-warning"></i> <span>Notifikasi Gateway</span>
+            </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('faqs'))
@@ -368,6 +371,9 @@
                 @if(Auth::check() && Auth::user()->hasPermission('settings'))
                 <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
+                </a>
+                <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
+                    <i class="bi bi-bell-fill text-warning me-2"></i> <span>Notifikasi Gateway</span>
                 </a>
                 @endif
 

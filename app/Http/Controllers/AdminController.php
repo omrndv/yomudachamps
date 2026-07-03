@@ -420,6 +420,20 @@ class AdminController extends Controller
         return view('admin.settings');
     }
 
+    public function gatewayNotifications()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $notifications = \App\Models\GatewayNotification::orderBy('created_at', 'desc')->paginate(30);
+
+        // Tandai semua sebagai dibaca ketika halaman dibuka
+        \App\Models\GatewayNotification::whereNull('read_at')->update(['read_at' => now()]);
+
+        return view('admin.gateway_notifications', compact('notifications'));
+    }
+
     public function updateSettings(Request $request)
     {
         if (!Auth::check()) {

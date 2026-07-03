@@ -85,6 +85,13 @@ class QrisController extends Controller
                     'status' => 'PENDING',
                     'expires_at' => now()->addMinutes(30), // Masa aktif 30 menit
                 ]);
+
+                // Catat notifikasi pembuatan transaksi baru
+                \App\Models\GatewayNotification::add(
+                    'TRANSACTION_CREATED',
+                    'Transaksi Baru Dibuat',
+                    "Pembayaran pendaftaran baru untuk Tim {$team->name} dibuat dengan nominal Rp " . number_format($finalAmount, 0, ',', '.') . " (Kode Unik: {$uniqueCode})."
+                );
             } catch (Exception $e) {
                 return back()->with('error', 'Gagal generate QRIS: ' . $e->getMessage());
             }
@@ -174,6 +181,13 @@ class QrisController extends Controller
                             if ($team) {
                                 $team->status = 'PAID';
                                 $team->save();
+                                
+                                // Catat notifikasi pembayaran lunas
+                                \App\Models\GatewayNotification::add(
+                                    'TRANSACTION_PAID',
+                                    'Pembayaran Terverifikasi',
+                                    "Pembayaran Tim {$team->name} sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}) berhasil terverifikasi otomatis."
+                                );
                             }
                             break;
                         }

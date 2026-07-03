@@ -177,6 +177,16 @@ class QrisAdminController extends Controller
 
             if (!$response->successful()) {
                 \App\Services\QrisService::notifyAdminTokenExpired("API Health Check Gagal: Status {$response->status()} - {$response->body()}");
+            } else {
+                // Catat log pemulihan API jika sebelumnya bermasalah
+                $lastNotification = \App\Models\GatewayNotification::latest()->first();
+                if ($lastNotification && $lastNotification->type === 'API_ERROR') {
+                    \App\Models\GatewayNotification::add(
+                        'API_SUCCESS',
+                        'GoPay API Kembali Normal',
+                        'Koneksi API GoPay Merchant berhasil terhubung kembali dan status sistem kembali Aktif/Sehat.'
+                    );
+                }
             }
 
             return response()->json([
