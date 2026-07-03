@@ -51,12 +51,9 @@ class QrisService
         // Sisipkan Tag 54 (Transaction Amount)
         $amountStr = (string)$amount;
         $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
-        
-        // Tambahkan Tag 55 (Tip Indicator) = 01 (Opsional, tapi sering dibutuhkan BNI untuk QR Dinamis)
-        $tipTag = '550201';
 
-        // Gabungkan kembali
-        $qrisBaru = $pecah[0] . $amountTag . $tipTag . '5802ID' . $pecah[1];
+        // Gabungkan kembali (Tanpa Tag 55 Tip Indicator agar didukung oleh semua e-wallet/M-banking)
+        $qrisBaru = $pecah[0] . $amountTag . '5802ID' . $pecah[1];
 
         // Hitung dan tempelkan CRC16 baru
         return $qrisBaru . self::crc16($qrisBaru);
