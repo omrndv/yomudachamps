@@ -97,7 +97,11 @@ class PollGoPay extends Command
         foreach ($pendingTransactions as $tx) {
             foreach ($mutations as $mutation) {
                 // Konversi data mutasi (biasanya berasal dari API GoBiz)
-                $mutationAmount = (int) ($mutation['gross_amount'] ?? $mutation['amount'] ?? 0);
+                // GoBiz API mengembalikan nominal dalam bentuk "cents" (dikalikan 100).
+                // Contoh: Rp 15.024 dikembalikan sebagai 1502400. Maka kita bagi 100.
+                $rawAmount = $mutation['gross_amount'] ?? $mutation['amount'] ?? 0;
+                $mutationAmount = (int) ($rawAmount / 100);
+                
                 $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
                 $gopayRef = $mutation['id'] ?? $mutation['transaction_id'] ?? null;
                 $settlementTime = isset($mutation['settlement_time']) ? Carbon::parse($mutation['settlement_time']) : now();
