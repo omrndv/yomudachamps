@@ -1,48 +1,64 @@
 @extends('qris.layout')
-@section('title', 'Pengaturan')
+@section('title', 'Pengaturan Sistem')
 
 @section('content')
-<div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6 sm:p-8 max-w-3xl mx-auto">
-    <h3 class="text-lg font-extrabold mb-6 text-gray-900">
-        Pengaturan GoPay Merchant & API
-    </h3>
-
-    <form action="{{ route('qris.config.update') }}" method="POST" class="space-y-6">
-        @csrf
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Merchant ID</label>
-                <input type="text" name="merchant_id" value="{{ $config->merchant_id }}" required placeholder="Contoh: G572567010" 
-                    class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                <p class="text-[10px] text-gray-400 mt-2">Ditemukan di dalam aplikasi GoBiz atau dari String QRIS.</p>
+<div class="max-w-3xl">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm p-8">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-600">
+                <i data-lucide="settings-2" class="w-6 h-6"></i>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">API GoPay URL</label>
-                <input type="url" name="api_url" value="{{ $config->api_url }}" required placeholder="https://api.gobiz.co.id/v2/transactions" 
-                    class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                <p class="text-[10px] text-gray-400 mt-2">Biarkan default kecuali ada perubahan endpoint dari Gojek.</p>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Konfigurasi Gateway</h3>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Atur parameter integrasi GoPay Merchant Anda di sini.</p>
             </div>
         </div>
 
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">String QRIS Statis Murni</label>
-            <textarea name="static_qris" rows="4" required placeholder="Paste string text hasil scan QRIS fisik toko Anda di sini..." 
-                class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono break-all leading-relaxed">{{ $config->static_qris }}</textarea>
-            <p class="text-[10px] text-gray-400 mt-2">Gunakan string dari cabang yang valid (seperti "Gami"). String ini akan diproses menjadi QRIS dinamis.</p>
-        </div>
+        @if(session('success'))
+            <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-xl text-sm font-bold mb-6 flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> {{ session('success') }}
+            </div>
+        @endif
 
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">GoBiz Bearer Token (Authorization)</label>
-            <input type="password" name="token" placeholder="{{ $config->has_token ? '•••••••••••••••• (Kosongkan jika tidak ingin mengubah)' : 'Paste Bearer token dari aplikasi GoBiz...' }}" 
-                class="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono">
-            <p class="text-[10px] text-gray-400 mt-2">Diperlukan agar Poller otomatis mendeteksi pembayaran yang masuk ke saldo GoPay.</p>
-        </div>
+        <form action="{{ route('qris.config.update') }}" method="POST" class="space-y-6">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Merchant ID</label>
+                    <input type="text" name="merchant_id" value="{{ $config->merchant_id }}" required
+                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono"
+                        placeholder="G572567010">
+                </div>
 
-        <div class="pt-4 flex items-center justify-end">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                Simpan Konfigurasi
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">GoPay API URL</label>
+                    <input type="url" name="api_url" value="{{ $config->api_url }}" required
+                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono"
+                        placeholder="https://api.gojekapi.com/v2/transactions">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Token Otorisasi (GoBiz Bearer Token)</label>
+                <input type="password" name="token" 
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono placeholder-slate-400 dark:placeholder-slate-655"
+                    placeholder="{{ $config->has_token ? '•••••••••••••••••••••••••••••••• (Sudah Tersimpan)' : 'Masukkan token baru' }}">
+                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Kosongkan kolom ini jika Anda tidak ingin memperbarui token yang sudah ada di database.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">String QRIS Statis</label>
+                <textarea name="static_qris" rows="5" required
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-blue-500 transition-all"
+                    placeholder="00020101021126610014COM.GO-JEK.WWW01189...">{{ $config->static_qris }}</textarea>
+                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Salin mentah string QRIS statis dari outlet GoPay Merchant Anda. String ini akan diparse menggunakan library EMVCo buatan kita untuk nominal dinamis.</p>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan Konfigurasi
             </button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 @endsection

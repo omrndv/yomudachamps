@@ -96,11 +96,9 @@ class PollGoPay extends Command
         // 4. Lakukan pencocokan nominal
         foreach ($pendingTransactions as $tx) {
             foreach ($mutations as $mutation) {
-                // Konversi data mutasi (biasanya berasal dari API GoBiz)
-                // GoBiz API mengembalikan nominal dalam bentuk "cents" (dikalikan 100).
-                // Contoh: Rp 15.024 dikembalikan sebagai 1502400. Maka kita bagi 100.
+                // GoBiz API usually returns the exact Rupiah value as integer for IDR.
                 $rawAmount = $mutation['gross_amount'] ?? $mutation['amount'] ?? 0;
-                $mutationAmount = (int) ($rawAmount / 100);
+                $mutationAmount = (int) $rawAmount; // Removed / 100 division since GoBiz IDR uses exact integer Rupiah
                 
                 $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
                 $gopayRef = $mutation['id'] ?? $mutation['transaction_id'] ?? null;
@@ -110,10 +108,11 @@ class PollGoPay extends Command
                 // - Nominal akhir harus sama persis (termasuk kode unik)
                 // - Status mutasi harus SETTLEMENT / SUCCESS
                 // - Waktu mutasi harus setelah waktu pembuatan transaksi kita (menghindari double-settle dari transaksi lama)
+                // Note: Gunakan clone() agar $tx->created_at tidak termutasi di dalam loop
                 if (
                     $tx->amount === $mutationAmount &&
                     in_array($mutationStatus, ['SETTLEMENT', 'SUCCESS']) &&
-                    $tx->created_at->subMinutes(5)->lte($settlementTime) // Toleransi waktu 5 menit sebelumnya
+                    $tx->created_at->clone()->subMinutes(10)->lte($settlementTime) // Toleransi waktu 10 menit sebelumnya
                 ) {
                     $this->info("Kecocokan ditemukan! Transaksi {$tx->id} dicocokkan dengan mutasi GoPay Ref: {$gopayRef}");
 
