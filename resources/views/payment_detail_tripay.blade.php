@@ -84,19 +84,38 @@
     }
 
     .btn-check-status {
-        background: transparent;
-        color: #ffc107;
-        border: 2px solid #ffc107;
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+        color: #000;
+        border: none;
         border-radius: 12px;
-        padding: 14px;
-        font-weight: 800;
+        padding: 15px;
+        font-weight: 900;
         width: 100%;
         transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
     }
 
     .btn-check-status:hover {
-        background: #ffc107;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+        background: linear-gradient(45deg, #ffb300, #ff8f00);
         color: #000;
+    }
+
+    .btn-pulse-animation {
+        animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+        }
     }
 
     .btn-download-qris {
@@ -213,10 +232,13 @@
             <p class="small text-secondary mt-2">Salin kode di atas ke aplikasi bank kamu</p>
             @endif
             @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
-                <div class="mt-4 px-2">
-                    <button id="btnCheckNow" class="btn-check-status d-block text-center w-100" style="border: none; background: #ffc107; color: #000; padding: 15px; border-radius: 12px; font-weight: 900; box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);">
+                <div class="mt-4 px-2 text-center">
+                    <button id="btnCheckNow" class="btn-check-status btn-pulse-animation d-block text-center w-100">
                         SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
                     </button>
+                    <span class="d-block text-secondary small mt-2" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
+                        <i class="bi bi-info-circle me-1 text-warning"></i> Klik tombol di atas jika halaman belum ter-redirect otomatis setelah kamu membayar.
+                    </span>
                 </div>
             @endif
 
