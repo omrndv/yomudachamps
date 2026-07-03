@@ -443,11 +443,36 @@
                             window.location.href = data.redirect_url || "{{ route('payment.success', $team->trx_id) }}";
                         });
                     } else {
-                        window.location.reload();
+                        // Aktifkan kembali tombol tanpa reload halaman
+                        isChecking = false;
+                        btnCheckNow.disabled = false;
+                        btnCheckNow.innerHTML = `SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>`;
+                        
+                        Swal.fire({
+                            title: 'BELUM TERDETEKSI',
+                            text: 'Pembayaran belum masuk ke sistem. Jika kamu baru saja transfer, mohon tunggu sekitar 5-10 detik lalu coba klik tombol lagi.',
+                            icon: 'warning',
+                            background: '#121417',
+                            color: '#fff',
+                            confirmButtonColor: '#ffc107',
+                            confirmButtonText: 'OKE'
+                        });
                     }
                 })
                 .catch(() => {
-                    window.location.reload();
+                    isChecking = false;
+                    btnCheckNow.disabled = false;
+                    btnCheckNow.innerHTML = `SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>`;
+                    
+                    Swal.fire({
+                        title: 'KONEKSI SIBUK',
+                        text: 'Gagal menghubungi server. Silakan coba lagi beberapa saat lagi.',
+                        icon: 'error',
+                        background: '#121417',
+                        color: '#fff',
+                        confirmButtonColor: '#ffc107',
+                        confirmButtonText: 'OKE'
+                    });
                 });
             });
         }
