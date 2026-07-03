@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test QRIS Yomuda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <h1 class="text-2xl font-bold text-center">Ultimate QRIS Test (Outlet Gami)</h1>
+        <p class="text-center text-gray-600">Nominal Uji Coba: <b>Rp 15.024</b></p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- QRIS 1: Statis Murni -->
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+                <h2 class="font-bold text-lg text-blue-600 mb-2">1. Statis Murni</h2>
+                <p class="text-xs text-gray-500 mb-4 h-12">Persis seperti stiker fisik. Seharusnya bisa di-scan dan Anda harus mengetik nominal manual.</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020101021126610014COM.GO-JEK.WWW01189360091435725670100210G5725670100303UMI51440014ID.CO.QRIS.WWW0215ID10265428660290303UMI5204581653033605802ID5925Yomuda%20Championship%2C%20Gami6008BANYUMAS61055318162070703A01630436E2" alt="Statis Murni" class="w-48 h-48 border p-2 rounded">
+            </div>
+
+            <!-- QRIS 2: Statis + Amount -->
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+                <h2 class="font-bold text-lg text-yellow-600 mb-2">2. Terisi Otomatis (Bisa Diedit)</h2>
+                <p class="text-xs text-gray-500 mb-4 h-12">Nominal langsung muncul Rp 15.024 tapi statusnya tetap Statis (masih bisa dihapus/diedit).</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020101021126610014COM.GO-JEK.WWW01189360091435725670100210G5725670100303UMI51440014ID.CO.QRIS.WWW0215ID10265428660290303UMI5204581653033605405150245802ID5925Yomuda%20Championship%2C%20Gami6008BANYUMAS61055318162070703A0163043E97" alt="Statis Prefilled" class="w-48 h-48 border p-2 rounded">
+            </div>
+
+            <!-- QRIS 3: Dinamis Locked -->
+            <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center text-center">
+                <h2 class="font-bold text-lg text-green-600 mb-2">3. Terkunci Mati (Dinamis)</h2>
+                <p class="text-xs text-gray-500 mb-4 h-12">Nominal langsung terkunci Rp 15.024 dan tidak bisa diedit. Lengkap dengan Tag 55.</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020101021226610014COM.GO-JEK.WWW01189360091435725670100210G5725670100303UMI51440014ID.CO.QRIS.WWW0215ID10265428660290303UMI5204581653033605405150245502015802ID5925Yomuda%20Championship%2C%20Gami6008BANYUMAS61055318162070703A016304E8DE" alt="Dinamis Locked" class="w-48 h-48 border p-2 rounded">
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
