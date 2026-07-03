@@ -59,10 +59,6 @@ class QrisAdminController extends Controller
 
     public function dashboard()
     {
-        $transactions = QrisTransaction::with('team.season')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
         // Hitung total data secara global untuk seluruh database
         $globalStats = (object) [
             'total_volume' => QrisTransaction::where('status', 'PAID')->sum('amount'),
@@ -92,15 +88,68 @@ class QrisAdminController extends Controller
                 ->count();
         }
 
-        // Ambil konfigurasi
+        $recentTransactions = QrisTransaction::with('team.season')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('qris.dashboard', compact('globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts', 'recentTransactions'));
+    }
+
+    public function transactions()
+    {
+        $transactions = QrisTransaction::with('team.season')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+        return view('qris.transactions', compact('transactions'));
+    }
+
+    public function settings()
+    {
         $config = (object) [
             'static_qris' => Setting::getVal('gopay_static_qris', ''),
             'merchant_id' => Setting::getVal('gopay_merchant_id', ''),
             'api_url' => Setting::getVal('gopay_api_url', 'https://api.gobiz.co.id/v2/transactions'),
             'has_token' => !empty(Setting::getVal('gopay_token', ''))
         ];
+        return view('qris.settings', compact('config'));
+    }
 
-        return view('qris.dashboard', compact('transactions', 'config', 'globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts'));
+    public function testPoll()
+    {
+        // Fungsi khusus untuk melihat respons asli dari GoPay API
+        $apiUrl = Setting::getVal('gopay_api_url', 'https://api.gobiz.co.id/v2/transactions');
+        $encryptedToken = Setting::getVal('gopay_token');
+        
+        if (!$encryptedToken) {
+            return response()->json(['error' => 'Token GoBiz belum dikonfigurasi. Silakan isi token di pengaturan.']);
+        }
+
+        try {
+            $token = Crypt::decryptString($encryptedToken);
+            $parsedUrl = parse_url($apiUrl);
+            $queryParams = [];
+            if (isset($parsedUrl['query'])) parse_str($parsedUrl['query'], $queryParams);
+            
+            $queryParams['start_time'] = gmdate('Y-m-d\TH:i:s.000\Z', time() - 86400 * 2);
+            $queryParams['end_time'] = gmdate('Y-m-d\TH:i:s.999\Z', time() + 86400);
+            if (!isset($queryParams['size'])) $queryParams['size'] = 20;
+
+            $basePath = ($parsedUrl['scheme'] ?? 'https') . '://' . ($parsedUrl['host'] ?? 'api.gojekapi.com') . ($parsedUrl['path'] ?? '');
+
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ])->timeout(15)->get($basePath, $queryParams);
+
+            return response()->json([
+                'status_code' => $response->status(),
+                'is_successful' => $response->successful(),
+                'raw_body' => $response->json() ?? $response->body()
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()]);
+        }
     }
 
     /**

@@ -348,6 +348,9 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
 
     Route::middleware([\App\Http\Middleware\QrisAuthMiddleware::class])->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/transactions', [\App\Http\Controllers\Qris\QrisAdminController::class, 'transactions'])->name('transactions');
+        Route::get('/settings', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settings'])->name('settings');
+        Route::get('/test-poll', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testPoll'])->name('test-poll');
         Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
         Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
