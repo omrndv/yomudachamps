@@ -131,6 +131,17 @@ class QrisController extends Controller
             ]);
         }
 
+        // Batasi request paksa (force check) maksimal sekali setiap 8 detik per transaksi demi keamanan API
+        $throttleKey = 'qris_force_check_throttle_' . $trx_id;
+        if (\Illuminate\Support\Facades\Cache::has($throttleKey)) {
+            return response()->json([
+                'status' => $qrisTx->status,
+                'redirect_url' => $qrisTx->status === 'PAID' ? route('payment.success', $trx_id) : null
+            ]);
+        }
+        
+        \Illuminate\Support\Facades\Cache::put($throttleKey, true, 8);
+
         try {
             // Ambil 20 transaksi terakhir dari GoBiz
             $mutations = QrisService::fetchGoPayMutations();
