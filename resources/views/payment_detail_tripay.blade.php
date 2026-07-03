@@ -416,11 +416,14 @@
         autoCheckStatus();
         
         let isChecking = false;
+        let clickCount = 0;
         const btnCheckNow = document.getElementById('btnCheckNow');
         if (btnCheckNow) {
             btnCheckNow.addEventListener('click', function() {
                 if (isChecking) return;
                 isChecking = true;
+                clickCount++;
+                
                 btnCheckNow.disabled = true;
                 btnCheckNow.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> MEMERIKSA...`;
                 
@@ -443,20 +446,45 @@
                             window.location.href = data.redirect_url || "{{ route('payment.success', $team->trx_id) }}";
                         });
                     } else {
-                        // Aktifkan kembali tombol tanpa reload halaman
-                        isChecking = false;
-                        btnCheckNow.disabled = false;
-                        btnCheckNow.innerHTML = `SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>`;
-                        
-                        Swal.fire({
-                            title: 'BELUM TERDETEKSI',
-                            text: 'Pembayaran belum masuk ke sistem. Jika kamu baru saja transfer, mohon tunggu sekitar 5-10 detik lalu coba klik tombol lagi.',
-                            icon: 'warning',
-                            background: '#121417',
-                            color: '#fff',
-                            confirmButtonColor: '#ffc107',
-                            confirmButtonText: 'OKE'
-                        });
+                        // Jika sudah klik 3 kali tapi belum lunas, ubah tombol menjadi Hubungi Admin WA
+                        if (clickCount >= 3) {
+                            const container = btnCheckNow.closest('.mobile-sticky-btn-container');
+                            if (container) {
+                                container.innerHTML = `
+                                    <a href="https://api.whatsapp.com/send?phone={{ \App\Models\Setting::getVal('admin_wa') }}&text=${encodeURIComponent('Halo kak, kami dari Team {{ $team->name }} ingin konfirmasi pembayaran pendaftaran turnamen {{ $team->season->name ?? "" }} dengan ID #{{ $team->trx_id }}. Mohon dibantu verifikasi.')}" target="_blank" class="btn-check-status d-block text-center w-100" style="background: linear-gradient(45deg, #25D366, #128C7E); color: #fff; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); text-decoration: none; border: none; border-radius: 12px; padding: 15px; font-weight: 900;">
+                                        HUBUNGI ADMIN WA <i class="bi bi-whatsapp ms-1"></i>
+                                    </a>
+                                    <span class="d-block text-secondary small mt-2" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
+                                        <i class="bi bi-info-circle me-1 text-success"></i> Klik tombol di atas untuk menghubungi admin via WhatsApp jika transfer belum terverifikasi otomatis.
+                                    </span>
+                                `;
+                            }
+                            
+                            Swal.fire({
+                                title: 'BUTUH BANTUAN?',
+                                text: 'Pembayaran belum terdeteksi setelah 3x percobaan. Silakan klik tombol hijau "HUBUNGI ADMIN WA" untuk konfirmasi manual.',
+                                icon: 'info',
+                                background: '#121417',
+                                color: '#fff',
+                                confirmButtonColor: '#25D366',
+                                confirmButtonText: 'OKE'
+                            });
+                        } else {
+                            // Aktifkan kembali tombol tanpa reload halaman
+                            isChecking = false;
+                            btnCheckNow.disabled = false;
+                            btnCheckNow.innerHTML = `SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>`;
+                            
+                            Swal.fire({
+                                title: 'BELUM TERDETEKSI',
+                                text: 'Pembayaran belum masuk ke sistem. Jika kamu baru saja transfer, mohon tunggu sekitar 5-10 detik lalu coba klik tombol lagi.',
+                                icon: 'warning',
+                                background: '#121417',
+                                color: '#fff',
+                                confirmButtonColor: '#ffc107',
+                                confirmButtonText: 'OKE'
+                            });
+                        }
                     }
                 })
                 .catch(() => {
