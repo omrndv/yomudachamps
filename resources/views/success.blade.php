@@ -128,134 +128,173 @@
         const ctx = canvas.getContext('2d');
 
         // 1. Draw Background Esport Gradient
-        const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-        grad.addColorStop(0, '#0f1115');
-        grad.addColorStop(0.5, '#161920');
-        grad.addColorStop(1, '#0b0c0e');
+        const grad = ctx.createLinearGradient(0, 0, 1080, 1920);
+        grad.addColorStop(0, '#0a0d14');
+        grad.addColorStop(0.3, '#111622');
+        grad.addColorStop(0.7, '#1b2234');
+        grad.addColorStop(1, '#070a0f');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 1080, 1920);
 
-        // 2. Draw Esport Sci-Fi Grid/Patterns
-        ctx.strokeStyle = 'rgba(255, 193, 7, 0.04)';
-        ctx.lineWidth = 2;
-        const gridSpacing = 80;
-        for (let x = 0; x < 1080; x += gridSpacing) {
+        // 2. Draw Diagonal Esport Stripes Background
+        ctx.fillStyle = 'rgba(255, 193, 7, 0.015)';
+        for (let i = -1000; i < 2000; i += 120) {
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, 1920);
-            ctx.stroke();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i + 400, 1920);
+            ctx.lineTo(i + 500, 1920);
+            ctx.lineTo(i + 100, 0);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Draw Subtle Grid
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        ctx.lineWidth = 1;
+        const gridSpacing = 100;
+        for (let x = 0; x < 1080; x += gridSpacing) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1920); ctx.stroke();
         }
         for (let y = 0; y < 1920; y += gridSpacing) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(1080, y);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke();
         }
 
-        // Draw futuristic corner borders/frames
+        // Draw Big Esport Hexagon/Crest in Background Center
+        ctx.strokeStyle = 'rgba(255, 193, 7, 0.05)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(540, 450);
+        ctx.lineTo(840, 600);
+        ctx.lineTo(840, 1100);
+        ctx.lineTo(540, 1250);
+        ctx.lineTo(240, 1100);
+        ctx.lineTo(240, 600);
+        ctx.closePath();
+        ctx.stroke();
+
+        // 3. Draw Outer Neon Border/Frame
         ctx.strokeStyle = '#ffc107';
-        ctx.lineWidth = 8;
-        const frameOffset = 60;
-        const frameLength = 120;
-        
-        // Top-Left corner frame
-        ctx.beginPath();
-        ctx.moveTo(frameOffset + frameLength, frameOffset);
-        ctx.lineTo(frameOffset, frameOffset);
-        ctx.lineTo(frameOffset, frameOffset + frameLength);
-        ctx.stroke();
-
-        // Top-Right corner frame
-        ctx.beginPath();
-        ctx.moveTo(1080 - frameOffset - frameLength, frameOffset);
-        ctx.lineTo(1080 - frameOffset, frameOffset);
-        ctx.lineTo(1080 - frameOffset, frameOffset + frameLength);
-        ctx.stroke();
-
-        // Bottom-Left corner frame
-        ctx.beginPath();
-        ctx.moveTo(frameOffset + frameLength, 1920 - frameOffset);
-        ctx.lineTo(frameOffset, 1920 - frameOffset);
-        ctx.lineTo(frameOffset, 1920 - frameOffset - frameLength);
-        ctx.stroke();
-
-        // Bottom-Right corner frame
-        ctx.beginPath();
-        ctx.moveTo(1080 - frameOffset - frameLength, 1920 - frameOffset);
-        ctx.lineTo(1080 - frameOffset, 1920 - frameOffset);
-        ctx.lineTo(1080 - frameOffset, 1920 - frameOffset - frameLength);
-        ctx.stroke();
-
-        // Neon Glow effect for texts
+        ctx.lineWidth = 6;
         ctx.shadowBlur = 20;
         ctx.shadowColor = '#ffc107';
+        
+        const offset = 50;
+        // Draw double frame with cutouts
+        ctx.strokeRect(offset, offset, 1080 - (offset * 2), 1920 - (offset * 2));
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(offset + 12, offset + 12, 1080 - ((offset + 12) * 2), 1920 - ((offset + 12) * 2));
 
-        // 3. Load & Draw Yomuda Logo
+        // Draw esport bracket corners
+        ctx.fillStyle = '#ffc107';
+        ctx.shadowBlur = 0;
+        
+        // Top-Left corner block
+        ctx.fillRect(offset, offset, 80, 20);
+        ctx.fillRect(offset, offset, 20, 80);
+        
+        // Top-Right corner block
+        ctx.fillRect(1080 - offset - 80, offset, 80, 20);
+        ctx.fillRect(1080 - offset - 20, offset, 20, 80);
+
+        // Bottom-Left corner block
+        ctx.fillRect(offset, 1920 - offset - 20, 80, 20);
+        ctx.fillRect(offset, 1920 - offset - 80, 20, 80);
+
+        // Bottom-Right corner block
+        ctx.fillRect(1080 - offset - 80, 1920 - offset - 20, 80, 20);
+        ctx.fillRect(1080 - offset - 20, 1920 - offset - 80, 20, 80);
+
+        // Load & Draw Yomuda Logo
         const logo = new Image();
         logo.src = '/images/logo-yomuda.png';
         logo.onload = function() {
             // Draw logo at top center
-            const logoW = 280;
-            const logoH = 280;
+            const logoW = 320;
+            const logoH = 320;
             const logoX = (1080 - logoW) / 2;
-            const logoY = 220;
+            const logoY = 200;
             ctx.drawImage(logo, logoX, logoY, logoW, logoH);
 
             // 4. Draw Header Text
-            ctx.shadowBlur = 0; // reset shadow for small text
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 32px "Plus Jakarta Sans", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('OFFICIAL REGISTRATION', 1080 / 2, 590);
+            ctx.letterSpacing = '3px';
+            ctx.fillText('YOMUDA CHAMPIONSHIP', 1080 / 2, 580);
 
             // 5. Draw Title Status (Glow)
-            ctx.shadowBlur = 25;
+            ctx.shadowBlur = 30;
             ctx.shadowColor = '#28a745';
             ctx.fillStyle = '#28a745';
-            ctx.font = 'black 90px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('SIAP BERTANDING', 1080 / 2, 700);
+            ctx.font = '900 80px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('OFFICIALLY REGISTERED', 1080 / 2, 700);
 
-            // Draw Divider Line
+            // Slanted Ribbon/Banner for Team Name
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(140, 780, 800, 4);
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.1)';
+            ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(120, 900);
+            ctx.lineTo(960, 850);
+            ctx.lineTo(960, 1070);
+            ctx.lineTo(120, 1120);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
 
             // 6. Draw Team Name Section
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'semibold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('NAMA SQUAD / TIM', 1080 / 2, 880);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold italic 34px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('TEAM SQUAD', 1080 / 2, 915);
 
-            ctx.shadowBlur = 30;
+            ctx.shadowBlur = 25;
             ctx.shadowColor = '#ffc107';
             ctx.fillStyle = '#ffc107';
-            ctx.font = 'black 110px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText("{{ strtoupper($team->name) }}", 1080 / 2, 1020);
+            ctx.font = '900 italic 100px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText("{{ strtoupper($team->name) }}", 1080 / 2, 1030);
 
             // 7. Draw Tournament Name Section
             ctx.shadowBlur = 0;
             ctx.fillStyle = '#94a3b8';
-            ctx.font = 'semibold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('TURNAMEN', 1080 / 2, 1180);
+            ctx.font = 'bold 32px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('SEASONS & TOURNAMENT', 1080 / 2, 1220);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 64px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText("{{ strtoupper($team->season->name) }}", 1080 / 2, 1290);
+            ctx.font = '900 60px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText("{{ strtoupper($team->season->name) }}", 1080 / 2, 1310);
 
             // 8. Draw Footer Info (ID pendaftaran & Brand)
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.fillRect(140, 1420, 800, 4);
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.2)';
+            ctx.fillRect(200, 1440, 680, 2);
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'mono 32px "Courier New", monospace';
-            ctx.fillText('REG_ID: #{{ $team->trx_id }}', 1080 / 2, 1520);
+            ctx.fillStyle = '#8e9bb0';
+            ctx.font = 'bold 36px "Courier New", monospace';
+            ctx.fillText('REG ID: #{{ $team->trx_id }}', 1080 / 2, 1530);
+
+            // Draw a green glowing verified badge or shield at bottom
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#28a745';
+            ctx.fillStyle = '#28a745';
+            ctx.beginPath();
+            ctx.arc(540, 1660, 45, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw checkmark inside badge
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(520, 1660);
+            ctx.lineTo(535, 1675);
+            ctx.lineTo(565, 1640);
+            ctx.stroke();
 
             ctx.fillStyle = '#ffc107';
-            ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('YOMUDA CHAMPIONSHIP', 1080 / 2, 1680);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = '500 28px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('yomudachampionship.com', 1080 / 2, 1740);
+            ctx.font = '900 32px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('VERIFIED PARTICIPANT', 1080 / 2, 1770);
 
             // Trigger Download
             const link = document.createElement('a');
@@ -270,55 +309,75 @@
 
         // Fallback if logo fails to load (still generates card)
         logo.onerror = function() {
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 32px "Plus Jakarta Sans", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('OFFICIAL REGISTRATION', 1080 / 2, 590);
-
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = '#28a745';
-            ctx.fillStyle = '#28a745';
-            ctx.font = 'black 90px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('SIAP BERTANDING', 1080 / 2, 700);
-
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(140, 780, 800, 4);
-
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'semibold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('NAMA SQUAD / TIM', 1080 / 2, 880);
+            ctx.fillText('YOMUDA CHAMPIONSHIP', 1080 / 2, 580);
 
             ctx.shadowBlur = 30;
+            ctx.shadowColor = '#28a745';
+            ctx.fillStyle = '#28a745';
+            ctx.font = '900 80px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('OFFICIALLY REGISTERED', 1080 / 2, 700);
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.1)';
+            ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(120, 900);
+            ctx.lineTo(960, 850);
+            ctx.lineTo(960, 1070);
+            ctx.lineTo(120, 1120);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold italic 34px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('TEAM SQUAD', 1080 / 2, 915);
+
+            ctx.shadowBlur = 25;
             ctx.shadowColor = '#ffc107';
             ctx.fillStyle = '#ffc107';
-            ctx.font = 'black 110px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText("{{ strtoupper($team->name) }}", 1080 / 2, 1020);
+            ctx.font = '900 italic 100px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText("{{ strtoupper($team->name) }}", 1080 / 2, 1030);
 
             ctx.shadowBlur = 0;
             ctx.fillStyle = '#94a3b8';
-            ctx.font = 'semibold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('TURNAMEN', 1080 / 2, 1180);
+            ctx.font = 'bold 32px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('SEASONS & TOURNAMENT', 1080 / 2, 1220);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 64px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText("{{ strtoupper($team->season->name) }}", 1080 / 2, 1290);
+            ctx.font = '900 60px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText("{{ strtoupper($team->season->name) }}", 1080 / 2, 1310);
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.fillRect(140, 1420, 800, 4);
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.2)';
+            ctx.fillRect(200, 1440, 680, 2);
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'mono 32px "Courier New", monospace';
-            ctx.fillText('REG_ID: #{{ $team->trx_id }}', 1080 / 2, 1520);
+            ctx.fillStyle = '#8e9bb0';
+            ctx.font = 'bold 36px "Courier New", monospace';
+            ctx.fillText('REG ID: #{{ $team->trx_id }}', 1080 / 2, 1530);
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#28a745';
+            ctx.fillStyle = '#28a745';
+            ctx.beginPath();
+            ctx.arc(540, 1660, 45, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(520, 1660);
+            ctx.lineTo(535, 1675);
+            ctx.lineTo(565, 1640);
+            ctx.stroke();
 
             ctx.fillStyle = '#ffc107';
-            ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('YOMUDA CHAMPIONSHIP', 1080 / 2, 1680);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = '500 28px "Plus Jakarta Sans", sans-serif';
-            ctx.fillText('yomudachampionship.com', 1080 / 2, 1740);
+            ctx.font = '900 32px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('VERIFIED PARTICIPANT', 1080 / 2, 1770);
 
             const link = document.createElement('a');
             link.download = 'Yomuda_StoryCard_' + "{{ $team->name }}" + '.png';

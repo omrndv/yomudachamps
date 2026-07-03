@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="text-2xl font-black text-slate-900 dark:text-white">
-            {{ $globalStats->paid_count }} Trx
+            {{ $globalStats->paid_count }}
         </div>
         <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
             <i data-lucide="check" class="w-3.5 h-3.5"></i> Terbayar lunas
@@ -60,7 +60,7 @@
             </div>
         </div>
         <div class="text-2xl font-black text-slate-900 dark:text-white">
-            {{ $globalStats->pending_count }} Trx
+            {{ $globalStats->pending_count }}
         </div>
         <div class="text-[10px] text-yellow-600 dark:text-yellow-450 mt-3 font-semibold flex items-center gap-1">
             <i data-lucide="clock" class="w-3.5 h-3.5"></i> Menunggu bayar
@@ -76,9 +76,9 @@
             </div>
         </div>
         <div class="text-2xl font-black text-slate-900 dark:text-white">
-            {{ $globalStats->expired_count }} Trx
+            {{ $globalStats->expired_count }}
         </div>
-        <div class="text-[10px] text-slate-450 dark:text-slate-550 mt-3 font-semibold flex items-center gap-1">
+        <div class="text-[10px] text-slate-450 dark:text-slate-555 mt-3 font-semibold flex items-center gap-1">
             <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Melewati batas waktu
         </div>
     </div>
