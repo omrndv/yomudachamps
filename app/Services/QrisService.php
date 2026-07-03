@@ -46,7 +46,6 @@ class QrisService
         $pecah = explode('5802ID', $qrisTanpaCrc);
 
         if (count($pecah) < 2) {
-            // Jika tidak ada 5802ID, fallback (walau standar QRIS pasti ada)
             return $staticQris;
         }
 
@@ -54,8 +53,11 @@ class QrisService
         $amountStr = (string)$amount;
         $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
 
+        // Sisipkan Tag 55 (Tip Indicator) = '01' (No Tip) agar tidak ditolak BNI
+        $tipTag = '550201';
+
         // Gabungkan kembali
-        $qrisBaru = $pecah[0] . $amountTag . '5802ID' . $pecah[1];
+        $qrisBaru = $pecah[0] . $amountTag . $tipTag . '5802ID' . $pecah[1];
 
         // Hitung dan tempelkan CRC16 baru
         return $qrisBaru . self::crc16($qrisBaru);
