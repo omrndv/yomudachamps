@@ -177,6 +177,11 @@
         100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
     }
 
+    /* Sembunyikan Chatbot Yomuda AI sepenuhnya di halaman ini agar user fokus bayar */
+    #yomuda-ai-chat {
+        display: none !important;
+    }
+
     /* Responsive Mobile UX Improvements */
     .qris-container img {
         max-width: 100%;
@@ -217,11 +222,6 @@
             z-index: 999;
             border-top: 1px solid rgba(255, 193, 7, 0.15);
             margin-top: 0 !important;
-        }
-
-        /* Geser Chatbot Yomuda AI ke atas di HP agar tidak tertutup sticky button */
-        #yomuda-ai-chat {
-            bottom: 95px !important;
         }
     }
 </style>
