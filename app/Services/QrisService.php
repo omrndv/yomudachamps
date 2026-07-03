@@ -39,8 +39,8 @@ class QrisService
         // Hapus CRC lama
         $qrisTanpaCrc = substr($staticQris, 0, -4);
 
-        // Ubah Point of Initiation Method menjadi 12 (Dinamis)
-        $qrisTanpaCrc = str_replace('010211', '010212', $qrisTanpaCrc);
+        // Biarkan Point of Initiation Method tetap 11 (Statis) agar bank mengizinkan nominal diedit/diisi.
+        // Kita HANYA menyisipkan Tag 54 (Nominal) agar terisi otomatis saat discan.
 
         // Pecah berdasarkan Tag 58 (Country Code ID)
         $pecah = explode('5802ID', $qrisTanpaCrc);
@@ -53,11 +53,8 @@ class QrisService
         $amountStr = (string)$amount;
         $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
 
-        // Sisipkan Tag 55 (Tip Indicator) = '01' (No Tip) agar tidak ditolak BNI
-        $tipTag = '550201';
-
-        // Gabungkan kembali
-        $qrisBaru = $pecah[0] . $amountTag . $tipTag . '5802ID' . $pecah[1];
+        // Gabungkan kembali tanpa mengubah tag lain
+        $qrisBaru = $pecah[0] . $amountTag . '5802ID' . $pecah[1];
 
         // Hitung dan tempelkan CRC16 baru
         return $qrisBaru . self::crc16($qrisBaru);
