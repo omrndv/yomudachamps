@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     // 3. Dynamic API Health Check
-    fetch("{{ route('test-poll') }}")
+    fetch("{{ route('qris.test-poll') }}")
         .then(res => res.json())
         .then(data => {
             const badge = document.getElementById('apiStatusBadge');
