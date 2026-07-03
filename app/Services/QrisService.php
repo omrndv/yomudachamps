@@ -160,8 +160,8 @@ class QrisService
                 \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
                     ->notify(new \App\Notifications\QrisTokenExpired($errorDetail));
 
-                // Simpan cache flag selama 12 jam (43200 detik)
-                \Illuminate\Support\Facades\Cache::put($cacheKey, true, 43200);
+                // Simpan cache flag selama 2 jam (7200 detik)
+                \Illuminate\Support\Facades\Cache::put($cacheKey, true, 7200);
                 Log::info("Email notifikasi token expired telah dikirim ke {$adminEmail}");
             }
         } catch (Exception $e) {
