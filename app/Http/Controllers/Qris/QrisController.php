@@ -133,7 +133,7 @@ class QrisController extends Controller
 
         try {
             // Ambil 20 transaksi terakhir dari GoBiz
-            $mutations = QrisService::fetchGoPayMutations(1, 20);
+            $mutations = QrisService::fetchGoPayMutations();
 
             if (!empty($mutations)) {
                 foreach ($mutations as $mutation) {
