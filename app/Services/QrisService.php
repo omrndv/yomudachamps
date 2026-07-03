@@ -29,35 +29,10 @@ class QrisService
      */
     public static function generateDynamicQris(string $staticQris, int $amount): string
     {
-        $staticQris = trim($staticQris);
-        
-        // Cek jika QRIS tidak valid
-        if (strlen($staticQris) < 10 || substr($staticQris, -8, 4) !== '6304') {
-            return $staticQris;
-        }
-
-        // Hapus CRC lama
-        $qrisTanpaCrc = substr($staticQris, 0, -4);
-
-        // Biarkan Point of Initiation Method tetap 11 (Statis) agar bank mengizinkan nominal diedit/diisi.
-        // Kita HANYA menyisipkan Tag 54 (Nominal) agar terisi otomatis saat discan.
-
-        // Pecah berdasarkan Tag 58 (Country Code ID)
-        $pecah = explode('5802ID', $qrisTanpaCrc);
-
-        if (count($pecah) < 2) {
-            return $staticQris;
-        }
-
-        // Sisipkan Tag 54 (Transaction Amount)
-        $amountStr = (string)$amount;
-        $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
-
-        // Gabungkan kembali tanpa mengubah tag lain
-        $qrisBaru = $pecah[0] . $amountTag . '5802ID' . $pecah[1];
-
-        // Hitung dan tempelkan CRC16 baru
-        return $qrisBaru . self::crc16($qrisBaru);
+        // KEMBALI KE STATIS MURNI
+        // Mengembalikan string QRIS statis asli murni tanpa modifikasi apa pun 
+        // untuk pengetesan dasar.
+        return trim($staticQris);
     }
 
     /**
