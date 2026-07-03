@@ -306,10 +306,9 @@
                             showConfirmButton: false,
                             timer: 3000,
                             timerProgressBar: true,
-                            allowOutsideClick: false,
-                            willClose: () => {
-                                window.location.href = "{{ route('payment.success', $team->trx_id) }}";
-                            }
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = "{{ route('payment.success', $team->trx_id) }}";
                         });
                     }
                 })
@@ -347,10 +346,9 @@
                             showConfirmButton: false,
                             timer: 2000,
                             timerProgressBar: true,
-                            allowOutsideClick: false,
-                            willClose: () => {
-                                window.location.href = data.redirect_url;
-                            }
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect_url || "{{ route('payment.success', $team->trx_id) }}";
                         });
                     } else {
                         Swal.fire({
