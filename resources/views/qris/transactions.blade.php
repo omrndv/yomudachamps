@@ -59,7 +59,7 @@
                             @endif
                         </td>
                         <td class="py-4 px-6 text-right space-x-2" onclick="event.stopPropagation()">
-                            @if($tx->status === 'PENDING' || $tx->status === 'CLAIMED')
+                            @if($tx->status === 'PENDING' || $tx->status === 'CLAIMED' || $tx->status === 'EXPIRED')
                                 <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual?');" class="inline-block">
                                     @csrf
                                     <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]">
@@ -274,7 +274,7 @@
 
         // Set Header Settle Action Button
         const actionsContainer = document.getElementById('drawer-header-actions');
-        if (tx.status === 'PENDING' || tx.status === 'CLAIMED') {
+        if (tx.status === 'PENDING' || tx.status === 'CLAIMED' || tx.status === 'EXPIRED') {
             actionsContainer.innerHTML = `
                 <form action="/qris-gateway/settle/${tx.trx_id}" method="POST" onsubmit="return confirm('Selesaikan transaksi ini secara manual?');">
                     @csrf
