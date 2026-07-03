@@ -108,12 +108,15 @@
 
     @keyframes pulse-glow {
         0% {
-            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.8);
         }
-        70% {
-            box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 15px rgba(255, 193, 7, 0);
         }
         100% {
+            transform: scale(1);
             box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
         }
     }
@@ -183,6 +186,7 @@
     @media (max-width: 480px) {
         .detail-card {
             padding: 25px 16px;
+            padding-bottom: 120px !important; /* Memberi ruang untuk tombol sticky */
         }
 
         .pay-code {
@@ -198,6 +202,21 @@
         
         .detail-card h3 {
             font-size: 1.5rem;
+        }
+
+        /* Sticky Button Style di HP */
+        .mobile-sticky-btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 20, 23, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 14px 20px 22px 20px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            border-top: 1px solid rgba(255, 193, 7, 0.15);
+            margin-top: 0 !important;
         }
     }
 </style>
@@ -260,7 +279,7 @@
             <p class="small text-secondary mt-2">Salin kode di atas ke aplikasi bank kamu</p>
             @endif
             @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
-                <div class="mt-4 px-2 text-center">
+                <div class="mobile-sticky-btn-container mt-4 px-2 text-center">
                     <button id="btnCheckNow" class="btn-check-status btn-pulse-animation d-block text-center w-100">
                         SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
                     </button>
