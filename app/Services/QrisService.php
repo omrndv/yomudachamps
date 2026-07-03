@@ -29,8 +29,36 @@ class QrisService
      */
     public static function generateDynamicQris(string $staticQris, int $amount): string
     {
-        // Mengembalikan string QRIS statis asli murni tanpa modifikasi agar 100% sukses discan dan dibayar di semua aplikasi perbankan (BNI, BCA) dan e-wallet (ShopeePay, OVO, GoPay)
-        return trim($staticQris);
+        $staticQris = trim($staticQris);
+        
+        // Cek jika QRIS tidak valid
+        if (strlen($staticQris) < 10 || substr($staticQris, -8, 4) !== '6304') {
+            return $staticQris;
+        }
+
+        // Hapus CRC lama
+        $qrisTanpaCrc = substr($staticQris, 0, -4);
+
+        // Ubah Point of Initiation Method menjadi 12 (Dinamis)
+        $qrisTanpaCrc = str_replace('010211', '010212', $qrisTanpaCrc);
+
+        // Pecah berdasarkan Tag 58 (Country Code ID)
+        $pecah = explode('5802ID', $qrisTanpaCrc);
+
+        if (count($pecah) < 2) {
+            // Jika tidak ada 5802ID, fallback (walau standar QRIS pasti ada)
+            return $staticQris;
+        }
+
+        // Sisipkan Tag 54 (Transaction Amount)
+        $amountStr = (string)$amount;
+        $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
+
+        // Gabungkan kembali
+        $qrisBaru = $pecah[0] . $amountTag . '5802ID' . $pecah[1];
+
+        // Hitung dan tempelkan CRC16 baru
+        return $qrisBaru . self::crc16($qrisBaru);
     }
 
     /**
