@@ -121,6 +121,17 @@
         }
     }
 
+    /* Disabled State styling */
+    .btn-check-status:disabled {
+        background: #6c757d !important;
+        color: #fff !important;
+        opacity: 0.6;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+        animation: none !important;
+    }
+
     .btn-download-qris {
         background: #28a745;
         color: #fff;
@@ -404,9 +415,12 @@
         startCountdown();
         autoCheckStatus();
         
+        let isChecking = false;
         const btnCheckNow = document.getElementById('btnCheckNow');
         if (btnCheckNow) {
             btnCheckNow.addEventListener('click', function() {
+                if (isChecking) return;
+                isChecking = true;
                 btnCheckNow.disabled = true;
                 btnCheckNow.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> MEMERIKSA...`;
                 
