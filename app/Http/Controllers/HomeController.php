@@ -448,6 +448,23 @@ class HomeController extends Controller
         if (!$team) {
             return response()->json(['error' => 'Not Found'], 404);
         }
+
+        // Jika status PENDING dan menggunakan QRIS GoPay, coba jalankan poller dengan pembatasan 10 detik
+        if ($team->status === 'PENDING') {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->where('status', 'PENDING')->first();
+            if ($qrisTx) {
+                $cacheKey = 'qris_ajax_poll_throttle_' . $trx_id;
+                if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, true, 10);
+                    try {
+                        \Illuminate\Support\Facades\Artisan::call('qris:poll');
+                        $team->refresh();
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Auto-poll gagal di AJAX checkStatus: ' . $e->getMessage());
+                    }
+                }
+            }
+        }
     
         return response()->json([
             'status' => $team->status
