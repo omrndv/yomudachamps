@@ -64,6 +64,11 @@ class QrisService
      */
     public static function fetchGoPayMutations(): array
     {
+        $cacheKey = 'gopay_mutations_api_cache';
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            return \Illuminate\Support\Facades\Cache::get($cacheKey) ?? [];
+        }
+
         $apiUrl = Setting::getVal('gopay_api_url', 'https://api.gobiz.co.id/v2/transactions');
         $merchantId = Setting::getVal('gopay_merchant_id');
         $encryptedToken = Setting::getVal('gopay_token');
@@ -121,7 +126,12 @@ class QrisService
                 $data = $response->json();
                 
                 // Menyesuaikan struktur data response GoPay/GoFood Merchant
-                return $data['transactions'] ?? $data['data'] ?? $data ?? [];
+                $transactions = $data['transactions'] ?? $data['data'] ?? $data ?? [];
+                
+                // Cache mutasi selama 3 detik untuk melindungi dari spam beberapa user sekaligus
+                \Illuminate\Support\Facades\Cache::put($cacheKey, $transactions, 3);
+                
+                return $transactions;
             }
 
             // Deteksi token expired (biasanya 401 Unauthorized atau 403 Forbidden)
