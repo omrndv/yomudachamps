@@ -271,10 +271,37 @@ class QrisAdminController extends Controller
     public function syncPending()
     {
         try {
+            // Kita akan jalankan command dan tangkap outputnya
             \Illuminate\Support\Facades\Artisan::call('qris:poll');
-            return back()->with('success', 'Berhasil melakukan sinkronisasi paksa (Sync Pending). Semua transaksi tertunda telah dicocokkan.');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            
+            // Tambahan debug untuk melihat isi database PENDING
+            $pending = \App\Models\QrisTransaction::where('status', 'PENDING')->get();
+            $debugInfo = "=== DEBUG INFO ===\n";
+            $debugInfo .= "Command Output:\n" . $output . "\n\n";
+            $debugInfo .= "Pending Transactions in DB:\n";
+            foreach ($pending as $tx) {
+                $debugInfo .= "ID: {$tx->id} | Trx: {$tx->trx_id} | Amount: {$tx->amount} | Created: {$tx->created_at}\n";
+            }
+            
+            $debugInfo .= "\nMutations from API:\n";
+            $mutations = \App\Services\QrisService::fetchGoPayMutations();
+            if (empty($mutations)) {
+                $debugInfo .= "EMPTY MUTATIONS RETURNED!\n";
+            } else {
+                foreach ($mutations as $m) {
+                    $raw = $m['gross_amount'] ?? $m['amount'] ?? 0;
+                    $mAmount = (int) ($raw / 100);
+                    $status = $m['transaction_status'] ?? $m['status'] ?? 'UNKNOWN';
+                    $time = $m['settlement_time'] ?? 'UNKNOWN';
+                    $id = $m['id'] ?? 'UNKNOWN';
+                    $debugInfo .= "Ref: {$id} | Raw: {$raw} | Computed: {$mAmount} | Status: {$status} | Time: {$time}\n";
+                }
+            }
+            
+            return response($debugInfo)->header('Content-Type', 'text/plain');
         } catch (Exception $e) {
-            return back()->with('error', 'Gagal sinkronisasi: ' . $e->getMessage());
+            return response('Error: ' . $e->getMessage())->header('Content-Type', 'text/plain');
         }
     }
 }
