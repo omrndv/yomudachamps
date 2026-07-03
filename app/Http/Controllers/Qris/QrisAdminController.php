@@ -175,12 +175,17 @@ class QrisAdminController extends Controller
                 'Referer' => 'https://portal.gofoodmerchant.co.id/'
             ])->timeout(15)->get($basePath, $queryParams);
 
+            if (!$response->successful()) {
+                \App\Services\QrisService::notifyAdminTokenExpired("API Health Check Gagal: Status {$response->status()} - {$response->body()}");
+            }
+
             return response()->json([
                 'status_code' => $response->status(),
                 'is_successful' => $response->successful(),
                 'raw_body' => $response->json() ?? $response->body()
             ]);
         } catch (Exception $e) {
+            \App\Services\QrisService::notifyAdminTokenExpired("API Health Check Koneksi Gagal: " . $e->getMessage());
             return response()->json(['error' => $e->getMessage()]);
         }
     }

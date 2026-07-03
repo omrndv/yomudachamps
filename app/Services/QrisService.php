@@ -141,7 +141,7 @@ class QrisService
     /**
      * Mengirim notifikasi email ke admin jika token expired (dengan throttling 12 jam)
      */
-    private static function notifyAdminTokenExpired(string $errorDetail)
+    public static function notifyAdminTokenExpired(string $errorDetail)
     {
         try {
             $cacheKey = 'qris_token_expired_notified';
