@@ -29,10 +29,37 @@ class QrisService
      */
     public static function generateDynamicQris(string $staticQris, int $amount): string
     {
-        // KEMBALI KE STATIS MURNI
-        // Mengembalikan string QRIS statis asli murni tanpa modifikasi apa pun 
-        // untuk pengetesan dasar.
-        return trim($staticQris);
+        $staticQris = trim($staticQris);
+        
+        if (strlen($staticQris) < 10 || substr($staticQris, -8, 4) !== '6304') {
+            return $staticQris;
+        }
+
+        // Hapus CRC lama
+        $qrisTanpaCrc = substr($staticQris, 0, -4);
+        
+        // Ubah Point of Initiation Method menjadi 12 (Dinamis / Nominal Terkunci)
+        $qrisTanpaCrc = str_replace('010211', '010212', $qrisTanpaCrc);
+
+        // Pecah berdasarkan Tag 58 (Country Code ID)
+        $pecah = explode('5802ID', $qrisTanpaCrc);
+
+        if (count($pecah) < 2) {
+            return $staticQris;
+        }
+
+        // Sisipkan Tag 54 (Transaction Amount)
+        $amountStr = (string)$amount;
+        $amountTag = '54' . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
+        
+        // Tambahkan Tag 55 (Tip Indicator) = 01 (Opsional, tapi sering dibutuhkan BNI untuk QR Dinamis)
+        $tipTag = '550201';
+
+        // Gabungkan kembali
+        $qrisBaru = $pecah[0] . $amountTag . $tipTag . '5802ID' . $pecah[1];
+
+        // Hitung dan tempelkan CRC16 baru
+        return $qrisBaru . self::crc16($qrisBaru);
     }
 
     /**
