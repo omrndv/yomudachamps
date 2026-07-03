@@ -120,7 +120,7 @@
                     <span class="text-[9px] text-slate-400 dark:text-slate-500 mt-1 block">Merchant Sync</span>
                 </div>
             </div>
-            <span class="inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">Sehat</span>
+            <span id="apiStatusBadge" class="inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">Checking...</span>
         </div>
 
         <!-- Fonnte WhatsApp API -->
@@ -284,6 +284,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    // 3. Dynamic API Health Check
+    fetch("{{ route('test-poll') }}")
+        .then(res => res.json())
+        .then(data => {
+            const badge = document.getElementById('apiStatusBadge');
+            if(data.is_successful) {
+                badge.className = "inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20";
+                badge.innerText = "Sehat";
+            } else {
+                badge.className = "inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20";
+                badge.innerText = "Bermasalah";
+            }
+        })
+        .catch(() => {
+            const badge = document.getElementById('apiStatusBadge');
+            badge.className = "inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20";
+            badge.innerText = "Error";
+        });
 });
 </script>
 @endpush

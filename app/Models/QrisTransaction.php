@@ -24,6 +24,9 @@ class QrisTransaction extends Model
     ];
 
     protected $casts = [
+        'amount' => 'integer',
+        'base_amount' => 'integer',
+        'unique_code' => 'integer',
         'expires_at' => 'datetime',
         'paid_at' => 'datetime',
     ];

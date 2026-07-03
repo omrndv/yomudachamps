@@ -337,13 +337,7 @@
                 btnCheckNow.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> MEMERIKSA...`;
                 
                 // Tembak server untuk cek manual ke GoBiz, lalu refresh halaman apapun hasilnya
-                fetch("{{ route('qris.check.force', $team->trx_id) }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
+                fetch("{{ route('qris.check.force', $team->trx_id) }}")
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'PAID') {
