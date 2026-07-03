@@ -101,13 +101,20 @@ class QrisService
                 $queryParams['size'] = 20;
             }
 
+            // Tambahkan merchant_ids dari konfigurasi
+            $queryParams['merchant_ids'] = $merchantId;
+
             // Bangun kembali URL dasar tanpa query string
             $basePath = ($parsedUrl['scheme'] ?? 'https') . '://' . ($parsedUrl['host'] ?? 'api.gojekapi.com') . ($parsedUrl['path'] ?? '');
 
             // Panggil API GoPay Merchant
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
+                'Authentication-Type' => 'go-id',
                 'Accept' => 'application/json',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Origin' => 'https://portal.gofoodmerchant.co.id',
+                'Referer' => 'https://portal.gofoodmerchant.co.id/'
             ])->timeout(15)->get($basePath, $queryParams);
 
             if ($response->successful()) {
