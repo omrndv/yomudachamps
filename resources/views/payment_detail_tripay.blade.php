@@ -238,9 +238,15 @@
         </div>
 
         <div class="mt-4">
-            <a href="{{ route('payment.success', $team->trx_id) }}" class="btn-check-status d-block text-center text-decoration-none">
-                SAYA SUDAH BAYAR <i class="bi bi-arrow-repeat ms-1"></i>
-            </a>
+            @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
+                <button id="btnCheckNow" class="btn-check-status d-block text-center w-100" style="border: none; background: #ffc107; color: #000; padding: 15px; border-radius: 12px; font-weight: 900; box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);">
+                    SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
+                </button>
+            @else
+                <a href="{{ route('payment.success', $team->trx_id) }}" class="btn-check-status d-block text-center text-decoration-none">
+                    SAYA SUDAH BAYAR <i class="bi bi-arrow-repeat ms-1"></i>
+                </a>
+            @endif
 
             <a href="{{ route('payment.confirm', $team->trx_id) }}" class="btn d-block text-center mt-2" style="color: #6c757d; font-size: 0.75rem; font-weight: bold; text-decoration: underline;">
                 Ganti Metode Pembayaran
@@ -314,6 +320,58 @@
     document.addEventListener('DOMContentLoaded', function() {
         startCountdown();
         autoCheckStatus();
+        
+        const btnCheckNow = document.getElementById('btnCheckNow');
+        if (btnCheckNow) {
+            btnCheckNow.addEventListener('click', function() {
+                btnCheckNow.disabled = true;
+                const originalHtml = btnCheckNow.innerHTML;
+                btnCheckNow.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> MEMERIKSA...`;
+                
+                fetch("{{ route('qris.check.force', $team->trx_id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'PAID') {
+                        Swal.fire({
+                            title: 'PEMBAYARAN BERHASIL!',
+                            text: 'Sistem telah memverifikasi pembayaran tim kamu.',
+                            icon: 'success',
+                            background: '#121417',
+                            color: '#fff',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true,
+                            allowOutsideClick: false,
+                            willClose: () => {
+                                window.location.href = data.redirect_url;
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Belum Terdeteksi',
+                            text: 'Pembayaran belum masuk. Pastikan nominal transfer sesuai atau tunggu 1 menit lalu coba lagi.',
+                            icon: 'info',
+                            background: '#121417',
+                            color: '#fff',
+                            confirmButtonColor: '#ffc107'
+                        });
+                        btnCheckNow.disabled = false;
+                        btnCheckNow.innerHTML = originalHtml;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    btnCheckNow.disabled = false;
+                    btnCheckNow.innerHTML = originalHtml;
+                });
+            });
+        }
     });
 
     function copyToClipboard(text) {

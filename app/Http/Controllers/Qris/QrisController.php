@@ -90,7 +90,7 @@ class QrisController extends Controller
             }
         }
 
-        return view('qris.pay', compact('team', 'qrisTx'));
+        return redirect()->route('payment.detail', $team->trx_id);
     }
 
     /**

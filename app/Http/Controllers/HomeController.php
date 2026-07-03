@@ -282,7 +282,42 @@ class HomeController extends Controller
         }
 
         if ($team->payment_method === 'GOPAY_QRIS') {
-            return redirect()->route('qris.pay', $team->trx_id);
+            // Get or generate QrisTransaction
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)
+                ->where('status', 'PENDING')
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if (!$qrisTx) {
+                // Call QrisController logic to generate one if needed
+                app(\App\Http\Controllers\Qris\QrisController::class)->showPayment($team->trx_id);
+                $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->latest()->first();
+            }
+
+            // Create fake detail object for the view
+            $detail = (object)[
+                'amount' => $qrisTx->amount ?? $team->amount,
+                'payment_method' => 'QRIS (GOPAY)',
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? ''),
+                'reference' => 'YMD-GOPAY-' . ($qrisTx->id ?? ''),
+                'expired_time' => $qrisTx ? $qrisTx->expires_at->timestamp : (time() + 1800),
+                'instructions' => [
+                    (object)[
+                        'title' => 'Cara Pembayaran QRIS',
+                        'steps' => [
+                            'Buka aplikasi perbankan (BCA, BNI, dll) atau e-wallet (GoPay, OVO, Dana, ShopeePay).',
+                            'Pilih menu Scan QRIS dan arahkan kamera ke gambar QR Code di atas.',
+                            'Pastikan nama merchant adalah Yomuda Champs.',
+                            'Ketik nominal <b>Rp ' . number_format($qrisTx->amount ?? $team->amount, 0, ',', '.') . '</b> secara manual dan pastikan sesuai.',
+                            'Selesaikan pembayaran dan tunggu beberapa detik.',
+                            'Klik tombol <b>Saya Sudah Bayar</b> untuk mempercepat verifikasi otomatis.'
+                        ]
+                    ]
+                ],
+                'is_gopay_qris' => true
+            ];
+
+            return view('payment_detail_tripay', compact('team', 'detail'));
         }
 
         if (str_starts_with($team->payment_method, 'http')) {
