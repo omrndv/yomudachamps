@@ -218,6 +218,11 @@
             border-top: 1px solid rgba(255, 193, 7, 0.15);
             margin-top: 0 !important;
         }
+
+        /* Geser Chatbot Yomuda AI ke atas di HP agar tidak tertutup sticky button */
+        #yomuda-ai-chat {
+            bottom: 95px !important;
+        }
     }
 </style>
 
