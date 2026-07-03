@@ -298,10 +298,9 @@
         const checkInterval = setInterval(function() {
             const timestamp = new Date().getTime();
             fetch("{{ route('payment.check.status', $team->trx_id) }}?t=" + timestamp, {
-                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
                 }
             })
                 .then(response => response.json())

@@ -470,7 +470,8 @@ class HomeController extends Controller
             'status' => $team->status
         ])->header('Cache-Control', 'no-cache, no-store, must-revalidate')
           ->header('Pragma', 'no-cache')
-          ->header('Expires', '0');
+          ->header('Expires', '0')
+          ->header('X-LiteSpeed-Cache-Control', 'no-cache');
     }
 
     public function redirectCertificate()

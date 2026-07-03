@@ -99,7 +99,7 @@ Route::get('/storage/posters/{filename}', function ($filename) {
     return response($file)->header('Content-Type', $type);
 });
 
-Route::post('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
+Route::get('/payment/check-ajax/{trx_id}', [App\Http\Controllers\HomeController::class, 'checkStatusAjax'])
     ->name('payment.check.status');
     
 Route::post('/api/callback', [TripayCallbackController::class, 'handle']);
