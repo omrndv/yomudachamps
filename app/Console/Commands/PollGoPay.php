@@ -96,9 +96,11 @@ class PollGoPay extends Command
         // 4. Lakukan pencocokan nominal
         foreach ($pendingTransactions as $tx) {
             foreach ($mutations as $mutation) {
-                // GoBiz API usually returns the exact Rupiah value as integer for IDR.
+                // Konversi data mutasi (berasal dari API GoBiz)
+                // API GoBiz mengembalikan nominal dengan tambahan 2 nol di belakang (cents).
+                // Contoh: Rp 15.007 dikembalikan sebagai 1500700. Maka kita bagi 100.
                 $rawAmount = $mutation['gross_amount'] ?? $mutation['amount'] ?? 0;
-                $mutationAmount = (int) $rawAmount; // Removed / 100 division since GoBiz IDR uses exact integer Rupiah
+                $mutationAmount = (int) ($rawAmount / 100);
                 
                 $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
                 $gopayRef = $mutation['id'] ?? $mutation['transaction_id'] ?? null;

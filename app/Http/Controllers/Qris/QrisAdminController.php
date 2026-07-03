@@ -145,12 +145,20 @@ class QrisAdminController extends Controller
             $queryParams['start_time'] = gmdate('Y-m-d\TH:i:s.000\Z', time() - 86400 * 2);
             $queryParams['end_time'] = gmdate('Y-m-d\TH:i:s.999\Z', time() + 86400);
             if (!isset($queryParams['size'])) $queryParams['size'] = 20;
+            if (!isset($queryParams['from'])) $queryParams['from'] = 0;
+            
+            $merchantId = Setting::getVal('gopay_merchant_id');
+            $queryParams['merchant_ids'] = $merchantId;
 
             $basePath = ($parsedUrl['scheme'] ?? 'https') . '://' . ($parsedUrl['host'] ?? 'api.gojekapi.com') . ($parsedUrl['path'] ?? '');
 
             $response = \Illuminate\Support\Facades\Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
+                'Authentication-Type' => 'go-id',
                 'Accept' => 'application/json',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Origin' => 'https://portal.gofoodmerchant.co.id',
+                'Referer' => 'https://portal.gofoodmerchant.co.id/'
             ])->timeout(15)->get($basePath, $queryParams);
 
             return response()->json([

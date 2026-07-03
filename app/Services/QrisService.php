@@ -97,6 +97,9 @@ class QrisService
             if (!isset($queryParams['size'])) {
                 $queryParams['size'] = 20;
             }
+            if (!isset($queryParams['from'])) {
+                $queryParams['from'] = 0;
+            }
 
             // Tambahkan merchant_ids dari konfigurasi
             $queryParams['merchant_ids'] = $merchantId;
