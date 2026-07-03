@@ -124,11 +124,38 @@ class QrisService
                 return $data['transactions'] ?? $data['data'] ?? $data ?? [];
             }
 
+            // Deteksi token expired (biasanya 401 Unauthorized atau 403 Forbidden)
+            if ($response->status() === 401 || $response->status() === 403) {
+                self::notifyAdminTokenExpired("API Error: Status {$response->status()} - " . ($response->json()['message'] ?? $response->body()));
+            }
+
             Log::error("GoPay Merchant API Error: Status {$response->status()} - {$response->body()}");
         } catch (Exception $e) {
             Log::error("Koneksi ke GoPay Merchant gagal: " . $e->getMessage());
+            self::notifyAdminTokenExpired("Koneksi gagal: " . $e->getMessage());
         }
 
         return [];
+    }
+
+    /**
+     * Mengirim notifikasi email ke admin jika token expired (dengan throttling 12 jam)
+     */
+    private static function notifyAdminTokenExpired(string $errorDetail)
+    {
+        try {
+            $cacheKey = 'qris_token_expired_notified';
+            if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                $adminEmail = Setting::getVal('admin_email', 'yomudachampionship@gmail.com');
+                \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
+                    ->notify(new \App\Notifications\QrisTokenExpired($errorDetail));
+
+                // Simpan cache flag selama 12 jam (43200 detik)
+                \Illuminate\Support\Facades\Cache::put($cacheKey, true, 43200);
+                Log::info("Email notifikasi token expired telah dikirim ke {$adminEmail}");
+            }
+        } catch (Exception $e) {
+            Log::error("Gagal mengirim email notifikasi token expired: " . $e->getMessage());
+        }
     }
 }

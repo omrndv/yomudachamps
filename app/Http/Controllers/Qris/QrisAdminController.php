@@ -88,12 +88,16 @@ class QrisAdminController extends Controller
                 ->count();
         }
 
+        // Hitung success rate (paid vs expired)
+        $totalEnded = $globalStats->paid_count + $globalStats->expired_count;
+        $successRate = $totalEnded > 0 ? round(($globalStats->paid_count / $totalEnded) * 100, 1) : 100.0;
+
         $recentTransactions = QrisTransaction::with('team.season')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        return view('qris.dashboard', compact('globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts', 'recentTransactions'));
+        return view('qris.dashboard', compact('globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts', 'recentTransactions', 'successRate'));
     }
 
     public function transactions()
