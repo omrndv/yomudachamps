@@ -292,7 +292,13 @@
 
     function autoCheckStatus() {
         const checkInterval = setInterval(function() {
-            fetch("{{ route('payment.check.status', $team->trx_id) }}")
+            const timestamp = new Date().getTime();
+            fetch("{{ route('payment.check.status', $team->trx_id) }}?t=" + timestamp, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'PAID') {

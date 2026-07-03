@@ -176,6 +176,10 @@ class QrisController extends Controller
         return response()->json([
             'status' => $qrisTx->status,
             'redirect_url' => $qrisTx->status === 'PAID' ? route('payment.success', $trx_id) : null
+        ])->withHeaders([
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
         ]);
     }
 
