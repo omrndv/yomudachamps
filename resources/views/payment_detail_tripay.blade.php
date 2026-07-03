@@ -145,7 +145,7 @@
         padding: 15px;
         margin-bottom: 20px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 12px;
         animation: pulse-border 2s infinite;
     }
@@ -153,6 +153,7 @@
     .payment-alert i {
         font-size: 1.5rem;
         color: #ffc107;
+        margin-top: 2px;
     }
 
     .payment-alert p {
@@ -171,6 +172,33 @@
         0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
         70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
         100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+    }
+
+    /* Responsive Mobile UX Improvements */
+    .qris-container img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    @media (max-width: 480px) {
+        .detail-card {
+            padding: 25px 16px;
+        }
+
+        .pay-code {
+            font-size: 1.35rem;
+            padding: 8px 12px;
+            letter-spacing: 1px;
+        }
+
+        #countdown {
+            font-size: 1.4rem;
+            padding: 4px 15px;
+        }
+        
+        .detail-card h3 {
+            font-size: 1.5rem;
+        }
     }
 </style>
 
