@@ -2,6 +2,19 @@
 @section('title', 'Dashboard')
 
 @section('content')
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+        <i data-lucide="layout-dashboard" class="w-6 h-6 text-blue-600"></i> Dashboard Overview
+    </h2>
+    <form action="{{ route('qris.sync-pending') }}" method="POST">
+        @csrf
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 text-sm shadow-sm transition-all" onclick="this.innerHTML='<i data-lucide=\'loader\' class=\'w-4 h-4 animate-spin\'></i> Syncing...'; this.form.submit(); this.disabled=true;">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync Pending
+        </button>
+    </form>
+</div>
+
 <!-- Stats Summary Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     

@@ -315,6 +315,25 @@
                 </div>
             </div>
 
+            {{-- Card: GoPay QRIS Gateway Settings --}}
+            <div class="card card-settings border-0 p-4 mb-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-wallet2 text-warning me-2"></i> Pengaturan GoPay QRIS
+                    </h5>
+                    <a href="/qris-gateway/settings" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                        Kelola API
+                    </a>
+                </div>
+
+                <div class="mb-0">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="payment_gateway_gopay_qris" id="payment_gateway_gopay_qris" value="on" {{ \App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on' ? 'checked' : '' }}>
+                        <label class="form-check-label small fw-bold text-dark" for="payment_gateway_gopay_qris">Aktifkan Gateway GoPay QRIS</label>
+                    </div>
+                </div>
+            </div>
+
             {{-- Card 5: Maintenance Mode --}}
             <div class="card card-settings border-0 p-4 mb-0 bg-white">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom border-light">

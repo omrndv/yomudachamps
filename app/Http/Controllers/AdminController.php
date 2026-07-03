@@ -434,6 +434,7 @@ class AdminController extends Controller
             'wa_template_paid',
             'payment_gateway_tripay',
             'payment_gateway_ipaymu',
+            'payment_gateway_gopay_qris',
             'tripay_api_key',
             'tripay_private_key',
             'tripay_merchant_code',
@@ -458,6 +459,8 @@ class AdminController extends Controller
                 $val = $request->has('payment_gateway_tripay') ? 'on' : 'off';
             } elseif ($key === 'payment_gateway_ipaymu') {
                 $val = $request->has('payment_gateway_ipaymu') ? 'on' : 'off';
+            } elseif ($key === 'payment_gateway_gopay_qris') {
+                $val = $request->has('payment_gateway_gopay_qris') ? 'on' : 'off';
             }
             \App\Models\Setting::updateOrCreate(
                 ['key' => $key],

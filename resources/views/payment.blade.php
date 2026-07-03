@@ -159,21 +159,21 @@
         <div class="info-box mb-4">
             <div class="d-flex justify-content-between mb-1">
                 <span class="small text-secondary fw-bold">Nama Team</span>
-                <span class="small fw-bold text-white">{{ $team->name }}</span>
+                <span class="small fw-bold text-white text-end">{{ $team->name }}</span>
             </div>
             <div class="d-flex justify-content-between mb-1">
                 <span class="small text-secondary fw-bold">Total</span>
-                <span class="small fw-bold text-warning">Rp {{ number_format($team->season->price, 0, ',', '.') }}</span>
+                <span class="small fw-bold text-warning text-end">Rp {{ number_format($team->season->price, 0, ',', '.') }}</span>
             </div>
             <div class="d-flex justify-content-between mb-1">
                 <span class="small text-secondary fw-bold">Tanggal Main</span>
-                <span class="small fw-bold text-warning">
+                <span class="small fw-bold text-warning text-end">
                     {{ $team->season->date_info ?? 'Belum ditentukan' }}
                 </span>
             </div>
             <div class="d-flex justify-content-between mb-1">
                 <span class="small text-secondary fw-bold">Keterangan</span>
-                <span class="small fw-bold text-warning">
+                <span class="small fw-bold text-warning text-end">
                     Pembayaran Tour S{{ preg_replace('/\D/', '', $team->season->name) }}
                 </span>
             </div>

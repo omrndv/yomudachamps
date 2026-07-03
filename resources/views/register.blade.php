@@ -347,6 +347,17 @@
         .form-heading {
             font-size: 1.65rem;
         }
+
+        /* Mencegah iOS Safari auto zoom-in pada input field */
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="email"],
+        select,
+        textarea,
+        .form-control-v2 {
+            font-size: 16px !important;
+        }
     }
 </style>
 @endpush

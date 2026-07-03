@@ -173,7 +173,7 @@
 
         <div class="text-center mb-4">
             <span class="text-secondary small d-block mb-2">Total Pembayaran:</span>
-            <h3 class="fw-bold text-warning" style="font-family: 'Arial Black';">Rp {{ number_format($detail->amount, 0, ',', '.') }} <br> (+Biaya Admin)</h3>
+            <h3 class="fw-bold text-warning">Rp {{ number_format($detail->amount, 0, ',', '.') }} <br> (+Biaya Admin)</h3>
         </div>
         
         <div class="payment-alert">
@@ -212,6 +212,14 @@
             </button>
             <p class="small text-secondary mt-2">Salin kode di atas ke aplikasi bank kamu</p>
             @endif
+            @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
+                <div class="mt-4 px-2">
+                    <button id="btnCheckNow" class="btn-check-status d-block text-center w-100" style="border: none; background: #ffc107; color: #000; padding: 15px; border-radius: 12px; font-weight: 900; box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);">
+                        SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
+                    </button>
+                </div>
+            @endif
+
         </div>
 
         <div class="divider-dashed mb-4" style="border-top: 1px dashed rgba(255,255,255,0.1);"></div>
@@ -238,11 +246,7 @@
         </div>
 
         <div class="mt-4">
-            @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
-                <button id="btnCheckNow" class="btn-check-status d-block text-center w-100" style="border: none; background: #ffc107; color: #000; padding: 15px; border-radius: 12px; font-weight: 900; box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);">
-                    SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
-                </button>
-            @else
+            @if(!isset($detail->is_gopay_qris) || !$detail->is_gopay_qris)
                 <a href="{{ route('payment.success', $team->trx_id) }}" class="btn-check-status d-block text-center text-decoration-none">
                     SAYA SUDAH BAYAR <i class="bi bi-arrow-repeat ms-1"></i>
                 </a>
@@ -340,8 +344,25 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 })
-                .then(() => {
-                    window.location.reload();
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'PAID') {
+                        Swal.fire({
+                            title: 'PEMBAYARAN BERHASIL!',
+                            text: 'Sistem telah memverifikasi pembayaran tim kamu.',
+                            icon: 'success',
+                            background: '#121417',
+                            color: '#fff',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect_url || "{{ route('payment.success', $team->trx_id) }}";
+                        });
+                    } else {
+                        window.location.reload();
+                    }
                 })
                 .catch(() => {
                     window.location.reload();

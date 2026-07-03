@@ -181,7 +181,7 @@ class HomeController extends Controller
         if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on') {
             $channels[] = (object)[
                 'code' => 'GOPAY_QRIS',
-                'name' => 'QRIS GoPay (Instan)',
+                'name' => 'QRIS (All Payment)',
                 'icon_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
                 'active' => true,
             ];

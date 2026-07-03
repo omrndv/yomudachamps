@@ -264,4 +264,17 @@ class QrisAdminController extends Controller
         $qrisTx->delete();
         return back()->with('success', "Transaksi dengan ID {$trx_id} berhasil dihapus!");
     }
+
+    /**
+     * Sinkronisasi paksa semua transaksi pending dengan GoBiz
+     */
+    public function syncPending()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('qris:poll');
+            return back()->with('success', 'Berhasil melakukan sinkronisasi paksa (Sync Pending). Semua transaksi tertunda telah dicocokkan.');
+        } catch (Exception $e) {
+            return back()->with('error', 'Gagal sinkronisasi: ' . $e->getMessage());
+        }
+    }
 }

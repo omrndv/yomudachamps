@@ -48,10 +48,24 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">String QRIS Statis</label>
-                <textarea name="static_qris" rows="5" required
+                
+                <!-- QR Scanner Section -->
+                <div class="mb-3 p-4 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Upload Gambar QRIS (Otomatis ekstrak string)</label>
+                    <input type="file" id="qr-input-file" accept="image/*" class="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400">
+                    <div id="qr-scan-result" class="mt-2 text-xs text-emerald-600 dark:text-emerald-400 hidden">
+                        <i data-lucide="check-circle" class="w-3 h-3 inline"></i> Berhasil membaca QRIS! String telah diisi otomatis.
+                    </div>
+                    <div id="qr-scan-error" class="mt-2 text-xs text-rose-600 dark:text-rose-400 hidden">
+                        <i data-lucide="alert-circle" class="w-3 h-3 inline"></i> Gagal membaca QR code dari gambar.
+                    </div>
+                    <div id="reader" style="display:none;"></div>
+                </div>
+
+                <textarea name="static_qris" id="static_qris_input" rows="5" required
                     class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-blue-500 transition-all"
                     placeholder="00020101021126610014COM.GO-JEK.WWW01189...">{{ $config->static_qris }}</textarea>
-                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Salin mentah string QRIS statis dari outlet GoPay Merchant Anda. String ini akan diparse menggunakan library EMVCo buatan kita untuk nominal dinamis.</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Salin mentah string QRIS statis dari outlet GoPay Merchant Anda, atau upload gambar QRIS statis pada form di atas agar otomatis terisi.</p>
             </div>
 
             <button type="submit"
@@ -62,3 +76,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileinput = document.getElementById('qr-input-file');
+    const staticQrisInput = document.getElementById('static_qris_input');
+    const scanResult = document.getElementById('qr-scan-result');
+    const scanError = document.getElementById('qr-scan-error');
+
+    if (fileinput) {
+        fileinput.addEventListener('change', e => {
+            if (e.target.files.length == 0) {
+                return;
+            }
+            
+            scanResult.classList.add('hidden');
+            scanError.classList.add('hidden');
+            
+            const imageFile = e.target.files[0];
+            const html5QrCode = new Html5Qrcode("reader");
+
+            html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                staticQrisInput.value = decodedText;
+                scanResult.classList.remove('hidden');
+            })
+            .catch(err => {
+                scanError.classList.remove('hidden');
+                console.log(`Error scanning file: ${err}`)
+            });
+        });
+    }
+});
+</script>
+@endpush
