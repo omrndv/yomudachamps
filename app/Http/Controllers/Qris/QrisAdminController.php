@@ -106,11 +106,22 @@ class QrisAdminController extends Controller
 
     public function settings()
     {
+        $rawToken = Setting::getVal('gopay_token', '');
+        $token = '';
+        if (!empty($rawToken)) {
+            try {
+                $token = Crypt::decryptString($rawToken);
+            } catch (\Exception $e) {
+                $token = ''; // Jika gagal dekripsi
+            }
+        }
+
         $config = (object) [
             'static_qris' => Setting::getVal('gopay_static_qris', ''),
             'merchant_id' => Setting::getVal('gopay_merchant_id', ''),
             'api_url' => Setting::getVal('gopay_api_url', 'https://api.gobiz.co.id/v2/transactions'),
-            'has_token' => !empty(Setting::getVal('gopay_token', ''))
+            'has_token' => !empty($rawToken),
+            'token' => $token
         ];
         return view('qris.settings', compact('config'));
     }

@@ -40,10 +40,10 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Token Otorisasi (GoBiz Bearer Token)</label>
-                <input type="password" name="token" 
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all font-mono placeholder-slate-400 dark:placeholder-slate-655"
-                    placeholder="{{ $config->has_token ? '•••••••••••••••••••••••••••••••• (Sudah Tersimpan)' : 'Masukkan token baru' }}">
-                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Kosongkan kolom ini jika Anda tidak ingin memperbarui token yang sudah ada di database.</p>
+                <textarea name="token" rows="3"
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-blue-500 transition-all placeholder-slate-400 dark:placeholder-slate-655"
+                    placeholder="Masukkan token baru">{{ $config->token }}</textarea>
+                <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Token ditampilkan secara langsung. Kosongkan kolom ini jika Anda tidak ingin menyimpan token.</p>
             </div>
 
             <div>
