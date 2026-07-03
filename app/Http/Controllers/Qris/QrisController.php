@@ -51,8 +51,8 @@ class QrisController extends Controller
             $found = false;
 
             while ($attempt < $maxAttempts) {
-                // Gunakan mode server-managed (nominal dasar + kode unik 200-450 untuk antrean lebih luas)
-                $uniqueCode = rand(200, 450);
+                // Gunakan mode server-managed (nominal dasar + kode unik 200-400 untuk antrean lebih luas)
+                $uniqueCode = rand(200, 400);
                 $finalAmount = $baseAmount + $uniqueCode;
 
                 // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain
