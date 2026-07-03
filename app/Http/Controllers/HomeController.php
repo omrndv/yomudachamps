@@ -177,8 +177,7 @@ class HomeController extends Controller
             ];
         }
 
-        // Load GoPay QRIS (Self-hosted) if enabled (Sembunyikan sementara untuk besok pagi)
-        /*
+        // Load GoPay QRIS (Self-hosted) if enabled
         if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on') {
             $channels[] = (object)[
                 'code' => 'GOPAY_QRIS',
@@ -187,7 +186,6 @@ class HomeController extends Controller
                 'active' => true,
             ];
         }
-        */
 
         return view('payment', compact('team', 'channels'));
     }
