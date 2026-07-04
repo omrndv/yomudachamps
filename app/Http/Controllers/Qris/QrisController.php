@@ -171,24 +171,7 @@ class QrisController extends Controller
                         }
                         
                         if (!$isDuplicate) {
-                            // Settle the payment
-                            $qrisTx->update([
-                                'status' => 'PAID',
-                                'gopay_reference' => $gopayRef
-                            ]);
-                            
-                            $team = Team::where('trx_id', $qrisTx->trx_id)->first();
-                            if ($team) {
-                                $team->status = 'PAID';
-                                $team->save();
-                                
-                                // Catat notifikasi pembayaran lunas
-                                \App\Models\GatewayNotification::add(
-                                    'TRANSACTION_PAID',
-                                    'Pembayaran Terverifikasi',
-                                    "Pembayaran Tim {$team->name} sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}) berhasil terverifikasi otomatis."
-                                );
-                            }
+                            QrisService::settle($qrisTx, $gopayRef);
                             break;
                         }
                     }

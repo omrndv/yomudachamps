@@ -178,4 +178,99 @@ class QrisService
             Log::error("Gagal mengirim email notifikasi token expired: " . $e->getMessage());
         }
     }
+
+    /**
+     * Settle payment atomically using Cache Lock to prevent race conditions
+     */
+    public static function settle(QrisTransaction $qrisTx, string $gopayRef): bool
+    {
+        $lock = \Illuminate\Support\Facades\Cache::lock('qris_settle_lock_' . $qrisTx->id, 15);
+        if (!$lock->get()) {
+            Log::info("Settle ditangguhkan: transaksi {$qrisTx->id} sedang diproses oleh proses lain.");
+            return false;
+        }
+
+        try {
+            $qrisTx->refresh();
+            if ($qrisTx->status === 'PAID') {
+                return false;
+            }
+
+            $team = \App\Models\Team::with('season')->where('trx_id', $qrisTx->trx_id)->first();
+            if (!$team) {
+                $qrisTx->update([
+                    'status' => 'PAID',
+                    'paid_at' => now(),
+                    'gopay_reference' => $gopayRef
+                ]);
+                return true;
+            }
+
+            $statusLama = $team->status;
+            $team->status_tripay = 'PAID';
+
+            $currentPaidCount = \App\Models\Team::where('season_id', $team->season_id)
+                ->where('status', 'PAID')
+                ->count();
+
+            if ($currentPaidCount < $team->season->slot) {
+                $team->status = 'PAID';
+
+                // Catat notifikasi pembayaran lunas
+                \App\Models\GatewayNotification::add(
+                    'TRANSACTION_PAID',
+                    'Pembayaran Terverifikasi',
+                    "Pembayaran Tim {$team->name} sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}) berhasil terverifikasi."
+                );
+
+                if ($statusLama !== 'PAID') {
+                    // Kirim notifikasi email ke admin
+                    try {
+                        $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
+                        \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
+                    } catch (\Exception $e) {
+                        Log::error('Gagal kirim email (settle): ' . $e->getMessage());
+                    }
+
+                    // Kirim WhatsApp otomatis ke perwakilan tim
+                    try {
+                        \App\Services\WhatsappService::sendPaidNotification($team);
+                    } catch (\Exception $e) {
+                        Log::error('Gagal kirim WhatsApp otomatis (settle): ' . $e->getMessage());
+                    }
+                }
+            } else {
+                $team->status = 'FAILED';
+                Log::warning("OVER-SLOT: Tim {$team->name} terdeteksi bayar tapi slot penuh.");
+
+                // Catat notifikasi over-slot
+                \App\Models\GatewayNotification::add(
+                    'API_ERROR',
+                    'Pembayaran Over-Slot Terdeteksi',
+                    "Tim {$team->name} melakukan pembayaran sebesar Rp " . number_format($qrisTx->amount, 0, ',', '.') . " (Ref ID GoPay: {$gopayRef}), tetapi slot Season {$team->season->name} sudah penuh! Status tim ditandai FAILED."
+                );
+
+                // Kirim Notifikasi Over-slot
+                try {
+                    \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
+                    \App\Services\WhatsappService::sendUserOverSlotNotification($team);
+                } catch (\Exception $e) {
+                    Log::error('Gagal kirim notifikasi Over-Slot (settle): ' . $e->getMessage());
+                }
+            }
+
+            $team->save();
+
+            // Update status transaksi QRIS
+            $qrisTx->update([
+                'status' => 'PAID',
+                'paid_at' => now(),
+                'gopay_reference' => $gopayRef
+            ]);
+
+            return true;
+        } finally {
+            $lock->release();
+        }
+    }
 }
