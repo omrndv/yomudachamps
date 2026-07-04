@@ -2406,7 +2406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-let previousGlobalUnread = 0;
+let previousGlobalUnread = -1;
 let lastSoundPlayedTime = 0;
 
 function playNotificationSound() {
@@ -2438,6 +2438,42 @@ function playNotificationSound() {
     }
 }
 
+// Polling Laporan Hasil Laga (Match Reports)
+let previousPendingReportsCount = -1;
+
+function pollAdminMatchReports() {
+    fetch("{{ route('admin.season.match-reports.poll', $season->id) }}")
+        .then(r => r.json())
+        .then(res => {
+            if (res.reports) {
+                const pendingCount = res.reports.filter(r => r.status === 'PENDING').length;
+
+                if (previousPendingReportsCount !== -1 && pendingCount > previousPendingReportsCount) {
+                    playNotificationSound();
+                    
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                    Toast.fire({
+                        icon: 'warning',
+                        title: 'Laporan Hasil Laga',
+                        text: 'Ada laporan hasil tanding baru yang butuh verifikasi!'
+                    });
+                }
+                previousPendingReportsCount = pendingCount;
+            }
+        })
+        .catch(err => console.log("Report polling error:", err));
+}
+
+// Start report polling every 10 seconds
+setInterval(pollAdminMatchReports, 10000);
+pollAdminMatchReports();
+
 function fetchAdminChatThreads() {
     fetch("{{ route('admin.season.chat.threads', $season->id) }}?status=" + adminChatTab)
         .then(r => r.json())
@@ -2452,8 +2488,21 @@ function fetchAdminChatThreads() {
                 });
 
                 // Play sound if unread count increases (new thread or new message in closed thread)
-                if (globalUnread > previousGlobalUnread) {
+                if (previousGlobalUnread !== -1 && globalUnread > previousGlobalUnread) {
                     playNotificationSound();
+
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                    Toast.fire({
+                        icon: 'info',
+                        title: 'Pesan Live Chat Baru',
+                        text: 'Ada pesan live chat baru dari peserta turnamen.'
+                    });
                 }
                 previousGlobalUnread = globalUnread;
 
