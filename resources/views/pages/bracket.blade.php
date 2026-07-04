@@ -1303,9 +1303,12 @@
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
         });
 
-        btnFocus.addEventListener('click', function() {
-            performFocusScroll();
-        });
+        const btnFocus = document.getElementById('btnFocus');
+        if (btnFocus) {
+            btnFocus.addEventListener('click', function() {
+                performFocusScroll();
+            });
+        }
 
         // ----------------------------------------------------
         // ----------------------------------------------------
