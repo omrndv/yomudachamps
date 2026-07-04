@@ -137,7 +137,7 @@ class QrisAdminController extends Controller
                     ->toArray();
 
                 foreach ($mutations as $m) {
-                    $refId = $m['id'] ?? $m['transaction_id'] ?? null;
+                    $refId = $m['transaction_id'] ?? $m['id'] ?? null;
                     $status = strtoupper($m['transaction_status'] ?? $m['status'] ?? '');
 
                     if ($refId && !in_array($refId, $dbReferences) && in_array($status, ['SETTLEMENT', 'CAPTURE', 'PAID', 'SUCCESS'])) {
