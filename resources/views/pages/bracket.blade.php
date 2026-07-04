@@ -761,7 +761,7 @@
             </div>
 
             {{-- Result Panel --}}
-            <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto;">
+            <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
                 <div id="searchResultList"></div>
             </div>
         </div>
@@ -956,7 +956,6 @@
                         <input type="hidden" id="reportMatchId" name="match_id">
                         <input type="hidden" id="reportReporterTeamId" name="reporter_team_id">
 
-                        <!-- Scores inputs -->
                         <div class="row g-3 mb-4">
                             <div class="col-6">
                                 <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam1">Skor Tim 1</label>
@@ -964,7 +963,6 @@
                                     <option value="0">0</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
-                                    <option value="3">3</option>
                                 </select>
                             </div>
                             <div class="col-6">
@@ -973,7 +971,6 @@
                                     <option value="0">0</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
-                                    <option value="3">3</option>
                                 </select>
                             </div>
                         </div>
@@ -1149,6 +1146,7 @@
 
         function performFocusScroll() {
             if (!activeFocusedCardId) return;
+            if (!container) return;
 
             const cardElement = document.getElementById(activeFocusedCardId);
             if (!cardElement) return;
