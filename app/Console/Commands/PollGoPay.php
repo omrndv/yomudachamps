@@ -103,7 +103,8 @@ class PollGoPay extends Command
                 $mutationAmount = (int) ($rawAmount / 100);
                 
                 $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
-                $gopayRef = $mutation['acquiring_reference_number'] 
+                $gopayRef = $mutation['wallstreet_transaction_id']
+                          ?? $mutation['acquiring_reference_number'] 
                           ?? $mutation['acquirer_reference_number'] 
                           ?? $mutation['reference_number'] 
                           ?? $mutation['payment_reference'] 

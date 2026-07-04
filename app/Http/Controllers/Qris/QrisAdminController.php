@@ -137,7 +137,8 @@ class QrisAdminController extends Controller
                     ->toArray();
 
                 foreach ($mutations as $m) {
-                    $refId = $m['acquiring_reference_number'] 
+                    $refId = $m['wallstreet_transaction_id']
+                           ?? $m['acquiring_reference_number'] 
                            ?? $m['acquirer_reference_number'] 
                            ?? $m['reference_number'] 
                            ?? $m['payment_reference'] 
