@@ -24,7 +24,7 @@
         {{-- Filter Tim dengan > 1 Transaksi Sehari --}}
         <div>
             @if(request('multi_only') == '1')
-                <a href="{{ request()->fullUrlWithQuery(['multi_only' => null]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-550 hover:bg-amber-600 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
+                <a href="{{ request()->fullUrlWithQuery(['multi_only' => null]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
                     <i data-lucide="filter" class="w-4 h-4"></i> Filter: Multi Transaksi Harian (Aktif)
                 </a>
             @else
