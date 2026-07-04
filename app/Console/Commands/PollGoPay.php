@@ -103,7 +103,15 @@ class PollGoPay extends Command
                 $mutationAmount = (int) ($rawAmount / 100);
                 
                 $mutationStatus = strtoupper($mutation['transaction_status'] ?? $mutation['status'] ?? '');
-                $gopayRef = $mutation['transaction_id'] ?? $mutation['id'] ?? null;
+                $gopayRef = $mutation['acquiring_reference_number'] 
+                          ?? $mutation['acquirer_reference_number'] 
+                          ?? $mutation['reference_number'] 
+                          ?? $mutation['payment_reference'] 
+                          ?? $mutation['partner_payment_reference'] 
+                          ?? $mutation['rrn'] 
+                          ?? $mutation['transaction_id'] 
+                          ?? $mutation['id'] 
+                          ?? null;
                 $settlementTime = isset($mutation['settlement_time']) ? Carbon::parse($mutation['settlement_time']) : now();
 
                 // Syarat Kecocokan:

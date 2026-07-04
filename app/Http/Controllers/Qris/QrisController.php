@@ -162,7 +162,15 @@ class QrisController extends Controller
                     // Match amount and status
                     if ($mutationAmount == $qrisTx->amount && in_array($mutationStatus, ['SETTLEMENT', 'CAPTURE', 'PAID', 'SUCCESS'])) {
                         
-                        $gopayRef = $mutation['transaction_id'] ?? $mutation['id'] ?? null;
+                        $gopayRef = $mutation['acquiring_reference_number'] 
+                                  ?? $mutation['acquirer_reference_number'] 
+                                  ?? $mutation['reference_number'] 
+                                  ?? $mutation['payment_reference'] 
+                                  ?? $mutation['partner_payment_reference'] 
+                                  ?? $mutation['rrn'] 
+                                  ?? $mutation['transaction_id'] 
+                                  ?? $mutation['id'] 
+                                  ?? null;
                         
                         // Cek duplicate ref
                         $isDuplicate = false;
