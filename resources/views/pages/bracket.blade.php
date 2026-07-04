@@ -1003,6 +1003,7 @@
     <script>
     let container = null;
     let headerBar = null;
+    const startNumbers = @json($startNumbers);
     const TOTAL_ROUNDS = {{ count($rounds) }};
     function getRoundName(roundNum) {
         if (roundNum === TOTAL_ROUNDS) {
@@ -1036,7 +1037,7 @@
                     opponent: {{ Js::from($b->team2->name ?? '') }},
                     opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status1) }},
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
@@ -1047,7 +1048,7 @@
                     opponent: {{ Js::from($b->team1->name ?? '') }},
                     opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status2) }},
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
@@ -1062,7 +1063,7 @@
                     opponent: "Lolos (BYE)",
                     opponentWA: "-",
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
                     round: "Babak 1",
                     status: "Lolos",
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
@@ -1357,13 +1358,14 @@
                             const roundName = getRoundName(b.round_number);
                             const scheduleStr = b.match_time || '20:00 WIB';
                             if (b.team1_name && b.team2_name) {
+                                const bracketNum = (startNumbers[b.round_number] || 1) + (b.match_number - 1);
                                 matchesData.push({
                                     teamKey: b.team1_name.toLowerCase(),
                                     name: b.team1_name,
                                     opponent: b.team2_name,
                                     opponentWA: b.team2_wa || '-',
                                     schedule: scheduleStr,
-                                    bracket: "Bracket " + b.match_number,
+                                    bracket: "Bracket " + bracketNum,
                                     round: roundName,
                                     status: b.winner_id === b.team1_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
@@ -1374,19 +1376,20 @@
                                     opponent: b.team1_name,
                                     opponentWA: b.team1_wa || '-',
                                     schedule: scheduleStr,
-                                    bracket: "Bracket " + b.match_number,
+                                    bracket: "Bracket " + bracketNum,
                                     round: roundName,
                                     status: b.winner_id === b.team2_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
                                 });
                             } else if (b.team1_name && !b.team2_name && b.round_number === 1) {
+                                const bracketNum = (startNumbers[b.round_number] || 1) + (b.match_number - 1);
                                 matchesData.push({
                                     teamKey: b.team1_name.toLowerCase(),
                                     name: b.team1_name,
                                     opponent: "Lolos (BYE)",
                                     opponentWA: "-",
                                     schedule: scheduleStr,
-                                    bracket: "Bracket " + b.match_number,
+                                    bracket: "Bracket " + bracketNum,
                                     round: roundName,
                                     status: "Lolos",
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
