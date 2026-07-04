@@ -1975,6 +1975,19 @@
             formSubmitReport.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                const score1 = parseInt(document.getElementById('scoreTeam1Input').value) || 0;
+                const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
+
+                if (score1 === 0 && score2 === 0) {
+                    alert('Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.');
+                    return;
+                }
+
+                if (score1 === score2) {
+                    alert('Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.');
+                    return;
+                }
+                
                 const fileInput = document.getElementById('reportImageInput');
                 if (!fileInput.files || fileInput.files.length === 0) {
                     alert('Silakan pilih berkas bukti screenshot.');
