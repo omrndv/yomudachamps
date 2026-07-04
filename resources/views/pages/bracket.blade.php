@@ -2085,9 +2085,8 @@
                 const diffMs = targetWib.getTime() - wibNow.getTime();
 
                 if (diffMs <= 0) {
-                    // Time has passed for today
-                    // If more than 20 minutes has passed (20 * 60 * 1000 = 1200000 ms), show Finished
-                    if (diffMs <= -1200000) {
+                    // Jika semua pertandingan di babak ini sudah selesai menurut database
+                    if (isFinished) {
                         label.textContent = '✅ Selesai';
                         label.className = 'round-countdown-label countdown-done';
                     } else {
