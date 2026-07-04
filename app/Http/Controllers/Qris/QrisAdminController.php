@@ -108,6 +108,7 @@ class QrisAdminController extends Controller
             $search = trim($request->search);
             $query->where(function($q) use ($search) {
                 $q->where('trx_id', 'like', "%{$search}%")
+                  ->orWhere('gopay_reference', 'like', "%{$search}%")
                   ->orWhereHas('team', function($t) use ($search) {
                       $t->where('name', 'like', "%{$search}%");
                   });

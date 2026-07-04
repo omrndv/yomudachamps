@@ -126,7 +126,12 @@
                         <td class="py-4 px-6" onclick="event.stopPropagation()">
                             <input type="checkbox" name="selected_ids[]" value="{{ $tx->id }}" class="transaction-checkbox rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
                         </td>
-                        <td class="py-4 px-6 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">{{ $tx->trx_id }}</td>
+                        <td class="py-4 px-6">
+                            <span class="font-mono text-xs text-sky-600 dark:text-sky-400 font-bold block">{{ $tx->trx_id }}</span>
+                            @if($tx->gopay_reference)
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono block mt-1">GoPay Ref: {{ $tx->gopay_reference }}</span>
+                            @endif
+                        </td>
                         <td class="py-4 px-6">
                             <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
                             <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
@@ -257,6 +262,10 @@
                 <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                     <span class="text-slate-400 font-semibold">No. Ref. Merchant</span>
                     <span id="drawer-det-ref" class="font-bold text-slate-850 dark:text-slate-200 font-mono">-</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span class="text-slate-400 font-semibold">No. Transaksi GoPay</span>
+                    <span id="drawer-det-gopay-ref" class="font-bold text-slate-850 dark:text-slate-200 font-mono">-</span>
                 </div>
                 <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                     <span class="text-slate-400 font-semibold">Biaya Merchant</span>
@@ -430,6 +439,7 @@
         // Fill Detail Pembayaran
         document.getElementById('drawer-det-amount').innerText = amountFormatted;
         document.getElementById('drawer-det-ref').innerText = tx.trx_id;
+        document.getElementById('drawer-det-gopay-ref').innerText = tx.gopay_reference || '-';
         document.getElementById('drawer-det-created').innerText = createdAt + ' WIB';
         document.getElementById('drawer-det-customer-fee').innerText = uniqueFeeFormatted;
         document.getElementById('drawer-det-expires').innerText = expiresAt + ' WIB';
