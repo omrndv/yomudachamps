@@ -62,7 +62,7 @@ class QrisService
     /**
      * Mengambil daftar mutasi dari API GoPay Merchant
      */
-    public static function fetchGoPayMutations(): array
+    public static function fetchGoPayMutations(int $limit = 50): array
     {
         $cacheKey = 'gopay_mutations_api_cache';
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
@@ -100,7 +100,7 @@ class QrisService
 
             // Jika limit atau page belum ditentukan di URL, set defaultnya
             if (!isset($queryParams['size'])) {
-                $queryParams['size'] = 20;
+                $queryParams['size'] = $limit;
             }
             if (!isset($queryParams['from'])) {
                 $queryParams['from'] = 0;
