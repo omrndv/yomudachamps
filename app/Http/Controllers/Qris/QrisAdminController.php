@@ -379,4 +379,20 @@ class QrisAdminController extends Controller
 
         return back()->with('success', count($ids) . ' transaksi berhasil dihapus sekaligus!');
     }
+
+    /**
+     * Endpoint sementara untuk mendump respon asli dari API GoPay Merchant
+     */
+    public function testGopayResponse()
+    {
+        // Bypass cache untuk mendapatkan respon fresh
+        \Illuminate\Support\Facades\Cache::forget('gopay_mutations_api_cache');
+        
+        $mutations = \App\Services\QrisService::fetchGoPayMutations();
+        
+        return response()->json([
+            'count' => count($mutations),
+            'mutations' => $mutations
+        ]);
+    }
 }

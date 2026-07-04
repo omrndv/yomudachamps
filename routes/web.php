@@ -358,5 +358,6 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::post('/sync-pending', [\App\Http\Controllers\Qris\QrisAdminController::class, 'syncPending'])->name('sync-pending');
         Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
         Route::post('/delete-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteBulkTransactions'])->name('delete-bulk');
+        Route::get('/test-gopay-response', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testGopayResponse'])->name('test-gopay-response');
     });
 });
