@@ -299,6 +299,7 @@ class BracketController extends Controller
                 } else {
                     $nextMatch->team2_id = $match->winner_id;
                 }
+                $nextMatch->save();
             } else {
                 // If match is reset or status is not finished, clear the team slot in the next round
                 $revertNext = false;

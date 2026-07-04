@@ -1068,8 +1068,9 @@
 </style>
 
 <script>
+let container = null;
 document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('adminBracketContainer');
+    container = document.getElementById('adminBracketContainer');
     const headerBar = document.getElementById('adminRoundHeadersBar');
 
     // ----------------------------------------------------

@@ -1001,6 +1001,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    let container = null;
+    let headerBar = null;
     const TOTAL_ROUNDS = {{ count($rounds) }};
     function getRoundName(roundNum) {
         if (roundNum === TOTAL_ROUNDS) {
@@ -1186,8 +1188,8 @@
     }
 
 
-        const headerBar = document.getElementById('roundHeadersBar');
-        const container = document.getElementById('bracketContainer');
+        headerBar = document.getElementById('roundHeadersBar');
+        container = document.getElementById('bracketContainer');
 
         // Sync sticky header bar horizontal scrolling with bracket scroll
         if (container && headerBar) {
