@@ -182,7 +182,7 @@ class QrisService
     /**
      * Settle payment atomically using Cache Lock to prevent race conditions
      */
-    public static function settle(QrisTransaction $qrisTx, string $gopayRef): bool
+    public static function settle(\App\Models\QrisTransaction $qrisTx, string $gopayRef): bool
     {
         $lock = \Illuminate\Support\Facades\Cache::lock('qris_settle_lock_' . $qrisTx->id, 15);
         if (!$lock->get()) {
