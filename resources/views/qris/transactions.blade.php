@@ -3,20 +3,36 @@
 
 @section('content')
 <!-- Search Bar Section -->
-<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div class="max-w-md w-full">
-        <form action="{{ route('qris.transactions') }}" method="GET" class="relative">
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-3 w-full">
+        <form action="{{ route('qris.transactions') }}" method="GET" class="relative max-w-md w-full">
+            @if(request('multi_only'))
+                <input type="hidden" name="multi_only" value="1">
+            @endif
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama tim atau ID referensi..." 
                 class="w-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl pl-11 pr-16 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-sm">
             <div class="absolute left-4 top-3.5 text-slate-400">
                 <i data-lucide="search" class="w-4 h-4"></i>
             </div>
-            @if(request('search'))
-                <a href="{{ route('qris.transactions') }}" class="absolute right-4 top-3.5 text-xs font-semibold text-slate-450 hover:text-slate-600 dark:hover:text-white transition-all">
+            @if(request('search') || request('multi_only'))
+                <a href="{{ route('qris.transactions') }}" class="absolute right-4 top-3.5 text-xs font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all">
                     Reset
                 </a>
             @endif
         </form>
+
+        {{-- Filter Tim dengan > 1 Transaksi Sehari --}}
+        <div>
+            @if(request('multi_only') == '1')
+                <a href="{{ request()->fullUrlWithQuery(['multi_only' => null]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-550 hover:bg-amber-600 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
+                    <i data-lucide="filter" class="w-4 h-4"></i> Filter: Multi Transaksi Harian (Aktif)
+                </a>
+            @else
+                <a href="{{ request()->fullUrlWithQuery(['multi_only' => '1']) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl transition-all shadow-sm">
+                    <i data-lucide="filter" class="w-4 h-4"></i> Filter: >1 Transaksi/Hari
+                </a>
+            @endif
+        </div>
     </div>
 </div>
 

@@ -114,6 +114,16 @@ class QrisAdminController extends Controller
             });
         }
 
+        if ($request->filled('multi_only') && $request->multi_only == '1') {
+            $query->whereExists(function ($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('qris_transactions as qt2')
+                  ->whereRaw('qt2.trx_id = qris_transactions.trx_id')
+                  ->whereRaw('DATE(qt2.created_at) = DATE(qris_transactions.created_at)')
+                  ->whereRaw('qt2.id <> qris_transactions.id');
+            });
+        }
+
         $transactions = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         return view('qris.transactions', compact('transactions'));
     }
