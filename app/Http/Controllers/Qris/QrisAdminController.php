@@ -390,9 +390,23 @@ class QrisAdminController extends Controller
         \Illuminate\Support\Facades\Cache::forget('gopay_mutations_api_cache');
         
         $mutations = \App\Services\QrisService::fetchGoPayMutations();
+
+        $updatedCount = 0;
+        foreach ($mutations as $m) {
+            $uuid = $m['id'] ?? null;
+            $wallstreetId = $m['wallstreet_transaction_id'] ?? null;
+
+            if ($uuid && $wallstreetId) {
+                // Update jika ada transaksi di DB yang masih memakai UUID
+                $affected = QrisTransaction::where('gopay_reference', $uuid)
+                    ->update(['gopay_reference' => $wallstreetId]);
+                $updatedCount += $affected;
+            }
+        }
         
         return response()->json([
             'count' => count($mutations),
+            'updated_db_records' => $updatedCount,
             'mutations' => $mutations
         ]);
     }
