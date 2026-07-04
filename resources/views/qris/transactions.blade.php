@@ -84,7 +84,7 @@
                                     <div class="flex items-center gap-2">
                                         <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg {{ $sus->status === 'EXPIRED' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100/50 dark:border-red-950' : 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-450 border border-yellow-100/50 dark:border-yellow-950' }}">{{ $sus->status }}</span>
                                         
-                                        <form action="{{ route('qris.settle', $sus->trx_id) }}" method="POST" class="inline m-0" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pembayaran untuk tim {{ $sus->team->name ?? \'\' }} menggunakan referensi GoPay ini?');">
+                                        <form action="{{ route('qris.settle', $sus->trx_id) }}" method="POST" class="inline m-0" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pembayaran untuk tim {{ $sus->team->name ?? "" }} menggunakan referensi GoPay ini?');">
                                             @csrf
                                             <input type="hidden" name="gopay_ref" value="{{ $anomaly['ref_id'] }}">
                                             <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[10px] px-3.5 py-2 rounded-xl transition-all shadow-sm">
