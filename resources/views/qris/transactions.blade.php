@@ -33,6 +33,13 @@
                 </a>
             @endif
         </div>
+
+        {{-- Tombol Hapus Massal --}}
+        <div id="bulk-delete-container" class="hidden">
+            <button type="button" id="btn-bulk-delete" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+            </button>
+        </div>
     </div>
 </div>
 
@@ -102,6 +109,9 @@
         <table class="w-full text-left text-sm border-collapse">
             <thead>
                 <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-450 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                    <th class="py-4 px-6" style="width: 40px;">
+                        <input type="checkbox" id="select-all-checkboxes" class="rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                    </th>
                     <th class="py-4 px-6">ID / Referensi</th>
                     <th class="py-4 px-6">Nama Tim</th>
                     <th class="py-4 px-6">Nominal</th>
@@ -113,6 +123,9 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id="transactions-table-body">
                 @forelse($transactions as $tx)
                     <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-all cursor-pointer" onclick="openDetailDrawer({{ json_encode($tx) }}, '{{ $tx->team->name ?? 'Tim Terhapus' }}', '{{ $tx->team->email ?? '-' }}', '{{ $tx->team->phone ?? '-' }}', '{{ $tx->created_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }}', '{{ $tx->expires_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }}', '{{ $tx->paid_at ? $tx->paid_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') : '-' }}', '{{ $tx->team->season->name ?? '-' }}')">
+                        <td class="py-4 px-6" onclick="event.stopPropagation()">
+                            <input type="checkbox" name="selected_ids[]" value="{{ $tx->id }}" class="transaction-checkbox rounded border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                        </td>
                         <td class="py-4 px-6 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">{{ $tx->trx_id }}</td>
                         <td class="py-4 px-6">
                             <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
@@ -175,7 +188,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="py-8 text-center text-slate-400 text-sm">
+                        <td colspan="7" class="py-8 text-center text-slate-400 text-sm">
                             Belum ada transaksi QRIS yang tercatat.
                         </td>
                     </tr>
@@ -478,6 +491,85 @@
         if (timerElements.length > 0) {
             setInterval(updateCountdown, 1000);
             updateCountdown();
+        }
+    });
+
+    // BULK DELETE SELECTION LOGIC
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectAllCheckbox = document.getElementById('select-all-checkboxes');
+        const transactionCheckboxes = document.querySelectorAll('.transaction-checkbox');
+        const bulkDeleteContainer = document.getElementById('bulk-delete-container');
+        const selectedCountSpan = document.getElementById('selected-count');
+        const btnBulkDelete = document.getElementById('btn-bulk-delete');
+
+        function updateBulkDeleteState() {
+            const checkedCheckboxes = document.querySelectorAll('.transaction-checkbox:checked');
+            const count = checkedCheckboxes.length;
+            
+            selectedCountSpan.textContent = count;
+            if (count > 0) {
+                bulkDeleteContainer.classList.remove('hidden');
+                bulkDeleteContainer.classList.add('inline-block');
+            } else {
+                bulkDeleteContainer.classList.remove('inline-block');
+                bulkDeleteContainer.classList.add('hidden');
+            }
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', () => {
+                const isChecked = selectAllCheckbox.checked;
+                transactionCheckboxes.forEach(cb => {
+                    cb.checked = isChecked;
+                });
+                updateBulkDeleteState();
+            });
+        }
+
+        transactionCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (!cb.checked) {
+                    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+                } else {
+                    const totalChecked = document.querySelectorAll('.transaction-checkbox:checked').length;
+                    if (selectAllCheckbox && totalChecked === transactionCheckboxes.length) {
+                        selectAllCheckbox.checked = true;
+                    }
+                }
+                updateBulkDeleteState();
+            });
+        });
+
+        if (btnBulkDelete) {
+            btnBulkDelete.addEventListener('click', () => {
+                const checkedCheckboxes = document.querySelectorAll('.transaction-checkbox:checked');
+                const selectedIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+                if (selectedIds.length === 0) return;
+
+                if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} transaksi terpilih dari database?`)) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{{ route('qris.delete-bulk') }}";
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = "{{ csrf_token() }}";
+                    form.appendChild(csrfInput);
+
+                    selectedIds.forEach(id => {
+                        const idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = 'ids[]';
+                        idInput.value = id;
+                        form.appendChild(idInput);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
         }
     });
 </script>

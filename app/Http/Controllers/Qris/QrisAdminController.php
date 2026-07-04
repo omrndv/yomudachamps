@@ -355,4 +355,19 @@ class QrisAdminController extends Controller
             return back()->with('error', 'Gagal sinkronisasi: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Menghapus transaksi terpilih secara massal
+     */
+    public function deleteBulkTransactions(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih minimal satu transaksi untuk dihapus.');
+        }
+
+        QrisTransaction::whereIn('id', $ids)->delete();
+
+        return back()->with('success', count($ids) . ' transaksi berhasil dihapus sekaligus!');
+    }
 }
