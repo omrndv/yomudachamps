@@ -2455,6 +2455,7 @@ function pollAdminMatchReports() {
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
+                        showCloseButton: true,
                         timer: 5000,
                         timerProgressBar: true
                     });
@@ -2495,6 +2496,7 @@ function fetchAdminChatThreads() {
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
+                        showCloseButton: true,
                         timer: 5000,
                         timerProgressBar: true
                     });

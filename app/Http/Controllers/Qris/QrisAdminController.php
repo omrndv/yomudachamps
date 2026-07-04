@@ -125,7 +125,45 @@ class QrisAdminController extends Controller
         }
 
         $transactions = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-        return view('qris.transactions', compact('transactions'));
+
+        // Cari mutasi GoPay tak teridentifikasi (Anomali / Double Pay / Expired QRIS)
+        $anomalies = [];
+        try {
+            $mutations = \App\Services\QrisService::fetchGoPayMutations();
+            if (!empty($mutations)) {
+                $dbReferences = QrisTransaction::whereNotNull('gopay_reference')
+                    ->pluck('gopay_reference')
+                    ->toArray();
+
+                foreach ($mutations as $m) {
+                    $refId = $m['id'] ?? $m['transaction_id'] ?? null;
+                    $status = strtoupper($m['transaction_status'] ?? $m['status'] ?? '');
+
+                    if ($refId && !in_array($refId, $dbReferences) && in_array($status, ['SETTLEMENT', 'CAPTURE', 'PAID', 'SUCCESS'])) {
+                        $rawAmount = $m['gross_amount'] ?? $m['amount'] ?? 0;
+                        $amount = (int) ($rawAmount / 100);
+
+                        // Cari transaksi mencurigakan (suspects) dengan nominal yang sama
+                        $suspects = QrisTransaction::with('team.season')
+                            ->where('amount', $amount)
+                            ->latest()
+                            ->take(3)
+                            ->get();
+
+                        $anomalies[] = [
+                            'ref_id' => $refId,
+                            'amount' => $amount,
+                            'time' => $m['created_at'] ?? $m['time'] ?? now(),
+                            'suspects' => $suspects
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Abaikan jika koneksi/API GoPay bermasalah
+        }
+
+        return view('qris.transactions', compact('transactions', 'anomalies'));
     }
 
     public function settings()
@@ -285,10 +323,11 @@ class QrisAdminController extends Controller
         $team->save();
 
         // Update status transaksi QRIS
+        $gopayRef = request('gopay_ref') ?: 'MANUAL_SETTLE_' . strtoupper(Str::random(10));
         $qrisTx->update([
             'status' => 'PAID',
             'paid_at' => now(),
-            'gopay_reference' => 'MANUAL_SETTLE_' . strtoupper(Str::random(10))
+            'gopay_reference' => $gopayRef
         ]);
 
         return back()->with('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
