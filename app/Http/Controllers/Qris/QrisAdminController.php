@@ -153,19 +153,22 @@ class QrisAdminController extends Controller
                         $rawAmount = $m['gross_amount'] ?? $m['amount'] ?? 0;
                         $amount = (int) ($rawAmount / 100);
 
-                        // Cari transaksi mencurigakan (suspects) dengan nominal yang sama
+                        // Cari transaksi mencurigakan (suspects) dengan nominal yang sama yang belum PAID
                         $suspects = QrisTransaction::with('team.season')
                             ->where('amount', $amount)
+                            ->where('status', '!=', 'PAID')
                             ->latest()
                             ->take(3)
                             ->get();
 
-                        $anomalies[] = [
-                            'ref_id' => $refId,
-                            'amount' => $amount,
-                            'time' => $m['created_at'] ?? $m['time'] ?? now(),
-                            'suspects' => $suspects
-                        ];
+                        if ($suspects->isNotEmpty()) {
+                            $anomalies[] = [
+                                'ref_id' => $refId,
+                                'amount' => $amount,
+                                'time' => $m['created_at'] ?? $m['time'] ?? now(),
+                                'suspects' => $suspects
+                            ];
+                        }
                     }
                 }
             }

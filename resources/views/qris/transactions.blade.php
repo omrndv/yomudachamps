@@ -44,58 +44,56 @@
 </div>
 
 @if(!empty($anomalies))
-    <div class="mb-6 bg-red-50/70 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-3xl p-5 shadow-sm">
-        <div class="flex items-center gap-3 mb-3 text-red-600 dark:text-red-400">
-            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-            <h4 class="font-bold text-sm uppercase tracking-wide">Peringatan: Mutasi GoPay Tidak Teridentifikasi (Potensi Double Pay / Expired QRIS)</h4>
+    <div class="mb-6 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-3xl p-5 shadow-sm animate-fade-in">
+        <div class="flex items-center gap-3 mb-2 text-amber-800 dark:text-amber-400">
+            <i data-lucide="help-circle" class="w-6 h-6 shrink-0"></i>
+            <h4 class="font-extrabold text-sm uppercase tracking-wide">Dana Masuk Belum Terverifikasi (Butuh Validasi Admin)</h4>
         </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-            Kami mendeteksi adanya dana masuk di GoPay yang tidak tercatat sebagai transaksi sukses di website. Kemungkinan peserta membayar setelah QRIS kedaluwarsa atau membayar 2x. Silakan pilih tim terduga di bawah untuk menyelesaikan secara manual.
+        <p class="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+            Sistem mendeteksi adanya dana yang telah ditransfer oleh peserta ke GoPay Anda, namun pendaftaran mereka di website **masih berstatus PENDING / EXPIRED (Kedaluwarsa)**. 
+            Hal ini biasanya terjadi karena peserta membayar terlambat setelah batas waktu habis, atau tidak sengaja membayar 2x. 
+            Silakan klik tombol <strong class="text-amber-800 dark:text-amber-400">"Setujui Pembayaran (PAID)"</strong> di bawah untuk mengesahkan pendaftaran tim tersebut secara manual menggunakan referensi mutasi GoPay tersebut.
         </p>
         
         <div class="space-y-3">
             @foreach($anomalies as $anomaly)
-                <div class="bg-white dark:bg-slate-900 border border-red-100 dark:border-red-950/40 p-4 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="bg-white dark:bg-slate-900 border border-amber-100 dark:border-amber-950/50 p-4 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
                     <div class="flex-1">
-                        <div class="flex items-center flex-wrap gap-2 mb-1.5">
-                            <span class="px-3 py-1 text-xs font-extrabold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 rounded-xl">Rp {{ number_format($anomaly['amount'], 0, ',', '.') }}</span>
-                            <span class="text-xs font-mono text-slate-450 dark:text-slate-500 font-semibold">Ref ID: {{ $anomaly['ref_id'] }}</span>
+                        <div class="flex items-center flex-wrap gap-2.5 mb-1.5">
+                            <span class="px-2.5 py-1 text-xs font-black bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 rounded-xl">Rp {{ number_format($anomaly['amount'], 0, ',', '.') }}</span>
+                            <span class="text-xs font-mono text-slate-500 dark:text-slate-450 font-bold">No. Ref GoPay: {{ $anomaly['ref_id'] }}</span>
                         </div>
-                        <div class="text-[11px] text-slate-450 font-medium">
-                            Waktu Mutasi: {{ \Carbon\Carbon::parse($anomaly['time'])->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s') }} WIB
+                        <div class="text-[11px] text-slate-400 font-medium">
+                            Diterima pada: {{ \Carbon\Carbon::parse($anomaly['time'])->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
                         </div>
                     </div>
                     
                     <div class="flex-1 max-w-xl w-full">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-2 block">Tim Terduga Berdasarkan Nominal:</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-2 block">Tim Yang Memiliki Nominal Tagihan Sama:</span>
                         <div class="space-y-2">
-                            @forelse($anomaly['suspects'] as $sus)
-                                <div class="flex items-center justify-between text-xs p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                            @foreach($anomaly['suspects'] as $sus)
+                                <div class="flex items-center justify-between text-xs p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800/80">
                                     <div>
                                         <div class="font-bold text-slate-700 dark:text-slate-200">
                                             {{ $sus->team->name ?? 'Tim Terhapus' }}
                                         </div>
                                         <div class="text-[10px] text-slate-400">
-                                            Season: {{ $sus->team->season->name ?? '-' }} | Dibuat: {{ $sus->created_at->setTimezone('Asia/Jakarta')->format('d M, H:i') }} WIB
+                                            {{ $sus->team->season->name ?? '-' }} | Dibuat: {{ $sus->created_at->setTimezone('Asia/Jakarta')->format('d M, H:i') }} WIB
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $sus->status === 'EXPIRED' ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400' }}">{{ $sus->status }}</span>
+                                        <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg {{ $sus->status === 'EXPIRED' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100/50 dark:border-red-950' : 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-450 border border-yellow-100/50 dark:border-yellow-950' }}">{{ $sus->status }}</span>
                                         
-                                        <form action="{{ route('qris.settle', $sus->trx_id) }}" method="POST" class="inline m-0">
+                                        <form action="{{ route('qris.settle', $sus->trx_id) }}" method="POST" class="inline m-0" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pembayaran untuk tim {{ $sus->team->name ?? \'\' }} menggunakan referensi GoPay ini?');">
                                             @csrf
                                             <input type="hidden" name="gopay_ref" value="{{ $anomaly['ref_id'] }}">
-                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm">
-                                                Selesaikan (PAID)
+                                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[10px] px-3.5 py-2 rounded-xl transition-all shadow-sm">
+                                                Setujui Pembayaran (PAID)
                                             </button>
                                         </form>
                                     </div>
                                 </div>
-                            @empty
-                                <div class="text-xs text-slate-400 dark:text-slate-500 italic p-2 border border-dashed rounded-xl text-center">
-                                    Tidak ada transaksi terdaftar dengan nominal persis Rp {{ number_format($anomaly['amount'], 0, ',', '.') }}
-                                </div>
-                            @endforelse
+                            @endforeach
                         </div>
                     </div>
                 </div>
