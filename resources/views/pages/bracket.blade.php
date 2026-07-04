@@ -1180,14 +1180,12 @@
         });
     }
 
-    // Panggil langsung jika DOM sudah siap, atau tunggu event
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initBracketSearch);
-    } else {
-        initBracketSearch();
-    }
+    // Inisialisasi search dengan multi-event fallback agar 100% aman di semua browser/kondisi load
+    document.addEventListener('DOMContentLoaded', initBracketSearch);
+    window.addEventListener('load', initBracketSearch);
+    initBracketSearch();
 
-
+    document.addEventListener('DOMContentLoaded', function() {
         headerBar = document.getElementById('roundHeadersBar');
         container = document.getElementById('bracketContainer');
 
