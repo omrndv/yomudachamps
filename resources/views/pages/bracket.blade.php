@@ -1351,44 +1351,46 @@
                             }
                         });
 
-                        // Rebuild search engine matchesData index in real-time
-                        for (const key in matchesData) {
-                            delete matchesData[key];
-                        }
+                        // Rebuild search engine matchesData index in real-time as an array
+                        matchesData.length = 0;
                         res.matches.forEach(b => {
                             const roundName = getRoundName(b.round_number);
+                            const scheduleStr = b.match_time || '20:00 WIB';
                             if (b.team1_name && b.team2_name) {
-                                matchesData[b.team1_name.toLowerCase()] = {
+                                matchesData.push({
+                                    teamKey: b.team1_name.toLowerCase(),
                                     name: b.team1_name,
                                     opponent: b.team2_name,
                                     opponentWA: b.team2_wa || '-',
-                                    schedule: b.match_time || '20:00 WIB',
+                                    schedule: scheduleStr,
                                     bracket: "Bracket " + b.match_number,
                                     round: roundName,
                                     status: b.winner_id === b.team1_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                };
-                                matchesData[b.team2_name.toLowerCase()] = {
+                                });
+                                matchesData.push({
+                                    teamKey: b.team2_name.toLowerCase(),
                                     name: b.team2_name,
                                     opponent: b.team1_name,
                                     opponentWA: b.team1_wa || '-',
-                                    schedule: b.match_time || '20:00 WIB',
+                                    schedule: scheduleStr,
                                     bracket: "Bracket " + b.match_number,
                                     round: roundName,
                                     status: b.winner_id === b.team2_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                };
+                                });
                             } else if (b.team1_name && !b.team2_name && b.round_number === 1) {
-                                matchesData[b.team1_name.toLowerCase()] = {
+                                matchesData.push({
+                                    teamKey: b.team1_name.toLowerCase(),
                                     name: b.team1_name,
                                     opponent: "Lolos (BYE)",
                                     opponentWA: "-",
-                                    schedule: b.match_time || '20:00 WIB',
+                                    schedule: scheduleStr,
                                     bracket: "Bracket " + b.match_number,
                                     round: roundName,
                                     status: "Lolos",
                                     cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                };
+                                });
                             }
                         });
                     }
