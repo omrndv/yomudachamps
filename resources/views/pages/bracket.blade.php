@@ -1012,7 +1012,180 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // -----------------------------------------------------------------------
+    // matchesData: global, diinisialisasi langsung tanpa menunggu DOMContentLoaded
+    // agar search selalu tersedia sejak pertama kali halaman dibuka
+    // -----------------------------------------------------------------------
+    const matchesData = [
+        @foreach($brackets as $b)
+            @if($b->team1_id && $b->team2_id)
+                @php
+                    $tr2 = count($rounds);
+                    if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
+                    elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
+                    else { $rLabel = 'Babak ' . $b->round_number; }
+                    $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                    $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                    $scheduleStr = $b->match_time ?? '20:00 WIB';
+                @endphp
+                {
+                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
+                    name: {{ Js::from($b->team1->name ?? '') }},
+                    opponent: {{ Js::from($b->team2->name ?? '') }},
+                    opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
+                    schedule: {{ Js::from($scheduleStr) }},
+                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    round: {{ Js::from($rLabel) }},
+                    status: {{ Js::from($status1) }},
+                    cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
+                },
+                {
+                    teamKey: {{ Js::from(mb_strtolower($b->team2->name ?? '')) }},
+                    name: {{ Js::from($b->team2->name ?? '') }},
+                    opponent: {{ Js::from($b->team1->name ?? '') }},
+                    opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
+                    schedule: {{ Js::from($scheduleStr) }},
+                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    round: {{ Js::from($rLabel) }},
+                    status: {{ Js::from($status2) }},
+                    cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
+                },
+            @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
+                @php
+                    $scheduleStr = $b->match_time ?? '20:00 WIB';
+                @endphp
+                {
+                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
+                    name: {{ Js::from($b->team1->name ?? '') }},
+                    opponent: "Lolos (BYE)",
+                    opponentWA: "-",
+                    schedule: {{ Js::from($scheduleStr) }},
+                    bracket: {{ Js::from('Bracket ' . $b->match_number) }},
+                    round: "Babak 1",
+                    status: "Lolos",
+                    cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
+                },
+            @endif
+        @endforeach
+    ];
+
+    // -----------------------------------------------------------------------
+    // Search Engine: inisialisasi robust tanpa bergantung pada timing
+    // -----------------------------------------------------------------------
+    let _searchInitialized = false;
+    function initBracketSearch() {
+        if (_searchInitialized) return;
+        const searchInput = document.getElementById('teamSearchInput');
+        const resultCard = document.getElementById('searchResultCard');
+        const searchIconBtn = document.getElementById('searchIconBtn');
+        const searchClearBtn = document.getElementById('searchClearBtn');
+        if (!searchInput || !resultCard) return;
+        _searchInitialized = true;
+
+        function runSearch(query) {
+            query = (query || '').toLowerCase().trim();
+            document.querySelectorAll('.match-card').forEach(c => c.classList.remove('focus-glow'));
+            const resultList = document.getElementById('searchResultList');
+            if (!resultList) return;
+            resultList.innerHTML = '';
+
+            if (!query) {
+                resultCard.style.display = 'none';
+                if (searchClearBtn) searchClearBtn.style.display = 'none';
+                return;
+            }
+            if (searchClearBtn) searchClearBtn.style.display = 'block';
+
+            const matched = matchesData.filter(m => m.teamKey.includes(query));
+
+            if (matched.length > 0) {
+                resultCard.style.display = 'block';
+                matched.forEach((matchData, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item pb-3 mb-3';
+                    if (index < matched.length - 1) {
+                        item.classList.add('border-bottom', 'border-secondary', 'border-opacity-25');
+                    }
+                    let statusBadgeClass = 'badge bg-warning text-dark rounded-pill px-2.5 py-0.5';
+                    if (matchData.status === 'Lolos') {
+                        statusBadgeClass = 'badge bg-success text-white rounded-pill px-2.5 py-0.5';
+                    } else if (matchData.status === 'Kalah') {
+                        statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2.5 py-0.5';
+                    }
+                    let scheduleClean = matchData.schedule;
+                    if (scheduleClean.includes(',')) {
+                        const parts = scheduleClean.split(',');
+                        scheduleClean = parts[parts.length - 1].trim();
+                    }
+                    let waButtonHtml = '';
+                    if (matchData.opponentWA && matchData.opponentWA !== '-') {
+                        const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
+                        waButtonHtml = `<a href="https://wa.me/${numericWA}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
+                    }
+                    const escName = matchData.name.replace(/"/g, '&quot;');
+                    const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
+                    const escSchedule = scheduleClean.replace(/"/g, '&quot;');
+                    const escRound = matchData.round.replace(/"/g, '&quot;');
+                    const escBracket = matchData.bracket.replace(/"/g, '&quot;');
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center pb-1.5 mb-2">
+                            <strong class="text-warning" style="font-size: 0.85rem;">${matchData.name}</strong>
+                            <span class="${statusBadgeClass}" style="font-size: 0.6rem;">${matchData.status}</span>
+                        </div>
+                        <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.72rem;">
+                            <div class="col-6">Team Musuh: <strong class="text-white">${matchData.opponent}</strong></div>
+                            <div class="col-6">Nomer WA Musuh: <strong class="text-warning">${matchData.opponentWA}</strong></div>
+                            <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
+                            <div class="col-6">Babak: <strong class="text-white">${matchData.round}</strong></div>
+                            <div class="col-6">Bracket: <strong class="text-white">${matchData.bracket}</strong></div>
+                        </div>
+                        <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
+                            ${waButtonHtml}
+                            <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button>
+                        </div>
+                    `;
+                    resultList.appendChild(item);
+                });
+                if (matched[0]) window._activeFocusedCardId = matched[0].cardId;
+            } else {
+                resultCard.style.display = 'block';
+                resultList.innerHTML = `<div class="text-center py-3 text-secondary"><i class="bi bi-exclamation-circle fs-3 mb-2 d-block"></i><p class="small mb-0">Tim tidak ditemukan. Cek ejaan nama tim Anda.</p></div>`;
+                window._activeFocusedCardId = null;
+            }
+        }
+
+        searchInput.addEventListener('input', function() { runSearch(this.value); });
+        if (searchIconBtn) searchIconBtn.addEventListener('click', function() {
+            if (typeof window.focusBracketCard === 'function' && window._activeFocusedCardId) {
+                window.focusBracketCard(window._activeFocusedCardId);
+            }
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof window.focusBracketCard === 'function' && window._activeFocusedCardId) {
+                    window.focusBracketCard(window._activeFocusedCardId);
+                }
+                searchInput.blur();
+            }
+        });
+        if (searchClearBtn) searchClearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resultCard.style.display = 'none';
+            searchClearBtn.style.display = 'none';
+            document.querySelectorAll('.match-card').forEach(c => c.classList.remove('focus-glow'));
+        });
+    }
+
+    // Panggil langsung jika DOM sudah siap, atau tunggu event
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBracketSearch);
+    } else {
+        initBracketSearch();
+    }
+
+
         const headerBar = document.getElementById('roundHeadersBar');
         const container = document.getElementById('bracketContainer');
 
@@ -1078,96 +1251,22 @@
             });
         });
 
-        // Search engine database generated dynamically by Blade as an array to handle multiple results (double slot)
-        const matchesData = [
-            @foreach($brackets as $b)
-                @if($b->team1_id && $b->team2_id)
-                    @php
-                        $tr2 = count($rounds);
-                        if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
-                        elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
-                        else { $rLabel = 'Babak ' . $b->round_number; }
-                        $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                        $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                        $scheduleStr = $b->match_time ?? '20:00 WIB';
-                    @endphp
-                    {
-                        teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
-                        name: {{ Js::from($b->team1->name ?? '') }},
-                        opponent: {{ Js::from($b->team2->name ?? '') }},
-                        opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
-                        schedule: {{ Js::from($scheduleStr) }},
-                        bracket: {{ Js::from('Bracket ' . $b->match_number) }},
-                        round: {{ Js::from($rLabel) }},
-                        status: {{ Js::from($status1) }},
-                        cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
-                    },
-                    {
-                        teamKey: {{ Js::from(mb_strtolower($b->team2->name ?? '')) }},
-                        name: {{ Js::from($b->team2->name ?? '') }},
-                        opponent: {{ Js::from($b->team1->name ?? '') }},
-                        opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
-                        schedule: {{ Js::from($scheduleStr) }},
-                        bracket: {{ Js::from('Bracket ' . $b->match_number) }},
-                        round: {{ Js::from($rLabel) }},
-                        status: {{ Js::from($status2) }},
-                        cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
-                    },
-                @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
-                    @php
-                        $scheduleStr = $b->match_time ?? '20:00 WIB';
-                    @endphp
-                    {
-                        teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
-                        name: {{ Js::from($b->team1->name ?? '') }},
-                        opponent: "Lolos (BYE)",
-                        opponentWA: "-",
-                        schedule: {{ Js::from($scheduleStr) }},
-                        bracket: {{ Js::from('Bracket ' . $b->match_number) }},
-                        round: "Babak 1",
-                        status: "Lolos",
-                        cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
-                    },
-                @endif
-            @endforeach
-        ];
-
-        const searchInput = document.getElementById('teamSearchInput');
-        const resultCard = document.getElementById('searchResultCard');
-        const searchIconBtn = document.getElementById('searchIconBtn');
-        const searchClearBtn = document.getElementById('searchClearBtn');
-        let activeFocusedCardId = null;
-
-        function performFocusScroll() {
-            if (!activeFocusedCardId) return;
-            if (!container) return;
-
-            const cardElement = document.getElementById(activeFocusedCardId);
-            if (!cardElement) return;
-
-            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
-            cardElement.classList.add('focus-glow');
-
-            const containerRect = container.getBoundingClientRect();
-            const cardRect = cardElement.getBoundingClientRect();
-            
-            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
-            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
-
-            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
-            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
-
-            container.scrollTo({
-                left: targetScrollLeft,
-                top: targetScrollTop,
-                behavior: 'smooth'
-            });
-        }
 
         // Global functions called from search result action buttons
         window.focusBracketCard = function(cardId) {
-            activeFocusedCardId = cardId;
-            performFocusScroll();
+            window._activeFocusedCardId = cardId;
+            if (!cardId || !container) return;
+            const cardElement = document.getElementById(cardId);
+            if (!cardElement) return;
+            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
+            cardElement.classList.add('focus-glow');
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = cardElement.getBoundingClientRect();
+            const relativeLeft = cardRect.left - containerRect.left + container.scrollLeft;
+            const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (cardRect.width / 2);
+            const relativeTop = cardRect.top - containerRect.top + container.scrollTop;
+            const targetScrollTop = relativeTop - (containerRect.height / 2) + (cardRect.height / 2);
+            container.scrollTo({ left: targetScrollLeft, top: targetScrollTop, behavior: 'smooth' });
         };
 
         window.shareMatchdayDirect = function(teamName, opponentName, schedule, round, bracket) {
@@ -1175,132 +1274,6 @@
                 triggerShareMatchday(teamName, opponentName, schedule, round, bracket);
             }
         };
-
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
-
-            const resultList = document.getElementById('searchResultList');
-            if (!resultList) return;
-            resultList.innerHTML = '';
-
-            if (!query) {
-                resultCard.style.display = 'none';
-                searchClearBtn.style.display = 'none';
-                return;
-            }
-
-            searchClearBtn.style.display = 'block';
-
-            // Filter all matches that include query
-            const matched = matchesData.filter(m => m.teamKey.includes(query));
-
-            if (matched.length > 0) {
-                resultCard.style.display = 'block';
-                
-                matched.forEach((matchData, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'search-result-item pb-3 mb-3';
-                    if (index < matched.length - 1) {
-                        item.classList.add('border-bottom', 'border-secondary', 'border-opacity-25');
-                    }
-                    
-                    let statusBadgeClass = 'badge bg-warning text-dark rounded-pill px-2.5 py-0.5';
-                    if (matchData.status === 'Lolos') {
-                        statusBadgeClass = 'badge bg-success text-white rounded-pill px-2.5 py-0.5';
-                    } else if (matchData.status === 'Kalah') {
-                        statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2.5 py-0.5';
-                    }
-                    
-                    let scheduleClean = matchData.schedule;
-                    if (scheduleClean.includes(',')) {
-                        const parts = scheduleClean.split(',');
-                        scheduleClean = parts[parts.length - 1].trim();
-                    }
-                    
-                    let waButtonHtml = '';
-                    if (matchData.opponentWA && matchData.opponentWA !== '-') {
-                        const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
-                        waButtonHtml = `
-                            <a href="https://wa.me/${numericWA}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none">
-                                <i class="bi bi-whatsapp"></i> Hubungi Musuh
-                            </a>
-                        `;
-                    }
-
-                    // Format data as a clean string for HTML attribute
-                    const escName = matchData.name.replace(/"/g, '&quot;');
-                    const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
-                    const escSchedule = scheduleClean.replace(/"/g, '&quot;');
-                    const escRound = matchData.round.replace(/"/g, '&quot;');
-                    const escBracket = matchData.bracket.replace(/"/g, '&quot;');
-                    
-                    item.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center pb-1.5 mb-2">
-                            <strong class="text-warning" style="font-size: 0.85rem;">${matchData.name}</strong>
-                            <span class="${statusBadgeClass}" style="font-size: 0.6rem;">${matchData.status}</span>
-                        </div>
-                        <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.72rem;">
-                            <div class="col-6">Team Musuh: <strong class="text-white">${matchData.opponent}</strong></div>
-                            <div class="col-6">Nomer WA Musuh: <strong class="text-warning">${matchData.opponentWA}</strong></div>
-                            <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
-                            <div class="col-6">Babak: <strong class="text-white">${matchData.round}</strong></div>
-                            <div class="col-6">Bracket: <strong class="text-white">${matchData.bracket}</strong></div>
-                        </div>
-                        <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
-                            ${waButtonHtml}
-                            <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">
-                                Fokuskan ke Bagan
-                            </button>
-                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;">
-                                <i class="bi bi-download"></i> Share
-                            </button>
-                        </div>
-                    `;
-                    resultList.appendChild(item);
-                });
-                
-                // Keep track of the first matched card for focus button outside
-                if (matched[0]) {
-                    activeFocusedCardId = matched[0].cardId;
-                }
-            } else {
-                resultCard.style.display = 'block';
-                resultList.innerHTML = `
-                    <div class="text-center py-3 text-secondary">
-                        <i class="bi bi-exclamation-circle fs-3 mb-2 d-block"></i>
-                        <p class="small mb-0">Tim tidak ditemukan. Cek ejaan nama tim Anda.</p>
-                    </div>
-                `;
-                activeFocusedCardId = null;
-            }
-        });
-
-        searchIconBtn.addEventListener('click', function() {
-            performFocusScroll();
-        });
-
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                performFocusScroll();
-                searchInput.blur();
-            }
-        });
-
-        searchClearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            resultCard.style.display = 'none';
-            searchClearBtn.style.display = 'none';
-            document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
-        });
-
-        const btnFocus = document.getElementById('btnFocus');
-        if (btnFocus) {
-            btnFocus.addEventListener('click', function() {
-                performFocusScroll();
-            });
-        }
 
         // ----------------------------------------------------
         // ----------------------------------------------------
