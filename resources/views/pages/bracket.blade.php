@@ -747,6 +747,9 @@
                 <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 12px; color: #000; border: none;">
                     <i class="bi bi-trophy-fill"></i> Lapor Skor
                 </button>
+                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 12px; border-color: rgba(255, 122, 0, 0.4); color: var(--accent-orange); background-color: rgba(255, 122, 0, 0.05);">
+                    <i class="bi bi-info-circle-fill"></i> Panduan
+                </button>
             </div>
             <div class="text-end">
                 <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
@@ -767,49 +770,6 @@
             {{-- Result Panel --}}
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
                 <div id="searchResultList"></div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Tournament Guide & Information Alert --}}
-    <div class="container my-3 px-3">
-        <div class="card border-0 rounded-4 shadow-lg" style="background-color: #121214; border: 1.5px solid rgba(255, 122, 0, 0.15) !important;">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-2 mb-3 text-warning border-bottom border-secondary border-opacity-10 pb-2">
-                    <i class="bi bi-info-circle-fill fs-5"></i>
-                    <strong class="text-white small text-uppercase" style="letter-spacing: 0.8px; font-size: 0.78rem;">PANDUAN BERMAIN & LAPOR SKOR</strong>
-                </div>
-                <div class="d-flex flex-column gap-3 text-start">
-                    <div class="d-flex align-items-start gap-2.5">
-                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                            <i class="bi bi-search" style="font-size: 0.85rem;"></i>
-                        </div>
-                        <div>
-                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">1. Cari Lawan & Kontak Kapten</span>
-                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Ketik nama tim Anda pada kolom pencarian di atas untuk melihat lawan tanding, jam main, serta tombol pintasan WhatsApp Kapten lawan.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex align-items-start gap-2.5">
-                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                            <i class="bi bi-trophy-fill" style="font-size: 0.85rem;"></i>
-                        </div>
-                        <div>
-                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">2. Laporkan Hasil Pertandingan</span>
-                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Setelah tanding selesai, klik tombol <span class="text-warning fw-bold">Lapor Skor</span> di kanan atas, verifikasi dengan WA Kapten, masukkan skor akhir, & unggah screenshot bukti kemenangan.</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-start gap-2.5">
-                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                            <i class="bi bi-chat-left-text-fill" style="font-size: 0.85rem;"></i>
-                        </div>
-                        <div>
-                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">3. Butuh Bantuan Panitia?</span>
-                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Jika mengalami kendala (lawan tidak hadir, kendala room, dsb), klik tombol obrolan di pojok kanan bawah untuk langsung terhubung dengan admin via Live Chat.</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -960,6 +920,58 @@
                 @endif
             </div>
         @endforeach
+    </div>
+
+    <!-- ---------------------------------------------------------------------- -->
+    <!-- Modal Panduan Bermain & Lapor Skor -->
+    <!-- ---------------------------------------------------------------------- -->
+    <div class="modal fade" id="modalGuideInfo" tabindex="-1" aria-labelledby="modalGuideInfoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,122,0,0.25); border-radius: 20px; color: #fff;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-white" id="modalGuideInfoLabel">
+                        <i class="bi bi-info-circle-fill text-warning me-2"></i> Panduan Turnamen
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-start">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-2.5">
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                                <i class="bi bi-search" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">1. Cari Lawan & Kontak Kapten</span>
+                                <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Ketik nama tim Anda pada kolom pencarian di atas untuk melihat lawan tanding, jam main, serta tombol pintasan WhatsApp Kapten lawan.</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-start gap-2.5">
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                                <i class="bi bi-trophy-fill" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">2. Laporkan Hasil Pertandingan</span>
+                                <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Setelah tanding selesai, klik tombol <span class="text-warning fw-bold">Lapor Skor</span> di kanan atas, verifikasi dengan WA Kapten, masukkan skor akhir, & unggah screenshot bukti kemenangan.</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-2.5">
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                                <i class="bi bi-chat-left-text-fill" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">3. Butuh Bantuan Panitia?</span>
+                                <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Jika mengalami kendala (lawan tidak hadir, kendala room, dsb), klik tombol obrolan di pojok kanan bawah untuk langsung terhubung dengan admin via Live Chat.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-outline-warning w-100 rounded-pill fw-bold text-white" style="border-color: rgba(255,122,0,0.4);" data-bs-dismiss="modal">Saya Mengerti</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ---------------------------------------------------------------------- -->
