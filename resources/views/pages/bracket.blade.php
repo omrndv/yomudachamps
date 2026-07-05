@@ -937,31 +937,31 @@
                 <div class="modal-body p-4 text-start">
                     <div class="d-flex flex-column gap-3">
                         <div class="d-flex align-items-start gap-2.5">
-                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                                <i class="bi bi-search" style="font-size: 0.85rem;"></i>
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3 fw-bold" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
+                                1
                             </div>
                             <div>
-                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">1. Cari Lawan & Kontak Kapten</span>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">Cari Lawan & Kontak Kapten</span>
                                 <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Ketik nama tim Anda pada kolom pencarian di atas untuk melihat lawan tanding, jam main, serta tombol pintasan WhatsApp Kapten lawan.</span>
                             </div>
                         </div>
                         
                         <div class="d-flex align-items-start gap-2.5">
-                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                                <i class="bi bi-trophy-fill" style="font-size: 0.85rem;"></i>
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3 fw-bold" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
+                                2
                             </div>
                             <div>
-                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">2. Laporkan Hasil Pertandingan</span>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">Laporkan Hasil Pertandingan</span>
                                 <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Setelah tanding selesai, klik tombol <span class="text-warning fw-bold">Lapor Skor</span> di kanan atas, verifikasi dengan WA Kapten, masukkan skor akhir, & unggah screenshot bukti kemenangan.</span>
                             </div>
                         </div>
 
                         <div class="d-flex align-items-start gap-2.5">
-                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
-                                <i class="bi bi-chat-left-text-fill" style="font-size: 0.85rem;"></i>
+                            <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
+                                3
                             </div>
                             <div>
-                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">3. Butuh Bantuan Panitia?</span>
+                                <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">Butuh Bantuan Panitia?</span>
                                 <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Jika mengalami kendala (lawan tidak hadir, kendala room, dsb), klik tombol obrolan di pojok kanan bawah untuk langsung terhubung dengan admin via Live Chat.</span>
                             </div>
                         </div>
