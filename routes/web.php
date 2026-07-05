@@ -352,6 +352,8 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/transactions', [\App\Http\Controllers\Qris\QrisAdminController::class, 'transactions'])->name('transactions');
         Route::get('/settings', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settings'])->name('settings');
+        Route::get('/logs', [\App\Http\Controllers\Qris\QrisAdminController::class, 'logs'])->name('logs');
+        Route::match(['get', 'post'], '/quick-checkout', [\App\Http\Controllers\Qris\QrisAdminController::class, 'quickCheckout'])->name('quick-checkout');
         Route::get('/test-poll', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testPoll'])->name('test-poll');
         Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');

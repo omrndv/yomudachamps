@@ -271,7 +271,44 @@ class HomeController extends Controller
 
     public function paymentDetail($trx_id)
     {
-        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+        $team = Team::with('season')->where('trx_id', $trx_id)->first();
+        if (!$team && str_starts_with($trx_id, 'QUICK-')) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->latest()->firstOrFail();
+            
+            $detail = (object)[
+                'amount' => $qrisTx->amount,
+                'payment_method' => 'QRIS (GOPAY)',
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? ''),
+                'reference' => 'YMD-GOPAY-' . ($qrisTx->id ?? ''),
+                'expired_time' => $qrisTx->expires_at->timestamp,
+                'instructions' => [
+                    (object)[
+                        'title' => 'Cara Pembayaran QRIS',
+                        'steps' => [
+                            'Buka aplikasi perbankan (BCA, BNI, dll) atau e-wallet (GoPay, OVO, Dana, ShopeePay).',
+                            'Pilih menu Scan QRIS dan arahkan kamera ke gambar QR Code di atas.',
+                            'Pastikan nama merchant adalah Yomuda Champs.',
+                            'Ketik nominal <b>Rp ' . number_format($qrisTx->amount, 0, ',', '.') . '</b> secara manual dan pastikan sesuai.',
+                            'Selesaikan pembayaran.',
+                            'Tunggu beberapa detik dan refresh halaman jika status tidak otomatis berubah.'
+                        ]
+                    ]
+                ],
+                'is_gopay_qris' => true
+            ];
+            
+            $team = (object)[
+                'name' => 'Quick Checkout / QRIS Bebas',
+                'trx_id' => $trx_id,
+                'status' => $qrisTx->status,
+                'season' => (object)['name' => 'Merchandise & Lainnya']
+            ];
+            return view('payment_detail_tripay', compact('team', 'detail'));
+        }
+
+        if (!$team) {
+            abort(404);
+        }
 
         if ($team->status === 'PAID') {
             return redirect()->route('payment.success', $team->trx_id);
@@ -336,9 +373,18 @@ class HomeController extends Controller
 
     public function successPage($trx_id)
     {
-        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
-        if ($team->status !== 'PAID') {
-            return redirect()->route('payment.detail', $team->trx_id);
+        $team = Team::with('season')->where('trx_id', $trx_id)->first();
+        if (!$team && str_starts_with($trx_id, 'QUICK-')) {
+            $team = (object)[
+                'name' => 'Quick Checkout / QRIS Bebas',
+                'trx_id' => $trx_id,
+                'status' => 'PAID',
+                'season' => (object)['name' => 'Merchandise & Lainnya', 'wa_link' => '']
+            ];
+            return view('success', compact('team'));
+        }
+        if (!$team) {
+            abort(404);
         }
         return view('success', compact('team'));
     }

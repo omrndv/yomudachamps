@@ -145,6 +145,10 @@
                             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Laporan & Export</span>
                         </a>
+                        <a href="{{ route('qris.quick-checkout') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.quick-checkout') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <i data-lucide="link" class="w-5 h-5"></i>
+                            <span class="sidebar-brand-text">Quick Checkout (Bebas)</span>
+                        </a>
                     </div>
                 </div>
 
@@ -152,6 +156,10 @@
                 <div>
                     <span class="sidebar-brand-text block text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3">Lainnya</span>
                     <div class="space-y-1.5">
+                        <a href="{{ route('qris.logs') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.logs') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                            <span class="sidebar-brand-text">Audit Log & Error</span>
+                        </a>
                         <a href="{{ route('qris.settings') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.settings') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                             <i data-lucide="sliders" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Pengaturan Sistem</span>
@@ -223,6 +231,12 @@
                     </a>
                     <a href="{{ route('qris.laporan') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.laporan') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Laporan & Export
+                    </a>
+                    <a href="{{ route('qris.quick-checkout') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.quick-checkout') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <i data-lucide="link" class="w-5 h-5"></i> Quick Checkout (Bebas)
+                    </a>
+                    <a href="{{ route('qris.logs') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.logs') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i> Audit Log & Error
                     </a>
                     <a href="{{ route('qris.settings') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.settings') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="sliders" class="w-5 h-5"></i> Konfigurasi

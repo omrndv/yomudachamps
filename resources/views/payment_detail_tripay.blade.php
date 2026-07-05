@@ -2,11 +2,18 @@
 @section('title', 'Detail Pembayaran')
 
 @section('content')
+@php
+    $primaryColor = \App\Models\Setting::getVal('qris_primary_color', '#ffc107');
+    $customLogo = \App\Models\Setting::getVal('qris_custom_logo', '');
+@endphp
 <style>
+    :root {
+        --primary-color: {{ $primaryColor }};
+    }
     .detail-container {
         position: relative;
         padding: 3px;
-        background: linear-gradient(45deg, #ffc107, #343a40, #ffc107);
+        background: linear-gradient(45deg, var(--primary-color), #343a40, var(--primary-color));
         background-size: 400% 400%;
         animation: gradient-animation 5s ease infinite;
         border-radius: 24px;
@@ -48,12 +55,12 @@
     .pay-code {
         font-family: 'Arial Black', sans-serif;
         font-size: 1.8rem;
-        color: #ffc107;
+        color: var(--primary-color);
         letter-spacing: 2px;
-        background: rgba(255, 193, 7, 0.1);
+        background: rgba(255, 193, 7, 0.05);
         padding: 10px 20px;
         border-radius: 12px;
-        border: 1px dashed #ffc107;
+        border: 1px dashed var(--primary-color);
     }
 
     .instruction-accordion .accordion-item {
@@ -73,7 +80,7 @@
     }
 
     .instruction-accordion .accordion-button:not(.collapsed) {
-        color: #ffc107;
+        color: var(--primary-color);
         background: rgba(255, 193, 7, 0.05);
     }
 
@@ -84,7 +91,7 @@
     }
 
     .btn-check-status {
-        background: linear-gradient(45deg, #ffc107, #ff9800);
+        background: var(--primary-color);
         color: #000;
         border: none;
         border-radius: 12px;
@@ -92,13 +99,13 @@
         font-weight: 900;
         width: 100%;
         transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
     }
 
     .btn-check-status:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
-        background: linear-gradient(45deg, #ffb300, #ff8f00);
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        filter: brightness(1.1);
         color: #000;
     }
 
@@ -240,6 +247,11 @@
 <div class="detail-container mx-auto">
     <div class="detail-card">
         <div class="text-center mb-4">
+            @if(!empty($customLogo))
+                <div class="mb-3">
+                    <img src="{{ $customLogo }}" alt="Logo" style="max-height: 40px; border-radius: 8px;">
+                </div>
+            @endif
             <div class="badge bg-warning text-dark mb-3 px-3 py-2" style="border-radius: 50px; font-size: 0.6rem; font-weight: 800;">STATUS: WAITING PAYMENT</div>
 
             <div class="countdown-wrapper mb-4">

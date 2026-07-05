@@ -243,7 +243,7 @@ class QrisAdminController extends Controller
             try {
                 $token = Crypt::decryptString($rawToken);
             } catch (\Exception $e) {
-                $token = ''; // Jika gagal dekripsi
+                $token = '';
             }
         }
 
@@ -251,6 +251,9 @@ class QrisAdminController extends Controller
             'static_qris' => Setting::getVal('gopay_static_qris', ''),
             'merchant_id' => Setting::getVal('gopay_merchant_id', ''),
             'api_url' => Setting::getVal('gopay_api_url', 'https://api.gobiz.co.id/v2/transactions'),
+            'admin_wa' => Setting::getVal('admin_wa', '6285122616191'),
+            'primary_color' => Setting::getVal('qris_primary_color', '#2563eb'),
+            'custom_logo' => Setting::getVal('qris_custom_logo', ''),
             'has_token' => !empty($rawToken),
             'token' => $token
         ];
@@ -327,19 +330,31 @@ class QrisAdminController extends Controller
             'merchant_id' => 'required|string',
             'api_url' => 'required|url',
             'token' => 'nullable|string',
+            'admin_wa' => 'nullable|string',
+            'primary_color' => 'nullable|string',
+            'custom_logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
         ]);
 
         // Simpan konfigurasi
         Setting::setVal('gopay_static_qris', trim($request->static_qris));
         Setting::setVal('gopay_merchant_id', trim($request->merchant_id));
         Setting::setVal('gopay_api_url', trim($request->api_url));
+        Setting::setVal('admin_wa', trim($request->admin_wa));
+        Setting::setVal('qris_primary_color', trim($request->primary_color ?? '#2563eb'));
+
+        if ($request->hasFile('custom_logo')) {
+            $file = $request->file('custom_logo');
+            $filename = 'logo_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/branding'), $filename);
+            Setting::setVal('qris_custom_logo', '/uploads/branding/' . $filename);
+        }
 
         if ($request->filled('token')) {
             // Enkripsi token sebelum disimpan ke database
             Setting::setVal('gopay_token', Crypt::encryptString($request->token));
         }
 
-        return back()->with('success', 'Konfigurasi berhasil disimpan!');
+        return back()->with('success', 'Konfigurasi dan kustomisasi branding berhasil disimpan!');
     }
 
     /**
@@ -845,6 +860,72 @@ class QrisAdminController extends Controller
             'updated_db_records' => $updatedCount,
             'mutations' => $mutations
         ]);
+    }
+
+    /**
+     * Audit Log & API Error Logger
+     */
+    public function logs()
+    {
+        $logs = \App\Models\GatewayNotification::orderBy('created_at', 'desc')->paginate(30);
+        return view('qris.logs', compact('logs'));
+    }
+
+    /**
+     * Quick Checkout Link (QRIS Bebas)
+     */
+    public function quickCheckout(Request $request)
+    {
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'description' => 'required|string|max:255',
+                'amount' => 'required|numeric|min:1000',
+            ]);
+
+            $trx_id = 'QUICK-' . strtoupper(\Illuminate\Support\Str::random(8));
+            $baseAmount = (int) $request->amount;
+            
+            // Generate unik nominal
+            $uniqueCode = rand(100, 300);
+            $finalAmount = $baseAmount + $uniqueCode;
+            
+            $staticQris = Setting::getVal('gopay_static_qris');
+            if (empty($staticQris)) {
+                return back()->with('error', 'Konfigurasi QRIS Statis belum diatur.');
+            }
+
+            try {
+                $dynamicQrisString = \App\Services\QrisService::generateDynamicQris($staticQris, $finalAmount);
+                
+                QrisTransaction::create([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'trx_id' => $trx_id,
+                    'base_amount' => $baseAmount,
+                    'unique_code' => $uniqueCode,
+                    'amount' => $finalAmount,
+                    'qris_string' => $dynamicQrisString,
+                    'status' => 'PENDING',
+                    'expires_at' => now()->addMinutes(120),
+                ]);
+
+                // Simpan deskripsinya di setting override
+                Setting::setVal('desc_' . $trx_id, $request->description);
+
+                return back()->with('success_link', route('qris.pay', $trx_id));
+            } catch (\Exception $e) {
+                return back()->with('error', 'Gagal membuat QRIS Bebas: ' . $e->getMessage());
+            }
+        }
+
+        $quickTx = QrisTransaction::where('trx_id', 'LIKE', 'QUICK-%')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        foreach ($quickTx as $tx) {
+            $tx->description = Setting::getVal('desc_' . $tx->trx_id, 'Pembayaran Bebas');
+        }
+
+        return view('qris.quick_checkout', compact('quickTx'));
     }
 }
 

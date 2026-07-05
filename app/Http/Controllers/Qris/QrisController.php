@@ -19,7 +19,14 @@ class QrisController extends Controller
      */
     public function showPayment($trx_id)
     {
-        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+        $team = Team::with('season')->where('trx_id', $trx_id)->first();
+        if (!$team && str_starts_with($trx_id, 'QUICK-')) {
+            return redirect()->route('payment.detail', $trx_id);
+        }
+
+        if (!$team) {
+            abort(404);
+        }
 
         // Jika tim sudah berstatus PAID, langsung arahkan ke halaman sukses
         if ($team->status === 'PAID') {

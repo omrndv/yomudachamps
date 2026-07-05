@@ -20,7 +20,7 @@
             </div>
         @endif
 
-        <form action="{{ route('qris.config.update') }}" method="POST" class="space-y-6">
+        <form action="{{ route('qris.config.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -44,6 +44,38 @@
                     class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-[11px] font-mono focus:outline-none focus:border-blue-500 transition-all placeholder-slate-400 dark:placeholder-slate-655"
                     placeholder="Masukkan token baru">{{ $config->token }}</textarea>
                 <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 leading-normal">Token ditampilkan secara langsung. Kosongkan kolom ini jika Anda tidak ingin menyimpan token.</p>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800/80 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">No. WhatsApp Notifikasi Admin</label>
+                    <input type="text" name="admin_wa" value="{{ $config->admin_wa }}"
+                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all"
+                        placeholder="6285122616191">
+                    <p class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5">Nomor tujuan untuk info token expired / over-slot.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Warna Halaman QRIS (Branding)</label>
+                    <div class="flex gap-3">
+                        <input type="color" name="primary_color" value="{{ $config->primary_color }}"
+                            class="h-11 w-16 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer">
+                        <input type="text" readonly value="{{ $config->primary_color }}"
+                            class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm font-mono focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Logo Halaman QRIS (Kustom)</label>
+                @if($config->custom_logo)
+                    <div class="mb-3 flex items-center gap-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                        <img src="{{ $config->custom_logo }}" alt="Custom Logo" class="max-h-8 rounded">
+                        <span class="text-xs text-slate-400 font-mono">{{ $config->custom_logo }}</span>
+                    </div>
+                @endif
+                <input type="file" name="custom_logo" accept="image/*"
+                    class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400">
             </div>
 
             <div>
