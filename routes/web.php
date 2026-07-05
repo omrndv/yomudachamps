@@ -341,11 +341,12 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         return redirect()->route('qris.dashboard');
     });
 
-    Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->name('pay');
+    Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->middleware('throttle:30,1')->name('pay');
     Route::post('/pay/{trx_id}/proof', [\App\Http\Controllers\Qris\QrisController::class, 'uploadProof'])->name('pay.proof');
     Route::get('/check/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkStatus'])->name('check');
-    Route::get('/check-now/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'forceCheckStatus'])->name('check.force');
+    Route::get('/check-now/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'forceCheckStatus'])->middleware('throttle:15,1')->name('check.force');
     Route::get('/debug/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'debugTrans'])->name('debug');
+    Route::get('/api/checkout-details/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkoutDetails'])->name('api.checkout-details');
 
 
 

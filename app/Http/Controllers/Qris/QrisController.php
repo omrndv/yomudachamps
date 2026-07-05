@@ -225,6 +225,63 @@ class QrisController extends Controller
     }
 
     /**
+     * Endpoint API publik untuk mengambil rincian checkout (CORS Enabled)
+     */
+    public function checkoutDetails($trx_id)
+    {
+        $team = Team::with('season')->where('trx_id', $trx_id)->first();
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->latest()->first();
+
+        if (!$qrisTx) {
+            if ($team) {
+                // Generate QRIS jika belum ada
+                try {
+                    $baseAmount = (int) $team->amount;
+                    if ($baseAmount <= 0) {
+                        $baseAmount = (int) ($team->season->price ?? 0);
+                    }
+                    $staticQris = Setting::getVal('gopay_static_qris');
+                    if (!empty($staticQris)) {
+                        $uniqueCode = rand(200, 400);
+                        $finalAmount = $baseAmount + $uniqueCode;
+                        $dynamicQrisString = QrisService::generateDynamicQris($staticQris, $finalAmount);
+                        $qrisTx = QrisTransaction::create([
+                            'id' => (string) Str::uuid(),
+                            'trx_id' => $team->trx_id,
+                            'base_amount' => $baseAmount,
+                            'unique_code' => $uniqueCode,
+                            'amount' => $finalAmount,
+                            'qris_string' => $dynamicQrisString,
+                            'status' => 'PENDING',
+                            'expires_at' => now()->addMinutes(30),
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    // Ignore errors
+                }
+            }
+        }
+
+        if (!$qrisTx) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404)->header('Access-Control-Allow-Origin', '*');
+        }
+
+        $secondsLeft = max(0, Carbon::parse($qrisTx->expires_at)->diffInSeconds(now(), false));
+
+        return response()->json([
+            'success'      => true,
+            'trx_id'       => $trx_id,
+            'team_name'    => $team ? $team->name : 'Quick Checkout',
+            'season_name'  => ($team && $team->season) ? $team->season->name : 'Merchandise & Lainnya',
+            'amount'       => $qrisTx->amount,
+            'qris_string'  => $qrisTx->qris_string,
+            'status'       => $qrisTx->status,
+            'seconds_left' => $secondsLeft,
+            'expires_at'   => $qrisTx->expires_at->toIso8601String(),
+        ])->header('Access-Control-Allow-Origin', '*');
+    }
+
+    /**
      * Mengunggah bukti transfer manual
      */
     public function uploadProof(Request $request, $trx_id)
