@@ -29,6 +29,25 @@
         });
     </script>
     @endif
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                background: '#ffffff',
+                color: '#1e293b',
+            });
+            Toast.fire({
+                icon: 'error',
+                title: "{{ session('error') }}"
+            });
+        });
+    </script>
+    @endif
 
     {{-- Breadcrumb & Header --}}
     <div class="row mb-4">
