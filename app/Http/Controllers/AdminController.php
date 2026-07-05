@@ -420,18 +420,32 @@ class AdminController extends Controller
         return view('admin.settings');
     }
 
-    public function gatewayNotifications()
+    public function gatewayNotifications(Request $request)
     {
         if (!Auth::check()) {
             return redirect()->route('admin.login');
         }
 
-        $notifications = \App\Models\GatewayNotification::orderBy('created_at', 'desc')->paginate(30);
+        $query = \App\Models\GatewayNotification::orderBy('created_at', 'desc');
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        $notifications = $query->paginate(30)->withQueryString();
 
         // Tandai semua sebagai dibaca ketika halaman dibuka
         \App\Models\GatewayNotification::whereNull('read_at')->update(['read_at' => now()]);
 
         return view('admin.gateway_notifications', compact('notifications'));
+    }
+
+    public function clearGatewayNotifications()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        \App\Models\GatewayNotification::truncate();
+        return back()->with('success', 'Semua log notifikasi gateway berhasil dibersihkan!');
     }
 
     public function updateSettings(Request $request)

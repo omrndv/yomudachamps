@@ -254,6 +254,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
             Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
             Route::get('/settings/gateway-notifications', [AdminController::class, 'gatewayNotifications'])->name('admin.settings.gateway_notifications');
+            Route::post('/settings/gateway-notifications/clear', [AdminController::class, 'clearGatewayNotifications'])->name('admin.settings.gateway_notifications.clear');
         });
 
         // Database Backup

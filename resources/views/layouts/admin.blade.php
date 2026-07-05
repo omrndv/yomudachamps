@@ -315,13 +315,13 @@
                 <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
             @endif
+        </div>
 
-            <div class="mt-auto pt-2 w-100">
-                <hr class="border-secondary opacity-25 mx-3 mb-3">
-                <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100">
-                    <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
-                </a>
-            </div>
+        <div class="sidebar-footer mt-auto pt-2 w-100 bg-transparent">
+            <hr class="border-secondary opacity-25 mx-3 mb-3">
+            <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2" style="padding: 12px 16px;">
+                <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
+            </a>
         </div>
     </aside>
 
@@ -337,7 +337,7 @@
             <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body p-4 d-flex flex-column h-100">
-            <div class="nav nav-pills flex-column h-100">
+            <div class="nav nav-pills flex-column" style="flex: 1 1 auto; overflow-y: auto; scrollbar-width: none;">
                 <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
                 
                 <a href="{{ route('admin.dashboard.home') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
@@ -403,13 +403,13 @@
                     <i class="bi bi-database-down me-2"></i> <span>Backup Database</span>
                 </a>
                 @endif
+            </div>
 
-                <div class="mt-auto pt-4 w-100">
-                    <hr class="border-secondary opacity-25 mb-3">
-                    <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100">
-                        <i class="bi bi-box-arrow-right me-2"></i> <span>Logout</span>
-                    </a>
-                </div>
+            <div class="mt-auto pt-4 w-100 bg-transparent shrink-0">
+                <hr class="border-secondary opacity-25 mb-3">
+                <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2">
+                    <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
+                </a>
             </div>
         </div>
     </div>

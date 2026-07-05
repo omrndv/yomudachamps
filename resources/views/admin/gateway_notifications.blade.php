@@ -4,7 +4,7 @@
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Header --}}
     <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
+        <div class="col-md-7">
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">
                 Log Notifikasi & Aktivitas Gateway
             </h2>
@@ -12,12 +12,24 @@
                 Riwayat aktivitas sistem QRIS Gateway, transaksi lunas, pembuatan QRIS, dan status deteksi API GoPay.
             </p>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+            <form action="{{ route('admin.settings.gateway_notifications.clear') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua log notifikasi gateway ini? Tindakan ini tidak dapat dibatalkan.');" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger d-inline-flex align-items-center gap-2" style="border-radius: 12px; font-weight: 600; padding: 10px 18px; font-size: 0.85rem;">
+                    <i class="bi bi-trash3 fs-6"></i> Bersihkan Log
+                </button>
+            </form>
             <a href="{{ route('admin.settings') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" style="border-radius: 12px; font-weight: 600; padding: 10px 18px; font-size: 0.85rem;">
                 <i class="bi bi-arrow-left-short fs-5"></i> Kembali ke Pengaturan
             </a>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+        </div>
+    @endif
 
     {{-- Stats Cards --}}
     <div class="row g-4 mb-4">
@@ -66,6 +78,25 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Filter Row --}}
+    <div class="d-flex gap-2 mb-4 overflow-x-auto pb-2">
+        <a href="{{ route('admin.settings.gateway_notifications') }}" class="btn {{ !request('type') ? 'btn-primary' : 'btn-white border' }} rounded-pill px-4 py-2 text-xs font-bold whitespace-nowrap">
+            Semua Log
+        </a>
+        <a href="{{ route('admin.settings.gateway_notifications', ['type' => 'TRANSACTION_PAID']) }}" class="btn {{ request('type') === 'TRANSACTION_PAID' ? 'btn-success' : 'btn-white border' }} rounded-pill px-4 py-2 text-xs font-bold whitespace-nowrap">
+            Bayar Lunas
+        </a>
+        <a href="{{ route('admin.settings.gateway_notifications', ['type' => 'API_ERROR']) }}" class="btn {{ request('type') === 'API_ERROR' ? 'btn-danger' : 'btn-white border' }} rounded-pill px-4 py-2 text-xs font-bold whitespace-nowrap">
+            API Error
+        </a>
+        <a href="{{ route('admin.settings.gateway_notifications', ['type' => 'TRANSACTION_CREATED']) }}" class="btn {{ request('type') === 'TRANSACTION_CREATED' ? 'btn-primary' : 'btn-white border' }} rounded-pill px-4 py-2 text-xs font-bold whitespace-nowrap">
+            QRIS Baru
+        </a>
+        <a href="{{ route('admin.settings.gateway_notifications', ['type' => 'API_SUCCESS']) }}" class="btn {{ request('type') === 'API_SUCCESS' ? 'btn-success' : 'btn-white border' }} rounded-pill px-4 py-2 text-xs font-bold whitespace-nowrap">
+            Koneksi Normal
+        </a>
     </div>
 
     {{-- Main Logs List --}}
