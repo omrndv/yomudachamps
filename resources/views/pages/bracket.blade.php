@@ -773,17 +773,43 @@
 
     {{-- Tournament Guide & Information Alert --}}
     <div class="container my-3 px-3">
-        <div class="card border-0 rounded-4" style="background: rgba(255, 122, 0, 0.05); border: 1.5px solid rgba(255, 122, 0, 0.2) !important;">
+        <div class="card border-0 rounded-4 shadow-lg" style="background-color: #121214; border: 1.5px solid rgba(255, 122, 0, 0.15) !important;">
             <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-2 mb-2 text-warning">
-                    <i class="bi bi-info-circle-fill"></i>
-                    <strong class="small text-uppercase" style="letter-spacing: 0.5px; font-size: 0.75rem;">Panduan Pemain & Lapor Skor</strong>
+                <div class="d-flex align-items-center gap-2 mb-3 text-warning border-bottom border-secondary border-opacity-10 pb-2">
+                    <i class="bi bi-info-circle-fill fs-5"></i>
+                    <strong class="text-white small text-uppercase" style="letter-spacing: 0.8px; font-size: 0.78rem;">PANDUAN BERMAIN & LAPOR SKOR</strong>
                 </div>
-                <ul class="text-secondary small mb-0 pl-3 text-start" style="font-size: 0.75rem; line-height: 1.5; list-style-type: disc;">
-                    <li>🔍 <strong>Cari Lawan:</strong> Ketik nama tim Anda di kolom pencarian untuk melihat lawan, jam main, & tombol WhatsApp kapten lawan.</li>
-                    <li>⏰ <strong>Toleransi Waktu:</strong> Keterlambatan maksimal adalah <strong>10 menit</strong>. Jika lawan telat tanding, ambil screenshot lobby dan laporkan ke admin via live chat.</li>
-                    <li>🏆 <strong>Lapor Skor:</strong> Klik tombol <span class="text-warning fw-bold">Lapor Skor</span> di atas, masukkan nomor WA kapten yang terdaftar, isi skor, dan unggah screenshot kemenangan.</li>
-                </ul>
+                <div class="d-flex flex-column gap-3 text-start">
+                    <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                            <i class="bi bi-search" style="font-size: 0.85rem;"></i>
+                        </div>
+                        <div>
+                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">1. Cari Lawan & Kontak Kapten</span>
+                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Ketik nama tim Anda pada kolom pencarian di atas untuk melihat lawan tanding, jam main, serta tombol pintasan WhatsApp Kapten lawan.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                            <i class="bi bi-trophy-fill" style="font-size: 0.85rem;"></i>
+                        </div>
+                        <div>
+                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">2. Laporkan Hasil Pertandingan</span>
+                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Setelah tanding selesai, klik tombol <span class="text-warning fw-bold">Lapor Skor</span> di kanan atas, verifikasi dengan WA Kapten, masukkan skor akhir, & unggah screenshot bukti kemenangan.</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25);">
+                            <i class="bi bi-chat-left-text-fill" style="font-size: 0.85rem;"></i>
+                        </div>
+                        <div>
+                            <span class="text-white fw-bold d-block" style="font-size: 0.8rem; margin-bottom: 2px;">3. Butuh Bantuan Panitia?</span>
+                            <span class="text-secondary" style="font-size: 0.75rem; line-height: 1.4;">Jika mengalami kendala (lawan tidak hadir, kendala room, dsb), klik tombol obrolan di pojok kanan bawah untuk langsung terhubung dengan admin via Live Chat.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
