@@ -718,10 +718,14 @@
             .chat-widget-wrapper {
                 bottom: 16px;
                 right: 16px;
-                left: 16px;
+                left: auto;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
             }
             .chat-box-container {
-                width: 100% !important;
+                width: calc(100vw - 32px) !important;
+                max-width: 320px;
                 height: 380px;
                 bottom: 60px;
             }

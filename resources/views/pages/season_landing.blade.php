@@ -77,9 +77,7 @@
         }
 
         .season-card {
-            background: rgba(24, 24, 27, 0.75);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            background-color: #121214;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             padding: 36px 28px;
@@ -139,7 +137,7 @@
         }
 
         .menu-item {
-            background-color: rgba(255, 255, 255, 0.02);
+            background-color: #1c1c1f;
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 16px 20px;
@@ -511,10 +509,14 @@
             .chat-widget-wrapper {
                 bottom: 16px;
                 right: 16px;
-                left: 16px;
+                left: auto;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
             }
             .chat-box-container {
-                width: 100% !important;
+                width: calc(100vw - 32px) !important;
+                max-width: 320px;
                 height: 380px;
                 bottom: 60px;
             }
