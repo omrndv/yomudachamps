@@ -168,27 +168,46 @@
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-450 border border-yellow-100 dark:border-yellow-500/20">
                                     <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> PENDING
                                 </span>
+                            @elseif($tx->status === 'REFUNDED')
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 border border-red-100 dark:border-red-500/25">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> REFUNDED
+                                </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-450 border border-slate-200 dark:border-slate-700">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-450 border border-slate-200 dark:border-slate-700">
                                     <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> EXPIRED
                                 </span>
                             @endif
                         </td>
-                        <td class="py-4 px-6 text-right space-x-2" onclick="event.stopPropagation()">
+                        <td class="py-4 px-6 text-right space-x-1" onclick="event.stopPropagation()">
                             @if($tx->status === 'PENDING' || $tx->status === 'CLAIMED' || $tx->status === 'EXPIRED')
-                                <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual?');" class="inline-block">
+                                <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual?');" class="inline-block m-0">
                                     @csrf
-                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]">
-                                        Settle Manual
+                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl transition-all shadow-sm active:scale-[0.98]" title="Sahkan manual">
+                                        Settle
                                     </button>
                                 </form>
                             @endif
 
+                            @if($tx->status === 'PAID')
+                                <form action="{{ route('qris.refund', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-refund transaksi ini? Status tim akan diubah menjadi Gagal.');" class="inline-block m-0">
+                                    @csrf
+                                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl transition-all shadow-sm active:scale-[0.98]" title="Refund pendaftaran">
+                                        Refund
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($tx->status === 'EXPIRED' || $tx->status === 'PENDING')
+                                <button type="button" onclick="showExtendModal('{{ $tx->trx_id }}')" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl transition-all shadow-sm active:scale-[0.98]" title="Ubah masa aktif">
+                                    Extend
+                                </button>
+                            @endif
+
                             <!-- Delete Button -->
-                            <form action="{{ route('qris.delete', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini dari database?');" class="inline-block">
+                            <form action="{{ route('qris.delete', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini dari database?');" class="inline-block m-0">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-red-50 text-red-650 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-650 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                                <button type="submit" class="bg-red-50 text-red-655 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-650 text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl transition-all shadow-sm active:scale-[0.98]" title="Hapus transaksi">
                                     Hapus
                                 </button>
                             </form>
@@ -620,5 +639,58 @@
             });
         }
     });
+
+    window.showExtendModal = function(trxId) {
+        const modal = document.getElementById('extend-expiry-modal');
+        const form = document.getElementById('extend-expiry-form');
+        form.action = `/qris-gateway/expiry/${trxId}`;
+        modal.classList.remove('hidden');
+    }
+
+    window.closeExtendModal = function() {
+        const modal = document.getElementById('extend-expiry-modal');
+        modal.classList.add('hidden');
+    }
+
+    window.submitExtendForm = function() {
+        document.getElementById('extend-expiry-form').submit();
+    }
 </script>
 @endpush
+
+<!-- Extend Expiry Modal -->
+<div id="extend-expiry-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeExtendModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200 dark:border-slate-800">
+            <div class="bg-white dark:bg-slate-900 px-6 pt-6 pb-4 sm:p-6 sm:pb-4">
+                <div class="flex items-start gap-4">
+                    <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 sm:mx-0 sm:h-10 sm:w-10">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-left w-full">
+                        <h3 class="text-md font-extrabold text-slate-900 dark:text-white mb-2" id="modal-title">Ubah Masa Aktif QRIS</h3>
+                        <p class="text-xs text-slate-500 mb-4">Perpanjang atau kurangi masa pembayaran pendaftaran QRIS tim.</p>
+                        
+                        <form id="extend-expiry-form" method="POST" action="">
+                            @csrf
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Masa Aktif Baru (Menit)</label>
+                                <input type="number" name="minutes" value="120" min="1" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-800/40 px-6 py-4 flex flex-row-reverse gap-2 rounded-b-3xl">
+                <button type="button" onclick="submitExtendForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 text-xs rounded-xl transition-all shadow-sm">
+                    Simpan Perubahan
+                </button>
+                <button type="button" onclick="closeExtendModal()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold px-4 py-2 text-xs rounded-xl transition-all shadow-sm">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

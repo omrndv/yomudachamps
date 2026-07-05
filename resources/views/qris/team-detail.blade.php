@@ -93,10 +93,22 @@
                                 </form>
                             @endif
 
+                            @if($tx->status === 'PAID')
+                                <a href="{{ route('qris.invoice', $tx->trx_id) }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1">
+                                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Invoice
+                                </a>
+                                <form action="{{ route('qris.refund', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-refund transaksi ini? Status tim akan diubah menjadi Gagal.');" class="inline-block m-0">
+                                    @csrf
+                                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm">
+                                        Refund
+                                    </button>
+                                </form>
+                            @endif
+
                             <form action="{{ route('qris.delete', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline-block m-0">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-red-50 text-red-650 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-650 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm">
+                                <button type="submit" class="bg-red-50 text-red-650 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-650 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm">
                                     Hapus
                                 </button>
                             </form>

@@ -350,6 +350,40 @@ class QrisAdminController extends Controller
     }
 
     /**
+     * Mengubah status transaksi menjadi REFUNDED (Void)
+     */
+    public function refundTransaction($trx_id)
+    {
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $qrisTx->update(['status' => 'REFUNDED']);
+        
+        $team = Team::where('trx_id', $trx_id)->first();
+        if ($team) {
+            $team->status = 'FAILED'; // Tandai gagal di sistem pendaftaran
+            $team->save();
+        }
+        
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+        return back()->with('success', "Transaksi dengan ID {$trx_id} berhasil ditandai sebagai REFUNDED!");
+    }
+
+    /**
+     * Memperbarui masa aktif QRIS (Dynamic Expiry)
+     */
+    public function updateExpiry(Request $request, $trx_id)
+    {
+        $request->validate(['minutes' => 'required|integer|min:1']);
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        
+        $qrisTx->update([
+            'expires_at' => now()->addMinutes($request->minutes),
+            'status' => 'PENDING' // Kembalikan ke pending jika expired
+        ]);
+        
+        return back()->with('success', "Masa aktif transaksi {$trx_id} berhasil diubah!");
+    }
+
+    /**
      * Menghapus transaksi QRIS dari database
      */
     public function deleteTransaction($trx_id)
@@ -595,6 +629,136 @@ class QrisAdminController extends Controller
         file_put_contents($envPath, $envContent);
 
         return back()->with('success', 'Password Gateway berhasil diubah!');
+    }
+
+    /**
+     * Export Laporan PDF (Keuangan Resmi)
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = QrisTransaction::with('team.season')->where('status', 'PAID');
+
+        if ($request->filled('dari'))    $query->whereDate('paid_at', '>=', $request->dari);
+        if ($request->filled('sampai'))  $query->whereDate('paid_at', '<=', $request->sampai);
+        if ($request->filled('season_id')) {
+            $query->whereHas('team', fn($q) => $q->where('season_id', $request->season_id));
+        }
+
+        $transactions = $query->orderBy('paid_at', 'desc')->get();
+        $totalVolume = $transactions->sum('amount');
+
+        $pdf = new \FPDF('P', 'mm', 'A4');
+        $pdf->AddPage();
+        
+        // Header
+        $pdf->SetFont('Arial', 'B', 16);
+        $pdf->Cell(0, 10, 'YOMUDA CHAMPS - LAPORAN KEUANGAN QRIS', 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 5, 'Dihasilkan pada: ' . now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') . ' WIB', 0, 1, 'C');
+        $pdf->Ln(10);
+
+        // Filter info
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(40, 6, 'Periode:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $dari = $request->input('dari', 'Semua');
+        $sampai = $request->input('sampai', 'Semua');
+        $pdf->Cell(80, 6, $dari . ' s/d ' . $sampai, 0, 1);
+        
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(40, 6, 'Total Transaksi:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(80, 6, $transactions->count() . ' Berhasil', 0, 1);
+
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(40, 6, 'Total Akumulasi:', 0, 0);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(80, 6, 'Rp ' . number_format($totalVolume, 0, ',', '.'), 0, 1);
+        $pdf->Ln(8);
+
+        // Table Header
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetFillColor(230, 230, 230);
+        $pdf->Cell(10, 8, 'No', 1, 0, 'C', true);
+        $pdf->Cell(45, 8, 'ID Transaksi', 1, 0, 'L', true);
+        $pdf->Cell(65, 8, 'Nama Tim', 1, 0, 'L', true);
+        $pdf->Cell(35, 8, 'Nominal', 1, 0, 'R', true);
+        $pdf->Cell(35, 8, 'Waktu Bayar', 1, 1, 'C', true);
+
+        // Table Rows
+        $pdf->SetFont('Arial', '', 9);
+        foreach ($transactions as $i => $tx) {
+            $pdf->Cell(10, 7, $i + 1, 1, 0, 'C');
+            $pdf->Cell(45, 7, $tx->trx_id, 1, 0, 'L');
+            $pdf->Cell(65, 7, substr($tx->team->name ?? 'Tim Terhapus', 0, 30), 1, 0, 'L');
+            $pdf->Cell(35, 7, 'Rp ' . number_format($tx->amount, 0, ',', '.'), 1, 0, 'R');
+            $pdf->Cell(35, 7, $tx->paid_at ? $tx->paid_at->setTimezone('Asia/Jakarta')->format('d/m/Y H:i') : '-', 1, 1, 'C');
+        }
+
+        return response($pdf->Output('S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="laporan-qris-' . now()->format('Y-m-d') . '.pdf"'
+        ]);
+    }
+
+    /**
+     * Unduh Invoice PDF Resmi untuk Tim
+     */
+    public function downloadInvoice($trx_id)
+    {
+        $qrisTx = QrisTransaction::with('team.season')->where('trx_id', $trx_id)->firstOrFail();
+        $team = $qrisTx->team;
+
+        $pdf = new \FPDF('P', 'mm', array(100, 150));
+        $pdf->AddPage();
+
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(0, 8, 'YOMUDA CHAMPS', 0, 1, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, 4, 'BUKTI PEMBAYARAN SAH (INVOICE)', 0, 1, 'C');
+        $pdf->Cell(0, 4, '====================================', 0, 1, 'C');
+        $pdf->Ln(4);
+
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(30, 5, 'ID Transaksi:', 0, 0);
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(0, 5, $qrisTx->trx_id, 0, 1);
+
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(30, 5, 'No. Ref GoPay:', 0, 0);
+        $pdf->Cell(0, 5, $qrisTx->gopay_reference ?? '-', 0, 1);
+
+        $pdf->Cell(30, 5, 'Nama Tim:', 0, 0);
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(0, 5, $team->name ?? 'Tim Terhapus', 0, 1);
+
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(30, 5, 'Season:', 0, 0);
+        $pdf->Cell(0, 5, $team->season->name ?? '-', 0, 1);
+
+        $pdf->Cell(30, 5, 'Waktu Bayar:', 0, 0);
+        $pdf->Cell(0, 5, $qrisTx->paid_at ? $qrisTx->paid_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') . ' WIB' : '-', 0, 1);
+
+        $pdf->Cell(0, 4, '------------------------------------', 0, 1, 'C');
+
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(30, 6, 'TOTAL BAYAR:', 0, 0);
+        $pdf->Cell(0, 6, 'Rp ' . number_format($qrisTx->amount, 0, ',', '.'), 0, 1);
+        
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetTextColor(0, 128, 0);
+        $pdf->Cell(0, 8, 'STATUS: LUNAS / PAID', 0, 1, 'C');
+
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->Ln(6);
+        $pdf->Cell(0, 4, 'Terima kasih atas partisipasi Anda.', 0, 1, 'C');
+        $pdf->Cell(0, 4, 'Simpan invoice ini sebagai bukti pendaftaran.', 0, 1, 'C');
+
+        return response($pdf->Output('S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="invoice-' . $trx_id . '.pdf"'
+        ]);
     }
 
     /**

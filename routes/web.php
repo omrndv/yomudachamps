@@ -364,6 +364,10 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::get('/export-csv', [\App\Http\Controllers\Qris\QrisAdminController::class, 'exportCsv'])->name('export-csv');
         Route::get('/tim/{team_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'teamDetail'])->name('team-detail');
         Route::post('/change-password', [\App\Http\Controllers\Qris\QrisAdminController::class, 'changePassword'])->name('change-password');
+        Route::post('/refund/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'refundTransaction'])->name('refund');
+        Route::post('/expiry/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateExpiry'])->name('expiry');
+        Route::get('/export-pdf', [\App\Http\Controllers\Qris\QrisAdminController::class, 'exportPdf'])->name('export-pdf');
+        Route::get('/invoice/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'downloadInvoice'])->name('invoice');
         Route::get('/test-gopay-response', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testGopayResponse'])->name('test-gopay-response');
     });
 });

@@ -29,11 +29,14 @@
             </select>
         </div>
         <div class="flex gap-2">
-            <button type="submit" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-all text-center">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-3.5 rounded-xl text-xs shadow-sm transition-all text-center">
                 Filter
             </button>
-            <a href="{{ route('qris.export-csv', request()->all()) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-all text-center flex items-center justify-center gap-1">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+            <a href="{{ route('qris.export-csv', request()->all()) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs shadow-sm transition-all text-center flex items-center justify-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV
+            </a>
+            <a href="{{ route('qris.export-pdf', request()->all()) }}" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-2 rounded-xl text-xs shadow-sm transition-all text-center flex items-center justify-center gap-1">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF
             </a>
         </div>
     </form>
