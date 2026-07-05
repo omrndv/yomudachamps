@@ -55,7 +55,7 @@
     <!-- Right Column: History & Stats -->
     <div class="lg:col-span-2 space-y-6">
         <!-- Accumulation Stats -->
-        <div class="bg-gradient-to-r from-rose-550 to-red-600 text-white rounded-3xl p-6 shadow-md relative overflow-hidden flex items-center justify-between">
+        <div class="bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-3xl p-6 shadow-md relative overflow-hidden flex items-center justify-between">
             <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             <div>
                 <h4 class="text-xs font-bold text-rose-100 uppercase tracking-wider">Total Akumulasi Payout</h4>
