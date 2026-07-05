@@ -379,6 +379,8 @@ class AdminController extends Controller
             ->sum('amount_paid');
             
         $total_income = $team_income + $solo_income;
+        
+        $gateway_name = \App\Models\Setting::getVal('payment_gateway_tripay') == '1' ? 'TriPay' : 'Dips Gateway';
 
         $finances = \App\Models\SeasonFinance::where('season_id', $season_id)->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
         $additional_income = $finances->where('type', 'INCOME')->sum('amount');
