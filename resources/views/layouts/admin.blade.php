@@ -490,47 +490,129 @@
                 }
             }
 
+            function playMatchReportSound() {
+                try {
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(880.00, context.currentTime); // A5
+                    osc1.frequency.setValueAtTime(659.25, context.currentTime + 0.15); // E5
+                    osc1.frequency.setValueAtTime(880.00, context.currentTime + 0.3); // A5
+                    gain1.gain.setValueAtTime(0.15, context.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    osc1.start();
+                    osc1.stop(context.currentTime + 0.5);
+                } catch (e) {}
+            }
+
+            function playLiveChatSound() {
+                try {
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc1 = context.createOscillator();
+                    const gain1 = context.createGain();
+                    osc1.type = 'triangle';
+                    osc1.frequency.setValueAtTime(587.33, context.currentTime); // D5
+                    osc1.frequency.setValueAtTime(1174.66, context.currentTime + 0.08); // D6
+                    gain1.gain.setValueAtTime(0.15, context.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+                    osc1.connect(gain1);
+                    gain1.connect(context.destination);
+                    osc1.start();
+                    osc1.stop(context.currentTime + 0.3);
+                } catch (e) {}
+            }
+
+            let lastReportId = localStorage.getItem('last_report_id');
+            let lastChatId = localStorage.getItem('last_chat_id');
+
             function checkForNewPayments() {
                 fetch("{{ route('admin.payments.check-new') }}")
                     .then(r => r.json())
                     .then(res => {
-                        if (res.success && res.latest_paid) {
-                            const team = res.latest_paid;
-                            
-                            // Initialize lastPaidTeamId if not set, so it won't trigger sound on page load
-                            if (!lastPaidTeamId) {
-                                localStorage.setItem('last_paid_team_id', team.id);
-                                lastPaidTeamId = team.id;
-                                return;
+                        if (res.success) {
+                            // 1. Cek pembayaran sukses
+                            if (res.latest_paid) {
+                                const team = res.latest_paid;
+                                if (!lastPaidTeamId) {
+                                    localStorage.setItem('last_paid_team_id', team.id);
+                                    lastPaidTeamId = team.id;
+                                } else if (team.id > lastPaidTeamId) {
+                                    localStorage.setItem('last_paid_team_id', team.id);
+                                    lastPaidTeamId = team.id;
+                                    playSuccessPaymentSound();
+                                    Swal.fire({
+                                        title: '💸 Pembayaran Sukses!',
+                                        html: `Tim <b>${team.name}</b> baru saja melunasi pendaftaran.<br><small class="text-secondary">Trx ID: ${team.trx_id}</small>`,
+                                        icon: 'success',
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        background: '#0f172a',
+                                        color: '#ffffff'
+                                    });
+                                }
                             }
 
-                            if (team.id > lastPaidTeamId) {
-                                localStorage.setItem('last_paid_team_id', team.id);
-                                lastPaidTeamId = team.id;
+                            // 2. Cek laporan laga masuk (Lapor Win)
+                            if (res.latest_pending_report) {
+                                const rpt = res.latest_pending_report;
+                                if (!lastReportId) {
+                                    localStorage.setItem('last_report_id', rpt.id);
+                                    lastReportId = rpt.id;
+                                } else if (rpt.id > lastReportId) {
+                                    localStorage.setItem('last_report_id', rpt.id);
+                                    lastReportId = rpt.id;
+                                    playMatchReportSound();
+                                    
+                                    // Peringatan keras agar admin langsung sadar
+                                    Swal.fire({
+                                        title: '🚨 LAPORAN LAGA MASUK!',
+                                        html: `Tim <b>${rpt.team_name}</b> melaporkan skor kemenangan <b>${rpt.scores}</b> di turnamen <b>${rpt.season_name}</b>.<br><br><span class="text-warning fw-bold">Segera cek bukti screenshot & setujui pemenang!</span>`,
+                                        icon: 'warning',
+                                        showCancelButton: false,
+                                        confirmButtonText: 'Cek Laporan Laga',
+                                        confirmButtonColor: '#f59e0b',
+                                        background: '#1e1e24',
+                                        color: '#ffffff'
+                                    });
+                                }
+                            }
 
-                                // Play money success sound
-                                playSuccessPaymentSound();
-
-                                // Show Toast Notification using SweetAlert
-                                Swal.fire({
-                                    title: '💸 Pembayaran Sukses!',
-                                    html: `Tim <b>${team.name}</b> baru saja melunasi pendaftaran.<br><small class="text-secondary">Trx ID: ${team.trx_id}</small>`,
-                                    icon: 'success',
-                                    toast: true,
-                                    position: 'top-end',
-                                    showConfirmButton: false,
-                                    timer: 5000,
-                                    timerProgressBar: true,
-                                    background: '#0f172a',
-                                    color: '#ffffff'
-                                });
+                            // 3. Cek chat masuk
+                            if (res.latest_unread_chat) {
+                                const chat = res.latest_unread_chat;
+                                if (!lastChatId) {
+                                    localStorage.setItem('last_chat_id', chat.id);
+                                    lastChatId = chat.id;
+                                } else if (chat.id > lastChatId) {
+                                    localStorage.setItem('last_chat_id', chat.id);
+                                    lastChatId = chat.id;
+                                    playLiveChatSound();
+                                    Swal.fire({
+                                        title: '💬 Live Chat Baru!',
+                                        html: `Dari <b>${chat.sender}</b>:<br>"${chat.message}"`,
+                                        icon: 'info',
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 6000,
+                                        timerProgressBar: true,
+                                        background: '#18181b',
+                                        color: '#ffffff'
+                                    });
+                                }
                             }
                         }
                     })
-                    .catch(err => console.log("New payment check issue:", err));
+                    .catch(err => console.log("New activities check issue:", err));
             }
 
-            setInterval(checkForNewPayments, 15000);
+            setInterval(checkForNewPayments, 10000);
             checkForNewPayments();
         });
     </script>

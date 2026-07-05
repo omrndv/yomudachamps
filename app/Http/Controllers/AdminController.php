@@ -181,9 +181,48 @@ class AdminController extends Controller
             ->orderBy('updated_at', 'desc')
             ->first(['id', 'name', 'trx_id', 'updated_at']);
 
+        // Hitung laporan laga masuk yang pending
+        $pendingReportsCount = \App\Models\MatchReport::where('status', 'pending')->count();
+        $latestPendingReport = \App\Models\MatchReport::with('reporterTeam', 'season')
+            ->where('status', 'pending')
+            ->where('created_at', '>=', now()->subMinutes(2))
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $latestReportData = null;
+        if ($latestPendingReport) {
+            $latestReportData = [
+                'id' => $latestPendingReport->id,
+                'team_name' => $latestPendingReport->reporterTeam->name ?? 'Tim',
+                'season_name' => $latestPendingReport->season->name ?? 'Turnamen',
+                'scores' => $latestPendingReport->score_team1 . ' - ' . $latestPendingReport->score_team2
+            ];
+        }
+
+        // Hitung chat masuk yang belum dibaca
+        $unreadChatsCount = \App\Models\SeasonChat::where('is_admin', false)->where('is_read', false)->count();
+        $latestUnreadChat = \App\Models\SeasonChat::where('is_admin', false)
+            ->where('is_read', false)
+            ->where('created_at', '>=', now()->subMinutes(2))
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $latestChatData = null;
+        if ($latestUnreadChat) {
+            $latestChatData = [
+                'id' => $latestUnreadChat->id,
+                'sender' => $latestUnreadChat->sender_name,
+                'message' => \Illuminate\Support\Str::limit($latestUnreadChat->message, 60)
+            ];
+        }
+
         return response()->json([
             'success' => true,
-            'latest_paid' => $latestPaid
+            'latest_paid' => $latestPaid,
+            'pending_reports_count' => $pendingReportsCount,
+            'latest_pending_report' => $latestReportData,
+            'unread_chats_count' => $unreadChatsCount,
+            'latest_unread_chat' => $latestChatData
         ]);
     }
 
