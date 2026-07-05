@@ -936,7 +936,7 @@
                 </div>
                 <div class="modal-body p-4 text-start">
                     <div class="d-flex flex-column gap-3">
-                        <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-start gap-3">
                             <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3 fw-bold" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
                                 1
                             </div>
@@ -946,7 +946,7 @@
                             </div>
                         </div>
                         
-                        <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-start gap-3">
                             <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3 fw-bold" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
                                 2
                             </div>
@@ -956,7 +956,7 @@
                             </div>
                         </div>
 
-                        <div class="d-flex align-items-start gap-2.5">
+                        <div class="d-flex align-items-start gap-3">
                             <div class="d-flex align-items-center justify-content-center bg-dark text-warning rounded-3" style="width: 28px; height: 28px; flex-shrink: 0; border: 1px solid rgba(255, 122, 0, 0.25); font-size: 0.85rem;">
                                 3
                             </div>
