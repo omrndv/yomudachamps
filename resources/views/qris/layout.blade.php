@@ -266,15 +266,15 @@
         <div id="main-container" class="flex-grow flex flex-col overflow-hidden">
             
             <!-- HEADER / NAVBAR -->
-            <header class="h-24 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-8 shrink-0 relative z-30 shadow-sm transition-colors duration-300">
-                <div class="flex items-center gap-4">
+            <header class="min-h-20 sm:h-24 py-4 px-4 sm:px-8 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 relative z-30 shadow-sm transition-colors duration-300">
+                <div class="flex items-center gap-3 sm:gap-4">
                     <!-- Mobile Trigger -->
                     <button id="open-mobile-sidebar" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-850 flex items-center justify-center text-slate-500 xl:hidden active:scale-95 transition-all">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
                     <div>
-                        <h2 class="text-xl font-black text-slate-900 dark:text-white">Selamat Datang, {{ Auth::user()->name }}!</h2>
-                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Berikut adalah ringkasan mutasi transaksi gateway Anda hari ini.</p>
+                        <h2 class="text-sm sm:text-xl font-black text-slate-900 dark:text-white leading-tight">Selamat Datang, {{ Auth::user()->name }}!</h2>
+                        <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-550 mt-0.5 sm:mt-1 hidden xs:block">Berikut adalah ringkasan mutasi transaksi gateway Anda hari ini.</p>
                     </div>
                 </div>
 
