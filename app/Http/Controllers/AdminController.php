@@ -314,17 +314,19 @@ class AdminController extends Controller
         $paid_teams = $teams->where('status', 'PAID');
         $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
         
-        // Pemasukan Otomatis via TriPay
-        $tripay_teams = $paid_teams->where('is_solo_team', false)->whereNotNull('tripay_reference');
+        // Pemasukan Otomatis via Gateway (TriPay / Dips Gateway)
+        $tripay_teams = $paid_teams->where('is_solo_team', false)
+            ->filter(function($t) {
+                return !empty($t->tripay_reference) || $t->payment_method === 'GOPAY_QRIS' || \App\Models\QrisTransaction::where('trx_id', $t->trx_id)->where('status', 'PAID')->exists();
+            });
         $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
         });
 
-        // Pemasukan Manual / Bulk Add oleh Admin (Kecualikan tim placeholder YMD)
+        // Pemasukan Manual / Bulk Add oleh Admin
         $manual_teams = $paid_teams->where('is_solo_team', false)
-            ->whereNull('tripay_reference')
-            ->filter(function($t) {
-                return !str_starts_with(strtolower($t->name), 'ymd');
+            ->filter(function($t) use ($season_id) {
+                return str_starts_with($t->trx_id, 'YMD' . $season_id) && empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS';
             });
             
         $manual_income = $manual_teams->sum(function($t) use ($current_season) {
@@ -363,7 +365,8 @@ class AdminController extends Controller
             'total_expense',
             'net_income',
             'ymd_slots_count',
-            'ymd_slots_income'
+            'ymd_slots_income',
+            'gateway_name'
         ));
     }
 

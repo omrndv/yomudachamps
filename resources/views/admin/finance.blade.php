@@ -97,7 +97,7 @@
                 </div>
                 <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.65rem;">
                     <div class="col-4 border-end px-1">
-                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Otomatis via TriPay/Website">TriPay (Web)</span>
+                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Otomatis via Gateway/Website">{{ $gateway_name }} (Web)</span>
                         <strong class="text-dark d-block">Rp {{ number_format($tripay_income, 0, ',', '.') }}</strong>
                     </div>
                     <div class="col-4 border-end px-1">
