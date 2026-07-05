@@ -64,10 +64,12 @@ class PollGoPay extends Command
      */
     private function poll(): bool
     {
-        // 1. Ambil semua transaksi QRIS berstatus PENDING
         $pendingTransactions = QrisTransaction::where('status', 'PENDING')->get();
+        $pendingCount = $pendingTransactions->count();
+        $matchedCount = 0;
 
         if ($pendingTransactions->isEmpty()) {
+            $this->writeSyncLog('SUKSES (Idle)', 0, 0, 0);
             return false;
         }
 
@@ -82,14 +84,22 @@ class PollGoPay extends Command
         // Refresh list pending setelah membuang yang expired
         $pendingTransactions = QrisTransaction::where('status', 'PENDING')->get();
         if ($pendingTransactions->isEmpty()) {
+            $this->writeSyncLog('SUKSES', $pendingCount, 0, 0);
             return false;
         }
 
         // 3. Ambil data mutasi terakhir dari GoPay Merchant
-        $mutations = QrisService::fetchGoPayMutations();
+        $mutations = [];
+        $status = 'SUKSES';
+        try {
+            $mutations = QrisService::fetchGoPayMutations();
+        } catch (Exception $e) {
+            $status = 'ERROR: ' . $e->getMessage();
+        }
 
         if (empty($mutations)) {
             $this->warn("Tidak ada data mutasi yang terbaca dari GoPay Merchant API.");
+            $this->writeSyncLog($status, $pendingCount, 0, 0);
             return true;
         }
 
@@ -129,12 +139,30 @@ class PollGoPay extends Command
 
                     // Selesaikan pembayaran tim
                     $this->settlePayment($tx, $gopayRef);
+                    $matchedCount++;
                     break; // Keluar dari loop mutasi, lanjut ke transaksi pending berikutnya
                 }
             }
         }
 
+        $this->writeSyncLog($status, $pendingCount, $matchedCount, count($mutations));
         return true;
+    }
+
+    /**
+     * Menulis status sinkronisasi ke cache
+     */
+    private function writeSyncLog(string $status, int $pending, int $matched, int $mutations)
+    {
+        $log = [
+            'last_sync' => now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i:s'),
+            'status' => $status,
+            'pending_count' => $pending,
+            'matched_count' => $matched,
+            'mutation_count' => $mutations
+        ];
+        \Illuminate\Support\Facades\Cache::put('qris_last_sync_log', $log, 86400 * 7);
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count'); // Refresh anomalies badge
     }
 
     /**

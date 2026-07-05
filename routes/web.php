@@ -358,6 +358,12 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::post('/sync-pending', [\App\Http\Controllers\Qris\QrisAdminController::class, 'syncPending'])->name('sync-pending');
         Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
         Route::post('/delete-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteBulkTransactions'])->name('delete-bulk');
+        Route::post('/settle-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settleBulkTransactions'])->name('settle-bulk');
+        Route::get('/rekonsiliasi', [\App\Http\Controllers\Qris\QrisAdminController::class, 'rekonsiliasi'])->name('rekonsiliasi');
+        Route::get('/laporan', [\App\Http\Controllers\Qris\QrisAdminController::class, 'laporan'])->name('laporan');
+        Route::get('/export-csv', [\App\Http\Controllers\Qris\QrisAdminController::class, 'exportCsv'])->name('export-csv');
+        Route::get('/tim/{team_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'teamDetail'])->name('team-detail');
+        Route::post('/change-password', [\App\Http\Controllers\Qris\QrisAdminController::class, 'changePassword'])->name('change-password');
         Route::get('/test-gopay-response', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testGopayResponse'])->name('test-gopay-response');
     });
 });

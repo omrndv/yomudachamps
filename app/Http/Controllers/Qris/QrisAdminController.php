@@ -335,6 +335,9 @@ class QrisAdminController extends Controller
 
         $team->save();
 
+        // Clear anomalies count cache
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+
         // Update status transaksi QRIS
         $gopayRef = request('gopay_ref') ?: 'MANUAL_SETTLE_' . strtoupper(Str::random(10));
         $qrisTx->update([
@@ -353,6 +356,7 @@ class QrisAdminController extends Controller
     {
         $qrisTx = QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
         $qrisTx->delete();
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
         return back()->with('success', "Transaksi dengan ID {$trx_id} berhasil dihapus!");
     }
 
@@ -362,6 +366,7 @@ class QrisAdminController extends Controller
     public function syncPending()
     {
         try {
+            \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
             \Illuminate\Support\Facades\Artisan::call('qris:poll');
             return back()->with('success', 'Berhasil melakukan sinkronisasi paksa (Sync Pending). Semua transaksi tertunda telah dicocokkan.');
         } catch (Exception $e) {
@@ -380,8 +385,216 @@ class QrisAdminController extends Controller
         }
 
         QrisTransaction::whereIn('id', $ids)->delete();
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
 
         return back()->with('success', count($ids) . ' transaksi berhasil dihapus sekaligus!');
+    }
+
+    /**
+     * Menyelesaikan (Settle/PAID) transaksi terpilih secara massal
+     */
+    public function settleBulkTransactions(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih minimal satu transaksi untuk diselesaikan.');
+        }
+
+        $transactions = QrisTransaction::with('team.season')->whereIn('id', $ids)
+            ->whereIn('status', ['PENDING', 'EXPIRED', 'CLAIMED'])
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return back()->with('error', 'Tidak ada transaksi yang bisa diselesaikan dari pilihan tersebut.');
+        }
+
+        $settledCount = 0;
+        foreach ($transactions as $qrisTx) {
+            $team = $qrisTx->team;
+            if (!$team) continue;
+
+            $currentPaidCount = Team::where('season_id', $team->season_id)->where('status', 'PAID')->count();
+            if ($currentPaidCount < $team->season->slot) {
+                $team->status = 'PAID';
+                $team->status_tripay = 'PAID';
+                $team->save();
+            }
+
+            $qrisTx->update([
+                'status'         => 'PAID',
+                'paid_at'        => now(),
+                'gopay_reference'=> 'BULK_SETTLE_' . strtoupper(Str::random(8)),
+            ]);
+            $settledCount++;
+        }
+
+        return back()->with('success', "{$settledCount} transaksi berhasil diselesaikan sekaligus!");
+    }
+
+    /**
+     * Halaman Rekonsiliasi GoPay vs Database (Side-by-side)
+     */
+    public function rekonsiliasi()
+    {
+        \Illuminate\Support\Facades\Cache::forget('gopay_mutations_api_cache');
+        $mutations = \App\Services\QrisService::fetchGoPayMutations(50);
+
+        $dbReferences = QrisTransaction::whereNotNull('gopay_reference')
+            ->pluck('gopay_reference')
+            ->toArray();
+
+        $rows = [];
+        foreach ($mutations as $m) {
+            $refId = $m['wallstreet_transaction_id'] ?? $m['id'] ?? null;
+            $rawAmount = $m['gross_amount'] ?? $m['amount'] ?? 0;
+            $amount = (int)($rawAmount / 100);
+            $status = strtoupper($m['transaction_status'] ?? $m['status'] ?? '');
+            $isMatched = $refId && in_array($refId, $dbReferences);
+
+            $dbTx = null;
+            if ($isMatched) {
+                $dbTx = QrisTransaction::with('team')->where('gopay_reference', $refId)->first();
+            } else {
+                // Coba cocokkan berdasarkan nominal
+                $dbTx = QrisTransaction::with('team')
+                    ->where('amount', $amount)
+                    ->whereIn('status', ['PENDING', 'EXPIRED'])
+                    ->latest()
+                    ->first();
+            }
+
+            $rows[] = [
+                'ref_id'     => $refId,
+                'amount'     => $amount,
+                'time'       => $m['transaction_time'] ?? $m['settlement_time'] ?? null,
+                'issuer'     => $m['qris_provider_aspi_issuer'] ?? '-',
+                'gopay_status' => $status,
+                'is_matched' => $isMatched,
+                'db_tx'      => $dbTx,
+            ];
+        }
+
+        return view('qris.rekonsiliasi', compact('rows'));
+    }
+
+    /**
+     * Halaman Laporan / Export
+     */
+    public function laporan(Request $request)
+    {
+        $query = QrisTransaction::with('team.season')->where('status', 'PAID');
+
+        if ($request->filled('dari')) {
+            $query->whereDate('paid_at', '>=', $request->dari);
+        }
+        if ($request->filled('sampai')) {
+            $query->whereDate('paid_at', '<=', $request->sampai);
+        }
+        if ($request->filled('season_id')) {
+            $query->whereHas('team', fn($q) => $q->where('season_id', $request->season_id));
+        }
+
+        $transactions = $query->orderBy('paid_at', 'desc')->get();
+
+        $totalVolume = $transactions->sum('amount');
+
+        $seasons = \App\Models\Season::orderBy('name')->get();
+
+        return view('qris.laporan', compact('transactions', 'totalVolume', 'seasons'));
+    }
+
+    /**
+     * Export CSV Transaksi Sukses
+     */
+    public function exportCsv(Request $request)
+    {
+        $query = QrisTransaction::with('team.season')->where('status', 'PAID');
+
+        if ($request->filled('dari'))    $query->whereDate('paid_at', '>=', $request->dari);
+        if ($request->filled('sampai'))  $query->whereDate('paid_at', '<=', $request->sampai);
+        if ($request->filled('season_id')) {
+            $query->whereHas('team', fn($q) => $q->where('season_id', $request->season_id));
+        }
+
+        $transactions = $query->orderBy('paid_at', 'desc')->get();
+
+        $filename = 'laporan-qris-' . now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($transactions) {
+            $out = fopen('php://output', 'w');
+            // BOM for Excel UTF-8
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($out, ['No', 'ID Transaksi', 'No. Ref GoPay', 'Nama Tim', 'Season', 'Nominal', 'Kode Unik', 'Waktu Bayar']);
+            foreach ($transactions as $i => $tx) {
+                fputcsv($out, [
+                    $i + 1,
+                    $tx->trx_id,
+                    $tx->gopay_reference ?? '-',
+                    $tx->team->name ?? 'Tim Terhapus',
+                    $tx->team->season->name ?? '-',
+                    $tx->amount,
+                    $tx->unique_code ?? 0,
+                    $tx->paid_at ? $tx->paid_at->setTimezone('Asia/Jakarta')->format('d/m/Y H:i') : '-',
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Halaman detail riwayat transaksi satu tim
+     */
+    public function teamDetail($team_id)
+    {
+        $team = Team::with('season')->findOrFail($team_id);
+        $transactions = QrisTransaction::where('trx_id', $team->trx_id ?? '')
+            ->orWhere(fn($q) => $q->whereHas('team', fn($t) => $t->where('id', $team_id)))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Coba ambil via trx_id team
+        if ($transactions->isEmpty() && $team->trx_id) {
+            $transactions = QrisTransaction::where('trx_id', $team->trx_id)->get();
+        }
+
+        return view('qris.team-detail', compact('team', 'transactions'));
+    }
+
+    /**
+     * Ganti password login Gateway
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ]);
+
+        $currentEnvPass = env('QRIS_ADMIN_PASSWORD', 'admin123');
+        if ($request->current_password !== $currentEnvPass) {
+            return back()->withErrors(['current_password' => 'Password saat ini tidak sesuai.']);
+        }
+
+        // Simpan password baru di settings DB (sebagai override env)
+        Setting::setVal('qris_admin_password_override', $request->new_password);
+        // Juga update file .env
+        $envPath = base_path('.env');
+        $envContent = file_get_contents($envPath);
+        if (str_contains($envContent, 'QRIS_ADMIN_PASSWORD=')) {
+            $envContent = preg_replace('/QRIS_ADMIN_PASSWORD=.*/', 'QRIS_ADMIN_PASSWORD=' . $request->new_password, $envContent);
+        } else {
+            $envContent .= "\nQRIS_ADMIN_PASSWORD=" . $request->new_password;
+        }
+        file_put_contents($envPath, $envContent);
+
+        return back()->with('success', 'Password Gateway berhasil diubah!');
     }
 
     /**
@@ -414,3 +627,4 @@ class QrisAdminController extends Controller
         ]);
     }
 }
+

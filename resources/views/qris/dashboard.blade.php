@@ -176,14 +176,19 @@
         </div>
 
         <!-- Auto-Sync Poller Status -->
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-750 flex items-center justify-between">
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-750 flex items-center justify-between col-span-1 md:col-span-2 lg:col-span-1">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
                     <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                 </div>
                 <div>
                     <p class="text-xs font-bold text-slate-900 dark:text-white leading-none">Auto-Sync</p>
-                    <span class="text-[9px] text-slate-400 dark:text-slate-500 mt-1 block">Poller Scheduler</span>
+                    @if($syncLog = \Illuminate\Support\Facades\Cache::get('qris_last_sync_log'))
+                        <span class="text-[9px] text-slate-550 dark:text-slate-500 mt-1 block font-semibold">Last: {{ $syncLog['last_sync'] }}</span>
+                        <span class="text-[9px] text-slate-550 dark:text-slate-500 block font-semibold">Match: {{ $syncLog['matched_count'] }} | Status: {{ $syncLog['status'] }}</span>
+                    @else
+                        <span class="text-[9px] text-slate-400 dark:text-slate-500 mt-1 block">Poller Scheduler</span>
+                    @endif
                 </div>
             </div>
             <span class="inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">Aktif</span>

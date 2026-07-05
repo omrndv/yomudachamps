@@ -123,9 +123,27 @@
                             <i data-lucide="layout-grid" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Dashboard</span>
                         </a>
-                        <a href="{{ route('qris.transactions') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.transactions') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
-                            <i data-lucide="receipt" class="w-5 h-5"></i>
-                            <span class="sidebar-brand-text">Daftar Transaksi</span>
+                        <a href="{{ route('qris.transactions') }}" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.transactions') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i data-lucide="receipt" class="w-5 h-5"></i>
+                                <span class="sidebar-brand-text">Daftar Transaksi</span>
+                            </div>
+                            @if(isset($qrisAnomalyCount) && $qrisAnomalyCount > 0)
+                                <span class="sidebar-brand-text bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">{{ $qrisAnomalyCount }}</span>
+                            @endif
+                        </a>
+                        <a href="{{ route('qris.rekonsiliasi') }}" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.rekonsiliasi') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                                <span class="sidebar-brand-text">Rekonsiliasi GoPay</span>
+                            </div>
+                            @if(isset($qrisAnomalyCount) && $qrisAnomalyCount > 0)
+                                <span class="sidebar-brand-text bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">{{ $qrisAnomalyCount }}</span>
+                            @endif
+                        </a>
+                        <a href="{{ route('qris.laporan') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.laporan') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                            <span class="sidebar-brand-text">Laporan & Export</span>
                         </a>
                     </div>
                 </div>
@@ -184,13 +202,29 @@
 
                 <!-- Drawer Links -->
                 <nav class="flex-1 px-4 py-6 space-y-3 overflow-y-auto custom-scroll">
-                    <a href="{{ route('qris.dashboard') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.dashboard') ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-600' }}">
+                    <a href="{{ route('qris.dashboard') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.dashboard') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="layout-grid" class="w-5 h-5"></i> Dashboard
                     </a>
-                    <a href="{{ route('qris.transactions') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.transactions') ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-600' }}">
-                        <i data-lucide="receipt" class="w-5 h-5"></i> Daftar Transaksi
+                    <a href="{{ route('qris.transactions') }}" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.transactions') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <div class="flex items-center gap-3.5">
+                            <i data-lucide="receipt" class="w-5 h-5"></i> Daftar Transaksi
+                        </div>
+                        @if(isset($qrisAnomalyCount) && $qrisAnomalyCount > 0)
+                            <span class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">{{ $qrisAnomalyCount }}</span>
+                        @endif
                     </a>
-                    <a href="{{ route('qris.settings') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.settings') ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-blue-600' }}">
+                    <a href="{{ route('qris.rekonsiliasi') }}" class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.rekonsiliasi') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <div class="flex items-center gap-3.5">
+                            <i data-lucide="arrow-left-right" class="w-5 h-5"></i> Rekonsiliasi GoPay
+                        </div>
+                        @if(isset($qrisAnomalyCount) && $qrisAnomalyCount > 0)
+                            <span class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">{{ $qrisAnomalyCount }}</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('qris.laporan') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.laporan') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Laporan & Export
+                    </a>
+                    <a href="{{ route('qris.settings') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.settings') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="sliders" class="w-5 h-5"></i> Konfigurasi
                     </a>
                 </nav>

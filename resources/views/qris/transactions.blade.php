@@ -34,9 +34,12 @@
             @endif
         </div>
 
-        {{-- Tombol Hapus Massal --}}
-        <div id="bulk-delete-container" class="hidden">
-            <button type="button" id="btn-bulk-delete" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
+        {{-- Tombol Massal --}}
+        <div id="bulk-delete-container" class="hidden flex gap-2">
+            <button type="button" id="btn-bulk-settle" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Selesaikan Terpilih (<span id="selected-count-settle">0</span>)
+            </button>
+            <button type="button" id="btn-bulk-delete" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-650 hover:bg-red-750 text-white text-xs font-bold rounded-2xl transition-all shadow-md">
                 <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
             </button>
         </div>
@@ -130,9 +133,11 @@
                                 <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono block mt-1">GoPay Ref: {{ $tx->gopay_reference }}</span>
                             @endif
                         </td>
-                        <td class="py-4 px-6">
-                            <div class="font-bold text-slate-900 dark:text-white">{{ $tx->team->name ?? 'Tim Terhapus' }}</div>
-                            <span class="text-[10px] text-slate-400 dark:text-slate-555 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
+                        <td class="py-4 px-6" onclick="event.stopPropagation()">
+                            <a href="{{ route('qris.team-detail', $tx->team->id ?? 0) }}" class="font-bold text-blue-650 hover:underline dark:text-blue-400 block">
+                                {{ $tx->team->name ?? 'Tim Terhapus' }}
+                            </a>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 block">Season: {{ $tx->team->season->name ?? '-' }}</span>
                         </td>
                         <td class="py-4 px-6">
                             <div class="font-bold text-slate-900 dark:text-white">Rp {{ number_format($tx->amount, 0, ',', '.') }}</div>
@@ -508,18 +513,21 @@
         const transactionCheckboxes = document.querySelectorAll('.transaction-checkbox');
         const bulkDeleteContainer = document.getElementById('bulk-delete-container');
         const selectedCountSpan = document.getElementById('selected-count');
+        const selectedCountSettleSpan = document.getElementById('selected-count-settle');
         const btnBulkDelete = document.getElementById('btn-bulk-delete');
+        const btnBulkSettle = document.getElementById('btn-bulk-settle');
 
         function updateBulkDeleteState() {
             const checkedCheckboxes = document.querySelectorAll('.transaction-checkbox:checked');
             const count = checkedCheckboxes.length;
             
-            selectedCountSpan.textContent = count;
+            if (selectedCountSpan) selectedCountSpan.textContent = count;
+            if (selectedCountSettleSpan) selectedCountSettleSpan.textContent = count;
             if (count > 0) {
                 bulkDeleteContainer.classList.remove('hidden');
-                bulkDeleteContainer.classList.add('inline-block');
+                bulkDeleteContainer.classList.add('flex');
             } else {
-                bulkDeleteContainer.classList.remove('inline-block');
+                bulkDeleteContainer.classList.remove('flex');
                 bulkDeleteContainer.classList.add('hidden');
             }
         }
@@ -547,6 +555,38 @@
                 updateBulkDeleteState();
             });
         });
+
+        if (btnBulkSettle) {
+            btnBulkSettle.addEventListener('click', () => {
+                const checkedCheckboxes = document.querySelectorAll('.transaction-checkbox:checked');
+                const selectedIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+                if (selectedIds.length === 0) return;
+
+                if (confirm(`Apakah Anda yakin ingin menyelesaikan ${selectedIds.length} transaksi terpilih secara massal?`)) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{{ route('qris.settle-bulk') }}";
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = "{{ csrf_token() }}";
+                    form.appendChild(csrfInput);
+
+                    selectedIds.forEach(id => {
+                        const idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = 'ids[]';
+                        idInput.value = id;
+                        form.appendChild(idInput);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
 
         if (btnBulkDelete) {
             btnBulkDelete.addEventListener('click', () => {
