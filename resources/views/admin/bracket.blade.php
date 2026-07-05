@@ -55,9 +55,6 @@
                         <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
                             <i class="bi bi-tag-fill me-1"></i> Detail Slot YMD
                         </button>
-                        <button type="button" class="btn btn-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
-                            <i class="bi bi-clock me-1"></i> Set Jam per Babak
-                        </button>
                         <button type="button" class="btn btn-success text-white btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalShareTemplates">
                             <i class="bi bi-share-fill me-1"></i> Teks Share WA
                         </button>
