@@ -47,15 +47,16 @@
 </div>
 
 @if(!empty($anomalies))
-    <div class="mb-6 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-3xl p-5 shadow-sm animate-fade-in">
-        <div class="flex items-center gap-3 mb-2 text-amber-800 dark:text-amber-400">
-            <i data-lucide="help-circle" class="w-6 h-6 shrink-0"></i>
-            <h4 class="font-extrabold text-sm uppercase tracking-wide">Dana Masuk Belum Terverifikasi (Butuh Validasi Admin)</h4>
+    <div class="mb-6 bg-gradient-to-r from-violet-600/10 to-indigo-600/10 border border-violet-200 dark:border-violet-800 rounded-3xl p-5 shadow-sm animate-fade-in">
+        <div class="flex items-center gap-3 mb-2 text-violet-800 dark:text-violet-400">
+            <div class="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400 animate-pulse">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <h4 class="font-extrabold text-sm uppercase tracking-wide">Dips AI Smart-Matching Assistant</h4>
         </div>
-        <p class="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-            Sistem mendeteksi adanya dana yang telah ditransfer oleh peserta ke GoPay Anda, namun pendaftaran mereka di website **masih berstatus PENDING / EXPIRED (Kedaluwarsa)**. 
-            Hal ini biasanya terjadi karena peserta membayar terlambat setelah batas waktu habis, atau tidak sengaja membayar 2x. 
-            Silakan klik tombol <strong class="text-amber-800 dark:text-amber-400">"Setujui Pembayaran (PAID)"</strong> di bawah untuk mengesahkan pendaftaran tim tersebut secara manual menggunakan referensi mutasi GoPay tersebut.
+        <p class="text-xs text-slate-655 dark:text-slate-400 mb-4 leading-relaxed">
+            Dips AI mendeteksi adanya dana yang telah ditransfer oleh peserta ke GoPay Anda, namun pendaftaran mereka di website **masih berstatus PENDING / EXPIRED (Kedaluwarsa)**. 
+            AI merekomendasikan kecocokan tim pendaftar terdekat berdasarkan nominal transfer dan waktu transaksi di bawah ini.
         </p>
         
         <div class="space-y-3">
@@ -77,12 +78,23 @@
                             @foreach($anomaly['suspects'] as $sus)
                                 <div class="flex items-center justify-between text-xs p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800/80">
                                     <div>
-                                        <div class="font-bold text-slate-700 dark:text-slate-200">
+                                    @php
+                                        $txTime = \Carbon\Carbon::parse($anomaly['time']);
+                                        $susTime = $sus->created_at;
+                                        $diffInHours = abs($txTime->diffInHours($susTime));
+                                        $matchScore = max(50, 100 - ($diffInHours * 3));
+                                    @endphp
+                                    <div>
+                                        <div class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                                             {{ $sus->team->name ?? 'Tim Terhapus' }}
+                                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 border border-violet-200/50">
+                                                <i data-lucide="sparkles" class="w-2.5 h-2.5"></i> {{ $matchScore }}% AI Match
+                                            </span>
                                         </div>
                                         <div class="text-[10px] text-slate-400">
                                             {{ $sus->team->season->name ?? '-' }} | Dibuat: {{ $sus->created_at->setTimezone('Asia/Jakarta')->format('d M, H:i') }} WIB
                                         </div>
+                                    </div>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg {{ $sus->status === 'EXPIRED' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100/50 dark:border-red-950' : 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-450 border border-yellow-100/50 dark:border-yellow-950' }}">{{ $sus->status }}</span>

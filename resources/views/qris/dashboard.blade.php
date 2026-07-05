@@ -15,6 +15,24 @@
     </form>
 </div>
 
+<!-- AI Forecast Banner -->
+<div class="mb-6 bg-gradient-to-r from-violet-600 to-indigo-700 text-white rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+    <div class="flex items-center gap-3.5 relative z-10">
+        <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+            <i data-lucide="sparkles" class="w-6 h-6 text-yellow-300 animate-pulse"></i>
+        </div>
+        <div>
+            <h4 class="text-sm font-extrabold tracking-wide uppercase text-violet-100">Dips AI Cashflow Forecast</h4>
+            <p class="text-xs text-white/90 mt-1 font-medium leading-relaxed max-w-2xl">{{ $forecastMessage }}</p>
+        </div>
+    </div>
+    <div class="bg-white/10 border border-white/20 rounded-2xl px-4 py-2 text-center shrink-0 relative z-10">
+        <div class="text-[10px] text-violet-100 font-bold uppercase tracking-wider">Sisa Slot Turnamen</div>
+        <div class="text-xl font-black font-mono mt-0.5">{{ $remainingSlots }} Slot</div>
+    </div>
+</div>
+
 <!-- Stats Summary Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
     
@@ -123,6 +141,24 @@
         <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-6">Rasio Konversi Pembayaran</h3>
         <div class="h-56 relative w-full flex items-center justify-center">
             <canvas id="conversionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    <!-- Chart 4: Doughnut Chart (Payment Issuers) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-6">Distribusi Aplikasi/Bank Pembayar (Mutasi GoPay)</h3>
+        <div class="h-56 relative w-full flex items-center justify-center">
+            <canvas id="issuerChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 5: Bar Chart (Season Comparison) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-6">Perbandingan Omzet Antar Season (IDR)</h3>
+        <div class="h-56 relative w-full">
+            <canvas id="seasonChart"></canvas>
         </div>
     </div>
 </div>
@@ -348,6 +384,71 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 2.6 Doughnut Chart (Payment Issuers)
+    const ctxIssuer = document.getElementById('issuerChart');
+    if (ctxIssuer) {
+        new Chart(ctxIssuer.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: @json(array_keys($issuerStats)),
+                datasets: [{
+                    data: @json(array_values($issuerStats)),
+                    backgroundColor: ['#2563eb', '#10b981', '#ff4500', '#f59e0b', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: labelColor,
+                            font: { family: 'Plus Jakarta Sans', size: 9 },
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2.7 Bar Chart (Season Comparison)
+    const ctxSeason = document.getElementById('seasonChart');
+    if (ctxSeason) {
+        new Chart(ctxSeason.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: @json($seasonLabels),
+                datasets: [{
+                    label: 'Pendapatan (IDR)',
+                    data: @json($seasonRevenue),
+                    backgroundColor: '#10b981',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: labelColor, font: { family: 'Plus Jakarta Sans', size: 9 } }
+                    }
+                }
+            }
+        });
+    }
     // 3. Dynamic API Health Check
     fetch("{{ route('qris.test-poll') }}")
         .then(res => res.json())
@@ -366,6 +467,22 @@ document.addEventListener('DOMContentLoaded', () => {
             badge.className = "inline-flex px-2.5 py-1 rounded-full text-[9px] font-black bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20";
             badge.innerText = "Error";
         });
+
+    // Voice Kasir Pintar (Text-To-Speech)
+    window.speakNotification = function(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    @if(session('success'))
+        setTimeout(() => {
+            speakNotification("{{ session('success') }}");
+        }, 500);
+    @endif
 });
 </script>
 @endpush

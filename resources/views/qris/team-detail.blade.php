@@ -97,11 +97,11 @@
                                 <a href="{{ route('qris.invoice', $tx->trx_id) }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1">
                                     <i data-lucide="printer" class="w-3.5 h-3.5"></i> Invoice
                                 </a>
-                                <form action="{{ route('qris.refund', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-refund transaksi ini? Status tim akan diubah menjadi Gagal.');" class="inline-block m-0">
+                                <button type="button" onclick="showRefundModal('{{ $tx->trx_id }}', '{{ $tx->amount }}', '{{ $team->phone ?? '' }}', '{{ $team->name ?? '' }}')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm">
+                                    Refund
+                                </button>
+                                <form id="refund-form-{{ $tx->trx_id }}" action="{{ route('qris.refund', $tx->trx_id) }}" method="POST" style="display:none;">
                                     @csrf
-                                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm">
-                                        Refund
-                                    </button>
                                 </form>
                             @endif
 
@@ -124,3 +124,81 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    window.showRefundModal = function(trxId, amount, phone, teamName) {
+        const modal = document.getElementById('refund-helper-modal');
+        document.getElementById('refund-target-team').innerText = teamName;
+        document.getElementById('refund-amount').innerText = 'Rp ' + parseInt(amount).toLocaleString('id-ID');
+        document.getElementById('refund-phone').innerText = phone || '-';
+        
+        // Buat QR Code berisi teks informasi transfer agar admin bisa scan & salin instan
+        const qrData = encodeURIComponent(`Transfer Rp ${amount} ke E-Wallet/HP: ${phone} (Refund Tim ${teamName})`);
+        document.getElementById('refund-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrData}`;
+        
+        // Simpan trxId untuk aksi submit form
+        document.getElementById('btn-confirm-refund-submit').onclick = function() {
+            if (confirm('Konfirmasi sekali lagi untuk menandai transaksi ' + trxId + ' sebagai REFUNDED di database?')) {
+                document.getElementById('refund-form-' + trxId).submit();
+            }
+        };
+
+        modal.classList.remove('hidden');
+    }
+
+    window.closeRefundModal = function() {
+        document.getElementById('refund-helper-modal').classList.add('hidden');
+    }
+</script>
+@endpush
+
+<!-- Refund Helper Modal -->
+<div id="refund-helper-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeRefundModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200 dark:border-slate-800">
+            <div class="bg-white dark:bg-slate-900 p-6">
+                <div class="flex items-start gap-4">
+                    <div class="mx-auto shrink-0 flex items-center justify-center h-10 w-10 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-left w-full">
+                        <h3 class="text-md font-extrabold text-slate-900 dark:text-white mb-1">Panduan Pengembalian Dana</h3>
+                        <p class="text-xs text-slate-500 mb-4">Scan QR di bawah untuk menyalin nomor tujuan atau salin data transfer secara manual.</p>
+                        
+                        <!-- QR Code Area -->
+                        <div class="flex justify-center p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl mb-4">
+                            <img id="refund-qr-img" src="" alt="Scan Refund QR" class="w-40 h-40 border border-slate-200 rounded-xl">
+                        </div>
+
+                        <!-- Details Info -->
+                        <div class="space-y-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium">Tim Penerima:</span>
+                                <span id="refund-target-team" class="font-extrabold text-slate-850 dark:text-white">-</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium">Nominal Refund:</span>
+                                <span id="refund-amount" class="font-extrabold text-amber-600 font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400 font-medium">No. HP / E-Wallet:</span>
+                                <span id="refund-phone" class="font-extrabold text-slate-850 dark:text-white font-mono">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-800/40 px-6 py-4 flex flex-row-reverse gap-2 rounded-b-3xl">
+                <button type="button" id="btn-confirm-refund-submit" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 text-xs rounded-xl transition-all shadow-sm">
+                    Tandai Telah Direfund (VOID)
+                </button>
+                <button type="button" onclick="closeRefundModal()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold px-4 py-2 text-xs rounded-xl transition-all shadow-sm">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
