@@ -354,8 +354,10 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::get('/settings', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settings'])->name('settings');
         Route::get('/logs', [\App\Http\Controllers\Qris\QrisAdminController::class, 'logs'])->name('logs');
         Route::match(['get', 'post'], '/quick-checkout', [\App\Http\Controllers\Qris\QrisAdminController::class, 'quickCheckout'])->name('quick-checkout');
+        Route::match(['get', 'post'], '/payouts', [\App\Http\Controllers\Qris\QrisAdminController::class, 'payouts'])->name('payouts');
         Route::get('/test-poll', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testPoll'])->name('test-poll');
         Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
+        Route::post('/delete-logo', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteLogo'])->name('delete-logo');
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
         Route::post('/sync-pending', [\App\Http\Controllers\Qris\QrisAdminController::class, 'syncPending'])->name('sync-pending');
         Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');

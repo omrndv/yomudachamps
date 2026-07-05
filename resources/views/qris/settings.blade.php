@@ -69,9 +69,14 @@
             <div>
                 <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Logo Halaman QRIS (Kustom)</label>
                 @if($config->custom_logo)
-                    <div class="mb-3 flex items-center gap-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                        <img src="{{ $config->custom_logo }}" alt="Custom Logo" class="max-h-8 rounded">
-                        <span class="text-xs text-slate-400 font-mono">{{ $config->custom_logo }}</span>
+                    <div class="mb-3 flex items-center justify-between bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <img src="{{ $config->custom_logo }}" alt="Custom Logo" class="max-h-8 rounded">
+                            <span class="text-xs text-slate-400 font-mono">{{ $config->custom_logo }}</span>
+                        </div>
+                        <button type="button" onclick="if(confirm('Apakah Anda yakin ingin menghapus logo kustom?')) document.getElementById('delete-logo-form').submit();" class="text-red-500 hover:text-red-650 text-xs font-bold flex items-center gap-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Logo
+                        </button>
                     </div>
                 @endif
                 <input type="file" name="custom_logo" accept="image/*"
@@ -106,58 +111,11 @@
             </button>
         </form>
     </div>
-
-    <!-- Password Management Card -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm p-8 mt-6">
-        <div class="flex items-center gap-4 mb-8">
-            <div class="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-600">
-                <i data-lucide="lock" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-black text-slate-900 dark:text-white">Ubah Password Gateway</h3>
-                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Ubah password yang digunakan untuk mengakses Panel Gateway ini.</p>
-            </div>
-        </div>
-
-        @if($errors->any())
-            <div class="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-450 px-4 py-3 rounded-xl text-sm font-bold mb-6">
-                <ul class="list-disc pl-4 space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('qris.change-password') }}" method="POST" class="space-y-6">
-            @csrf
-            <div>
-                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Password Saat Ini</label>
-                <input type="password" name="current_password" required
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Password Baru</label>
-                    <input type="password" name="new_password" required
-                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Konfirmasi Password Baru</label>
-                    <input type="password" name="new_password_confirmation" required
-                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
-                </div>
-            </div>
-
-            <button type="submit"
-                class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
-                <i data-lucide="key" class="w-4 h-4"></i> Ubah Password
-            </button>
-        </form>
-    </div>
 </div>
+
+<form id="delete-logo-form" action="{{ route('qris.delete-logo') }}" method="POST" style="display:none;">
+    @csrf
+</form>
 @endsection
 
 @push('scripts')

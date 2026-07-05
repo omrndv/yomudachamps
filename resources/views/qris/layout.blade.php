@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dips Gateway - @yield('title', 'Dashboard')</title>
+    <link rel="manifest" href="/manifest.json">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -149,6 +150,10 @@
                             <i data-lucide="link" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Quick Checkout (Bebas)</span>
                         </a>
+                        <a href="{{ route('qris.payouts') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.payouts') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                            <span class="sidebar-brand-text">Payout & Settlement</span>
+                        </a>
                     </div>
                 </div>
 
@@ -234,6 +239,9 @@
                     </a>
                     <a href="{{ route('qris.quick-checkout') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.quick-checkout') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="link" class="w-5 h-5"></i> Quick Checkout (Bebas)
+                    </a>
+                    <a href="{{ route('qris.payouts') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.payouts') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                        <i data-lucide="arrow-up-right" class="w-5 h-5"></i> Payout & Settlement
                     </a>
                     <a href="{{ route('qris.logs') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl text-left {{ request()->routeIs('qris.logs') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                         <i data-lucide="shield-alert" class="w-5 h-5"></i> Audit Log & Error
@@ -398,6 +406,17 @@
             }
 
             applySidebarState();
+
+            // Register PWA Service Worker
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(reg => {
+                        console.log('PWA Service Worker registered successfully:', reg.scope);
+                    }).catch(err => {
+                        console.log('PWA Service Worker registration failed:', err);
+                    });
+                });
+            }
         });
     </script>
     @stack('scripts')

@@ -36,28 +36,60 @@
 <!-- Stats Summary Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
     
-    <!-- First Card: Dark Blue Theme Card -->
+    <!-- Card 1: Net Balance -->
     <div class="bg-blue-600 dark:bg-blue-700 text-white rounded-3xl p-6 shadow-md relative overflow-hidden group">
         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
         <div class="flex justify-between items-start mb-4">
-            <div class="text-[10px] font-bold text-blue-100 uppercase tracking-wider">Total Volume Sukses</div>
+            <div class="text-[10px] font-bold text-blue-100 uppercase tracking-wider">Saldo Bersih (Net)</div>
             <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-white">
                 <i data-lucide="wallet" class="w-4 h-4"></i>
             </div>
         </div>
         <div class="text-2xl font-black font-mono">
-            Rp {{ number_format($globalStats->total_volume, 0, ',', '.') }}
+            Rp {{ number_format($netBalance, 0, ',', '.') }}
         </div>
         <div class="text-[10px] text-blue-100 mt-3 font-semibold flex items-center gap-1">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Auto-settled
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Setelah Payout
         </div>
     </div>
 
-    <!-- Card 2: White/Dark Spending Card -->
+    <!-- Card 2: Total Volume QRIS -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <div class="flex justify-between items-start mb-4">
+            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Volume QRIS Sukses</div>
+            <div class="w-7 h-7 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600">
+                <i data-lucide="wallet" class="w-4 h-4"></i>
+            </div>
+        </div>
+        <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+            Rp {{ number_format($globalStats->total_volume, 0, ',', '.') }}
+        </div>
+        <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Omzet masuk
+        </div>
+    </div>
+
+    <!-- Card 3: Payout (Kas Keluar) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <div class="flex justify-between items-start mb-4">
+            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Total Payout (Kas Keluar)</div>
+            <div class="w-7 h-7 bg-red-50 dark:bg-red-500/10 rounded-lg flex items-center justify-center text-red-650">
+                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            </div>
+        </div>
+        <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+            Rp {{ number_format($totalPayout, 0, ',', '.') }}
+        </div>
+        <div class="text-[10px] text-slate-450 dark:text-slate-500 mt-3 font-semibold flex items-center gap-1">
+            <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Terkirim ke bank
+        </div>
+    </div>
+
+    <!-- Card 4: Transaksi Sukses -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
         <div class="flex justify-between items-start mb-4">
             <div class="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Transaksi Sukses</div>
-            <div class="w-7 h-7 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600">
+            <div class="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
             </div>
         </div>
@@ -69,39 +101,7 @@
         </div>
     </div>
 
-    <!-- Card 3: Pending Card -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Transaksi Pending</div>
-            <div class="w-7 h-7 bg-yellow-50 dark:bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-600 dark:text-yellow-450">
-                <i data-lucide="hourglass" class="w-4 h-4"></i>
-            </div>
-        </div>
-        <div class="text-2xl font-black text-slate-900 dark:text-white">
-            {{ $globalStats->pending_count }}
-        </div>
-        <div class="text-[10px] text-yellow-600 dark:text-yellow-450 mt-3 font-semibold flex items-center gap-1">
-            <i data-lucide="clock" class="w-3.5 h-3.5"></i> Menunggu bayar
-        </div>
-    </div>
-
-    <!-- Card 4: Expired Card -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div class="text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Transaksi Kedaluwarsa</div>
-            <div class="w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-450">
-                <i data-lucide="slash" class="w-4 h-4"></i>
-            </div>
-        </div>
-        <div class="text-2xl font-black text-slate-900 dark:text-white">
-            {{ $globalStats->expired_count }}
-        </div>
-        <div class="text-[10px] text-slate-450 dark:text-slate-555 mt-3 font-semibold flex items-center gap-1">
-            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Melewati batas waktu
-        </div>
-    </div>
-
-    <!-- Card 5: Success Rate Card -->
+    <!-- Card 5: Success Rate -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
         <div class="flex justify-between items-start mb-4">
             <div class="text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Rasio Keberhasilan</div>

@@ -120,24 +120,50 @@ class QrisAdminController extends Controller
             $issuerStats = ['GoPay' => 12, 'DANA' => 8, 'OVO' => 3, 'ShopeePay' => 4, 'Lainnya' => 2];
         }
 
-        // 4. Perbandingan Season
-        $seasons = \App\Models\Season::withCount(['teams' => function($q) {
-            $q->where('status', 'PAID');
-        }])->get();
+        // 4. Perbandingan Omzet (Khusus Dips Gateway)
+        $seasons = \App\Models\Season::get();
         $seasonLabels = [];
         $seasonRevenue = [];
         foreach ($seasons as $s) {
-            $seasonLabels[] = $s->name;
-            $seasonRevenue[] = $s->teams_count * ($s->price ?? 0);
+            $revenue = QrisTransaction::where('status', 'PAID')
+                ->whereHas('team', function($q) use ($s) {
+                    $q->where('season_id', $s->id);
+                })
+                ->sum('amount');
+            
+            if ($revenue > 0) {
+                $seasonLabels[] = $s->name;
+                $seasonRevenue[] = $revenue;
+            }
         }
 
-        // 5. AI Cashflow Velocity & Forecasting
-        $totalSlots = \App\Models\Season::sum('slot');
-        $totalPaidTeams = \App\Models\Team::where('status', 'PAID')->count();
-        $remainingSlots = max(0, $totalSlots - $totalPaidTeams);
-        $recentPaidCount = \App\Models\Team::where('status', 'PAID')
-            ->where('created_at', '>=', now()->subDays(7))
+        // 5. AI Cashflow Velocity & Forecasting (Hanya Season Aktif)
+        $activeSeasonIds = \App\Models\Season::where('status', 'ACTIVE')->pluck('id');
+        $totalSlots = \App\Models\Season::where('status', 'ACTIVE')->sum('slot');
+        
+        $totalPaidTeams = \App\Models\Team::whereIn('season_id', $activeSeasonIds)
+            ->where('status', 'PAID')
+            ->where(function($q) {
+                $q->where('payment_method', 'GOPAY_QRIS')
+                  ->orWhereHas('qrisTransactions', function($sub) {
+                      $sub->where('status', 'PAID');
+                  });
+            })
             ->count();
+
+        $remainingSlots = max(0, $totalSlots - $totalPaidTeams);
+
+        $recentPaidCount = \App\Models\Team::whereIn('season_id', $activeSeasonIds)
+            ->where('status', 'PAID')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->where(function($q) {
+                $q->where('payment_method', 'GOPAY_QRIS')
+                  ->orWhereHas('qrisTransactions', function($sub) {
+                      $sub->where('status', 'PAID');
+                  });
+            })
+            ->count();
+
         $velocityPerDay = max(0.1, $recentPaidCount / 7);
         $daysToFill = round($remainingSlots / $velocityPerDay, 1);
         $forecastMessage = $remainingSlots > 0 
@@ -149,10 +175,14 @@ class QrisAdminController extends Controller
             ->take(5)
             ->get();
 
+        $totalPayout = \App\Models\Payout::sum('amount');
+        $netBalance = $globalStats->total_volume - $totalPayout;
+
         return view('qris.dashboard', compact(
             'globalStats', 'monthlyLabels', 'monthlyCounts', 'weeklyCounts', 
             'recentTransactions', 'successRate', 'issuerStats', 
-            'seasonLabels', 'seasonRevenue', 'forecastMessage', 'remainingSlots'
+            'seasonLabels', 'seasonRevenue', 'forecastMessage', 'remainingSlots',
+            'netBalance', 'totalPayout'
         ));
     }
 
@@ -355,6 +385,15 @@ class QrisAdminController extends Controller
         }
 
         return back()->with('success', 'Konfigurasi dan kustomisasi branding berhasil disimpan!');
+    }
+
+    /**
+     * Hapus logo kustom branding
+     */
+    public function deleteLogo()
+    {
+        Setting::setVal('qris_custom_logo', '');
+        return back()->with('success', 'Logo resmi berhasil dihapus!');
     }
 
     /**
@@ -926,6 +965,37 @@ class QrisAdminController extends Controller
         }
 
         return view('qris.quick_checkout', compact('quickTx'));
+    }
+
+    /**
+     * Payout & Settlement Tracker
+     */
+    public function payouts(Request $request)
+    {
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'amount' => 'required|numeric|min:1000',
+                'destination_bank' => 'required|string|max:100',
+                'destination_account' => 'required|string|max:100',
+                'recipient_name' => 'required|string|max:255',
+            ]);
+
+            \App\Models\Payout::create($request->all());
+            
+            // Catat log payout
+            \App\Models\GatewayNotification::add(
+                'PAYOUT_CREATED',
+                'Pencatatan Payout Sukses',
+                "Pengeluaran dana (Payout) dicatat sebesar Rp " . number_format($request->amount, 0, ',', '.') . " ke rekening {$request->destination_bank} - {$request->destination_account} ({$request->recipient_name})."
+            );
+
+            return back()->with('success', 'Payout berhasil dicatat!');
+        }
+
+        $payouts = \App\Models\Payout::orderBy('created_at', 'desc')->paginate(15);
+        $totalPayout = \App\Models\Payout::sum('amount');
+
+        return view('qris.payouts', compact('payouts', 'totalPayout'));
     }
 }
 

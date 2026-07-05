@@ -25,4 +25,9 @@ class Team extends Model
     {
         return $this->belongsTo(Season::class);
     }
+
+    public function qrisTransactions()
+    {
+        return $this->hasMany(QrisTransaction::class, 'trx_id', 'trx_id');
+    }
 }

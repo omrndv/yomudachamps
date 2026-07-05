@@ -112,6 +112,13 @@
                                         <button type="button" onclick="copyToClipboard('{{ route('qris.pay', $tx->trx_id) }}')" class="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 p-2 rounded-xl transition-all flex items-center justify-center" title="Salin Link">
                                             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                         </button>
+                                        <form action="{{ route('qris.delete', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus link checkout ini?');" class="inline m-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-650 p-2 rounded-xl transition-all flex items-center justify-center" title="Hapus Link">
+                                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
