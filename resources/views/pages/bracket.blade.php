@@ -1158,7 +1158,7 @@
             }
             if (searchClearBtn) searchClearBtn.style.display = 'block';
 
-            const matched = matchesData.filter(m => m.teamKey.includes(query));
+            const matched = matchesData.filter(m => m.teamKey.includes(query)).reverse();
 
             if (matched.length > 0) {
                 resultCard.style.display = 'block';
