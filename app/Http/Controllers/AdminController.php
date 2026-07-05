@@ -797,6 +797,15 @@ class AdminController extends Controller
         if (!Auth::check()) return redirect()->route('admin.login');
         $team = Team::findOrFail($id);
         $statusLama = $team->status;
+
+        $nameExists = Team::where('season_id', $team->season_id)
+            ->where('id', '!=', $id)
+            ->whereRaw('LOWER(name) = ?', [strtolower($request->name)])
+            ->exists();
+
+        if ($nameExists) {
+            return back()->with('error', 'Nama tim "' . $request->name . '" sudah digunakan oleh tim lain pada season ini.');
+        }
         
         $team->update([
             'name'      => $request->name,

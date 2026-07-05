@@ -124,6 +124,16 @@ class HomeController extends Controller
             }
         }
 
+        // Cek apakah nama tim sudah terdaftar pada season ini oleh kapten lain (case-insensitive)
+        $nameExists = Team::where('season_id', $request->season_id)
+            ->where('wa_number', '!=', $request->wa_number)
+            ->whereRaw('LOWER(name) = ?', [strtolower($request->name)])
+            ->exists();
+
+        if ($nameExists) {
+            return back()->with('error', 'Nama tim "' . $request->name . '" sudah digunakan oleh kapten lain pada season ini. Silakan gunakan nama tim lain.');
+        }
+
         $season = Season::withCount(['teams' => function ($q) {
             $q->where('status', 'PAID');
         }])->findOrFail($request->season_id);
