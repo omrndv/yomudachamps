@@ -177,7 +177,6 @@ class AdminController extends Controller
     public function checkNewPayments()
     {
         $latestPaid = Team::where('status', 'PAID')
-            ->where('updated_at', '>=', now()->subMinutes(2))
             ->orderBy('updated_at', 'desc')
             ->first(['id', 'name', 'trx_id', 'updated_at']);
 
@@ -185,7 +184,6 @@ class AdminController extends Controller
         $pendingReportsCount = \App\Models\MatchReport::where('status', 'pending')->count();
         $latestPendingReport = \App\Models\MatchReport::with('reporterTeam', 'season')
             ->where('status', 'pending')
-            ->where('created_at', '>=', now()->subMinutes(2))
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -203,7 +201,6 @@ class AdminController extends Controller
         $unreadChatsCount = \App\Models\SeasonChat::where('is_admin', false)->where('is_read', false)->count();
         $latestUnreadChat = \App\Models\SeasonChat::where('is_admin', false)
             ->where('is_read', false)
-            ->where('created_at', '>=', now()->subMinutes(2))
             ->orderBy('created_at', 'desc')
             ->first();
 
