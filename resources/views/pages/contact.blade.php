@@ -20,8 +20,13 @@
                         <i class="bi bi-envelope me-2"></i> EMAIL OFFICIAL
                     </a>
                 </div>
+
+                <div class="mt-4 pt-4 border-top border-secondary border-opacity-20 text-start text-white-50" style="font-size: 0.85rem;">
+                    <strong class="text-warning d-block mb-1">Alamat Usaha:</strong>
+                    <p class="m-0">Dusun 1, Sokaraja Kulon, Sokaraja, Banyumas, Jawa Tengah, 53181.</p>
+                </div>
                 
-                <p class="small text-secondary mt-5 mb-0">Jam Operasional: 09:00 - 22:00 WIB</p>
+                <p class="small text-secondary mt-4 mb-0">Jam Operasional: 09:00 - 22:00 WIB</p>
             </div>
         </div>
     </div>

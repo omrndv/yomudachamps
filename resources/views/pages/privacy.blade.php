@@ -17,6 +17,9 @@
 
                     <h5 class="text-white mt-4">3. Keamanan Data</h5>
                     <p>Kami tidak menjual atau membagikan data pribadi Anda kepada pihak ketiga selain untuk keperluan proses transaksi keuangan melalui payment gateway secara aman.</p>
+
+                    <h5 class="text-white mt-4">4. Kebijakan Pengembalian Dana (Refund Policy)</h5>
+                    <p>Biaya pendaftaran yang telah dibayarkan bersifat <strong>Non-Refundable (tidak dapat dikembalikan)</strong> atas pembatalan sepihak oleh peserta. Namun, apabila turnamen secara resmi dibatalkan atau ditunda secara total oleh pihak penyelenggara, seluruh tim berhak mendapatkan <strong>pengembalian dana 100%</strong> yang akan diproses maksimal dalam waktu <strong>3 hari kerja</strong> ke rekening asal atau transfer.</p>
                 </div>
             </div>
         </div>
