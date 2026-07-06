@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bagan Turnamen - {{ $season->name }}</title>
-    <!-- DNS prefetch and preconnect for Google Fonts to maximize loading speed -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
@@ -737,7 +737,7 @@
 </head>
 <body>
 
-    {{-- Header --}}
+    
     <header class="bracket-header py-2">
         <div class="container d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
@@ -758,7 +758,7 @@
         </div>
     </header>
 
-    {{-- Search Area Container --}}
+    
     <div class="search-area-container">
         <div class="search-wrapper text-center">
             <div class="search-input-group d-flex align-items-center">
@@ -767,14 +767,14 @@
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
 
-            {{-- Result Panel --}}
+            
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
                 <div id="searchResultList"></div>
             </div>
         </div>
     </div>
 
-    {{-- Sticky Round Header Bar --}}
+    
     <div class="round-headers-bar" id="roundHeadersBar">
         @php
             $totalRounds = count($rounds);
@@ -811,7 +811,7 @@
         }
     @endphp
 
-    {{-- Bracket Field Wrapper --}}
+    
     <div class="bracket-container" id="bracketContainer">
         @foreach($rounds as $roundNum => $matches)
             @php
@@ -842,7 +842,7 @@
                             </span>
                         </div>
                         
-                        {{-- Team 1 Row --}}
+                        
                         <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
                             <div class="team-info">
                                 @if($match->team1)
@@ -854,7 +854,7 @@
                             <span class="team-score-box">{{ $match->team1_score }}</span>
                         </div>
 
-                        {{-- Team 2 Row --}}
+                        
                         <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
                             <div class="team-info">
                                 @if($match->team2)
@@ -872,7 +872,7 @@
                     </div>
                 @endforeach
 
-                {{-- Draw dynamic SVG connector lines --}}
+                
                 @if($roundNum < count($rounds))
                     <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                         @for($m = 1; $m <= $matchesCount; $m++)
@@ -887,12 +887,12 @@
                     </svg>
                 @endif
 
-                {{-- Render Bronze Match inside the final column --}}
+                
                 @if($isFinalRound && $bronzeMatch)
                     <div class="bronze-match-wrapper">
                         <div class="bronze-match-title">3rd Place Match</div>
                         <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
-                            {{-- Team 1 Row --}}
+                            
                             <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
                                 <div class="team-info">
                                     @if($bronzeMatch->team1)
@@ -904,7 +904,7 @@
                                 <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
                             </div>
 
-                            {{-- Team 2 Row --}}
+                            
                             <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
                                 <div class="team-info">
                                     @if($bronzeMatch->team2)
@@ -922,9 +922,9 @@
         @endforeach
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Panduan Bermain & Lapor Skor -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <div class="modal fade" id="modalGuideInfo" tabindex="-1" aria-labelledby="modalGuideInfoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,122,0,0.25); border-radius: 20px; color: #fff;">
@@ -974,9 +974,9 @@
         </div>
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Report Score -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <div class="modal fade" id="modalReportScore" tabindex="-1" aria-labelledby="modalReportScoreLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,122,0,0.25); border-radius: 20px; color: #fff;">
@@ -987,7 +987,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
-                <!-- Step 1: Verification Form -->
+                
                 <div id="reportStepVerification" class="modal-body p-4 text-start">
                     <p class="small text-secondary mb-4">
                         Masukkan nomor WhatsApp Kapten/Perwakilan tim yang terdaftar saat registrasi untuk mencocokkan pertandingan aktif tim Anda.
@@ -1003,7 +1003,7 @@
                     </button>
                 </div>
 
-                <!-- Step 2: Score & Screenshot Form (Initially Hidden) -->
+                
                 <div id="reportStepSubmit" class="modal-body p-4" style="display: none;">
                     <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-10 mb-4">
                         <div class="small text-secondary fw-bold text-center text-uppercase mb-1" style="font-size: 0.6rem; letter-spacing: 0.8px;">Pertandingan Aktif Anda</div>
@@ -1034,7 +1034,7 @@
                             </div>
                         </div>
 
-                        <!-- Screenshot Uploader -->
+                        
                         <div class="mb-4 text-start">
                             <label class="small fw-bold text-warning text-uppercase mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
                                 Upload Screenshot Hasil Game
@@ -1056,7 +1056,7 @@
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper JS -->
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>

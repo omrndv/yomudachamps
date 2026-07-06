@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yomuda Championship - {{ $season->name }}</title>
     
-    <!-- Google Fonts & Bootstrap Icons -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
-    <!-- Bootstrap CSS -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
@@ -530,7 +530,7 @@
 
     <div class="landing-container">
 
-        <!-- Season Card info -->
+        
         <div class="season-card">
             <div class="season-poster d-flex align-items-center justify-content-center bg-dark text-warning mx-auto" style="font-size: 2.2rem; width: 80px; height: 80px; border-radius: 18px; border: 2px solid var(--border-color); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); margin-bottom: 16px;">
                 <i class="bi bi-trophy-fill"></i>
@@ -539,9 +539,9 @@
             <h1 class="season-title">{{ $season->name }}</h1>
             <span class="season-badge">{{ $season->status ?? 'ACTIVE' }}</span>
 
-            <!-- Menu list -->
+            
             <div class="menu-list">
-                <!-- 1. Lihat Bagan Bermain -->
+                
                 <a href="{{ route('public.season.bracket', $slug) }}" class="menu-item">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
@@ -552,7 +552,7 @@
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </a>
 
-                <!-- 2. Lihat Jadwal -->
+                
                 <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalJadwal">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
@@ -563,7 +563,7 @@
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </div>
 
-                <!-- 3. Lihat Rules -->
+                
                 <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalRules">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
@@ -574,7 +574,7 @@
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </div>
 
-                <!-- 4. Chat Dengan Admin (Live Chat) -->
+                
                 <div class="menu-item" id="btnLandingChatOpen">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
@@ -588,7 +588,7 @@
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </div>
 
-                <!-- 5. Laporkan Hasil Laga (Upload Bukti) -->
+                
                 <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="border-color: rgba(255, 193, 7, 0.25); background-color: rgba(255, 193, 7, 0.02);">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper" style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
@@ -604,9 +604,9 @@
         <p class="footer-text">© {{ date('Y') }} Yomuda Championship. All Rights Reserved.</p>
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Jadwal -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <div class="modal fade" id="modalJadwal" tabindex="-1" aria-labelledby="modalJadwalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -620,7 +620,7 @@
                             {{ $season->schedule_info }}
                         </div>
                     @else
-                        <!-- Default WhatsApp template schedule formatting -->
+                        
                         <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-25 text-start" style="white-space: pre-line; font-size: 0.82rem; line-height: 1.5;">
                             📢 <strong>JADWAL TURNAMEN ML</strong>
 
@@ -656,9 +656,9 @@
         </div>
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Rules (Embedded Reader) -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <style>
         .rules-pdf-container {
             width: 100%;
@@ -697,12 +697,12 @@
                     @endphp
                     @if($rulesLink)
                         @if(str_contains($rulesLink, 'drive.google.com'))
-                            <!-- Google Drive preview reader with full page controls -->
+                            
                             <div class="rules-pdf-container rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-20 position-relative">
                                 <iframe src="{{ $embedLink }}" style="width: 100%; height: 100%; border: none;" scrolling="yes"></iframe>
                             </div>
                         @else
-                            <!-- PDF Zoom Control Bar -->
+                            
                             <div class="d-flex align-items-center justify-content-center gap-3 mb-3 p-2 rounded-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
                                 <button type="button" class="btn btn-outline-warning btn-sm rounded-circle d-flex align-items-center justify-content-center" id="pdf-zoom-out" style="width: 32px; height: 32px; padding: 0;">
                                     <i class="bi bi-dash-lg"></i>
@@ -713,7 +713,7 @@
                                 </button>
                             </div>
                             
-                            <!-- PDF.js Canvas Render for direct PDF files (gives perfect scrolling & page controls inside modal on both desktop and mobile) -->
+                            
                             <div id="pdf-viewer-container" class="rounded-4 overflow-auto shadow-lg border border-secondary border-opacity-20 p-2" style="height: 60vh; min-height: 400px; max-height: 580px; background-color: #2a2a30;">
                                 <div class="text-center py-5 text-secondary" id="pdf-loader">
                                     <div class="spinner-border text-warning mb-2" role="status"></div>
@@ -742,9 +742,9 @@
         </div>
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Modal Report Score -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <div class="modal fade" id="modalReportScore" tabindex="-1" aria-labelledby="modalReportScoreLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background-color: #1e1e24; border: 1px solid rgba(255,193,7,0.25); border-radius: 20px;">
@@ -755,7 +755,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
-                <!-- Step 1: Verification Form -->
+                
                 <div id="reportStepVerification" class="modal-body p-4 text-start">
                     <p class="small text-secondary mb-4">
                         Masukkan nomor WhatsApp Kapten/Perwakilan tim yang terdaftar saat registrasi untuk mencocokkan pertandingan aktif tim Anda.
@@ -771,7 +771,7 @@
                     </button>
                 </div>
 
-                <!-- Step 2: Score & Screenshot Form (Initially Hidden) -->
+                
                 <div id="reportStepSubmit" class="modal-body p-4" style="display: none;">
                     <div class="bg-dark p-3 rounded-4 border border-secondary border-opacity-10 mb-4">
                         <div class="small text-secondary fw-bold text-center text-uppercase mb-1" style="font-size: 0.6rem; letter-spacing: 0.8px;">Pertandingan Aktif Anda</div>
@@ -783,7 +783,7 @@
                         <input type="hidden" id="reportMatchId" name="match_id">
                         <input type="hidden" id="reportReporterTeamId" name="reporter_team_id">
 
-                        <!-- Scores inputs -->
+                        
                         <div class="row g-3 mb-4">
                             <div class="col-6">
                                 <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam1">Skor Tim 1</label>
@@ -803,7 +803,7 @@
                             </div>
                         </div>
 
-                        <!-- Screenshot Uploader -->
+                        
                         <div class="mb-4 text-start">
                             <label class="small fw-bold text-warning text-uppercase mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
                                 Upload Screenshot Hasil Game
@@ -825,9 +825,9 @@
         </div>
     </div>
 
-    <!-- ---------------------------------------------------------------------- -->
-    <!-- Floating Live Chat UI & Scripts -->
-    <!-- ---------------------------------------------------------------------- -->
+    
+    
+    
     <div class="chat-widget-wrapper" id="chatWidget">
         <button class="chat-toggle-btn shadow-lg" id="btnChatToggle">
             <i class="bi bi-chat-left-text-fill"></i>
@@ -861,7 +861,7 @@
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper JS -->
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -1321,7 +1321,7 @@
     </script>
 
     @if($rulesLink && !str_contains($rulesLink, 'drive.google.com'))
-    <!-- Load PDF.js from CDN to render local PDF files directly as Canvas in the modal -->
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

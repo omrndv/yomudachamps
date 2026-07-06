@@ -25,7 +25,7 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yomuda.png') }}">
 
-    <!-- Performance Optimizations: DNS Prefetch & Preconnect -->
+    
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
@@ -42,7 +42,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Defer non-critical scripts -->
+    
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}" defer></script>
 
     <meta name="google-site-verification" content="ErJnugnESZ9vYec5vVLW1evAKh6SQ5xJTG_jlY2WzOg">
@@ -207,17 +207,17 @@
     </script>
     @endif
 
-    {{-- FLOATING AI CHAT WIDGET --}}
+    
     <div id="yomuda-ai-chat" class="position-fixed bottom-0 end-0 m-3 m-md-4" style="z-index: 2000; font-family: 'Outfit', sans-serif;">
-        <!-- Chat Toggle Button -->
+        
         <button id="ai-chat-toggle" class="btn btn-warning rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border: 2px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;">
             <i class="bi bi-robot fs-3 text-dark" id="ai-icon"></i>
             <i class="bi bi-x-lg fs-4 text-dark d-none" id="ai-close-icon"></i>
         </button>
 
-        <!-- Chat Window -->
+        
         <div id="ai-chat-window" class="card shadow-2xl border-0 rounded-4 d-none" style="width: 380px; height: 500px; position: absolute; bottom: 70px; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8) !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: scale(0.95); opacity: 0;">
-            <!-- Header -->
+            
             <div class="card-header bg-dark text-white rounded-top-4 p-3.5 d-flex align-items-center justify-content-between border-0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;">
                 <div class="d-flex align-items-center gap-3">
                     <div class="bg-warning rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
@@ -237,9 +237,9 @@
                     <button type="button" class="btn-close btn-close-white shadow-none" id="ai-chat-close-btn" style="font-size: 0.8rem;"></button>
                 </div>
             </div>
-            <!-- Body / Message Area -->
+            
             <div class="card-body p-3.5 overflow-y-auto d-flex flex-column gap-3" id="ai-chat-messages" style="height: 360px; font-size: 0.85rem; background: #fafafb;">
-                <!-- Welcome Message -->
+                
                 <div class="d-flex gap-2.5 ai-message">
                     <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 30px; height: 30px; background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%) !important;">
                         <i class="bi bi-robot text-dark" style="font-size: 0.8rem;"></i>
@@ -247,7 +247,7 @@
                     <div class="bg-white border border-light-subtle p-3 rounded-4 rounded-start-0 text-dark max-w-75 shadow-sm leading-relaxed">
                         Halo Bro/Sist! Saya <strong>Yomuda AI</strong> 🚀<br><br>Ada yang bisa saya bantu terkait jadwal turnamen, biaya pendaftaran, aturan tanding, atau kontak admin?
                         
-                        <!-- Quick Prompts inside welcome message -->
+                        
                         <div class="d-flex flex-wrap gap-1.5 mt-3" id="ai-quick-prompts">
                             <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Info Turnamen Aktif">🏆 Info Turnamen</button>
                             <button type="button" class="btn btn-outline-warning btn-sm text-dark bg-white rounded-pill px-2.5 py-1 fw-bold text-uppercase shadow-xs" style="font-size: 0.68rem; border-color: rgba(255, 193, 7, 0.5);" data-prompt="Aturan Turnamen">📖 Aturan Tanding</button>
@@ -256,7 +256,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Footer / Input Form -->
+            
             <div class="card-footer p-2.5 bg-white border-top border-light rounded-bottom-4">
                 <form id="ai-chat-form" class="input-group input-group-sm">
                     <input type="text" id="ai-chat-input" class="form-control border-0 bg-light rounded-pill-start ps-3.5 shadow-none text-dark" placeholder="Tulis pertanyaanmu..." style="height: 42px; font-size: 16px !important; outline: none;">
