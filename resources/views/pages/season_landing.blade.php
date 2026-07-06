@@ -688,7 +688,7 @@
                     </p>
                     
                     @php
-                        $rulesLink = \App\Models\Setting::getVal('global_rules_link') ?: $season->rules_link;
+                        $rulesLink = $season->rules_link ?: \App\Models\Setting::getVal('global_rules_link');
                         $embedLink = $rulesLink;
                         if ($rulesLink && str_contains($rulesLink, 'drive.google.com')) {
                             // Convert standard drive view link to /preview so Google Drive's native controls load inside the iframe
