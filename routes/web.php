@@ -11,6 +11,7 @@ Route::post('/payment/{id}/checkout', [HomeController::class, 'checkout'])->name
 Route::get('/payment/detail/{trx_id}', [HomeController::class, 'paymentDetail'])->name('payment.detail');
 Route::get('/sertifikat', [HomeController::class, 'redirectCertificate'])->name('public.certificate.redirect');
 Route::get('/sertifikat/{season_slug}', [HomeController::class, 'redirectCertificateBySlug'])->name('public.certificate.redirect_slug');
+Route::get('/test-speed', [HomeController::class, 'testSpeed'])->name('public.test-speed');
 
 Route::get('/storage/{any}', function ($any) {
     $path = storage_path('app/public/' . urldecode($any));

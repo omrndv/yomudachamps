@@ -725,4 +725,19 @@ class HomeController extends Controller
             ]);
         }
     }
+
+    public function testSpeed()
+    {
+        $start = defined('LARAVEL_START') ? LARAVEL_START : microtime(true);
+        $dbStatus = 'Connected';
+        try {
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+        } catch (\Exception $e) {
+            $dbStatus = 'Error: ' . $e->getMessage();
+        }
+        $end = microtime(true);
+        $executionTimeMs = round(($end - $start) * 1000, 2);
+
+        return view('pages.test_speed', compact('executionTimeMs', 'dbStatus'));
+    }
 }
