@@ -66,9 +66,10 @@ class QrisController extends Controller
                 $uniqueCode = rand($minCode, $maxCode);
                 $finalAmount = $baseAmount + $uniqueCode;
 
-                // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain
+                // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain yang masih aktif
                 $exists = QrisTransaction::where('amount', $finalAmount)
                     ->where('status', 'PENDING')
+                    ->where('expires_at', '>', now())
                     ->exists();
 
                 if (!$exists) {
