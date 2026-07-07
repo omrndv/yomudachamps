@@ -307,14 +307,35 @@
             <p class="small text-secondary mt-2">Salin kode di atas ke aplikasi bank kamu</p>
             @endif
             @if(isset($detail->is_gopay_qris) && $detail->is_gopay_qris)
-                <div class="mobile-sticky-btn-container mt-4 px-2 text-center">
-                    <button id="btnCheckNow" class="btn-check-status btn-pulse-animation d-block text-center w-100">
-                        SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
-                    </button>
-                    <span class="d-block text-secondary small mt-2" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
-                        <i class="bi bi-info-circle me-1 text-warning"></i> Klik tombol di atas jika halaman belum ter-redirect otomatis setelah kamu membayar.
-                    </span>
-                </div>
+                @php
+                    $qrisTx = \App\Models\QrisTransaction::where('trx_id', $team->trx_id)->latest()->first();
+                @endphp
+                @if($qrisTx && $qrisTx->status === 'CLAIMED')
+                    <div class="alert alert-info mt-4 rounded-4 text-start" style="background: rgba(13, 110, 253, 0.08); border: 1px solid rgba(13, 110, 253, 0.2); color: #82b1ff; font-size: 0.8rem; line-height: 1.5;">
+                        <i class="bi bi-clock-fill me-2 fs-6"></i> <strong>Bukti Transfer Terkirim!</strong><br>
+                        <span class="d-block mt-1 text-white-50">Admin sedang mencocokkan nominal mutasi Anda. Halaman ini akan otomatis berganti ke tanda bukti sukses pendaftaran begitu disetujui.</span>
+                    </div>
+                @else
+                    <div class="mt-4 p-3 rounded-4 text-start" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
+                        <span class="d-block text-white fw-bold mb-2 small text-uppercase" style="letter-spacing: 0.5px; font-size: 0.72rem; opacity: 0.85;">Kirim Bukti Transfer</span>
+                        <form action="{{ route('qris.pay.proof', $team->trx_id) }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-2">
+                            @csrf
+                            <input type="file" name="proof_file" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary" required style="border-radius: 10px; font-size: 0.8rem;">
+                            <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold py-2" style="border-radius: 10px; font-size: 0.8rem; letter-spacing: 0.5px;">
+                                UNGGAH BUKTI &amp; KONFIRMASI <i class="bi bi-upload ms-1"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="mobile-sticky-btn-container mt-3 px-2 text-center">
+                        <button id="btnCheckNow" class="btn-check-status btn-pulse-animation d-block text-center w-100">
+                            SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
+                        </button>
+                        <span class="d-block text-secondary small mt-2" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
+                            <i class="bi bi-info-circle me-1 text-warning"></i> Jika Anda sudah transfer namun tidak ingin mengunggah bukti, klik tombol di atas untuk pengecekan status manual.
+                        </span>
+                    </div>
+                @endif
             @endif
 
         </div>
