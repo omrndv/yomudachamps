@@ -83,8 +83,12 @@ class QrisController extends Controller
             }
 
             try {
-                // Generate string QRIS dinamis menggunakan parser EMVCo
-                $dynamicQrisString = QrisService::generateDynamicQris($staticQris, $finalAmount);
+                // Jika staticQris adalah file image (starts with /uploads atau http)
+                if (Str::startsWith($staticQris, ['/uploads', '/storage', 'http', 'https'])) {
+                    $dynamicQrisString = $staticQris;
+                } else {
+                    $dynamicQrisString = QrisService::generateDynamicQris($staticQris, $finalAmount);
+                }
 
                 $qrisTx = QrisTransaction::create([
                     'id' => (string) Str::uuid(),

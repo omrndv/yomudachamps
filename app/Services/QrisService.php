@@ -64,6 +64,7 @@ class QrisService
      */
     public static function fetchGoPayMutations(int $limit = 50): array
     {
+        return []; // Akun GoBiz dinonaktifkan: Bypass API calls untuk menghindari loading lama
         $cacheKey = 'gopay_mutations_api_cache';
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
             return \Illuminate\Support\Facades\Cache::get($cacheKey) ?? [];

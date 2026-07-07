@@ -165,6 +165,10 @@
                             <i data-lucide="shield-alert" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Audit Log & Error</span>
                         </a>
+                        <a href="{{ route('admin.manual-payment') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('admin.manual-payment') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
+                            <i data-lucide="credit-card" class="w-5 h-5"></i>
+                            <span class="sidebar-brand-text">Pembayaran Manual</span>
+                        </a>
                         <a href="{{ route('qris.settings') }}" class="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-2xl transition-all text-left {{ request()->routeIs('qris.settings') ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800' }}">
                             <i data-lucide="sliders" class="w-5 h-5"></i>
                             <span class="sidebar-brand-text">Pengaturan Sistem</span>

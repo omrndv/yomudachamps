@@ -323,10 +323,13 @@ class HomeController extends Controller
         if (!$team && str_starts_with($trx_id, 'QUICK-')) {
             $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->latest()->firstOrFail();
             
+            $isQuickImg = \Illuminate\Support\Str::startsWith($qrisTx->qris_string ?? '', ['/uploads', '/storage', 'http', 'https']);
+            $quickQrUrl = $isQuickImg ? asset($qrisTx->qris_string) : 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? '');
+
             $detail = (object)[
                 'amount' => $qrisTx->amount,
                 'payment_method' => 'QRIS (GOPAY)',
-                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? ''),
+                'qr_url' => $quickQrUrl,
                 'reference' => 'YMD-GOPAY-' . ($qrisTx->id ?? ''),
                 'expired_time' => $qrisTx->expires_at->timestamp,
                 'instructions' => [
@@ -379,11 +382,14 @@ class HomeController extends Controller
                 $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->latest()->first();
             }
 
+            $isImg = \Illuminate\Support\Str::startsWith($qrisTx->qris_string ?? '', ['/uploads', '/storage', 'http', 'https']);
+            $qrUrl = $isImg ? asset($qrisTx->qris_string) : 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? '');
+
             // Create fake detail object for the view
             $detail = (object)[
                 'amount' => $qrisTx->amount ?? $team->amount,
                 'payment_method' => 'QRIS (GOPAY)',
-                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisTx->qris_string ?? ''),
+                'qr_url' => $qrUrl,
                 'reference' => 'YMD-GOPAY-' . ($qrisTx->id ?? ''),
                 'expired_time' => $qrisTx ? $qrisTx->expires_at->timestamp : (time() + 1800),
                 'instructions' => [
