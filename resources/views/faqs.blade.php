@@ -31,12 +31,10 @@
     }
 
     .faq-section {
-        background: rgba(255, 255, 255, 0.015);
+        background: #121214;
         border-radius: 35px;
         border: 1px solid rgba(255, 255, 255, 0.05);
         padding: 50px 35px;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
     }
     .faq-accordion .accordion-item {
         background: rgba(255, 255, 255, 0.02);
@@ -79,6 +77,22 @@
         line-height: 1.8;
         padding: 0 28px 24px;
     }
+    .faq-container .nav-pills .nav-link {
+        color: #a1a1aa;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.3s ease;
+    }
+    .faq-container .nav-pills .nav-link.active {
+        color: #000000;
+        background: var(--ymd-yellow);
+        border-color: var(--ymd-yellow);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    }
+    .faq-container .nav-pills .nav-link:hover:not(.active) {
+        border-color: rgba(255, 193, 7, 0.3);
+        color: #ffffff;
+    }
 </style>
 @endpush
 
@@ -88,14 +102,12 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 
-                {{-- Back button --}}
                 <div class="mb-4">
                     <a href="{{ route('home') }}" class="text-decoration-none text-white-50 hover-text-warning small transition-all">
                         <i class="bi bi-arrow-left me-1"></i> Kembali ke Beranda
                     </a>
                 </div>
 
-                {{-- FAQ Wrapper --}}
                 <div class="faq-section shadow-lg">
                     <div class="text-center mb-5">
                         <h2 class="section-title text-white text-uppercase d-block mb-3 fw-bold" style="letter-spacing: 1px;">Yomuda FAQ Center</h2>
@@ -105,21 +117,71 @@
                     </div>
 
                     @if(isset($faqs) && count($faqs) > 0)
-                        <div class="accordion faq-accordion" id="faqAccordion">
-                            @foreach($faqs as $index => $faq)
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="faqHeading{{ $faq->id }}">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse{{ $faq->id }}" aria-expanded="false" aria-controls="faqCollapse{{ $faq->id }}">
-                                            {{ $faq->question }}
-                                        </button>
-                                    </h2>
-                                    <div id="faqCollapse{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faqHeading{{ $faq->id }}" data-bs-parent="#faqAccordion">
-                                        <div class="accordion-body">
-                                            {!! nl2br(e($faq->answer)) !!}
+                        @php
+                            $tournamentFaqs = [];
+                            $paymentFaqs = [];
+                            foreach($faqs as $faq) {
+                                $q = strtolower($faq->question);
+                                if (
+                                    str_contains($q, 'bayar') || 
+                                    str_contains($q, 'refund') || 
+                                    str_contains($q, 'dana') || 
+                                    str_contains($q, 'transaksi') || 
+                                    str_contains($q, 'biaya')
+                                ) {
+                                    $paymentFaqs[] = $faq;
+                                } else {
+                                    $tournamentFaqs[] = $faq;
+                                }
+                            }
+                        @endphp
+
+                        <ul class="nav nav-pills justify-content-center mb-4 gap-2" id="faqTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active px-4 py-2 rounded-pill fw-bold text-uppercase" id="tournament-tab" data-bs-toggle="tab" data-bs-target="#tournament-pane" type="button" role="tab" style="font-size: 0.8rem; letter-spacing: 0.5px;">🏆 Turnamen & Main</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link px-4 py-2 rounded-pill fw-bold text-uppercase" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment-pane" type="button" role="tab" style="font-size: 0.8rem; letter-spacing: 0.5px;">💳 Pembayaran & Refund</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="faqTabContent">
+                            <div class="tab-pane fade show active" id="tournament-pane" role="tabpanel" aria-labelledby="tournament-tab">
+                                <div class="accordion faq-accordion" id="faqAccordionTournament">
+                                    @foreach($tournamentFaqs as $faq)
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="faqHeadingT{{ $faq->id }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseT{{ $faq->id }}" aria-expanded="false" aria-controls="faqCollapseT{{ $faq->id }}">
+                                                    {{ $faq->question }}
+                                                </button>
+                                            </h2>
+                                            <div id="faqCollapseT{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faqHeadingT{{ $faq->id }}" data-bs-parent="#faqAccordionTournament">
+                                                <div class="accordion-body">
+                                                    {!! nl2br(e($faq->answer)) !!}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            </div>
+                            <div class="tab-pane fade" id="payment-pane" role="tabpanel" aria-labelledby="payment-tab">
+                                <div class="accordion faq-accordion" id="faqAccordionPayment">
+                                    @foreach($paymentFaqs as $faq)
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="faqHeadingP{{ $faq->id }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseP{{ $faq->id }}" aria-expanded="false" aria-controls="faqCollapseP{{ $faq->id }}">
+                                                    {{ $faq->question }}
+                                                </button>
+                                            </h2>
+                                            <div id="faqCollapseP{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faqHeadingP{{ $faq->id }}" data-bs-parent="#faqAccordionPayment">
+                                                <div class="accordion-body">
+                                                    {!! nl2br(e($faq->answer)) !!}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
                     @else
                         <div class="text-center py-5 text-secondary">
