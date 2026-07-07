@@ -997,5 +997,73 @@ class QrisAdminController extends Controller
 
         return view('qris.payouts', compact('payouts', 'totalPayout'));
     }
+
+    /**
+     * Halaman PWA Mobile Verifikasi Pembayaran (CLAIMED)
+     */
+    public function verifyPaymentsPage()
+    {
+        $claimedTx = QrisTransaction::with('team.season')
+            ->where('status', 'CLAIMED')
+            ->orderBy('updated_at', 'asc')
+            ->get();
+
+        $recentTx = QrisTransaction::with('team.season')
+            ->where('status', 'PAID')
+            ->orderBy('paid_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin.verify_payments', compact('claimedTx', 'recentTx'));
+    }
+
+    /**
+     * API untuk menghitung transaksi CLAIMED secara real-time (untuk polling chime notifikasi)
+     */
+    public function pendingClaimsCountApi()
+    {
+        return response()->json([
+            'count' => QrisTransaction::where('status', 'CLAIMED')->count()
+        ]);
+    }
+
+    /**
+     * Aksi Tolak Bukti Transfer (Kembalikan status ke EXPIRED agar di-upload ulang)
+     */
+    public function manualReject($trx_id)
+    {
+        $qrisTx = QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $team = Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+
+        $qrisTx->update([
+            'status' => 'EXPIRED'
+        ]);
+
+        $team->status = 'PENDING';
+        $team->save();
+
+        // Hapus file screenshot bukti transfer fisik di server jika ada
+        if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
+            $filename = str_replace('PROOFS/', '', $qrisTx->gopay_reference);
+            $filePath = public_path('uploads/proofs/' . $filename);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        // Kirim notifikasi WhatsApp penolakan ke nomor kapten
+        try {
+            $msg = "Halo Kapten! Bukti transfer pendaftaran Anda untuk Tim *{$team->name}* tidak dapat kami validasi (tidak terbaca / tidak sesuai / nominal tidak pas).\n\n"
+                . "Mohon unggah kembali bukti transfer yang sah melalui link pembayaran Anda agar slot tim Anda aman:\n"
+                . route('qris.pay', $trx_id) . "\n\n"
+                . "-- Yomuda Championship --";
+            
+            \App\Services\WhatsappService::sendMessage($team->wa_number, $msg);
+        } catch (Exception $e) {
+            Log::error('Gagal kirim WhatsApp reject: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Transaksi berhasil ditolak dan kapten telah diberi tahu melalui WhatsApp.');
+    }
 }
 

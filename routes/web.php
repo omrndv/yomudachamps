@@ -361,6 +361,9 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
         Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
         Route::post('/delete-logo', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteLogo'])->name('delete-logo');
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
+        Route::get('/verify-payments', [\App\Http\Controllers\Qris\QrisAdminController::class, 'verifyPaymentsPage'])->name('verify-payments');
+        Route::get('/api/verify-payments/count', [\App\Http\Controllers\Qris\QrisAdminController::class, 'pendingClaimsCountApi'])->name('verify-payments.count');
+        Route::post('/reject/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualReject'])->name('reject');
         Route::post('/sync-pending', [\App\Http\Controllers\Qris\QrisAdminController::class, 'syncPending'])->name('sync-pending');
         Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
         Route::post('/delete-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteBulkTransactions'])->name('delete-bulk');

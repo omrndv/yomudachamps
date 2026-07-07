@@ -8,6 +8,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin - Yomuda Championship</title>
     
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YMD Admin">
+    <link rel="apple-touch-icon" href="/images/logo-yomuda.png">
+    
     <!-- Speed Optimization: DNS Prefetch & Preconnect for Admin Assets -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -615,6 +622,13 @@
             setInterval(checkForNewPayments, 10000);
             checkForNewPayments();
         });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/pwa-sw.js')
+                .then(reg => console.log('PWA Service Worker Registered'))
+                .catch(err => console.log('PWA Service Worker Failed', err));
+        }
     </script>
 
     @stack('scripts')
