@@ -11,25 +11,8 @@
     }
 
     .legal-page {
-        min-height: 100vh;
-        padding: 60px 0 100px;
-        position: relative;
+        padding: 20px 0 60px;
     }
-
-    .legal-page::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.013) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.013) 1px, transparent 1px);
-        background-size: 40px 40px;
-        mask-image: linear-gradient(to bottom, black, transparent 80%);
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .legal-page > .container { position: relative; z-index: 1; }
 
     .legal-back {
         display: inline-flex;
