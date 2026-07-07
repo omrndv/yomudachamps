@@ -25,6 +25,44 @@ class HomeController extends Controller
 
     public function faqs()
     {
+        try {
+            $paymentFaqExists = Faq::where('question', 'like', '%pembayaran%')->exists();
+            if (!$paymentFaqExists) {
+                $paymentFaqs = [
+                    [
+                        'question' => 'Bagaimana cara melakukan pembayaran pendaftaran?',
+                        'answer' => 'Pembayaran pendaftaran dapat dilakukan secara otomatis menggunakan QRIS (GoPay, OVO, Dana, LinkAja) atau melalui Virtual Account yang tersedia di halaman checkout setelah Anda mengisi formulir pendaftaran.',
+                        'order' => 100,
+                    ],
+                    [
+                        'question' => 'Apakah pembayaran saya akan terverifikasi otomatis?',
+                        'answer' => 'Ya, seluruh sistem pembayaran kami menggunakan verifikasi instan. Begitu Anda berhasil mentransfer dana sesuai nominal QRIS atau Virtual Account, status pendaftaran tim Anda akan otomatis berubah menjadi \'Lunas\' (PAID) dalam waktu kurang dari 1 menit.',
+                        'order' => 101,
+                    ],
+                    [
+                        'question' => 'Bagaimana jika saya salah mentransfer nominal pembayaran?',
+                        'answer' => 'Apabila Anda salah memasukkan nominal transfer (tidak sesuai dengan kode unik yang tertera), sistem tidak dapat memverifikasi pembayaran Anda secara otomatis. Jika hal ini terjadi, mohon segera hubungi layanan pelanggan kami melalui halaman Kontak dengan menyertakan bukti transfer untuk verifikasi manual.',
+                        'order' => 102,
+                    ],
+                    [
+                        'question' => 'Apakah saya bisa membatalkan pendaftaran dan meminta pengembalian dana (refund)?',
+                        'answer' => 'Sesuai dengan ketentuan layanan kami, biaya pendaftaran yang telah dibayarkan bersifat non-refundable (tidak dapat dikembalikan) jika pembatalan dilakukan sepihak oleh peserta. Pengembalian dana 100% hanya akan diberikan apabila turnamen secara resmi dibatalkan atau ditunda secara total oleh pihak panitia penyelenggara.',
+                        'order' => 103,
+                    ],
+                    [
+                        'question' => 'Ke mana saya harus menghubungi jika mengalami kendala transaksi?',
+                        'answer' => 'Jika Anda menemui kendala selama proses pembayaran, Anda dapat menghubungi tim support kami melalui WhatsApp Resmi di 0851-2261-6191 atau mengirim email ke yomudachampionship@gmail.com dengan menyertakan ID Transaksi (TRX ID) Anda.',
+                        'order' => 104,
+                    ],
+                ];
+                foreach ($paymentFaqs as $f) {
+                    Faq::create(array_merge($f, ['is_active' => true]));
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently catch in case of db sync issues during migration
+        }
+
         $faqs = Faq::where('is_active', true)->orderBy('order', 'asc')->get();
         return view('faqs', compact('faqs'));
     }
