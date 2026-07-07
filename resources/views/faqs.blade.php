@@ -443,7 +443,7 @@
                     <div class="faq-list" id="faq-list">
 
                         @foreach($tournamentFaqs as $faq)
-                        <div class="faq-item" data-tab="tournament" data-question="{{ strtolower($faq->question) }} {{ strtolower($faq->answer) }}">
+                        <div class="faq-item" data-tab="tournament" data-id="{{ $faq->id }}">
                             <button class="faq-question" onclick="toggleFaq(this)">
                                 <span class="faq-question-text">{{ $faq->question }}</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
@@ -455,7 +455,7 @@
                         @endforeach
 
                         @foreach($paymentFaqs as $faq)
-                        <div class="faq-item" data-tab="payment" data-question="{{ strtolower($faq->question) }} {{ strtolower($faq->answer) }}">
+                        <div class="faq-item" data-tab="payment" data-id="{{ $faq->id }}">
                             <button class="faq-question" onclick="toggleFaq(this)">
                                 <span class="faq-question-text">{{ $faq->question }}</span>
                                 <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
@@ -465,6 +465,20 @@
                             </div>
                         </div>
                         @endforeach
+
+                        {{-- JS search index: safe JSON encoding --}}
+                        <script id="faq-data-json" type="application/json">
+                        [
+                            @foreach($faqs as $faq)
+                            {
+                                "id": {{ $faq->id }},
+                                "tab": "{{ (str_contains(strtolower($faq->question), 'bayar') || str_contains(strtolower($faq->question), 'refund') || str_contains(strtolower($faq->question), 'dana') || str_contains(strtolower($faq->question), 'transaksi') || str_contains(strtolower($faq->question), 'biaya')) ? 'payment' : 'tournament' }}",
+                                "q": {{ json_encode(strtolower($faq->question)) }},
+                                "a": {{ json_encode(strtolower(strip_tags($faq->answer))) }}
+                            }{{ !$loop->last ? ',' : '' }}
+                            @endforeach
+                        ]
+                        </script>
 
                     </div>
 
@@ -499,13 +513,25 @@
 
 @push('scripts')
 <script>
+    // Build search index from safe JSON blob
+    const faqDataRaw = document.getElementById('faq-data-json');
+    const faqIndex = faqDataRaw ? JSON.parse(faqDataRaw.textContent) : [];
+    // Map id -> search text
+    const faqSearchMap = {};
+    faqIndex.forEach(f => { faqSearchMap[f.id] = { tab: f.tab, text: f.q + ' ' + f.a }; });
+
+    // Store original question text per element to safely restore after highlight
+    const originalTexts = new Map();
+    document.querySelectorAll('.faq-question-text').forEach(el => {
+        originalTexts.set(el, el.textContent);
+    });
+
     function toggleFaq(btn) {
         const item = btn.closest('.faq-item');
         const wrapper = item.querySelector('.faq-answer-wrapper');
         const answer = item.querySelector('.faq-answer');
         const isOpen = item.classList.contains('active-item');
 
-        // Close all open items
         document.querySelectorAll('.faq-item.active-item').forEach(openItem => {
             openItem.classList.remove('active-item');
             openItem.querySelector('.faq-answer-wrapper').style.maxHeight = '0';
@@ -513,11 +539,10 @@
 
         if (!isOpen) {
             item.classList.add('active-item');
-            wrapper.style.maxHeight = answer.scrollHeight + 32 + 'px';
+            wrapper.style.maxHeight = (answer.scrollHeight + 32) + 'px';
         }
     }
 
-    // Tab filtering
     const tabBtns = document.querySelectorAll('.faq-tab-btn');
     const faqItems = document.querySelectorAll('.faq-item');
     const emptyEl = document.getElementById('faq-empty');
@@ -532,34 +557,52 @@
         });
     });
 
-    // Search
-    const searchInput = document.getElementById('faq-search');
-    searchInput.addEventListener('input', () => filterFaqs());
+    document.getElementById('faq-search').addEventListener('input', filterFaqs);
+
+    function escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
     function filterFaqs() {
-        const query = searchInput.value.trim().toLowerCase();
+        const query = document.getElementById('faq-search').value.trim().toLowerCase();
         let visibleCount = 0;
 
         faqItems.forEach(item => {
-            const matchesTab = activeTab === 'all' || item.dataset.tab === activeTab;
-            const matchesSearch = !query || item.dataset.question.includes(query);
+            const id = parseInt(item.dataset.id);
+            const entry = faqSearchMap[id];
+            if (!entry) return;
+
+            const matchesTab = activeTab === 'all' || entry.tab === activeTab;
+            const matchesSearch = !query || entry.text.includes(query);
 
             if (matchesTab && matchesSearch) {
                 item.style.display = '';
                 visibleCount++;
 
-                // Highlight matched text in question
+                // Safe highlight: restore original text first, then wrap matches
                 const textEl = item.querySelector('.faq-question-text');
-                if (query) {
-                    const original = textEl.textContent;
-                    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    textEl.innerHTML = original.replace(regex, '<mark class="faq-highlight">$1</mark>');
-                } else {
-                    textEl.innerHTML = textEl.textContent;
+                const original = originalTexts.get(textEl);
+                if (query && original) {
+                    const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
+                    // Build highlighted text using DOM, not innerHTML string concat
+                    const parts = original.split(regex);
+                    textEl.textContent = '';
+                    parts.forEach(part => {
+                        if (regex.test(part)) {
+                            const mark = document.createElement('mark');
+                            mark.className = 'faq-highlight';
+                            mark.textContent = part;
+                            textEl.appendChild(mark);
+                        } else if (part) {
+                            textEl.appendChild(document.createTextNode(part));
+                        }
+                        regex.lastIndex = 0;
+                    });
+                } else if (original) {
+                    textEl.textContent = original;
                 }
             } else {
                 item.style.display = 'none';
-                // Close if hidden
                 item.classList.remove('active-item');
                 item.querySelector('.faq-answer-wrapper').style.maxHeight = '0';
             }
