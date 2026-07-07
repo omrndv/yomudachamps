@@ -473,8 +473,8 @@
                             {
                                 "id": {{ $faq->id }},
                                 "tab": "{{ (str_contains(strtolower($faq->question), 'bayar') || str_contains(strtolower($faq->question), 'refund') || str_contains(strtolower($faq->question), 'dana') || str_contains(strtolower($faq->question), 'transaksi') || str_contains(strtolower($faq->question), 'biaya')) ? 'payment' : 'tournament' }}",
-                                "q": {{ json_encode(strtolower($faq->question)) }},
-                                "a": {{ json_encode(strtolower(strip_tags($faq->answer))) }}
+                                "q": {!! json_encode(strtolower($faq->question)) !!},
+                                "a": {!! json_encode(strtolower(strip_tags($faq->answer))) !!}
                             }{{ !$loop->last ? ',' : '' }}
                             @endforeach
                         ]
