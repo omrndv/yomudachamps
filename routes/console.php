@@ -10,10 +10,10 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 // Polling transaksi GoPay PENDING setiap menit (mode daemon)
-Schedule::command('qris:poll --daemon')->everyMinute();
+// Schedule::command('qris:poll --daemon')->everyMinute();
 
 // Rekonsiliasi audit GoPay setiap jam
-Schedule::command('qris:reconcile')->hourly();
+// Schedule::command('qris:reconcile')->hourly();
 
 // Pengingat pendaftaran pending lewat WhatsApp setiap 30 menit
-Schedule::command('qris:recover-abandoned')->everyThirtyMinutes();
+// Schedule::command('qris:recover-abandoned')->everyThirtyMinutes();

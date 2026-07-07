@@ -81,23 +81,47 @@
                 <!-- QRIS Upload & Preview -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Unggah Gambar QRIS Statis</label>
-                        <input type="file" name="qris_image_file" accept="image/*"
-                            class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400">
+                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">String QRIS Statis (EMVCo)</label>
+                        <textarea id="static_qris_input" name="static_qris_string" rows="3"
+                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 transition-all font-mono"
+                            placeholder="00020101021226650016...">{{ !Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']) ? $settings['qris_image'] : '' }}</textarea>
                     </div>
 
-                    @if($settings['qris_image'])
-                    <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                        <img src="{{ $settings['qris_image'] }}" alt="QRIS Statis" class="w-12 h-12 object-contain rounded-lg border border-slate-200 dark:border-slate-800 bg-white">
-                        <div>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">QRIS Statis Aktif</span>
-                            <a href="{{ $settings['qris_image'] }}" target="_blank" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-1 mt-0.5">
-                                Lihat Gambar Asli <i data-lucide="external-link" class="w-3 h-3"></i>
-                            </a>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Unggah File Gambar QRIS Statis (Otomatis Ekstrak)</label>
+                        <input type="file" id="qr-input-file" accept="image/*" name="qris_image_file"
+                            class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400">
+                        <div id="qr-scan-result" class="mt-2 text-[10px] text-emerald-600 dark:text-emerald-400 hidden">
+                            ✓ Berhasil membaca QRIS! String disalin ke kolom kiri.
                         </div>
+                        <div id="qr-scan-error" class="mt-2 text-[10px] text-rose-600 dark:text-rose-400 hidden">
+                            ⚠ Gagal membaca QR code dari file gambar. File akan diunggah langsung sebagai gambar statis.
+                        </div>
+                        <div id="reader" style="display:none;"></div>
                     </div>
-                    @endif
                 </div>
+
+                @if($settings['qris_image'])
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+                        @if(Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']))
+                            <img src="{{ $settings['qris_image'] }}" alt="QRIS Statis" class="w-16 h-16 object-contain rounded-lg border border-slate-200 dark:border-slate-800 bg-white">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">QRIS Statis Aktif (Gambar)</span>
+                                <span class="text-[10px] text-slate-400 font-mono block mt-0.5">{{ $settings['qris_image'] }}</span>
+                            </div>
+                        @else
+                            <div class="w-16 h-16 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                <i data-lucide="qr-code" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">QRIS Statis Aktif (String Dinamis)</span>
+                                <span class="text-[9px] text-slate-400 font-mono block mt-1 line-clamp-2 max-w-md">{{ $settings['qris_image'] }}</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
 
                 <div class="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 text-xs shadow-sm transition-all">
@@ -213,3 +237,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileinput = document.getElementById('qr-input-file');
+    const staticQrisInput = document.getElementById('static_qris_input');
+    const scanResult = document.getElementById('qr-scan-result');
+    const scanError = document.getElementById('qr-scan-error');
+
+    if (fileinput) {
+        fileinput.addEventListener('change', e => {
+            if (e.target.files.length == 0) {
+                return;
+            }
+            
+            scanResult.classList.add('hidden');
+            scanError.classList.add('hidden');
+            
+            const imageFile = e.target.files[0];
+            const html5QrCode = new Html5Qrcode("reader");
+
+            html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                staticQrisInput.value = decodedText;
+                scanResult.classList.remove('hidden');
+            })
+            .catch(err => {
+                scanError.classList.remove('hidden');
+                console.log(`Error scanning file: ${err}`)
+            });
+        });
+    }
+});
+</script>
+@endpush

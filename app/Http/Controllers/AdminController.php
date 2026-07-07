@@ -2716,6 +2716,10 @@ class AdminController extends Controller
         \App\Models\Setting::setVal('manual_unique_max', $request->unique_max);
         \App\Models\Setting::setVal('manual_admin_fee', $request->admin_fee);
 
+        if ($request->filled('static_qris_string')) {
+            \App\Models\Setting::setVal('gopay_static_qris', $request->static_qris_string);
+        }
+
         if ($request->hasFile('qris_image_file')) {
             $file = $request->file('qris_image_file');
             $filename = 'static_qris_' . time() . '.' . $file->getClientOriginalExtension();

@@ -290,6 +290,7 @@
             <div class="qris-container">
                 @php
                     $qrisUrl = $detail->qr_url ?? 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . $detail->qr_content;
+                    $isDynamic = !Str::contains($qrisUrl, '/uploads/branding/');
                 @endphp
                 <img src="{{ $qrisUrl }}" alt="QRIS" style="width: 200px; height: 200px;">
                 <br>
@@ -297,7 +298,15 @@
                     <i class="bi bi-download me-1"></i> DOWNLOAD QRIS
                 </a>
             </div>
-            <p class="small text-info"><i class="bi bi-info-circle me-1"></i> Bisa pakai Dana, OVO, GoPay, ShopeePay, dll.</p>
+            @if($isDynamic)
+                <div class="alert alert-warning mt-2 mb-1 p-2 rounded-3 text-start small border-0" style="background: rgba(255, 193, 7, 0.08); color: #ffc107; line-height: 1.4; font-size: 0.72rem;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>PENTING:</strong> Nominal transfer <strong>terisi otomatis</strong>. Jangan ubah nominal di e-wallet Anda!
+                </div>
+            @else
+                <div class="alert alert-info mt-2 mb-1 p-2 rounded-3 text-start small border-0" style="background: rgba(13, 110, 253, 0.08); color: #82b1ff; line-height: 1.4; font-size: 0.72rem;">
+                    <i class="bi bi-info-circle-fill me-1"></i> Pastikan nominal transfer sama persis dengan tagihan di atas.
+                </div>
+            @endif
             @else
             <p class="text-secondary small mb-2">Kode Bayar / Nomor VA:</p>
             <div class="pay-code d-inline-block">{{ $detail->pay_code }}</div>
@@ -318,10 +327,10 @@
                 @else
                     <div class="mt-4 p-3 rounded-4 text-start" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
                         <span class="d-block text-white fw-bold mb-2 small text-uppercase" style="letter-spacing: 0.5px; font-size: 0.72rem; opacity: 0.85;">Kirim Bukti Transfer</span>
-                        <form action="{{ route('qris.pay.proof', $team->trx_id) }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-2">
+                        <form id="manualProofForm" action="{{ route('qris.pay.proof', $team->trx_id) }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-2">
                             @csrf
-                            <input type="file" name="proof_file" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary" required style="border-radius: 10px; font-size: 0.8rem;">
-                            <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold py-2" style="border-radius: 10px; font-size: 0.8rem; letter-spacing: 0.5px;">
+                            <input type="file" id="proofFileInput" name="proof_file" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary" required style="border-radius: 10px; font-size: 0.8rem;">
+                            <button type="submit" id="btnSubmitProof" class="btn btn-warning btn-sm w-100 fw-bold py-2" style="border-radius: 10px; font-size: 0.8rem; letter-spacing: 0.5px;">
                                 UNGGAH BUKTI &amp; KONFIRMASI <i class="bi bi-upload ms-1"></i>
                             </button>
                         </form>
@@ -531,6 +540,86 @@
                         confirmButtonColor: '#ffc107',
                         confirmButtonText: 'OKE'
                     });
+                });
+            });
+    function compressImage(file, maxWidth = 1000, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            }));
+                        } else {
+                            reject(new Error("Canvas toBlob failed"));
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const manualForm = document.getElementById('manualProofForm');
+        if (manualForm) {
+            manualForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fileInput = document.getElementById('proofFileInput');
+                const btnSubmit = document.getElementById('btnSubmitProof');
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Silakan pilih berkas bukti transfer.');
+                    return;
+                }
+
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengompres...';
+
+                const file = fileInput.files[0];
+                compressImage(file, 1000, 0.75)
+                .then(compressedFile => {
+                    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengunggah... 🚀';
+
+                    const formData = new FormData();
+                    formData.append('proof_file', compressedFile);
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    return fetch(manualForm.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                })
+                .then(res => {
+                    window.location.reload();
+                })
+                .catch(err => {
+                    console.error("Compression/Upload error:", err);
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = 'UNGGAH BUKTI &amp; KONFIRMASI <i class="bi bi-upload ms-1"></i>';
+                    alert('Gagal mengompres/mengunggah gambar. Silakan coba lagi.');
                 });
             });
         }

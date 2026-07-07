@@ -319,17 +319,17 @@
             <div class="card card-settings border-0 p-4 mb-4 bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
                     <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-wallet2 text-warning me-2"></i> Pengaturan GoPay QRIS
+                        <i class="bi bi-wallet2 text-warning me-2"></i> Dips Gateway (Pembayaran Manual)
                     </h5>
-                    <a href="/qris-gateway/settings" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
-                        Kelola API
+                    <a href="{{ route('admin.manual-payment') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                        Kelola Gateway
                     </a>
                 </div>
 
                 <div class="mb-0">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="payment_gateway_gopay_qris" id="payment_gateway_gopay_qris" value="on" {{ \App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on' ? 'checked' : '' }}>
-                        <label class="form-check-label small fw-bold text-dark" for="payment_gateway_gopay_qris">Aktifkan Gateway GoPay QRIS</label>
+                        <label class="form-check-label small fw-bold text-dark" for="payment_gateway_gopay_qris">Aktifkan Dips Gateway (Pembayaran Manual)</label>
                     </div>
                 </div>
             </div>
