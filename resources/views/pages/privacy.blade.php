@@ -10,9 +10,7 @@
         --ymd-border: rgba(255, 255, 255, 0.06);
     }
 
-    .legal-page {
-        padding: 20px 0 60px;
-    }
+    .legal-page { padding: 10px 0 60px; }
 
     .legal-back {
         display: inline-flex;
@@ -22,15 +20,14 @@
         font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
-        margin-bottom: 40px;
+        margin-bottom: 32px;
         transition: color 0.25s;
     }
-
     .legal-back:hover { color: var(--ymd-yellow); }
 
     .legal-hero {
         text-align: center;
-        padding: 0 20px 50px;
+        padding: 0 16px 40px;
     }
 
     .legal-hero-badge {
@@ -46,7 +43,7 @@
         letter-spacing: 2px;
         text-transform: uppercase;
         color: var(--ymd-yellow);
-        margin-bottom: 20px;
+        margin-bottom: 18px;
     }
 
     .legal-hero-badge span {
@@ -63,11 +60,11 @@
     }
 
     .legal-hero h1 {
-        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
         font-weight: 900;
         letter-spacing: -1.5px;
-        line-height: 1.1;
-        margin-bottom: 14px;
+        line-height: 1.15;
+        margin-bottom: 12px;
         background: linear-gradient(160deg, #ffffff 40%, #ffc107 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -75,23 +72,34 @@
     }
 
     .legal-hero p {
-        max-width: 480px;
+        max-width: 460px;
         margin: 0 auto;
         color: rgba(255, 255, 255, 0.45);
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         line-height: 1.8;
     }
 
     .legal-card {
         background: var(--ymd-card);
         border: 1px solid var(--ymd-border);
-        border-radius: 28px;
-        padding: 48px 48px;
+        border-radius: 24px;
+        padding: 36px 36px;
+    }
+
+    .legal-updated {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.28);
+        font-size: 0.76rem;
+        margin-bottom: 28px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .legal-section {
-        margin-bottom: 36px;
-        padding-bottom: 36px;
+        margin-bottom: 28px;
+        padding-bottom: 28px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
@@ -101,37 +109,36 @@
         border-bottom: none;
     }
 
+    .legal-section-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 12px;
+    }
+
     .legal-section-number {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border-radius: 9px;
         background: rgba(255, 193, 7, 0.1);
         border: 1px solid rgba(255, 193, 7, 0.2);
         color: var(--ymd-yellow);
         font-weight: 900;
-        font-size: 0.78rem;
-        flex-shrink: 0;
+        font-size: 0.76rem;
+        margin-top: 1px;
     }
 
-    .legal-section h5 {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    .legal-section-title {
         font-weight: 800;
-        font-size: 1rem;
-        color: #ffffff;
-        margin-bottom: 14px;
-    }
-
-    .legal-section p {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.92rem;
-        line-height: 1.9;
-        margin: 0;
-        padding-left: 44px;
+        font-size: 0.97rem;
+        color: #fff;
+        line-height: 1.4;
+        flex: 1;
+        min-width: 0;
     }
 
     .legal-tag {
@@ -139,29 +146,34 @@
         background: rgba(255, 193, 7, 0.08);
         color: var(--ymd-yellow);
         border: 1px solid rgba(255, 193, 7, 0.18);
-        border-radius: 8px;
-        padding: 3px 10px;
-        font-size: 0.72rem;
+        border-radius: 7px;
+        padding: 2px 9px;
+        font-size: 0.68rem;
         font-weight: 800;
         letter-spacing: 0.5px;
-        margin-left: auto;
+        white-space: nowrap;
+        margin-left: 8px;
+        vertical-align: middle;
     }
 
-    .legal-updated {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: rgba(255, 255, 255, 0.3);
-        font-size: 0.78rem;
-        margin-bottom: 36px;
-        padding-bottom: 28px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    .legal-tag-red {
+        background: rgba(255, 80, 80, 0.08);
+        color: #ff6b6b;
+        border-color: rgba(255, 80, 80, 0.2);
     }
 
-    @media (max-width: 768px) {
-        .legal-card { padding: 28px 22px; }
-        .legal-section p { padding-left: 0; margin-top: 10px; }
-        .legal-section h5 { flex-wrap: wrap; }
+    .legal-section p {
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 0.9rem;
+        line-height: 1.9;
+        margin: 0;
+        padding-left: 44px;
+    }
+
+    @media (max-width: 576px) {
+        .legal-card { padding: 24px 20px; }
+        .legal-section p { padding-left: 0; margin-top: 8px; }
+        .legal-section-head { gap: 10px; }
     }
 </style>
 @endpush
@@ -170,7 +182,7 @@
 <div class="legal-page">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8 col-xl-7">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-7">
 
                 <a href="{{ route('home') }}" class="legal-back">
                     <i class="bi bi-arrow-left"></i> Kembali ke Beranda
@@ -191,36 +203,35 @@
                     </div>
 
                     <div class="legal-section">
-                        <h5>
+                        <div class="legal-section-head">
                             <span class="legal-section-number">1</span>
-                            Informasi Yang Kami Kumpulkan
-                        </h5>
+                            <span class="legal-section-title">Informasi Yang Kami Kumpulkan</span>
+                        </div>
                         <p>Kami mengumpulkan informasi seperti Nama Tim dan Nomor WhatsApp untuk keperluan koordinasi turnamen dan proses pembayaran melalui gerbang pembayaran otomatis yang aman.</p>
                     </div>
 
                     <div class="legal-section">
-                        <h5>
+                        <div class="legal-section-head">
                             <span class="legal-section-number">2</span>
-                            Penggunaan Data
-                        </h5>
+                            <span class="legal-section-title">Penggunaan Data</span>
+                        </div>
                         <p>Data Anda digunakan murni untuk validasi pendaftaran, pengiriman status pembayaran, dan pemberian akses ke grup koordinasi turnamen.</p>
                     </div>
 
                     <div class="legal-section">
-                        <h5>
+                        <div class="legal-section-head">
                             <span class="legal-section-number">3</span>
-                            Keamanan Data
-                        </h5>
+                            <span class="legal-section-title">Keamanan Data</span>
+                        </div>
                         <p>Kami tidak menjual atau membagikan data pribadi Anda kepada pihak ketiga selain untuk keperluan proses transaksi keuangan melalui payment gateway secara aman.</p>
                     </div>
 
                     <div class="legal-section">
-                        <h5>
+                        <div class="legal-section-head">
                             <span class="legal-section-number">4</span>
-                            Kebijakan Pengembalian Dana
-                            <span class="legal-tag">Refund Policy</span>
-                        </h5>
-                        <p>Biaya pendaftaran yang telah dibayarkan bersifat <strong style="color:#fff;">Non-Refundable</strong> atas pembatalan sepihak oleh peserta. Namun, apabila turnamen secara resmi dibatalkan atau ditunda secara total oleh pihak penyelenggara, seluruh tim berhak mendapatkan <strong style="color:#fff;">pengembalian dana 100%</strong> yang akan diproses maksimal dalam waktu <strong style="color:#fff;">3 hari kerja</strong> ke rekening asal atau transfer.</p>
+                            <span class="legal-section-title">Kebijakan Pengembalian Dana <span class="legal-tag">Refund Policy</span></span>
+                        </div>
+                        <p>Biaya pendaftaran yang telah dibayarkan bersifat <strong style="color:#fff;">Non-Refundable</strong> atas pembatalan sepihak oleh peserta. Namun, apabila turnamen secara resmi dibatalkan atau ditunda secara total oleh pihak penyelenggara, seluruh tim berhak mendapatkan <strong style="color:#fff;">pengembalian dana 100%</strong> yang akan diproses maksimal dalam waktu <strong style="color:#fff;">3 hari kerja</strong>.</p>
                     </div>
                 </div>
 
