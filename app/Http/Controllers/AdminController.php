@@ -2665,4 +2665,65 @@ class AdminController extends Controller
             ]);
         }
     }
+
+    /**
+     * Dashboard terpadu Pembayaran Manual (Gabungan setting, saldo, riwayat, dll)
+     */
+    public function manualPaymentDashboard(Request $request)
+    {
+        $totalBalance = \App\Models\QrisTransaction::where('status', 'PAID')
+            ->sum('amount');
+
+        $query = \App\Models\QrisTransaction::with('team.season')->orderBy('updated_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('trx_id', 'like', "%{$search}%")
+                  ->orWhereHas('team', function($t) use ($search) {
+                      $t->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $transactions = $query->paginate(15);
+
+        $settings = [
+            'enabled' => \App\Models\Setting::getVal('manual_payment_enabled', 'false') === 'true',
+            'qris_image' => \App\Models\Setting::getVal('gopay_static_qris', ''),
+            'unique_min' => (int) \App\Models\Setting::getVal('manual_unique_min', 200),
+            'unique_max' => (int) \App\Models\Setting::getVal('manual_unique_max', 300),
+            'admin_fee' => (int) \App\Models\Setting::getVal('manual_admin_fee', 0),
+        ];
+
+        return view('admin.manual_payment', compact('totalBalance', 'transactions', 'settings'));
+    }
+
+    /**
+     * Update konfigurasi Pembayaran Manual
+     */
+    public function updateManualPaymentSettings(Request $request)
+    {
+        $request->validate([
+            'unique_min' => 'required|integer|min:0',
+            'unique_max' => 'required|integer|min:0|gte:unique_min',
+            'admin_fee' => 'required|integer|min:0',
+            'qris_image_file' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+        ]);
+
+        \App\Models\Setting::setVal('manual_payment_enabled', $request->has('enabled') ? 'true' : 'false');
+        \App\Models\Setting::setVal('manual_unique_min', $request->unique_min);
+        \App\Models\Setting::setVal('manual_unique_max', $request->unique_max);
+        \App\Models\Setting::setVal('manual_admin_fee', $request->admin_fee);
+
+        if ($request->hasFile('qris_image_file')) {
+            $file = $request->file('qris_image_file');
+            $filename = 'static_qris_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/branding'), $filename);
+            
+            \App\Models\Setting::setVal('gopay_static_qris', '/uploads/branding/' . $filename);
+        }
+
+        return back()->with('success', 'Konfigurasi Pembayaran Manual berhasil disimpan!');
+    }
 }

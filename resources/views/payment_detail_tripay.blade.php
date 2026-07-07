@@ -327,12 +327,9 @@
                         </form>
                     </div>
 
-                    <div class="mobile-sticky-btn-container mt-3 px-2 text-center">
-                        <button id="btnCheckNow" class="btn-check-status btn-pulse-animation d-block text-center w-100">
-                            SAYA SUDAH BAYAR <i class="bi bi-check-circle-fill ms-1"></i>
-                        </button>
-                        <span class="d-block text-secondary small mt-2" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
-                            <i class="bi bi-info-circle me-1 text-warning"></i> Jika Anda sudah transfer namun tidak ingin mengunggah bukti, klik tombol di atas untuk pengecekan status manual.
+                    <div class="mt-3 text-center">
+                        <span class="d-block text-secondary small" style="font-size: 0.72rem; opacity: 0.85; line-height: 1.4;">
+                            <i class="bi bi-info-circle me-1 text-warning"></i> Unggah bukti transfer Anda di atas. Setelah diunggah, admin akan memverifikasi pembayaran Anda secara real-time.
                         </span>
                     </div>
                 @endif

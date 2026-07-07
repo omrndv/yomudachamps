@@ -51,15 +51,19 @@ class QrisController extends Controller
                 return back()->with('error', 'QRIS Statis belum dikonfigurasi di dashboard admin QRIS.');
             }
 
-            // Cari kode unik (1-50) yang tidak sedang aktif (tidak berstatus PENDING)
+            $minCode = (int) Setting::getVal('manual_unique_min', 200);
+            $maxCode = (int) Setting::getVal('manual_unique_max', 300);
+            $adminFee = (int) Setting::getVal('manual_admin_fee', 0);
+            $baseAmount = $baseAmount + $adminFee;
+
+            // Cari kode unik yang tidak sedang aktif (tidak berstatus PENDING)
             $uniqueCode = 0;
             $maxAttempts = 1000;
             $attempt = 0;
             $found = false;
 
             while ($attempt < $maxAttempts) {
-                // Gunakan mode server-managed (nominal dasar + kode unik 200-400 untuk antrean lebih luas)
-                $uniqueCode = rand(200, 400);
+                $uniqueCode = rand($minCode, $maxCode);
                 $finalAmount = $baseAmount + $uniqueCode;
 
                 // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain

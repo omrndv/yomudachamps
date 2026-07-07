@@ -423,6 +423,12 @@ class HomeController extends Controller
     {
         $team = Team::with('season')->where('trx_id', $trx_id)->first();
         if (!$team && str_starts_with($trx_id, 'QUICK-')) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->latest()->first();
+            if (!$qrisTx || $qrisTx->status !== 'PAID') {
+                return redirect()->route('payment.detail', $trx_id)
+                    ->with('error', 'Pembayaran QRIS Bebas Anda belum diverifikasi oleh admin.');
+            }
+
             $team = (object)[
                 'name' => 'Quick Checkout / QRIS Bebas',
                 'trx_id' => $trx_id,
@@ -433,6 +439,10 @@ class HomeController extends Controller
         }
         if (!$team) {
             abort(404);
+        }
+        if ($team->status !== 'PAID') {
+            return redirect()->route('payment.detail', $trx_id)
+                ->with('error', 'Pembayaran Anda belum diverifikasi oleh admin.');
         }
         return view('success', compact('team'));
     }

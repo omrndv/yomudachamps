@@ -142,6 +142,8 @@ Route::middleware('admin.auth')->group(function () {
 
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
+        Route::get('/manual-payment', [AdminController::class, 'manualPaymentDashboard'])->name('admin.manual-payment');
+        Route::post('/manual-payment/settings', [AdminController::class, 'updateManualPaymentSettings'])->name('admin.manual-payment.settings');
         Route::get('/ai-recap-winners', [AdminController::class, 'aiRecapWinners'])->name('admin.ai.recap_winners');
         Route::post('/ai-chat', [AdminController::class, 'adminChatWithAI'])->name('admin.ai.chat');
         
