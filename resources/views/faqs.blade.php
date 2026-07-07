@@ -1,194 +1,494 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar FAQ Lengkap - Yomuda Championship')
+@section('title', 'FAQ - Yomuda Championship')
 
 @push('styles')
 <style>
     :root {
         --ymd-yellow: #ffc107;
-        --ymd-dark: #16191c;
+        --ymd-dark: #0e0f11;
+        --ymd-card: #141618;
+        --ymd-border: rgba(255, 255, 255, 0.06);
     }
 
-    .faq-container {
+    /* ───── PAGE WRAPPER ───── */
+    .faq-page {
+        min-height: 100vh;
+        padding: 60px 0 100px;
+    }
+
+    /* ───── HERO HEADER ───── */
+    .faq-hero {
+        text-align: center;
+        padding: 20px 20px 60px;
         position: relative;
-        overflow: hidden;
-        padding: 100px 0 80px;
-        background:
-            radial-gradient(circle at top, rgba(255, 193, 7, 0.08) 0%, transparent 45%),
-            radial-gradient(circle at bottom, rgba(255, 193, 7, 0.03) 0%, transparent 60%);
     }
 
-    .faq-container::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-        background-size: 40px 40px;
-        mask-image: linear-gradient(to bottom, black, transparent 90%);
-        pointer-events: none;
-    }
-
-    .faq-section {
-        background: #121214;
-        border-radius: 35px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 50px 35px;
-    }
-    .faq-accordion .accordion-item {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 20px !important;
-        margin-bottom: 15px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    .faq-accordion .accordion-item:hover {
-        border-color: rgba(255, 193, 7, 0.35);
-        background: rgba(255, 193, 7, 0.015);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    }
-    .faq-accordion .accordion-button {
-        background: transparent;
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 1.05rem;
-        padding: 22px 28px;
-        box-shadow: none;
-        border: none;
-    }
-    .faq-accordion .accordion-button:not(.collapsed) {
+    .faq-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 193, 7, 0.08);
+        border: 1px solid rgba(255, 193, 7, 0.22);
+        border-radius: 50px;
+        padding: 7px 20px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
         color: var(--ymd-yellow);
-        background: transparent;
+        margin-bottom: 22px;
     }
-    .faq-accordion .accordion-button::after {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-        filter: drop-shadow(0 0 4px rgba(255,255,255,0.2));
-        transition: transform 0.25s ease;
+
+    .faq-hero-badge span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ymd-yellow);
+        animation: pulse-dot 1.8s ease infinite;
     }
-    .faq-accordion .accordion-button:not(.collapsed)::after {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffc107'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-        filter: drop-shadow(0 0 4px rgba(255,193,7,0.4));
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
     }
-    .faq-accordion .accordion-body {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.95rem;
+
+    .faq-hero h1 {
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        font-weight: 900;
+        letter-spacing: -2px;
+        line-height: 1.1;
+        margin-bottom: 16px;
+        background: linear-gradient(160deg, #ffffff 40%, #ffc107 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .faq-hero p {
+        max-width: 520px;
+        margin: 0 auto 36px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1rem;
         line-height: 1.8;
-        padding: 0 28px 24px;
     }
-    .faq-container .nav-pills .nav-link {
-        color: #a1a1aa;
-        background: rgba(255, 255, 255, 0.03);
+
+    /* ───── SEARCH BAR ───── */
+    .faq-search-wrapper {
+        max-width: 520px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .faq-search-wrapper i {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 1rem;
+        pointer-events: none;
+        transition: color 0.3s;
+    }
+
+    .faq-search-wrapper:focus-within i {
+        color: var(--ymd-yellow);
+    }
+
+    #faq-search {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 16px 20px 16px 50px;
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    }
+
+    #faq-search::placeholder {
+        color: rgba(255, 255, 255, 0.28);
+    }
+
+    #faq-search:focus {
+        border-color: rgba(255, 193, 7, 0.5);
+        background: rgba(255, 193, 7, 0.04);
+        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.07);
+    }
+
+    /* ───── CATEGORY TABS ───── */
+    .faq-tabs-wrapper {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
+    }
+
+    .faq-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border-radius: 50px;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.03);
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.25s ease;
     }
-    .faq-container .nav-pills .nav-link.active {
-        color: #000000;
+
+    .faq-tab-btn .tab-count {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 1px 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        transition: all 0.25s ease;
+    }
+
+    .faq-tab-btn:hover {
+        border-color: rgba(255, 193, 7, 0.3);
+        color: #fff;
+    }
+
+    .faq-tab-btn.active {
         background: var(--ymd-yellow);
         border-color: var(--ymd-yellow);
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        color: #000;
+        box-shadow: 0 6px 24px rgba(255, 193, 7, 0.28);
     }
-    .faq-container .nav-pills .nav-link:hover:not(.active) {
+
+    .faq-tab-btn.active .tab-count {
+        background: rgba(0, 0, 0, 0.15);
+        color: #000;
+    }
+
+    /* ───── ACCORDION ───── */
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .faq-item {
+        background: var(--ymd-card);
+        border: 1px solid var(--ymd-border);
+        border-radius: 18px;
+        overflow: hidden;
+        transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .faq-item:hover {
+        border-color: rgba(255, 193, 7, 0.25);
+    }
+
+    .faq-item.active-item {
+        border-color: rgba(255, 193, 7, 0.45);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .faq-question {
+        width: 100%;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 22px 26px;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.2s;
+    }
+
+    .faq-question:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .faq-question-text {
+        font-weight: 700;
+        font-size: 0.97rem;
+        color: #fff;
+        line-height: 1.5;
+        transition: color 0.25s;
+    }
+
+    .faq-item.active-item .faq-question-text {
+        color: var(--ymd-yellow);
+    }
+
+    .faq-chevron {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .faq-chevron i {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .faq-item.active-item .faq-chevron {
+        background: rgba(255, 193, 7, 0.12);
         border-color: rgba(255, 193, 7, 0.3);
-        color: #ffffff;
+    }
+
+    .faq-item.active-item .faq-chevron i {
+        transform: rotate(180deg);
+        color: var(--ymd-yellow);
+    }
+
+    .faq-answer-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .faq-answer {
+        padding: 0 26px 24px;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.92rem;
+        line-height: 1.85;
+        border-top: 1px solid var(--ymd-border);
+        padding-top: 18px;
+    }
+
+    /* ───── EMPTY / NO RESULTS ───── */
+    .faq-empty {
+        text-align: center;
+        padding: 60px 20px;
+        display: none;
+    }
+
+    .faq-empty-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 18px;
+        border-radius: 20px;
+        background: rgba(255, 193, 7, 0.08);
+        border: 1px solid rgba(255, 193, 7, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+    }
+
+    .faq-empty h5 {
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .faq-empty p {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* ───── CTA FOOTER CARD ───── */
+    .faq-cta {
+        margin-top: 40px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 193, 7, 0.15);
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(14, 15, 17, 0.8) 100%);
+        padding: 36px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .faq-cta-text h5 {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+    .faq-cta-text p {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.88rem;
+        margin: 0;
+    }
+
+    .faq-cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #25D366;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 13px 26px;
+        border-radius: 14px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.25s ease;
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.2);
+    }
+
+    .faq-cta-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(37, 211, 102, 0.35);
+        color: #fff;
+    }
+
+    /* ───── BACK LINK ───── */
+    .faq-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 40px;
+        transition: color 0.25s;
+    }
+
+    .faq-back:hover {
+        color: var(--ymd-yellow);
+    }
+
+    /* ───── SEARCH HIGHLIGHT ───── */
+    .faq-highlight {
+        background: rgba(255, 193, 7, 0.25);
+        color: var(--ymd-yellow);
+        border-radius: 3px;
+        padding: 0 2px;
+    }
+
+    /* ───── RESPONSIVE ───── */
+    @media (max-width: 768px) {
+        .faq-page { padding: 30px 0 80px; }
+        .faq-hero { padding: 10px 16px 40px; }
+        .faq-hero h1 { letter-spacing: -1px; }
+        .faq-cta { flex-direction: column; text-align: center; padding: 28px 24px; }
+        .faq-cta-btn { width: 100%; justify-content: center; }
+        .faq-question { padding: 18px 20px; }
+        .faq-answer { padding: 0 20px 20px; padding-top: 16px; }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="faq-container">
+<div class="faq-page">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
-                
-                <div class="mb-4">
-                    <a href="{{ route('home') }}" class="text-decoration-none text-white-50 hover-text-warning small transition-all">
-                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Beranda
-                    </a>
+            <div class="col-lg-9 col-xl-8">
+
+                <a href="{{ route('home') }}" class="faq-back">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Beranda
+                </a>
+
+                <div class="faq-hero">
+                    <div class="faq-hero-badge">
+                        <span></span> Pusat Bantuan
+                    </div>
+                    <h1>Ada Pertanyaan?</h1>
+                    <p>Temukan semua jawaban seputar pendaftaran, turnamen, dan pembayaran di Yomuda Championship.</p>
+
+                    <div class="faq-search-wrapper">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="faq-search" placeholder="Cari pertanyaan, misal: cara daftar, refund...">
+                    </div>
                 </div>
 
-                <div class="faq-section shadow-lg">
-                    <div class="text-center mb-5">
-                        <h2 class="section-title text-white text-uppercase d-block mb-3 fw-bold" style="letter-spacing: 1px;">Yomuda FAQ Center</h2>
-                        <p class="text-white-50 mb-0 px-3">
-                            Temukan semua jawaban lengkap mengenai pendaftaran, pelaksanaan turnamen, dan regulasi Yomuda Championship.
-                        </p>
+                @if(isset($faqs) && count($faqs) > 0)
+                    @php
+                        $tournamentFaqs = [];
+                        $paymentFaqs = [];
+                        foreach($faqs as $faq) {
+                            $q = strtolower($faq->question);
+                            if (str_contains($q, 'bayar') || str_contains($q, 'refund') || str_contains($q, 'dana') || str_contains($q, 'transaksi') || str_contains($q, 'biaya')) {
+                                $paymentFaqs[] = $faq;
+                            } else {
+                                $tournamentFaqs[] = $faq;
+                            }
+                        }
+                    @endphp
+
+                    <div class="faq-tabs-wrapper" id="faq-tabs">
+                        <button class="faq-tab-btn active" data-tab="all">
+                            ✦ Semua
+                            <span class="tab-count">{{ count($faqs) }}</span>
+                        </button>
+                        <button class="faq-tab-btn" data-tab="tournament">
+                            🏆 Turnamen & Main
+                            <span class="tab-count">{{ count($tournamentFaqs) }}</span>
+                        </button>
+                        <button class="faq-tab-btn" data-tab="payment">
+                            💳 Pembayaran & Refund
+                            <span class="tab-count">{{ count($paymentFaqs) }}</span>
+                        </button>
                     </div>
 
-                    @if(isset($faqs) && count($faqs) > 0)
-                        @php
-                            $tournamentFaqs = [];
-                            $paymentFaqs = [];
-                            foreach($faqs as $faq) {
-                                $q = strtolower($faq->question);
-                                if (
-                                    str_contains($q, 'bayar') || 
-                                    str_contains($q, 'refund') || 
-                                    str_contains($q, 'dana') || 
-                                    str_contains($q, 'transaksi') || 
-                                    str_contains($q, 'biaya')
-                                ) {
-                                    $paymentFaqs[] = $faq;
-                                } else {
-                                    $tournamentFaqs[] = $faq;
-                                }
-                            }
-                        @endphp
+                    <div class="faq-list" id="faq-list">
 
-                        <ul class="nav nav-pills justify-content-center mb-4 gap-2" id="faqTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active px-4 py-2 rounded-pill fw-bold text-uppercase" id="tournament-tab" data-bs-toggle="tab" data-bs-target="#tournament-pane" type="button" role="tab" style="font-size: 0.8rem; letter-spacing: 0.5px;">🏆 Turnamen & Main</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link px-4 py-2 rounded-pill fw-bold text-uppercase" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment-pane" type="button" role="tab" style="font-size: 0.8rem; letter-spacing: 0.5px;">💳 Pembayaran & Refund</button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content" id="faqTabContent">
-                            <div class="tab-pane fade show active" id="tournament-pane" role="tabpanel" aria-labelledby="tournament-tab">
-                                <div class="accordion faq-accordion" id="faqAccordionTournament">
-                                    @foreach($tournamentFaqs as $faq)
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header" id="faqHeadingT{{ $faq->id }}">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseT{{ $faq->id }}" aria-expanded="false" aria-controls="faqCollapseT{{ $faq->id }}">
-                                                    {{ $faq->question }}
-                                                </button>
-                                            </h2>
-                                            <div id="faqCollapseT{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faqHeadingT{{ $faq->id }}" data-bs-parent="#faqAccordionTournament">
-                                                <div class="accordion-body">
-                                                    {!! nl2br(e($faq->answer)) !!}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="payment-pane" role="tabpanel" aria-labelledby="payment-tab">
-                                <div class="accordion faq-accordion" id="faqAccordionPayment">
-                                    @foreach($paymentFaqs as $faq)
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header" id="faqHeadingP{{ $faq->id }}">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseP{{ $faq->id }}" aria-expanded="false" aria-controls="faqCollapseP{{ $faq->id }}">
-                                                    {{ $faq->question }}
-                                                </button>
-                                            </h2>
-                                            <div id="faqCollapseP{{ $faq->id }}" class="accordion-collapse collapse" aria-labelledby="faqHeadingP{{ $faq->id }}" data-bs-parent="#faqAccordionPayment">
-                                                <div class="accordion-body">
-                                                    {!! nl2br(e($faq->answer)) !!}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        @foreach($tournamentFaqs as $faq)
+                        <div class="faq-item" data-tab="tournament" data-question="{{ strtolower($faq->question) }} {{ strtolower($faq->answer) }}">
+                            <button class="faq-question" onclick="toggleFaq(this)">
+                                <span class="faq-question-text">{{ $faq->question }}</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-answer-wrapper">
+                                <div class="faq-answer">{!! nl2br(e($faq->answer)) !!}</div>
                             </div>
                         </div>
-                    @else
-                        <div class="text-center py-5 text-secondary">
-                            <i class="bi bi-question-circle fs-1 text-muted mb-3 d-block"></i>
-                            Belum ada pertanyaan umum yang diaktifkan saat ini.
+                        @endforeach
+
+                        @foreach($paymentFaqs as $faq)
+                        <div class="faq-item" data-tab="payment" data-question="{{ strtolower($faq->question) }} {{ strtolower($faq->answer) }}">
+                            <button class="faq-question" onclick="toggleFaq(this)">
+                                <span class="faq-question-text">{{ $faq->question }}</span>
+                                <span class="faq-chevron"><i class="bi bi-chevron-down"></i></span>
+                            </button>
+                            <div class="faq-answer-wrapper">
+                                <div class="faq-answer">{!! nl2br(e($faq->answer)) !!}</div>
+                            </div>
                         </div>
-                    @endif
+                        @endforeach
+
+                    </div>
+
+                    <div class="faq-empty" id="faq-empty">
+                        <div class="faq-empty-icon">🔍</div>
+                        <h5>Tidak Ditemukan</h5>
+                        <p>Tidak ada FAQ yang cocok dengan pencarianmu.<br>Coba kata kunci lain atau hubungi admin langsung.</p>
+                    </div>
+
+                @else
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-question-circle fs-1 text-muted mb-3 d-block"></i>
+                        Belum ada pertanyaan umum yang diaktifkan saat ini.
+                    </div>
+                @endif
+
+                <div class="faq-cta">
+                    <div class="faq-cta-text">
+                        <h5>Pertanyaanmu belum terjawab?</h5>
+                        <p>Tim support kami siap membantu kamu setiap hari pukul 09.00–22.00 WIB.</p>
+                    </div>
+                    <a href="https://wa.me/6285122616191" target="_blank" rel="noopener" class="faq-cta-btn">
+                        <i class="bi bi-whatsapp"></i> Chat Admin
+                    </a>
                 </div>
 
             </div>
@@ -196,3 +496,76 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function toggleFaq(btn) {
+        const item = btn.closest('.faq-item');
+        const wrapper = item.querySelector('.faq-answer-wrapper');
+        const answer = item.querySelector('.faq-answer');
+        const isOpen = item.classList.contains('active-item');
+
+        // Close all open items
+        document.querySelectorAll('.faq-item.active-item').forEach(openItem => {
+            openItem.classList.remove('active-item');
+            openItem.querySelector('.faq-answer-wrapper').style.maxHeight = '0';
+        });
+
+        if (!isOpen) {
+            item.classList.add('active-item');
+            wrapper.style.maxHeight = answer.scrollHeight + 32 + 'px';
+        }
+    }
+
+    // Tab filtering
+    const tabBtns = document.querySelectorAll('.faq-tab-btn');
+    const faqItems = document.querySelectorAll('.faq-item');
+    const emptyEl = document.getElementById('faq-empty');
+    let activeTab = 'all';
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTab = btn.dataset.tab;
+            filterFaqs();
+        });
+    });
+
+    // Search
+    const searchInput = document.getElementById('faq-search');
+    searchInput.addEventListener('input', () => filterFaqs());
+
+    function filterFaqs() {
+        const query = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        faqItems.forEach(item => {
+            const matchesTab = activeTab === 'all' || item.dataset.tab === activeTab;
+            const matchesSearch = !query || item.dataset.question.includes(query);
+
+            if (matchesTab && matchesSearch) {
+                item.style.display = '';
+                visibleCount++;
+
+                // Highlight matched text in question
+                const textEl = item.querySelector('.faq-question-text');
+                if (query) {
+                    const original = textEl.textContent;
+                    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    textEl.innerHTML = original.replace(regex, '<mark class="faq-highlight">$1</mark>');
+                } else {
+                    textEl.innerHTML = textEl.textContent;
+                }
+            } else {
+                item.style.display = 'none';
+                // Close if hidden
+                item.classList.remove('active-item');
+                item.querySelector('.faq-answer-wrapper').style.maxHeight = '0';
+            }
+        });
+
+        emptyEl.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+</script>
+@endpush
