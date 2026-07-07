@@ -26,7 +26,7 @@ class HomeController extends Controller
     public function faqs()
     {
         try {
-            $paymentFaqExists = Faq::where('question', 'like', '%pembayaran%')->exists();
+            $paymentFaqExists = Faq::where('question', 'Bagaimana cara melakukan pembayaran pendaftaran?')->exists();
             if (!$paymentFaqExists) {
                 $paymentFaqs = [
                     [
