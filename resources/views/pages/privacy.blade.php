@@ -10,7 +10,7 @@
         --ymd-border: rgba(255, 255, 255, 0.06);
     }
 
-    .legal-page { padding: 10px 0 60px; }
+    .legal-page { padding: 10px 0 60px; width: 100%; }
 
     .legal-back {
         display: inline-flex;

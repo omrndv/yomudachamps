@@ -10,7 +10,7 @@
         --ymd-border: rgba(255, 255, 255, 0.06);
     }
 
-    .contact-page { padding: 10px 0 60px; }
+    .contact-page { padding: 10px 0 60px; width: 100%; }
 
     .contact-back {
         display: inline-flex;
