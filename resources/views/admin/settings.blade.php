@@ -267,10 +267,17 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS TriPay di Checkout</label>
-                    <input type="text" name="tripay_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
-                        placeholder="QRIS" value="{{ \App\Models\Setting::getVal('tripay_qris_name', 'QRIS') }}">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS TriPay di Checkout</label>
+                        <input type="text" name="tripay_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="QRIS" value="{{ \App\Models\Setting::getVal('tripay_qris_name', 'QRIS') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Urutan Tampilan</label>
+                        <input type="number" name="tripay_sort_order" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="1" min="1" value="{{ \App\Models\Setting::getVal('tripay_sort_order', '1') }}">
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -313,10 +320,17 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS iPaymu di Checkout</label>
-                    <input type="text" name="ipaymu_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
-                        placeholder="QRIS (iPaymu)" value="{{ \App\Models\Setting::getVal('ipaymu_qris_name', 'QRIS (iPaymu)') }}">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS iPaymu di Checkout</label>
+                        <input type="text" name="ipaymu_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="QRIS (iPaymu)" value="{{ \App\Models\Setting::getVal('ipaymu_qris_name', 'QRIS (iPaymu)') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Urutan Tampilan</label>
+                        <input type="number" name="ipaymu_sort_order" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="2" min="1" value="{{ \App\Models\Setting::getVal('ipaymu_sort_order', '2') }}">
+                    </div>
                 </div>
 
                 <div class="mb-0">
@@ -338,10 +352,17 @@
                     </a>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS Manual di Checkout</label>
-                    <input type="text" name="manual_payment_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
-                        placeholder="QRIS (All Payment)" value="{{ \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)') }}">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS Manual di Checkout</label>
+                        <input type="text" name="manual_payment_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="QRIS (All Payment)" value="{{ \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Urutan Tampilan</label>
+                        <input type="number" name="manual_payment_sort_order" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                            placeholder="3" min="1" value="{{ \App\Models\Setting::getVal('manual_payment_sort_order', '3') }}">
+                    </div>
                 </div>
 
                 <div class="mb-0">

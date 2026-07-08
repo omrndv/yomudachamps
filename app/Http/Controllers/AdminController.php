@@ -531,7 +531,10 @@ class AdminController extends Controller
             'mail_from_name',
             'tripay_qris_name',
             'ipaymu_qris_name',
-            'manual_payment_name'
+            'manual_payment_name',
+            'tripay_sort_order',
+            'ipaymu_sort_order',
+            'manual_payment_sort_order'
         ];
 
         foreach ($keys as $key) {

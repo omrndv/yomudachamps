@@ -212,7 +212,9 @@ class HomeController extends Controller
             $tripayChannels = $tripay->getPaymentChannels();
             if (is_array($tripayChannels)) {
                 $tripayQrisName = \App\Models\Setting::getVal('tripay_qris_name', 'QRIS');
+                $tripaySort = (int) \App\Models\Setting::getVal('tripay_sort_order', 1);
                 foreach ($tripayChannels as $ch) {
+                    $ch->sort_order = $tripaySort;
                     if (isset($ch->code) && (strtoupper($ch->code) === 'QRIS2' || strtoupper($ch->code) === 'QRIS')) {
                         $ch->name = $tripayQrisName;
                     }
@@ -228,6 +230,7 @@ class HomeController extends Controller
                 'name' => \App\Models\Setting::getVal('ipaymu_qris_name', 'QRIS (iPaymu)'),
                 'icon_url' => asset('images/qris-logo.svg'),
                 'active' => true,
+                'sort_order' => (int) \App\Models\Setting::getVal('ipaymu_sort_order', 2),
             ];
         }
 
@@ -238,8 +241,14 @@ class HomeController extends Controller
                 'name' => \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)'),
                 'icon_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
                 'active' => true,
+                'sort_order' => (int) \App\Models\Setting::getVal('manual_payment_sort_order', 3),
             ];
         }
+
+        // Sort channels by sort_order
+        usort($channels, function($a, $b) {
+            return ($a->sort_order ?? 99) <=> ($b->sort_order ?? 99);
+        });
 
         return view('payment', compact('team', 'channels'));
     }
