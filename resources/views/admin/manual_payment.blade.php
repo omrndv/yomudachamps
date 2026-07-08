@@ -110,6 +110,42 @@
         height: 16px !important;
         display: inline-block !important;
     }
+    
+    /* Tab Navigation mimicking Settings page */
+    .payment-tabs {
+        display: flex;
+        gap: 4px;
+        background: #f1f5f9;
+        border-radius: 14px;
+        padding: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .payment-tabs::-webkit-scrollbar { display: none; }
+    .payment-tab {
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #64748b;
+        background: transparent;
+        border: none;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .payment-tab:hover {
+        color: #334155;
+        background: rgba(255,255,255,0.6);
+    }
+    .payment-tab.active {
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
 </style>
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
@@ -124,15 +160,15 @@
     </div>
 
     <!-- Tab Switcher Controls -->
-    <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
-        <button class="btn btn-warning text-dark fw-bold rounded-pill px-4 tab-nav-btn active" id="tab-btn-verifier" onclick="switchTab('verifier')">
-            <i class="bi bi-shield-check me-1"></i> Antrean Verifikasi ({{ count($claimedTx) }})
+    <div class="payment-tabs mb-4">
+        <button class="payment-tab active" id="tab-btn-verifier" onclick="switchTab('verifier')">
+            <i class="bi bi-shield-check text-warning"></i> Antrean Verifikasi ({{ count($claimedTx) }})
         </button>
-        <button class="btn btn-light fw-bold rounded-pill px-4 tab-nav-btn" id="tab-btn-settings" onclick="switchTab('settings')">
-            <i class="bi bi-gear-fill me-1"></i> Pengaturan QRIS
+        <button class="payment-tab" id="tab-btn-settings" onclick="switchTab('settings')">
+            <i class="bi bi-gear-fill"></i> Pengaturan QRIS
         </button>
-        <button class="btn btn-light fw-bold rounded-pill px-4 tab-nav-btn" id="tab-btn-history" onclick="switchTab('history')">
-            <i class="bi bi-journal-text me-1"></i> Riwayat Transaksi
+        <button class="payment-tab" id="tab-btn-history" onclick="switchTab('history')">
+            <i class="bi bi-journal-text"></i> Riwayat Transaksi
         </button>
     </div>
 
@@ -679,20 +715,14 @@
         document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.add('d-none'));
         
         // Remove active state from all buttons
-        document.querySelectorAll('.tab-nav-btn').forEach(b => {
+        document.querySelectorAll('.payment-tab').forEach(b => {
             b.classList.remove('active');
-            b.classList.remove('btn-warning');
-            b.classList.remove('text-dark');
-            b.classList.add('btn-light');
         });
 
         // Add active state to selected button
         const activeBtn = document.getElementById('tab-btn-' + tabId);
         if (activeBtn) {
             activeBtn.classList.add('active');
-            activeBtn.classList.remove('btn-light');
-            activeBtn.classList.add('btn-warning');
-            activeBtn.classList.add('text-dark');
         }
 
         const panel = document.getElementById('tab-panel-' + tabId);
