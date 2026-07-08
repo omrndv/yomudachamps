@@ -353,34 +353,48 @@ class AdminController extends Controller
         $paid_teams = $teams->where('status', 'PAID');
         $solo_teams_count = $paid_teams->where('is_solo_team', true)->count();
         
-        // Pemasukan Otomatis via Gateway (TriPay / Dips Gateway)
+        // 1. TriPay Income
         $tripay_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return !empty($t->tripay_reference) || $t->payment_method === 'GOPAY_QRIS' || \App\Models\QrisTransaction::where('trx_id', $t->trx_id)->where('status', 'PAID')->exists();
+                return !empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS' && $t->payment_method !== 'IPAYMU_QRIS';
             });
         $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
         });
 
-        // Pemasukan Manual / Bulk Add oleh Admin
+        // 2. iPaymu Income
+        $ipaymu_teams = $paid_teams->where('is_solo_team', false)
+            ->filter(function($t) {
+                return $t->payment_method === 'IPAYMU_QRIS';
+            });
+        $ipaymu_income = $ipaymu_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+
+        // 3. Manual QRIS Income
+        $manual_qris_teams = $paid_teams->where('is_solo_team', false)
+            ->filter(function($t) {
+                return $t->payment_method === 'GOPAY_QRIS';
+            });
+        $manual_qris_income = $manual_qris_teams->sum(function($t) use ($current_season) {
+            return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
+        });
+
+        // 4. Manual/Bulk Add oleh Admin
         $manual_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) use ($season_id) {
-                return str_starts_with($t->trx_id, 'YMD' . $season_id) && empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS';
+                return str_starts_with($t->trx_id, 'YMD' . $season_id) && empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS' && $t->payment_method !== 'IPAYMU_QRIS';
             });
-            
         $manual_income = $manual_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
         });
         
-        $team_income = $tripay_income + $manual_income;
-        
+        // 5. Solo Player Income
         $solo_income = \App\Models\SoloPlayer::where('season_id', $season_id)
             ->where('status', 'PAID')
             ->sum('amount_paid');
             
-        $total_income = $team_income + $solo_income;
-        
-        $gateway_name = \App\Models\Setting::getVal('payment_gateway_tripay') == '1' ? 'TriPay' : 'Dips Gateway';
+        $total_income = $tripay_income + $ipaymu_income + $manual_qris_income + $manual_income + $solo_income;
 
         $finances = \App\Models\SeasonFinance::where('season_id', $season_id)->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
         $additional_income = $finances->where('type', 'INCOME')->sum('amount');
@@ -394,10 +408,14 @@ class AdminController extends Controller
         $ymd_slots_count = $ymd_finances->count();
         $ymd_slots_income = $ymd_finances->sum('amount');
 
+        $team_income = $tripay_income + $ipaymu_income + $manual_qris_income + $manual_income;
+
         return view('admin.finance', compact(
             'current_season',
             'team_income',
             'tripay_income',
+            'ipaymu_income',
+            'manual_qris_income',
             'manual_income',
             'solo_income',
             'total_income',
@@ -406,8 +424,7 @@ class AdminController extends Controller
             'total_expense',
             'net_income',
             'ymd_slots_count',
-            'ymd_slots_income',
-            'gateway_name'
+            'ymd_slots_income'
         ));
     }
 

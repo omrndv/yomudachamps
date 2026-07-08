@@ -95,18 +95,26 @@
                         <i class="bi bi-people fs-5"></i>
                     </div>
                 </div>
-                <div class="row text-center mt-2 border-top border-light pt-2" style="font-size: 0.65rem;">
-                    <div class="col-4 border-end px-1">
-                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Otomatis via Gateway/Website">{{ $gateway_name }} (Web)</span>
-                        <strong class="text-dark d-block">Rp {{ number_format($tripay_income, 0, ',', '.') }}</strong>
+                <div class="mt-2 border-top border-light pt-2 d-flex flex-column gap-1.5" style="font-size: 0.72rem; line-height: 1.4;">
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>TriPay QRIS:</span>
+                        <strong class="text-dark">Rp {{ number_format($tripay_income, 0, ',', '.') }}</strong>
                     </div>
-                    <div class="col-4 border-end px-1">
-                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Manual oleh Admin/Bulk Add">Manual/Bulk</span>
-                        <strong class="text-dark d-block">Rp {{ number_format($manual_income, 0, ',', '.') }}</strong>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>iPaymu QRIS:</span>
+                        <strong class="text-dark">Rp {{ number_format($ipaymu_income, 0, ',', '.') }}</strong>
                     </div>
-                    <div class="col-4 px-1">
-                        <span class="text-muted d-block" style="font-size: 0.62rem;" title="Peserta Daftar Solo">Solo Player</span>
-                        <strong class="text-dark d-block">Rp {{ number_format($solo_income, 0, ',', '.') }}</strong>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Manual QRIS:</span>
+                        <strong class="text-dark">Rp {{ number_format($manual_qris_income, 0, ',', '.') }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Admin/Bulk:</span>
+                        <strong class="text-dark">Rp {{ number_format($manual_income, 0, ',', '.') }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted mb-1">
+                        <span>Solo Player:</span>
+                        <strong class="text-dark">Rp {{ number_format($solo_income, 0, ',', '.') }}</strong>
                     </div>
                 </div>
             </div>
