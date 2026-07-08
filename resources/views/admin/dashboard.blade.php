@@ -216,12 +216,12 @@
     </div>
 
     {{-- Main Container / Table --}}
-    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-        <div class="row g-3 mb-3 align-items-center">
+    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
+        <div class="row g-3 mb-4 align-items-center">
             <div class="col-md-4">
-                <div class="input-group shadow-none rounded-pill overflow-hidden bg-light border border-light-subtle">
-                    <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchTable" class="form-control bg-transparent border-0 ps-0 shadow-none" placeholder="Cari nama tim atau ID TRX..." style="font-size: 0.85rem;">
+                <div class="search-box-season">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchTable" placeholder="Cari nama tim atau ID TRX...">
                 </div>
             </div>
             <div class="col-md-8 text-md-end text-muted small" id="tableMetaInfo">
@@ -230,7 +230,7 @@
         </div>
 
         <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover align-middle mb-0 season-table" style="font-size: 0.85rem;">
                 <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr class="text-secondary small fw-bold" style="font-size: 0.75rem; border-bottom: 2px solid #f1f5f9;">
                         <th class="px-3 py-3 border-0" width="40">
@@ -502,6 +502,7 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
     .card-custom {
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
     }
     .btn-light-success {
         background-color: rgba(16, 185, 129, 0.1);
@@ -525,6 +526,47 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
             transform: translate3d(0, 0, 0);
             opacity: 1;
         }
+    }
+    .search-box-season {
+        display: flex;
+        align-items: center;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 2px 12px;
+        transition: all 0.2s ease;
+    }
+    .search-box-season:focus-within {
+        background: #ffffff;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    .search-box-season input {
+        border: 0;
+        background: transparent;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+        outline: none;
+        width: 100%;
+        color: #1e293b;
+    }
+    .search-box-season i {
+        color: #94a3b8;
+    }
+    .season-table th {
+        font-size: 0.72rem;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-bottom: 1px solid #edf2f7;
+        padding: 14px 16px;
+    }
+    .season-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
     }
 </style>
 
