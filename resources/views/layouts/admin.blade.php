@@ -80,9 +80,8 @@
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
-            min-height: 0;
+            max-height: calc(100vh - 160px);
             overflow-y: auto;
-            scrollbar-width: none;
         }
 
         .sidebar-nav::-webkit-scrollbar {
