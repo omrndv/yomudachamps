@@ -108,7 +108,6 @@ Route::post('/api/ipaymu/callback', [IPaymuCallbackController::class, 'handle'])
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');
-Route::get('/daftar-team', [HomeController::class, 'registerTripayForm'])->name('register.tripay');
 Route::post('/register/store', [HomeController::class, 'storeRegistration'])->middleware('throttle:6,1')->name('register.store');
 Route::get('/success/{trx_id}', [HomeController::class, 'successPage'])->name('payment.success');
 
