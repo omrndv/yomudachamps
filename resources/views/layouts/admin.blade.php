@@ -331,6 +331,9 @@
             <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
+            @endif
+
+            @if(Auth::check() && Auth::user()->hasPermission('gateway_notifications'))
             <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
                 <i class="bi bi-bell-fill text-warning"></i> <span>Notifikasi Gateway</span>
             </a>
@@ -352,9 +355,15 @@
             <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
                 <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
             </a>
+            @endif
+
+            @if(Auth::check() && Auth::user()->hasPermission('laravel_logs'))
             <a href="{{ route('admin.system-logs') }}" class="nav-link {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
                 <i class="bi bi-file-earmark-text"></i> <span>Log Laravel</span>
             </a>
+            @endif
+
+            @if(Auth::check() && Auth::user()->hasPermission('storage'))
             <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
                 <i class="bi bi-hdd-network"></i> <span>Kelola Penyimpanan</span>
             </a>
@@ -418,35 +427,47 @@
                 </a>
                 @endif
 
-                @if(Auth::check() && Auth::user()->hasPermission('settings'))
-                <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
-                    <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
-                </a>
-                <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
-                    <i class="bi bi-bell-fill text-warning me-2"></i> <span>Notifikasi Gateway</span>
-                </a>
-                @endif
+                 @if(Auth::check() && Auth::user()->hasPermission('settings'))
+                 <a href="{{ route('admin.settings') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+                     <i class="bi bi-gear me-2"></i> <span>Pengaturan</span>
+                 </a>
+                 @endif
 
-                @if(Auth::check() && Auth::user()->hasPermission('faqs'))
-                <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
-                    <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
-                </a>
-                @endif
+                 @if(Auth::check() && Auth::user()->hasPermission('gateway_notifications'))
+                 <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
+                     <i class="bi bi-bell-fill text-warning me-2"></i> <span>Notifikasi Gateway</span>
+                 </a>
+                 @endif
 
-                @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
-                <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
-                    <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
-                </a>
-                @endif
+                 @if(Auth::check() && Auth::user()->hasPermission('faqs'))
+                 <a href="{{ route('admin.faqs.index') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+                     <i class="bi bi-question-circle me-2"></i> <span>Kelola FAQ</span>
+                 </a>
+                 @endif
 
-                @if(Auth::check() && Auth::user()->hasPermission('manage'))
-                <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
-                    <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
-                </a>
-                <a href="{{ route('admin.storage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
-                    <i class="bi bi-hdd-network me-2"></i> <span>Kelola Penyimpanan</span>
-                </a>
-                @endif
+                 @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
+                 <a href="{{ route('admin.activity-log') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+                     <i class="bi bi-clock-history me-2"></i> <span>Log Aktivitas</span>
+                 </a>
+                 @endif
+
+                 @if(Auth::check() && Auth::user()->hasPermission('manage'))
+                 <a href="{{ route('admin.manage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
+                     <i class="bi bi-person-gear me-2"></i> <span>Kelola Admin</span>
+                 </a>
+                 @endif
+
+                 @if(Auth::check() && Auth::user()->hasPermission('laravel_logs'))
+                 <a href="{{ route('admin.system-logs') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
+                     <i class="bi bi-file-earmark-text me-2"></i> <span>Log Laravel</span>
+                 </a>
+                 @endif
+
+                 @if(Auth::check() && Auth::user()->hasPermission('storage'))
+                 <a href="{{ route('admin.storage') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+                     <i class="bi bi-hdd-network me-2"></i> <span>Kelola Penyimpanan</span>
+                 </a>
+                 @endif
 
                 @if(Auth::check() && Auth::user()->hasPermission('backup'))
                 <a href="{{ route('admin.backup') }}" class="nav-link backup-link mb-2 {{ request()->routeIs('admin.backup') ? 'active' : '' }}">

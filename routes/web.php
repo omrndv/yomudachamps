@@ -265,6 +265,10 @@ Route::middleware('admin.auth')->group(function () {
         Route::middleware('permission:settings')->group(function () {
             Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
             Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+        });
+
+        // Gateway Notifications Log
+        Route::middleware('permission:gateway_notifications')->group(function () {
             Route::get('/settings/gateway-notifications', [AdminController::class, 'gatewayNotifications'])->name('admin.settings.gateway_notifications');
             Route::post('/settings/gateway-notifications/clear', [AdminController::class, 'clearGatewayNotifications'])->name('admin.settings.gateway_notifications.clear');
         });
@@ -281,10 +285,17 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.manage.update');
             Route::get('/manage-admins/delete/{id}', [AdminController::class, 'deleteAdmin'])->name('admin.manage.delete');
             Route::post('/manage-admins/toggle-permission', [AdminController::class, 'togglePermission'])->name('admin.manage.toggle-permission');
+        });
 
+        // Storage Manager
+        Route::middleware('permission:storage')->group(function () {
             Route::get('/storage-manager', [AdminController::class, 'storageManager'])->name('admin.storage');
             Route::post('/storage-manager/clear-folder', [AdminController::class, 'clearStorageFolder'])->name('admin.storage.clear-folder');
             Route::post('/storage-manager/delete-file', [AdminController::class, 'deleteStorageFile'])->name('admin.storage.delete-file');
+        });
+
+        // Laravel System Logs
+        Route::middleware('permission:laravel_logs')->group(function () {
             Route::get('/system-logs', [AdminController::class, 'laravelLogs'])->name('admin.system-logs');
         });
     });

@@ -167,7 +167,7 @@
             <i class="bi bi-people-fill"></i> {{ count($admins) }} Total Admin
         </div>
         <div class="stat-pill" style="background: #f0fdf4; color: #166534;">
-            <i class="bi bi-shield-check"></i> 12 Modul Izin Tersedia
+            <i class="bi bi-shield-check"></i> 15 Modul Izin Tersedia
         </div>
     </div>
 
@@ -180,7 +180,7 @@
                     $userPerms = json_decode($userPerms, true) ?: [];
                 }
                 $activeCount = count($userPerms);
-                $permPercent = round(($activeCount / 12) * 100);
+                $permPercent = round(($activeCount / 15) * 100);
             @endphp
             <div class="col-12 col-md-6 col-xl-4">
                 <div class="admin-card h-100">
@@ -218,7 +218,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="text-secondary fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Hak Akses</span>
-                                <span class="fw-bold" style="font-size: 0.78rem; color: {{ $activeCount >= 10 ? '#16a34a' : ($activeCount >= 5 ? '#d97706' : '#64748b') }};">{{ $activeCount }}/12</span>
+                                <span class="fw-bold" style="font-size: 0.78rem; color: {{ $activeCount >= 12 ? '#16a34a' : ($activeCount >= 6 ? '#d97706' : '#64748b') }};">{{ $activeCount }}/15</span>
                             </div>
                             <div class="perm-progress">
                                 <div class="perm-progress-bar" style="width: {{ $permPercent }}%;"></div>
@@ -302,10 +302,17 @@
                                         ],
                                         'settings' => [
                                             'label' => 'Pengaturan Sistem (Super)',
-                                            'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay/iPaymu Gateway, email support, template notifikasi, nama metode pembayaran, serta mengakses log notifikasi webhook/callback gateway.',
+                                            'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay/iPaymu Gateway, email support, template notifikasi, dan nama metode pembayaran.',
                                             'icon' => 'bi-gear',
                                             'color' => '#ea580c',
                                             'bg' => '#ffedd5'
+                                        ],
+                                        'gateway_notifications' => [
+                                            'label' => 'Notifikasi Gateway',
+                                            'desc' => 'Mengakses log rekam jejak notifikasi Webhook/Callback dari payment gateway secara realtime.',
+                                            'icon' => 'bi-bell',
+                                            'color' => '#f59e0b',
+                                            'bg' => '#fef3c7'
                                         ],
                                         'faqs' => [
                                             'label' => 'Kelola FAQ', 
@@ -323,10 +330,24 @@
                                         ],
                                         'manage' => [
                                             'label' => 'Kelola Admin (Super)',
-                                            'desc' => 'Menambah, mengedit, menghapus akun admin, mengatur pembagian izin, mengelola penyimpanan server (Storage Manager), serta mengakses log error Laravel.',
+                                            'desc' => 'Menambah, mengedit, menghapus akun admin, serta mengatur pembagian hak akses perizinan.',
                                             'icon' => 'bi-person-gear',
                                             'color' => '#3b82f6',
                                             'bg' => '#dbeafe'
+                                        ],
+                                        'laravel_logs' => [
+                                            'label' => 'Log Laravel',
+                                            'desc' => 'Mengakses log error Laravel (laravel.log) secara realtime untuk debugging sistem.',
+                                            'icon' => 'bi-file-earmark-text',
+                                            'color' => '#64748b',
+                                            'bg' => '#f1f5f9'
+                                        ],
+                                        'storage' => [
+                                            'label' => 'Kelola Penyimpanan',
+                                            'desc' => 'Mengakses pemantauan space file server (Storage Manager), membersihkan folder massal, atau menghapus file gambar bukti transfer & chat.',
+                                            'icon' => 'bi-hdd-network',
+                                            'color' => '#14b8a6',
+                                            'bg' => '#ccfbf1'
                                         ],
                                         'backup' => [
                                             'label' => 'Backup Database (Super)',
@@ -528,8 +549,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (adminCard) {
                             const countEl = adminCard.querySelector('.perm-count');
                             const barEl = adminCard.querySelector('.perm-progress-bar');
-                            if (countEl) countEl.textContent = `${data.permissions.length}/12`;
-                            if (barEl) barEl.style.width = `${Math.round((data.permissions.length / 12) * 100)}%`;
+                            if (countEl) countEl.textContent = `${data.permissions.length}/15`;
+                            if (barEl) barEl.style.width = `${Math.round((data.permissions.length / 15) * 100)}%`;
                         }
                     }
                 } else {
