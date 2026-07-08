@@ -55,6 +55,7 @@
             padding: 10px 8px 30px 8px;
             text-align: center;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .sidebar-brand {
@@ -376,7 +377,7 @@
             @endif
         </div>
 
-        <div class="sidebar-footer mt-auto pt-2 w-100 bg-transparent flex-shrink-0">
+        <div class="mt-auto pt-2 w-100 flex-shrink-0" style="background: #020617; padding-bottom: 8px;">
             <hr class="border-secondary opacity-25 mx-3 mb-3">
             <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2" style="padding: 12px 16px;">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
