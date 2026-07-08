@@ -107,8 +107,8 @@
             <p class="text-secondary small mb-0">Kelola QRIS statis, verifikasi klaim bukti transfer, dan riwayat dana masuk.</p>
         </div>
         <!-- Sound alert for verifications -->
-        <button class="btn btn-outline-danger sound-status-btn d-flex align-items-center gap-2" id="toggle-sound" onclick="toggleSound()">
-            <i class="bi bi-volume-mute-fill"></i> Sound Off
+        <button class="btn btn-danger sound-status-btn d-flex align-items-center gap-2" id="toggle-sound" onclick="toggleSound()">
+            <i class="bi bi-volume-up-fill"></i> Sound On
         </button>
     </div>
 
@@ -510,7 +510,7 @@
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
-    let soundEnabled = false;
+    let soundEnabled = true;
     let currentClaimsCount = {{ count($claimedTx) }};
 
     function toggleSound() {
