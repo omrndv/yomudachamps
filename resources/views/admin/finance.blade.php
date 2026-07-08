@@ -40,18 +40,18 @@
                     <li class="breadcrumb-item active text-secondary" aria-current="page">Laporan & Rekap Keuangan</li>
                 </ol>
             </nav>
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
                 <div>
                     <h2 class="fw-bold text-dark m-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">
                         Rekap Keuangan <span class="text-warning">{{ $current_season->name }}</span>
                     </h2>
                     <p class="text-secondary small mb-0 mt-1">Kelola pemasukan tambahan (sponsor, dll) dan pengeluaran operasional turnamen.</p>
                 </div>
-                <div>
-                    <a href="{{ route('admin.dashboard', $current_season->id) }}" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm me-2">
-                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
+                <div class="d-flex gap-2 w-100 w-sm-auto flex-wrap">
+                    <a href="{{ route('admin.dashboard', $current_season->id) }}" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
-                    <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
+                    <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
                         <i class="bi bi-plus-circle-fill me-1"></i> Tambah Transaksi
                     </button>
                 </div>
@@ -170,14 +170,14 @@
 
     {{-- Ledger Table Card --}}
     <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 pb-2 border-bottom">
             <div>
                 <h5 class="fw-bold text-dark mb-1">
                     <i class="bi bi-journal-text text-warning me-2"></i> Rincian Arus Kas Turnamen
                 </h5>
                 <p class="text-secondary small mb-0">Daftar semua transaksi yang tercatat secara otomatis dari sistem maupun manual.</p>
             </div>
-            <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
+            <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark w-100 w-sm-auto d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
                 <i class="bi bi-plus-circle-fill me-1"></i> Tambah Transaksi
             </button>
         </div>
