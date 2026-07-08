@@ -108,6 +108,7 @@ Route::post('/api/ipaymu/callback', [IPaymuCallbackController::class, 'handle'])
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [HomeController::class, 'registerForm'])->name('register.form');
+Route::get('/daftar-team', [HomeController::class, 'registerTripayForm'])->name('register.tripay');
 Route::post('/register/store', [HomeController::class, 'storeRegistration'])->middleware('throttle:6,1')->name('register.store');
 Route::get('/success/{trx_id}', [HomeController::class, 'successPage'])->name('payment.success');
 
@@ -244,6 +245,11 @@ Route::middleware('admin.auth')->group(function () {
         // Teams Directory
         Route::middleware('permission:teams')->group(function () {
             Route::get('/teams', [AdminController::class, 'teams'])->name('admin.teams');
+        });
+
+        // Payment History
+        Route::middleware('permission:payments')->group(function () {
+            Route::get('/payment-history', [AdminController::class, 'paymentHistory'])->name('admin.payments');
         });
 
         // System Settings
