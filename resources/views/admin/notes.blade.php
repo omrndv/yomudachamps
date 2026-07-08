@@ -7,7 +7,7 @@
         min-height: calc(100vh - 120px);
     }
     .notes-sidebar {
-        border-right: 1px solid rgba(0, 0, 0, 0.06);
+        border-left: 1px solid rgba(0, 0, 0, 0.06);
     }
     .search-box {
         display: flex;
@@ -191,7 +191,7 @@
 
     @media (max-width: 767.98px) {
         .notes-sidebar {
-            border-right: 0;
+            border-left: 0;
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
             padding-bottom: 20px;
             margin-bottom: 10px;
@@ -220,7 +220,56 @@
 <div class="container-fluid py-4 notes-container">
     <div class="row g-4">
         
-        {{-- KIRI: Sidebar List Catatan --}}
+        {{-- KIRI: Editor Panel --}}
+        <div class="col-12 col-md-8 col-xl-9">
+            @if(isset($current_note))
+                <div class="note-editor-card shadow-sm">
+                    {{-- Editor Header --}}
+                    <div class="editor-header d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1 me-3">
+                            <input type="text" id="noteTitle" class="editor-title-input" 
+                                   value="{{ $current_note->title }}" placeholder="Judul Catatan...">
+                        </div>
+                        <button class="btn-action-round shadow-none" onclick="deleteNote({{ $current_note->id }})" title="Hapus Catatan">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+
+                    {{-- Editor Workspace --}}
+                    <div class="editor-body">
+                        <textarea id="adminNoteArea" class="editor-textarea" 
+                                  placeholder="Tulis detail koordinasi internal, rancangan tournament, atau memo di sini...">{{ $current_note->content }}</textarea>
+                    </div>
+
+                    {{-- Editor Footer / Status Bar --}}
+                    <div class="editor-footer">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div id="save-status" class="status-badge bg-white text-secondary">
+                                <i class="bi bi-check2-all text-success"></i> Tersimpan
+                            </div>
+                            <span class="text-secondary" style="font-size: 0.72rem;">
+                                <i class="bi bi-clock-history me-1"></i> Update terakhir: <span id="last-updated" class="fw-semibold text-dark">{{ date('d M Y H:i', strtotime($current_note->updated_at)) }}</span>
+                            </span>
+                        </div>
+                        
+                        <button id="manualSave" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm text-dark hover-gold d-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                            <i class="bi bi-cloud-arrow-up-fill"></i> Simpan Catatan
+                        </button>
+                    </div>
+                </div>
+            @else
+                <div class="note-editor-card shadow-sm d-flex flex-column justify-content-center align-items-center p-5 text-center text-muted">
+                    <div class="mb-3" style="font-size: 3.5rem; color: #cbd5e1;"><i class="bi bi-sticky"></i></div>
+                    <h5 class="fw-bold text-dark mb-1">Catatan Tidak Dipilih</h5>
+                    <p class="small text-secondary mb-3" style="max-width: 320px;">Silakan pilih salah satu judul catatan di sebelah kanan atau buat catatan baru untuk memulai koordinasi.</p>
+                    <button class="btn btn-warning fw-bold px-4 py-2 rounded-pill text-dark hover-gold" onclick="createNewNote()" style="font-size: 0.8rem;">
+                        <i class="bi bi-plus-lg me-1"></i> Buat Catatan Baru
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        {{-- KANAN: Sidebar List Catatan --}}
         <div class="col-12 col-md-4 col-xl-3 notes-sidebar">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
@@ -265,55 +314,6 @@
                     </div>
                 @endforelse
             </div>
-        </div>
-
-        {{-- KANAN: Editor Panel --}}
-        <div class="col-12 col-md-8 col-xl-9">
-            @if(isset($current_note))
-                <div class="note-editor-card shadow-sm">
-                    {{-- Editor Header --}}
-                    <div class="editor-header d-flex justify-content-between align-items-center">
-                        <div class="flex-grow-1 me-3">
-                            <input type="text" id="noteTitle" class="editor-title-input" 
-                                   value="{{ $current_note->title }}" placeholder="Judul Catatan...">
-                        </div>
-                        <button class="btn-action-round shadow-none" onclick="deleteNote({{ $current_note->id }})" title="Hapus Catatan">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </div>
-
-                    {{-- Editor Workspace --}}
-                    <div class="editor-body">
-                        <textarea id="adminNoteArea" class="editor-textarea" 
-                                  placeholder="Tulis detail koordinasi internal, rancangan tournament, atau memo di sini...">{{ $current_note->content }}</textarea>
-                    </div>
-
-                    {{-- Editor Footer / Status Bar --}}
-                    <div class="editor-footer">
-                        <div class="d-flex align-items-center gap-3 flex-wrap">
-                            <div id="save-status" class="status-badge bg-white text-secondary">
-                                <i class="bi bi-check2-all text-success"></i> Tersimpan
-                            </div>
-                            <span class="text-secondary" style="font-size: 0.72rem;">
-                                <i class="bi bi-clock-history me-1"></i> Update terakhir: <span id="last-updated" class="fw-semibold text-dark">{{ date('d M Y H:i', strtotime($current_note->updated_at)) }}</span>
-                            </span>
-                        </div>
-                        
-                        <button id="manualSave" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm text-dark hover-gold d-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
-                            <i class="bi bi-cloud-arrow-up-fill"></i> Simpan Catatan
-                        </button>
-                    </div>
-                </div>
-            @else
-                <div class="note-editor-card shadow-sm d-flex flex-column justify-content-center align-items-center p-5 text-center text-muted">
-                    <div class="mb-3" style="font-size: 3.5rem; color: #cbd5e1;"><i class="bi bi-sticky"></i></div>
-                    <h5 class="fw-bold text-dark mb-1">Catatan Tidak Dipilih</h5>
-                    <p class="small text-secondary mb-3" style="max-width: 320px;">Silakan pilih salah satu judul catatan di sebelah kiri atau buat catatan baru untuk memulai koordinasi.</p>
-                    <button class="btn btn-warning fw-bold px-4 py-2 rounded-pill text-dark hover-gold" onclick="createNewNote()" style="font-size: 0.8rem;">
-                        <i class="bi bi-plus-lg me-1"></i> Buat Catatan Baru
-                    </button>
-                </div>
-            @endif
         </div>
 
     </div>
