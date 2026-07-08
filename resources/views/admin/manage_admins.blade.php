@@ -136,7 +136,7 @@
                                                     $availablePerms = [
                                                         'dashboard' => [
                                                             'label' => 'Dashboard Utama',
-                                                            'desc' => 'Mengakses ringkasan umum sistem turnamen, statistik cepat pendaftaran, dan data ringkas mutasi kas.',
+                                                            'desc' => 'Mengakses halaman beranda dashboard utama admin yang menampilkan ringkasan umum sistem turnamen, statistik pendaftaran cepat, dan rangkuman data kas.',
                                                             'icon' => 'bi-grid-1x2',
                                                             'color' => '#0f172a',
                                                             'bg' => '#e2e8f0'
@@ -157,7 +157,7 @@
                                                         ],
                                                         'payments' => [
                                                             'label' => 'Riwayat Pembayaran (Super)',
-                                                            'desc' => 'Mengakses mutasi log transaksi TriPay gateway secara live, status MDR/biaya flat, dan sinkronisasi manual.',
+                                                            'desc' => 'Mengakses mutasi log transaksi TriPay, sinkronisasi gateway, serta dashboard kelola QRIS manual (antrean klaim bukti transfer, setting biaya admin & kode unik, serta manual/force settle).',
                                                             'icon' => 'bi-cash-stack',
                                                             'color' => '#10b981',
                                                             'bg' => '#d1fae5'
@@ -171,7 +171,7 @@
                                                         ],
                                                         'settings' => [
                                                             'label' => 'Pengaturan Sistem (Super)',
-                                                            'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay Gateway, email support, dan template notifikasi.',
+                                                            'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay/iPaymu Gateway, email support, template notifikasi, nama metode pembayaran, serta mengakses log notifikasi webhook/callback gateway.',
                                                             'icon' => 'bi-gear',
                                                             'color' => '#ea580c',
                                                             'bg' => '#ffedd5'
@@ -192,7 +192,7 @@
                                                         ],
                                                         'manage' => [
                                                             'label' => 'Kelola Admin (Super)',
-                                                            'desc' => 'Menambah, mengedit informasi, menghapus akun admin, mengatur pembagian hak akses, serta mengakses Manajemen Penyimpanan (Storage Manager).',
+                                                            'desc' => 'Menambah, mengedit, menghapus akun admin, mengatur pembagian izin, mengelola penyimpanan server (Storage Manager), serta mengakses log error Laravel.',
                                                             'icon' => 'bi-person-gear',
                                                             'color' => '#3b82f6',
                                                             'bg' => '#dbeafe'
