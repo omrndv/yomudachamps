@@ -93,6 +93,12 @@
         align-items: center;
         justify-content: center;
     }
+    /* Fix giant pagination SVGs */
+    .pagination svg, nav[role="navigation"] svg {
+        width: 16px !important;
+        height: 16px !important;
+        display: inline-block !important;
+    }
 </style>
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
@@ -439,7 +445,7 @@
 
             <!-- Pagination -->
             <div class="mt-4 d-flex justify-content-center">
-                {{ $transactions->appends(request()->input())->links() }}
+                {{ $transactions->appends(request()->input())->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
