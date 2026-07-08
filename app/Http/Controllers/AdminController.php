@@ -2678,7 +2678,9 @@ class AdminController extends Controller
             })
             ->sum('amount');
 
-        $query = \App\Models\QrisTransaction::with('team.season')->orderBy('updated_at', 'desc');
+        $query = \App\Models\QrisTransaction::with('team.season')
+            ->where('created_at', '>=', '2026-07-01')
+            ->orderBy('updated_at', 'desc');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -2708,6 +2710,7 @@ class AdminController extends Controller
 
         $recentTx = \App\Models\QrisTransaction::with('team.season')
             ->where('status', 'PAID')
+            ->where('created_at', '>=', '2026-07-01')
             ->orderBy('paid_at', 'desc')
             ->take(10)
             ->get();
@@ -2760,36 +2763,13 @@ class AdminController extends Controller
             ->where('status', 'PAID')
             ->count();
 
+        $isOverSlot = false;
         if ($currentPaidCount < $team->season->slot) {
             $team->status = 'PAID';
-
-            if ($statusLama !== 'PAID') {
-                // Kirim notifikasi email ke admin
-                try {
-                    $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
-                    \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Gagal kirim email (manual settle): ' . $e->getMessage());
-                }
-
-                // Kirim WhatsApp otomatis ke perwakilan tim
-                try {
-                    \App\Services\WhatsappService::sendPaidNotification($team);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp otomatis (manual settle): ' . $e->getMessage());
-                }
-            }
         } else {
+            $isOverSlot = true;
             $team->status = 'FAILED';
             \Illuminate\Support\Facades\Log::warning("OVER-SLOT: Tim {$team->name} diselesaikan manual tapi slot penuh.");
-
-            // Kirim Notifikasi Over-slot
-            try {
-                \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
-                \App\Services\WhatsappService::sendUserOverSlotNotification($team);
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi Over-Slot (manual settle): ' . $e->getMessage());
-            }
         }
 
         $team->save();
@@ -2805,7 +2785,46 @@ class AdminController extends Controller
             'gopay_reference' => $gopayRef
         ]);
 
-        return back()->with('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
+        // Kirim respon kilat ke browser terlebih dahulu jika didukung FPM
+        if (function_exists('fastcgi_finish_request')) {
+            session()->flash('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
+            session()->save();
+            $response = back();
+            $response->send();
+            fastcgi_finish_request();
+        }
+
+        // Lakukan proses pengiriman notifikasi yang lambat di background
+        if (!$isOverSlot) {
+            if ($statusLama !== 'PAID') {
+                // Kirim notifikasi email ke admin
+                try {
+                    $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
+                    \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim email (manual settle background): ' . $e->getMessage());
+                }
+
+                // Kirim WhatsApp otomatis ke perwakilan tim
+                try {
+                    \App\Services\WhatsappService::sendPaidNotification($team);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp otomatis (manual settle background): ' . $e->getMessage());
+                }
+            }
+        } else {
+            // Kirim Notifikasi Over-slot
+            try {
+                \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
+                \App\Services\WhatsappService::sendUserOverSlotNotification($team);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi Over-Slot (manual settle background): ' . $e->getMessage());
+            }
+        }
+
+        if (!function_exists('fastcgi_finish_request')) {
+            return back()->with('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
+        }
     }
 
     /**
@@ -2832,7 +2851,16 @@ class AdminController extends Controller
             }
         }
 
-        // Kirim notifikasi WhatsApp penolakan ke nomor kapten
+        // Kirim respon kilat ke browser terlebih dahulu jika didukung FPM
+        if (function_exists('fastcgi_finish_request')) {
+            session()->flash('success', 'Transaksi berhasil ditolak dan kapten telah diberi tahu melalui WhatsApp.');
+            session()->save();
+            $response = back();
+            $response->send();
+            fastcgi_finish_request();
+        }
+
+        // Kirim notifikasi WhatsApp penolakan ke nomor kapten di background
         try {
             $msg = "Halo Kapten! Bukti transfer pendaftaran Anda untuk Tim *{$team->name}* tidak dapat kami validasi (tidak terbaca / tidak sesuai / nominal tidak pas).\n\n"
                 . "Mohon unggah kembali bukti transfer yang sah melalui link pembayaran Anda agar slot tim Anda aman:\n"
@@ -2841,10 +2869,12 @@ class AdminController extends Controller
             
             \App\Services\WhatsappService::sendMessage($team->wa_number, $msg);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp reject: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp reject (background): ' . $e->getMessage());
         }
 
-        return back()->with('success', 'Transaksi berhasil ditolak dan kapten telah diberi tahu melalui WhatsApp.');
+        if (!function_exists('fastcgi_finish_request')) {
+            return back()->with('success', 'Transaksi berhasil ditolak dan kapten telah diberi tahu melalui WhatsApp.');
+        }
     }
 
     /**
@@ -2888,5 +2918,44 @@ class AdminController extends Controller
         \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
 
         return back()->with('success', 'Transaksi berhasil dihapus secara permanen dari sistem.');
+    }
+
+    /**
+     * Menghapus banyak transaksi manual secara massal
+     */
+    public function deleteBulkManual(Request $request)
+    {
+        $request->validate([
+            'selected_trx' => 'required|array',
+            'selected_trx.*' => 'required|string'
+        ]);
+
+        $count = 0;
+        foreach ($request->selected_trx as $trx_id) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->first();
+            if ($qrisTx) {
+                if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
+                    $filename = str_replace('PROOFS/', '', $qrisTx->gopay_reference);
+                    $filePath = public_path('uploads/proofs/' . $filename);
+                    if (file_exists($filePath)) {
+                        @unlink($filePath);
+                    }
+                }
+
+                $team = \App\Models\Team::where('trx_id', $trx_id)->first();
+                if ($team) {
+                    $team->status = 'PENDING';
+                    $team->status_tripay = 'UNPAID';
+                    $team->save();
+                }
+
+                $qrisTx->delete();
+                $count++;
+            }
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+
+        return back()->with('success', "Berhasil menghapus {$count} transaksi secara massal.");
     }
 }

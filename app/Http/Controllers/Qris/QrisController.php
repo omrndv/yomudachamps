@@ -56,27 +56,32 @@ class QrisController extends Controller
             $adminFee = (int) Setting::getVal('manual_admin_fee', 0);
             $baseAmount = $baseAmount + $adminFee;
 
-            // Cari kode unik yang tidak sedang aktif (tidak berstatus PENDING)
             $uniqueCode = 0;
-            $maxAttempts = 1000;
-            $attempt = 0;
+            $finalAmount = $baseAmount;
             $found = false;
 
-            while ($attempt < $maxAttempts) {
-                $uniqueCode = rand($minCode, $maxCode);
-                $finalAmount = $baseAmount + $uniqueCode;
+            if ($minCode === 0 && $maxCode === 0) {
+                $found = true;
+            } else {
+                $maxAttempts = 1000;
+                $attempt = 0;
 
-                // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain yang masih aktif
-                $exists = QrisTransaction::where('amount', $finalAmount)
-                    ->where('status', 'PENDING')
-                    ->where('expires_at', '>', now())
-                    ->exists();
+                while ($attempt < $maxAttempts) {
+                    $uniqueCode = rand($minCode, $maxCode);
+                    $finalAmount = $baseAmount + $uniqueCode;
 
-                if (!$exists) {
-                    $found = true;
-                    break;
+                    // Periksa apakah nominal final ini sedang digunakan oleh transaksi PENDING lain yang masih aktif
+                    $exists = QrisTransaction::where('amount', $finalAmount)
+                        ->where('status', 'PENDING')
+                        ->where('expires_at', '>', now())
+                        ->exists();
+
+                    if (!$exists) {
+                        $found = true;
+                        break;
+                    }
+                    $attempt++;
                 }
-                $attempt++;
             }
 
             if (!$found) {
@@ -251,8 +256,18 @@ class QrisController extends Controller
                     }
                     $staticQris = Setting::getVal('gopay_static_qris');
                     if (!empty($staticQris)) {
-                        $uniqueCode = rand(200, 400);
+                        $minCode = (int) Setting::getVal('manual_unique_min', 200);
+                        $maxCode = (int) Setting::getVal('manual_unique_max', 300);
+                        $adminFee = (int) Setting::getVal('manual_admin_fee', 0);
+                        $baseAmount = $baseAmount + $adminFee;
+                        
+                        if ($minCode === 0 && $maxCode === 0) {
+                            $uniqueCode = 0;
+                        } else {
+                            $uniqueCode = rand($minCode, $maxCode);
+                        }
                         $finalAmount = $baseAmount + $uniqueCode;
+                        
                         $dynamicQrisString = QrisService::generateDynamicQris($staticQris, $finalAmount);
                         $qrisTx = QrisTransaction::create([
                             'id' => (string) Str::uuid(),

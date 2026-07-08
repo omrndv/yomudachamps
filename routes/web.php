@@ -147,6 +147,7 @@ Route::middleware('admin.auth')->group(function () {
         Route::match(['get', 'post'], '/manual-payment/settle/{trx_id}', [AdminController::class, 'manualSettle'])->name('admin.manual-payment.settle');
         Route::match(['get', 'post'], '/manual-payment/reject/{trx_id}', [AdminController::class, 'manualReject'])->name('admin.manual-payment.reject');
         Route::match(['get', 'post'], '/manual-payment/delete/{trx_id}', [AdminController::class, 'manualDelete'])->name('admin.manual-payment.delete');
+        Route::post('/manual-payment/delete-bulk', [AdminController::class, 'deleteBulkManual'])->name('admin.manual-payment.delete-bulk');
         Route::get('/ai-recap-winners', [AdminController::class, 'aiRecapWinners'])->name('admin.ai.recap_winners');
         Route::post('/ai-chat', [AdminController::class, 'adminChatWithAI'])->name('admin.ai.chat');
         

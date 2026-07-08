@@ -225,8 +225,8 @@ class HomeController extends Controller
             ];
         }
 
-        // Load GoPay QRIS (Self-hosted) if enabled
-        if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') === 'on') {
+        // Load GoPay QRIS (Self-hosted) / Manual Payment if enabled
+        if (\App\Models\Setting::getVal('manual_payment_enabled', 'true') === 'true') {
             $channels[] = (object)[
                 'code' => 'GOPAY_QRIS',
                 'name' => 'QRIS (All Payment)',
@@ -258,8 +258,8 @@ class HomeController extends Controller
         $method = strtoupper(trim($request->payment_method));
 
         if ($method === 'GOPAY_QRIS') {
-            if (\App\Models\Setting::getVal('payment_gateway_gopay_qris', 'on') !== 'on') {
-                return back()->with('error', 'Metode pembayaran QRIS GoPay sedang tidak aktif.');
+            if (\App\Models\Setting::getVal('manual_payment_enabled', 'true') !== 'true') {
+                return back()->with('error', 'Metode pembayaran QRIS Manual sedang tidak aktif.');
             }
 
             $team->update([
