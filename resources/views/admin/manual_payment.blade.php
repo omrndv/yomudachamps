@@ -2,7 +2,8 @@
 
 @section('title', 'Pembayaran Manual')
 
-@push('styles')
+@section('content')
+<div class="container-fluid py-4">
 <style>
     .claim-card {
         border-radius: 20px !important;
@@ -93,10 +94,6 @@
         justify-content: center;
     }
 </style>
-@endpush
-
-@section('content')
-<div class="container-fluid py-4">
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
