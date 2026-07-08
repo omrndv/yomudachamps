@@ -1,6 +1,49 @@
 @extends('layouts.admin')
 
 @section('content')
+<style>
+    .search-box-season {
+        display: flex;
+        align-items: center;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 2px 12px;
+        transition: all 0.2s ease;
+    }
+    .search-box-season:focus-within {
+        background: #ffffff;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    .search-box-season input {
+        border: 0;
+        background: transparent;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+        outline: none;
+        width: 100%;
+        color: #1e293b;
+    }
+    .search-box-season i {
+        color: #94a3b8;
+    }
+    .season-table th {
+        font-size: 0.72rem;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-bottom: 1px solid #edf2f7;
+        padding: 14px 16px;
+    }
+    .season-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
+    }
+</style>
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
     <div class="row mb-4">
@@ -126,20 +169,20 @@
             </div>
 
             {{-- Instant Search Team Name Input --}}
-            <div class="position-relative" style="min-width: 290px;">
-                <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-secondary">
+            <div style="min-width: 290px;">
+                <div class="search-box-season">
                     <i class="bi bi-search"></i>
-                </span>
-                <input type="text" id="reportSearchTeam" class="form-control rounded-pill ps-5 py-2.5 border-light-subtle shadow-sm bg-white text-dark small" placeholder="Cari nama tim pelapor / tanding..." style="font-size: 0.82rem; outline: none; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <input type="text" id="reportSearchTeam" placeholder="Cari nama tim pelapor / tanding...">
+                </div>
             </div>
         </div>
     </div>
 
     {{-- Main Content Card --}}
-    <div class="card border-0 shadow-sm rounded-4">
+    <div class="card border-0 shadow-sm rounded-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <table class="table table-hover align-middle mb-0 season-table" style="font-size: 0.9rem;">
                     <thead class="table-light text-secondary uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                         <tr>
                             <th class="ps-4 py-3">Waktu Kirim</th>
