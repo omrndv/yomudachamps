@@ -134,7 +134,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.6rem; letter-spacing: -0.5px;">
-                <i class="bi bi-person-gear text-warning me-2" style="font-size: 1.4rem;"></i>Kelola Akun Admin
+                Kelola Akun Admin
             </h2>
             <p class="text-secondary mb-0" style="font-size: 0.85rem;">
                 Atur otorisasi halaman untuk setiap akun admin secara instan menggunakan switch aktif/nonaktif.

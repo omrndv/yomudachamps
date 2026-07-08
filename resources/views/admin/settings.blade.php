@@ -196,7 +196,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.6rem; letter-spacing: -0.5px;">
-                <i class="bi bi-gear text-warning me-2" style="font-size: 1.4rem;"></i>Pengaturan Sistem
+                Pengaturan Sistem
             </h2>
             <p class="text-secondary mb-0" style="font-size: 0.85rem;">
                 Konfigurasi token, kredensial gateway, media sosial, dan aset visual turnamen.

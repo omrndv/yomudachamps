@@ -1218,6 +1218,21 @@ class AdminController extends Controller
         return view('admin.activity_log', compact('activities', 'type'));
     }
 
+    public function clearActivityLog(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+
+        try {
+            AdminActivity::truncate();
+            AdminActivity::log('Membersihkan seluruh log aktivitas secara paksa');
+            return back()->with('success', 'Seluruh log aktivitas berhasil dibersihkan!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membersihkan log: ' . $e->getMessage());
+        }
+    }
+
     public function faqs()
     {
         if (!Auth::check()) {

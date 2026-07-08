@@ -223,6 +223,7 @@ Route::middleware('admin.auth')->group(function () {
         // Activity Log
         Route::middleware('permission:activity_log')->group(function () {
             Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('admin.activity-log');
+            Route::post('/activity-log/clear', [AdminController::class, 'clearActivityLog'])->name('admin.activity-log.clear');
         });
 
         // FAQ Management
