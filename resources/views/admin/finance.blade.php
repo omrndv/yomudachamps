@@ -47,13 +47,10 @@
                     </h2>
                     <p class="text-secondary small mb-0 mt-1">Kelola pemasukan tambahan (sponsor, dll) dan pengeluaran operasional turnamen.</p>
                 </div>
-                <div class="d-flex gap-2 w-100 w-sm-auto flex-wrap">
-                    <a href="{{ route('admin.dashboard', $current_season->id) }}" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center">
-                        <i class="bi bi-arrow-left me-1"></i> Kembali
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.dashboard', $current_season->id) }}" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
                     </a>
-                    <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Tambah Transaksi
-                    </button>
                 </div>
             </div>
         </div>
@@ -177,7 +174,7 @@
                 </h5>
                 <p class="text-secondary small mb-0">Daftar semua transaksi yang tercatat secara otomatis dari sistem maupun manual.</p>
             </div>
-            <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark w-100 w-sm-auto d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
+            <button class="btn btn-warning btn-sm px-3 fw-bold rounded-pill shadow-sm text-dark d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalAddFinance">
                 <i class="bi bi-plus-circle-fill me-1"></i> Tambah Transaksi
             </button>
         </div>
