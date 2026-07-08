@@ -80,10 +80,12 @@
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            flex-wrap: nowrap !important;
-            height: calc(100vh - 190px) !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
         }
 
         .sidebar-nav::-webkit-scrollbar {
@@ -365,7 +367,7 @@
             @endif
         </div>
 
-        <div class="sidebar-footer mt-auto pt-2 w-100 bg-transparent">
+        <div class="sidebar-footer mt-auto pt-2 w-100 bg-transparent flex-shrink-0">
             <hr class="border-secondary opacity-25 mx-3 mb-3">
             <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2" style="padding: 12px 16px;">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
