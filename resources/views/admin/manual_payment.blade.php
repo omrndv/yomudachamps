@@ -5,6 +5,17 @@
 @section('content')
 <div class="container-fluid py-4">
 <style>
+    .card-stat {
+        border-radius: 16px !important;
+        transition: all 0.22s ease-in-out !important;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+    }
+    .card-stat:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+        border-color: rgba(0, 0, 0, 0.09) !important;
+    }
     .claim-card {
         border-radius: 20px !important;
         border: 1px solid rgba(0, 0, 0, 0.08) !important;
@@ -129,62 +140,62 @@
     <div class="row g-3 mb-4">
         <!-- Card 1: Total Pemasukan Manual -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="card card-stat border-0 p-4 bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Total Uang Masuk</span>
-                        <h4 class="fw-black text-dark font-mono mt-1 mb-0">Rp {{ number_format($totalBalance, 0, ',', '.') }}</h4>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Uang Masuk</p>
+                        <h3 class="fw-bold text-dark font-mono mb-0" style="font-size: 1.45rem; letter-spacing: -0.5px;">Rp {{ number_format($totalBalance, 0, ',', '.') }}</h3>
                     </div>
-                    <div class="icon-shape text-success bg-success-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <div class="text-success bg-success-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
                         <i class="bi bi-wallet2 fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Total dana terverifikasi (Lunas)</div>
+                <p class="small text-muted mb-0 mt-2" style="font-size: 0.7rem;">Total dana terverifikasi (Lunas)</p>
             </div>
         </div>
         <!-- Card 2: Menunggu Verifikasi -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="card card-stat border-0 p-4 bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Butuh Verifikasi</span>
-                        <h4 class="fw-black text-warning font-mono mt-1 mb-0">{{ count($claimedTx) }} Antrean</h4>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Butuh Verifikasi</p>
+                        <h3 class="fw-bold text-warning font-mono mb-0" style="font-size: 1.45rem; letter-spacing: -0.5px;">{{ count($claimedTx) }} Antrean</h3>
                     </div>
-                    <div class="icon-shape text-warning bg-warning-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <div class="text-warning bg-warning-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
                         <i class="bi bi-hourglass-split fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Unggahan bukti transfer masuk</div>
+                <p class="small text-muted mb-0 mt-2" style="font-size: 0.7rem;">Unggahan bukti transfer masuk</p>
             </div>
         </div>
         <!-- Card 3: Sukses Terverifikasi -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="card card-stat border-0 p-4 bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Transaksi Sukses</span>
-                        <h4 class="fw-black text-success font-mono mt-1 mb-0">{{ $successCount }} Sukses</h4>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Transaksi Sukses</p>
+                        <h3 class="fw-bold text-success font-mono mb-0" style="font-size: 1.45rem; letter-spacing: -0.5px;">{{ $successCount }} Sukses</h3>
                     </div>
-                    <div class="icon-shape text-success bg-success-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <div class="text-success bg-success-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
                         <i class="bi bi-patch-check fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Total transaksi terverifikasi</div>
+                <p class="small text-muted mb-0 mt-2" style="font-size: 0.7rem;">Total transaksi terverifikasi</p>
             </div>
         </div>
         <!-- Card 4: Status Pending -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="card card-stat border-0 p-4 bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Transaksi Pending</span>
-                        <h4 class="fw-black text-secondary font-mono mt-1 mb-0">{{ $pendingCount }} Pending</h4>
+                        <p class="text-secondary small fw-bold mb-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Transaksi Pending</p>
+                        <h3 class="fw-bold text-secondary font-mono mb-0" style="font-size: 1.45rem; letter-spacing: -0.5px;">{{ $pendingCount }} Pending</h3>
                     </div>
-                    <div class="icon-shape text-secondary bg-secondary-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <div class="text-secondary bg-secondary-subtle" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
                         <i class="bi bi-clock fs-5"></i>
                     </div>
                 </div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Belum upload bukti pembayaran</div>
+                <p class="small text-muted mb-0 mt-2" style="font-size: 0.7rem;">Belum upload bukti pembayaran</p>
             </div>
         </div>
     </div>
