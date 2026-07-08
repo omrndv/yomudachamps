@@ -2844,25 +2844,6 @@ class AdminController extends Controller
     }
 
     /**
-     * Halaman PWA Mobile Verifikasi Pembayaran (CLAIMED)
-     */
-    public function verifyPaymentsPage()
-    {
-        $claimedTx = \App\Models\QrisTransaction::with('team.season')
-            ->where('status', 'CLAIMED')
-            ->orderBy('updated_at', 'asc')
-            ->get();
-
-        $recentTx = \App\Models\QrisTransaction::with('team.season')
-            ->where('status', 'PAID')
-            ->orderBy('paid_at', 'desc')
-            ->take(10)
-            ->get();
-
-        return view('admin.verify_payments', compact('claimedTx', 'recentTx'));
-    }
-
-    /**
      * API untuk menghitung transaksi CLAIMED secara real-time (untuk polling chime notifikasi)
      */
     public function pendingClaimsCountApi()
@@ -2870,5 +2851,38 @@ class AdminController extends Controller
         return response()->json([
             'count' => \App\Models\QrisTransaction::where('status', 'CLAIMED')->count()
         ]);
+    }
+
+    /**
+     * Menghapus transaksi manual secara permanen
+     */
+    public function manualDelete($trx_id)
+    {
+        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        
+        // Hapus file screenshot bukti transfer fisik di server jika ada
+        if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
+            $filename = str_replace('PROOFS/', '', $qrisTx->gopay_reference);
+            $filePath = public_path('uploads/proofs/' . $filename);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        // Tandai tim pendaftaran kembali ke pending (jika ada tim pendaftaran)
+        $team = \App\Models\Team::where('trx_id', $trx_id)->first();
+        if ($team) {
+            $team->status = 'PENDING';
+            $team->status_tripay = 'UNPAID';
+            $team->save();
+        }
+
+        // Hapus transaksi QRIS dari database
+        $qrisTx->delete();
+
+        // Clear anomalies count cache
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+
+        return back()->with('success', 'Transaksi berhasil dihapus secara permanen dari sistem.');
     }
 }

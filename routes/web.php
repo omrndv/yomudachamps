@@ -144,6 +144,9 @@ Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboardHome'])->name('admin.dashboard.home');
         Route::get('/manual-payment', [AdminController::class, 'manualPaymentDashboard'])->name('admin.manual-payment');
         Route::post('/manual-payment/settings', [AdminController::class, 'updateManualPaymentSettings'])->name('admin.manual-payment.settings');
+        Route::match(['get', 'post'], '/manual-payment/settle/{trx_id}', [AdminController::class, 'manualSettle'])->name('admin.manual-payment.settle');
+        Route::match(['get', 'post'], '/manual-payment/reject/{trx_id}', [AdminController::class, 'manualReject'])->name('admin.manual-payment.reject');
+        Route::match(['get', 'post'], '/manual-payment/delete/{trx_id}', [AdminController::class, 'manualDelete'])->name('admin.manual-payment.delete');
         Route::get('/ai-recap-winners', [AdminController::class, 'aiRecapWinners'])->name('admin.ai.recap_winners');
         Route::post('/ai-chat', [AdminController::class, 'adminChatWithAI'])->name('admin.ai.chat');
         
@@ -336,9 +339,9 @@ Route::get('/chat-debug-files', function() {
 });
 
 // ==========================================
-// QRIS GoPay Merchant Gateway (Terisolasi)
+// QRIS / Manual Payment Checkout Rute Baru
 // ==========================================
-Route::prefix('qris-gateway')->name('qris.')->group(function () {
+Route::prefix('payment/manual')->name('qris.')->group(function () {
     Route::get('/', function () {
         return redirect()->route('admin.manual-payment');
     });
@@ -351,11 +354,9 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
     Route::get('/api/checkout-details/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkoutDetails'])->name('api.checkout-details');
 
     Route::middleware(['auth'])->group(function () {
-        Route::match(['get', 'post'], '/settle/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualSettle'])->name('settle');
         Route::get('/verify-payments', function () {
             return redirect()->to(route('admin.manual-payment') . '?tab=verifier');
         })->name('verify-payments');
         Route::get('/api/verify-payments/count', [\App\Http\Controllers\AdminController::class, 'pendingClaimsCountApi'])->name('verify-payments.count');
-        Route::match(['get', 'post'], '/reject/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualReject'])->name('reject');
     });
 });

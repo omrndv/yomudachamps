@@ -162,19 +162,27 @@
                                 </div>
 
                                 <div class="row g-2">
-                                    <div class="col-6">
-                                        <form action="/qris-gateway/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                    <div class="col-4">
+                                        <form action="/admin/manual-payment/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                             @csrf
-                                            <button type="submit" class="btn btn-success fw-bold w-100 py-2.5 rounded-3">
-                                                <i class="bi bi-check-circle-fill me-1"></i> Setujui
+                                            <button type="submit" class="btn btn-success fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
+                                                Setujui
                                             </button>
                                         </form>
                                     </div>
-                                    <div class="col-6">
-                                        <form action="/qris-gateway/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
+                                    <div class="col-4">
+                                        <form action="/admin/manual-payment/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
                                             @csrf
-                                            <button type="submit" class="btn btn-danger fw-bold w-100 py-2.5 rounded-3">
-                                                <i class="bi bi-x-circle-fill me-1"></i> Tolak
+                                            <button type="submit" class="btn btn-danger fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
+                                                Tolak
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-4">
+                                        <form action="/admin/manual-payment/delete/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('HAPUS transaksi ini secara permanen dari sistem? Tindakan ini tidak bisa dibatalkan.')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-secondary fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
+                                                Hapus
                                             </button>
                                         </form>
                                     </div>
@@ -394,20 +402,26 @@
                             <td class="py-3 px-4 text-center">
                                 @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
                                 <div class="d-inline-flex gap-1">
-                                    <form action="/qris-gateway/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                    <form action="/admin/manual-payment/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
                                             <i class="bi bi-check"></i>
                                         </button>
                                     </form>
                                     @if($tx->status === 'CLAIMED')
-                                    <form action="/qris-gateway/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+                                    <form action="/admin/manual-payment/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
                                             <i class="bi bi-x"></i>
                                         </button>
                                     </form>
                                     @endif
+                                    <form action="/admin/manual-payment/delete/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-secondary p-1 rounded" title="Hapus Transaksi">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                                 @else
                                     <span class="text-secondary">-</span>
