@@ -1,4 +1,4 @@
-@extends('qris.layout')
+@extends('layouts.manual_qris')
 @section('title', 'Pembayaran Manual')
 
 @section('content')
