@@ -37,13 +37,13 @@
 
         /* Desktop Sidebar Stylings */
         .sidebar {
-            width: 280px;
+            width: 260px;
             height: 100vh;
             position: fixed;
             background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
             color: #ffffff;
             z-index: 1000;
-            padding: 24px 16px;
+            padding: 24px 14px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
@@ -140,8 +140,8 @@
         }
 
         .main-content {
-            margin-left: 280px;
-            padding: 40px;
+            margin-left: 260px;
+            padding: 32px;
             min-height: 100vh;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -167,10 +167,10 @@
         }
 
         /* Collapsed Sidebar State Rules (Desktop Only) */
-        @media (min-width: 1200px) {
+        @media (min-width: 992px) {
             body.sidebar-collapsed .sidebar {
-                width: 80px;
-                padding: 24px 12px;
+                width: 72px;
+                padding: 24px 10px;
             }
             body.sidebar-collapsed .sidebar-header {
                 padding-bottom: 20px;
@@ -197,17 +197,47 @@
                 display: none !important;
             }
             body.sidebar-collapsed .main-content {
-                margin-left: 80px;
+                margin-left: 72px;
             }
         }
 
-        @media (max-width: 1199.98px) {
+        /* Tablet landscape (992-1199px): sidebar visible, tighter padding */
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .sidebar {
+                width: 240px;
+                padding: 20px 12px;
+            }
+            .main-content {
+                margin-left: 240px;
+                padding: 24px 20px;
+            }
+            .nav-pills .nav-link {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+            }
+            body.sidebar-collapsed .sidebar {
+                width: 72px;
+            }
+            body.sidebar-collapsed .main-content {
+                margin-left: 72px;
+            }
+        }
+
+        /* Mobile & small tablets: hide sidebar, show offcanvas */
+        @media (max-width: 991.98px) {
             .sidebar {
                 display: none;
             }
             .main-content {
                 margin-left: 0;
-                padding: 25px 15px;
+                padding: 20px 16px;
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 575.98px) {
+            .main-content {
+                padding: 16px 12px;
             }
         }
 
@@ -231,7 +261,7 @@
         }
     </script>
     {{-- Mobile Header --}}
-    <nav class="navbar navbar-mobile d-xl-none shadow-sm sticky-top">
+    <nav class="navbar navbar-mobile d-lg-none shadow-sm sticky-top">
         <div class="container-fluid p-0">
             <div class="d-flex align-items-center gap-2">
                 <span class="brand-icon">
@@ -248,7 +278,7 @@
     </nav>
 
     {{-- Desktop Sidebar --}}
-    <aside class="sidebar d-none d-xl-block">
+    <aside class="sidebar d-none d-lg-block">
         {{-- Floating Toggle Button --}}
         <button class="btn btn-warning btn-sm position-absolute rounded-circle shadow-sm border border-light-subtle d-flex align-items-center justify-content-center" 
                 id="toggleSidebar" style="right: -12px; top: 32px; width: 24px; height: 24px; z-index: 1100; padding: 0; transition: transform 0.2s ease;">
