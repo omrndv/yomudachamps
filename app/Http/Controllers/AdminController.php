@@ -2810,7 +2810,8 @@ class AdminController extends Controller
         \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
 
         // Update status transaksi QRIS
-        $gopayRef = request('gopay_ref') ?: 'MANUAL_SETTLE_' . strtoupper(\Illuminate\Support\Str::random(10));
+        // Keep the uploaded proof if exists, otherwise generate MANUAL_SETTLE reference
+        $gopayRef = $qrisTx->gopay_reference ?: (request('gopay_ref') ?: 'MANUAL_SETTLE_' . strtoupper(\Illuminate\Support\Str::random(10)));
         $qrisTx->update([
             'status' => 'PAID',
             'paid_at' => now(),
