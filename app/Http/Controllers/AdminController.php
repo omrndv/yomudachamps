@@ -2213,7 +2213,8 @@ class AdminController extends Controller
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
             'posters' => storage_path('app/public/posters'),
-            'certificates' => $publicPath . '/uploads/certificates'
+            'certificates' => $publicPath . '/uploads/certificates',
+            'proofs' => $publicPath . '/uploads/proofs'
         ];
 
         $storageData = [];
@@ -2236,7 +2237,7 @@ class AdminController extends Controller
                         $filesInfo[] = [
                             'name' => $file,
                             'size' => $size,
-                            'path' => '/' . ($key === 'posters' ? 'storage/posters' : ($key === 'certificates' ? 'uploads/certificates' : $key)) . '/' . $file,
+                            'path' => '/' . ($key === 'posters' ? 'storage/posters' : ($key === 'certificates' ? 'uploads/certificates' : ($key === 'proofs' ? 'uploads/proofs' : $key))) . '/' . $file,
                             'date' => filemtime($filePath)
                         ];
                     }
@@ -2249,7 +2250,7 @@ class AdminController extends Controller
             });
 
             $storageData[$key] = [
-                'name' => $key === 'chat_uploads' ? 'Live Chat Aset' : ($key === 'match_results' ? 'Bukti Hasil Laga' : ($key === 'posters' ? 'Poster Season' : 'Template Sertifikat')),
+                'name' => $key === 'chat_uploads' ? 'Live Chat Aset' : ($key === 'match_results' ? 'Bukti Hasil Laga' : ($key === 'posters' ? 'Poster Season' : ($key === 'proofs' ? 'Bukti Pembayaran Manual' : 'Template Sertifikat'))),
                 'path' => $path,
                 'total_size' => $folderSize,
                 'files_count' => count($filesInfo),
@@ -2280,7 +2281,8 @@ class AdminController extends Controller
             'chat_uploads' => $publicPath . '/chat_uploads',
             'match_results' => $publicPath . '/match_results',
             'posters' => storage_path('app/public/posters'),
-            'certificates' => $publicPath . '/uploads/certificates'
+            'certificates' => $publicPath . '/uploads/certificates',
+            'proofs' => $publicPath . '/uploads/proofs'
         ];
 
         if (!array_key_exists($folderKey, $allowedFolders)) {
@@ -2319,6 +2321,8 @@ class AdminController extends Controller
             \App\Models\SeasonChat::where('message', 'LIKE', '%[IMAGE]:%')->delete();
         } elseif ($folderKey === 'match_results') {
             \App\Models\MatchReport::truncate();
+        } elseif ($folderKey === 'proofs') {
+            \App\Models\QrisTransaction::where('gopay_reference', 'LIKE', 'PROOFS/%')->update(['gopay_reference' => null]);
         }
 
         AdminActivity::log("Membersihkan folder penyimpanan: {$folderKey}. Terhapus {$deletedCount} berkas.");
@@ -2356,7 +2360,7 @@ class AdminController extends Controller
 
         if (file_exists($absolutePath) && is_file($absolutePath)) {
             $isAllowedDir = false;
-            $allowedDirs = ['/chat_uploads', '/match_results', '/storage/posters', '/uploads/certificates'];
+            $allowedDirs = ['/chat_uploads', '/match_results', '/storage/posters', '/uploads/certificates', '/uploads/proofs'];
             foreach ($allowedDirs as $dir) {
                 if (strpos($filePathRelative, $dir) === 0) {
                     $isAllowedDir = true;
@@ -2373,6 +2377,9 @@ class AdminController extends Controller
             // Also clean DB entry
             if (strpos($filePathRelative, '/match_results/') === 0) {
                 \App\Models\MatchReport::where('image_proof', $filePathRelative)->delete();
+            } elseif (strpos($filePathRelative, '/uploads/proofs/') === 0) {
+                $refName = 'PROOFS/' . basename($filePathRelative);
+                \App\Models\QrisTransaction::where('gopay_reference', $refName)->update(['gopay_reference' => null]);
             }
 
             AdminActivity::log("Menghapus berkas penyimpanan: " . basename($filePathRelative));
