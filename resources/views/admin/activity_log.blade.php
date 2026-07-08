@@ -106,8 +106,8 @@
 </style>
 
     {{-- Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-        <div>
+    <div class="row align-items-center mb-4">
+        <div class="col-12 col-md-9 mb-3 mb-md-0">
             <h2 class="fw-bold text-dark mb-1" style="font-size: 1.6rem; letter-spacing: -0.5px;">
                 Log Aktivitas Admin
             </h2>
@@ -115,12 +115,14 @@
                 Audit log aktivitas, pelacakan IP address, sistem operasi, browser, dan waktu perubahan sistem.
             </p>
         </div>
-        <form action="{{ route('admin.activity-log.clear') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh log aktivitas secara permanen? Tindakan ini tidak dapat dibatalkan.');" class="w-100 w-md-auto">
-            @csrf
-            <button type="submit" class="btn btn-outline-danger fw-semibold px-4 py-2 rounded-pill w-100 w-md-auto d-inline-flex align-items-center justify-content-center gap-2" style="font-size: 0.82rem; border-width: 1.5px;">
-                <i class="bi bi-trash3-fill"></i> Bersihkan Semua Log
-            </button>
-        </form>
+        <div class="col-12 col-md-3 text-md-end">
+            <form action="{{ route('admin.activity-log.clear') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh log aktivitas secara permanen? Tindakan ini tidak dapat dibatalkan.');" class="d-inline-block w-100">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger fw-semibold px-4 py-2.5 rounded-pill w-100 d-inline-flex align-items-center justify-content-center gap-2" style="font-size: 0.82rem; border-width: 1.5px;">
+                    <i class="bi bi-trash3-fill"></i> Bersihkan Semua Log
+                </button>
+            </form>
+        </div>
     </div>
 
     {{-- Tabs Filter --}}
