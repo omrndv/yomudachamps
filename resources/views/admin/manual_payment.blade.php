@@ -4,71 +4,55 @@
 
 @push('styles')
 <style>
-    .tab-nav-btn {
-        font-weight: 700;
-        font-size: 0.85rem;
-        padding: 10px 20px;
-        border-radius: 50px;
-        transition: all 0.2s ease-in-out;
-    }
-    .tab-nav-btn.active {
-        background-color: #ffc107 !important;
-        color: #000 !important;
-        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
-    }
-    .tab-nav-btn:not(.active) {
-        background-color: transparent;
-        color: #6c757d;
-        border: 1px solid #dee2e6;
-    }
-    .dark .tab-nav-btn:not(.active) {
-        border-color: #2d3748;
-        color: #a0aec0;
-    }
     .claim-card {
-        border-radius: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        background: #fff;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.03);
-        transition: all 0.2s ease-in-out;
+        border-radius: 20px !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        background: #fff !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.03) !important;
+        margin-bottom: 24px !important;
+        padding: 24px !important;
     }
     .dark .claim-card {
-        background: #141618;
-        border-color: rgba(255, 255, 255, 0.05);
+        background: #141618 !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
     }
     .proof-img-wrapper {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.08);
-        background: #f8fafc;
-        position: relative;
-        cursor: pointer;
-        height: 250px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        background: #f8fafc !important;
+        position: relative !important;
+        cursor: pointer !important;
+        height: 250px !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     .dark .proof-img-wrapper {
-        background: #080809;
-        border-color: rgba(255,255,255,0.08);
+        background: #080809 !important;
+        border-color: rgba(255,255,255,0.08) !important;
     }
     .proof-img-wrapper img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        object-fit: contain !important;
     }
     .proof-img-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0,0,0,0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s;
+        position: absolute !important;
+        inset: 0 !important;
+        background: rgba(0,0,0,0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        opacity: 0 !important;
+        transition: opacity 0.2s !important;
     }
     .proof-img-wrapper:hover .proof-img-overlay {
-        opacity: 1;
+        opacity: 1 !important;
     }
     .sound-status-btn {
         font-weight: 800;
@@ -127,13 +111,13 @@
 
     <!-- Tab Switcher Controls -->
     <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
-        <button class="tab-nav-btn active" id="tab-btn-verifier" onclick="switchTab('verifier')">
+        <button class="btn btn-warning text-dark fw-bold rounded-pill px-4 tab-nav-btn active" id="tab-btn-verifier" onclick="switchTab('verifier')">
             <i class="bi bi-shield-check me-1"></i> Antrean Verifikasi ({{ count($claimedTx) }})
         </button>
-        <button class="tab-nav-btn" id="tab-btn-settings" onclick="switchTab('settings')">
+        <button class="btn btn-light fw-bold rounded-pill px-4 tab-nav-btn" id="tab-btn-settings" onclick="switchTab('settings')">
             <i class="bi bi-gear-fill me-1"></i> Pengaturan QRIS
         </button>
-        <button class="tab-nav-btn" id="tab-btn-history" onclick="switchTab('history')">
+        <button class="btn btn-light fw-bold rounded-pill px-4 tab-nav-btn" id="tab-btn-history" onclick="switchTab('history')">
             <i class="bi bi-journal-text me-1"></i> Riwayat Transaksi
         </button>
     </div>
@@ -150,11 +134,11 @@
                             $imgUrl = asset('uploads/proofs/' . $filename);
                         @endphp
                         <div class="col-12 col-md-6 mb-4">
-                            <div class="claim-card p-4">
+                            <div class="claim-card">
                                 <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3 border-light border-opacity-10">
                                     <div>
-                                        <h5 class="fw-extrabold mb-0 text-dark">{{ $team ? $team->name : 'N/A' }}</h5>
-                                        <span class="text-warning small fw-bold">{{ ($team && $team->season) ? $team->season->name : 'N/A' }}</span>
+                                        <h5 class="fw-extrabold mb-0 text-dark">{{ $team ? $team->name : 'Quick Checkout' }}</h5>
+                                        <span class="text-warning small fw-bold">{{ ($team && $team->season) ? $team->season->name : 'Merchandise / Lainnya' }}</span>
                                     </div>
                                     <div class="text-end">
                                         <span class="text-muted d-block uppercase small fw-bold" style="font-size: 0.65rem;">Nominal</span>
@@ -174,6 +158,8 @@
                                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $team->wa_number) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success rounded-pill fw-bold">
                                             <i class="bi bi-whatsapp me-1"></i> WhatsApp Kapten
                                         </a>
+                                    @else
+                                        <span class="badge bg-secondary-subtle text-secondary py-1.5 px-3 rounded-pill fw-bold">No WhatsApp</span>
                                     @endif
                                     <span class="text-secondary font-monospace" style="font-size: 0.72rem;">TRX: {{ $tx->trx_id }}</span>
                                 </div>
@@ -220,7 +206,7 @@
                         @forelse($recentTx as $tx)
                             <div class="list-group-item px-0 py-3 border-light border-opacity-10 d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-dark">{{ $tx->team ? $tx->team->name : 'N/A' }}</h6>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ $tx->team ? $tx->team->name : 'Quick Checkout' }}</h6>
                                     <span class="text-secondary small" style="font-size: 0.7rem;">Lunas pada: {{ $tx->paid_at ? $tx->paid_at->timezone('Asia/Jakarta')->format('H:i') : '' }} WIB</span>
                                 </div>
                                 <span class="text-success fw-bold font-mono">
@@ -376,14 +362,14 @@
                         <tr>
                             <td class="py-3 px-4 font-monospace fw-bold text-secondary">{{ $tx->trx_id }}</td>
                             <td class="py-3 px-4">
-                                <span class="fw-bold text-dark d-block">{{ $tx->team ? $tx->team->name : 'N/A' }}</span>
+                                <span class="fw-bold text-dark d-block">{{ $tx->team ? $tx->team->name : 'Quick Checkout' }}</span>
                                 @if($tx->team)
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tx->team->wa_number) }}" target="_blank" class="text-success small fw-bold text-decoration-none">
                                     <i class="bi bi-whatsapp"></i> {{ $tx->team->wa_number }}
                                 </a>
                                 @endif
                             </td>
-                            <td class="py-3 px-4 text-secondary">{{ ($tx->team && $tx->team->season) ? $tx->team->season->name : 'N/A' }}</td>
+                            <td class="py-3 px-4 text-secondary">{{ ($tx->team && $tx->team->season) ? $tx->team->season->name : 'Merchandise / Lainnya' }}</td>
                             <td class="py-3 px-4 text-end fw-bold font-mono">Rp {{ number_format($tx->amount, 0, ',', '.') }}</td>
                             <td class="py-3 px-4 text-center">
                                 @if($tx->status === 'PAID')
@@ -543,11 +529,29 @@
     // Switch Tabs
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.add('d-none'));
-        document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+        
+        // Remove active state from all buttons
+        document.querySelectorAll('.tab-nav-btn').forEach(b => {
+            b.classList.remove('active');
+            b.classList.remove('btn-warning');
+            b.classList.remove('text-dark');
+            b.classList.add('btn-light');
+        });
 
-        document.getElementById('tab-panel-' + tabId).classList.remove('d-none');
-        document.getElementById('tab-btn-' + tabId).classList.add('active');
+        // Add active state to selected button
+        const activeBtn = document.getElementById('tab-btn-' + tabId);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('btn-light');
+            activeBtn.classList.add('btn-warning');
+            activeBtn.classList.add('text-dark');
+        }
 
+        const panel = document.getElementById('tab-panel-' + tabId);
+        if (panel) {
+            panel.classList.remove('d-none');
+        }
+        
         // Update URL hash context
         history.replaceState(null, null, '?tab=' + tabId);
     }
