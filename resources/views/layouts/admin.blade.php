@@ -273,9 +273,6 @@
             @endif
             
             @if(Auth::check() && Auth::user()->hasPermission('payments'))
-            <a href="{{ route('admin.payments') }}" class="nav-link {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
-                <i class="bi bi-cash-stack"></i> <span>Riwayat Pembayaran</span>
-            </a>
             <a href="{{ route('admin.manual-payment') }}" class="nav-link {{ request()->routeIs('admin.manual-payment') ? 'active' : '' }}">
                 <i class="bi bi-qr-code-scan"></i> <span>Pembayaran Manual</span>
             </a>
@@ -367,9 +364,6 @@
                 @endif
 
                 @if(Auth::check() && Auth::user()->hasPermission('payments'))
-                <a href="{{ route('admin.payments') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
-                    <i class="bi bi-cash-stack me-2"></i> <span>Riwayat Pembayaran</span>
-                </a>
                 <a href="{{ route('admin.manual-payment') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.manual-payment') ? 'active' : '' }}">
                     <i class="bi bi-qr-code-scan me-2"></i> <span>Pembayaran Manual</span>
                 </a>
