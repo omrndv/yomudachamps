@@ -47,7 +47,7 @@
     </div>
 
     {{-- Date Filter Bar --}}
-    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
         <form action="{{ route('admin.dashboard.home') }}" method="GET" class="row g-3 align-items-center">
             <div class="col-12 col-lg-auto text-center text-lg-start">
                 <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
@@ -67,15 +67,15 @@
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-auto d-flex gap-2 justify-content-center mt-2 mt-md-0">
-                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-3 px-3 shadow-sm" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
+                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark rounded-pill px-4 shadow-sm hover-gold" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
                     Filter Harian
                 </button>
-                <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-3 px-3 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
+                <a href="{{ route('admin.dashboard.home') }}" class="btn btn-outline-secondary btn-sm fw-bold rounded-pill px-4 d-flex align-items-center justify-content-center" style="height: 34px; font-size: 0.8rem; white-space: nowrap;">
                     Reset (7 Hari)
                 </a>
             </div>
             <div class="col-12 col-md-6 col-lg-auto ms-lg-auto d-flex justify-content-center mt-2 mt-lg-0">
-                <button type="button" class="btn btn-success btn-sm fw-bold text-white rounded-3 px-3.5 shadow-sm d-flex align-items-center justify-content-center gap-1.5 w-100 w-sm-auto" style="height: 34px; font-size: 0.8rem; white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#modalAiRecapWinners">
+                <button type="button" class="btn btn-success btn-sm fw-bold text-white rounded-pill px-4 shadow-sm d-flex align-items-center justify-content-center gap-1.5 w-100 w-sm-auto hover-emerald" style="height: 34px; font-size: 0.8rem; white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#modalAiRecapWinners">
                     <i class="bi bi-stars"></i> AI Rekap Pemenang
                 </button>
             </div>
@@ -152,7 +152,7 @@
     <div class="row g-4 mb-4">
         {{-- Tren Registrasi & Pembayaran (Area Chart) --}}
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <div>
                         <h5 class="fw-bold text-dark mb-1" id="chartTitle">Tren Aktivitas Turnamen</h5>
@@ -174,7 +174,7 @@
 
         {{-- Status Pembayaran (Doughnut Chart) --}}
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
                 <h5 class="fw-bold text-dark mb-1">Rasio Pembayaran</h5>
                 <p class="text-muted mb-3" style="font-size: 0.8rem;">Komparasi status Lunas (PAID) vs Pending.</p>
                 
@@ -196,10 +196,10 @@
     <div class="row g-4">
         {{-- Kiri: Perkembangan Slot Turnamen --}}
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
                     <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-activity text-warning me-2"></i> Keterisian Slot Turnamen
+                        Keterisian Slot Turnamen
                     </h5>
                     <a href="{{ route('admin.seasons') }}" class="btn btn-link text-warning text-decoration-none fw-bold p-0" style="font-size: 0.8rem;">
                         Semua Season <i class="bi bi-arrow-right"></i>
@@ -209,9 +209,9 @@
                 {{-- Filters Bar --}}
                 <div class="row g-2 mb-4 align-items-center">
                     <div class="col-md-5">
-                        <div class="input-group input-group-sm rounded-3 border border-light-subtle overflow-hidden bg-light">
-                            <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
-                            <input type="text" id="searchSeasonHome" class="form-control border-0 ps-0 shadow-none bg-light text-dark" placeholder="Cari nama season..." style="font-size: 0.85rem; height: 38px;">
+                        <div class="search-box-season">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="searchSeasonHome" placeholder="Cari nama season...">
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -381,6 +381,32 @@
     .hover-bg:hover {
         background-color: #f1f5f9 !important;
         transform: translateX(4px);
+    }
+    .search-box-season {
+        display: flex;
+        align-items: center;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 2px 12px;
+        transition: all 0.2s ease;
+    }
+    .search-box-season:focus-within {
+        background: #ffffff;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    .search-box-season input {
+        border: 0;
+        background: transparent;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+        outline: none;
+        width: 100%;
+        color: #1e293b;
+    }
+    .search-box-season i {
+        color: #94a3b8;
     }
 </style>
 
