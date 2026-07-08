@@ -80,6 +80,7 @@
         .sidebar-nav {
             display: flex;
             flex-direction: column;
+            flex-wrap: nowrap !important;
             height: calc(100vh - 190px) !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
