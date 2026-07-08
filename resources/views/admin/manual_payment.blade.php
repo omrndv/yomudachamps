@@ -409,7 +409,8 @@
                         <tbody>
                             @forelse($transactions as $tx)
                             @php
-                                $filename = $tx->gopay_reference ? str_replace('PROOFS/', '', $tx->gopay_reference) : null;
+                                $isProof = $tx->gopay_reference && str_starts_with($tx->gopay_reference, 'PROOFS/');
+                                $filename = $isProof ? str_replace('PROOFS/', '', $tx->gopay_reference) : null;
                                 $imgUrl = $filename ? asset('uploads/proofs/' . $filename) : null;
                             @endphp
                             <tr style="cursor: pointer;" onclick="rowClick(event, this)"
