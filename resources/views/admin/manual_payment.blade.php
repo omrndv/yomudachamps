@@ -125,6 +125,70 @@
         </button>
     </div>
 
+    <!-- TAB STATS ROW FOR MANUAL PAYMENT -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Total Pemasukan Manual -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Total Uang Masuk</span>
+                        <h4 class="fw-black text-dark font-mono mt-1 mb-0">Rp {{ number_format($totalBalance, 0, ',', '.') }}</h4>
+                    </div>
+                    <div class="icon-shape text-success bg-success-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                </div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Total dana terverifikasi (Lunas)</div>
+            </div>
+        </div>
+        <!-- Card 2: Menunggu Verifikasi -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Butuh Verifikasi</span>
+                        <h4 class="fw-black text-warning font-mono mt-1 mb-0">{{ count($claimedTx) }} Antrean</h4>
+                    </div>
+                    <div class="icon-shape text-warning bg-warning-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-hourglass-split fs-5"></i>
+                    </div>
+                </div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Unggahan bukti transfer masuk</div>
+            </div>
+        </div>
+        <!-- Card 3: Sukses Terverifikasi -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Transaksi Sukses</span>
+                        <h4 class="fw-black text-success font-mono mt-1 mb-0">{{ $successCount }} Sukses</h4>
+                    </div>
+                    <div class="icon-shape text-success bg-success-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-patch-check fs-5"></i>
+                    </div>
+                </div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Total transaksi terverifikasi</div>
+            </div>
+        </div>
+        <!-- Card 4: Status Pending -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 p-3.5 bg-white shadow-sm rounded-4 h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Transaksi Pending</span>
+                        <h4 class="fw-black text-secondary font-mono mt-1 mb-0">{{ $pendingCount }} Pending</h4>
+                    </div>
+                    <div class="icon-shape text-secondary bg-secondary-subtle rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-clock fs-5"></i>
+                    </div>
+                </div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Belum upload bukti pembayaran</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB 1: Antrean Verifikasi -->
     <div class="tab-content-panel" id="tab-panel-verifier">
         <div class="row">
@@ -374,13 +438,11 @@
 
     <!-- TAB 3: Riwayat Transaksi -->
     <div class="tab-content-panel d-none" id="tab-panel-history">
-        <form id="bulk-delete-form" action="{{ route('admin.manual-payment.delete-bulk') }}" method="POST" onsubmit="return confirm('Hapus semua transaksi terpilih secara massal?')">
-            @csrf
             <div class="card border-0 shadow-sm rounded-4 p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
                     <div class="d-flex align-items-center gap-3">
                         <h5 class="fw-bold mb-0">Riwayat Seluruh Transaksi</h5>
-                        <button type="submit" id="btn-bulk-delete" class="btn btn-sm btn-outline-danger rounded-3 d-none fw-bold" style="font-size: 0.78rem;">
+                        <button type="submit" form="bulk-delete-form" id="btn-bulk-delete" class="btn btn-sm btn-outline-danger rounded-3 d-none fw-bold" style="font-size: 0.78rem;">
                             <i class="bi bi-trash3-fill me-1"></i> Hapus Terpilih (<span id="selected-count">0</span>)
                         </button>
                     </div>
@@ -390,9 +452,11 @@
                     </div>
                 </div>
 
-                <div class="table-responsive rounded-3 border">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
-                        <thead class="table-light">
+                <form id="bulk-delete-form" action="{{ route('admin.manual-payment.delete-bulk') }}" method="POST" onsubmit="return confirm('Hapus semua transaksi terpilih secara massal?')">
+                    @csrf
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
+                            <thead class="table-light">
                             <tr>
                                 <th class="py-3 px-3 text-center" style="width: 40px;">
                                     <input type="checkbox" class="form-check-input" id="select-all-trx" onclick="toggleSelectAll(this)">
@@ -497,13 +561,13 @@
                         </tbody>
                     </table>
                 </div>
+                </form>
 
                 <!-- Pagination -->
                 <div class="mt-4 d-flex justify-content-center">
                     {{ $transactions->appends(request()->input())->links('pagination::bootstrap-5') }}
                 </div>
             </div>
-        </form>
     </div>
 </div>
 
@@ -635,7 +699,8 @@
     
     function rowClick(event, element) {
         // Prevent click trigger if interacting with forms, buttons, checkboxes or WhatsApp links
-        if (event.target.closest('button') || event.target.closest('form') || event.target.closest('a') || event.target.closest('.form-check-input')) {
+        const closestForm = event.target.closest('form');
+        if (event.target.closest('button') || (closestForm && closestForm.id !== 'bulk-delete-form') || event.target.closest('a') || event.target.closest('.form-check-input')) {
             return;
         }
         

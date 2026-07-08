@@ -2708,6 +2708,15 @@ class AdminController extends Controller
             })
             ->sum('amount');
 
+        $successCount = \App\Models\QrisTransaction::where('status', 'PAID')
+            ->where(function($q) {
+                $q->where('gopay_reference', 'like', 'PROOFS/%')
+                  ->orWhere('gopay_reference', 'like', 'MANUAL_SETTLE_%');
+            })
+            ->count();
+
+        $pendingCount = \App\Models\QrisTransaction::where('status', 'PENDING')->count();
+
         $query = \App\Models\QrisTransaction::with('team.season')
             ->where(function($q) {
                 $q->where('gopay_reference', 'like', 'PROOFS/%')
@@ -2752,7 +2761,7 @@ class AdminController extends Controller
             ->take(10)
             ->get();
 
-        return view('admin.manual_payment', compact('claimedTx', 'recentTx', 'transactions', 'settings', 'totalBalance'));
+        return view('admin.manual_payment', compact('claimedTx', 'recentTx', 'transactions', 'settings', 'totalBalance', 'successCount', 'pendingCount'));
     }
 
     /**
