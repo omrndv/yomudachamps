@@ -630,6 +630,7 @@
     }
 
     // Modal & Bulk Delete Javascript
+    const csrfToken = '{{ csrf_token() }}';
     let detailProofUrl = '';
     
     function rowClick(event, element) {
@@ -695,7 +696,7 @@
             // Settle form
             actionsDiv.innerHTML += `
                 <form action="/admin/manual-payment/settle/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pembayaran tim ini?')">
-                    <input type="hidden" name="_token" value="${document.querySelector('input[name=\"_token\"]').value}">
+                    <input type="hidden" name="_token" value="${csrfToken}">
                     <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-check"></i> Setujui</button>
                 </form>
             `;
@@ -704,7 +705,7 @@
                 // Reject form
                 actionsDiv.innerHTML += `
                     <form action="/admin/manual-payment/reject/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
-                        <input type="hidden" name="_token" value="${document.querySelector('input[name=\"_token\"]').value}">
+                        <input type="hidden" name="_token" value="${csrfToken}">
                         <button type="submit" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-x"></i> Tolak</button>
                     </form>
                 `;
@@ -713,7 +714,7 @@
             // Delete form
             actionsDiv.innerHTML += `
                 <form action="/admin/manual-payment/delete/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
-                    <input type="hidden" name="_token" value="${document.querySelector('input[name=\"_token\"]').value}">
+                    <input type="hidden" name="_token" value="${csrfToken}">
                     <button type="submit" class="btn btn-sm btn-secondary fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-trash"></i> Hapus</button>
                 </form>
             `;
