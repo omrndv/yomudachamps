@@ -211,6 +211,12 @@ class HomeController extends Controller
             $tripay = new TripayController();
             $tripayChannels = $tripay->getPaymentChannels();
             if (is_array($tripayChannels)) {
+                $tripayQrisName = \App\Models\Setting::getVal('tripay_qris_name', 'QRIS');
+                foreach ($tripayChannels as $ch) {
+                    if (isset($ch->code) && (strtoupper($ch->code) === 'QRIS2' || strtoupper($ch->code) === 'QRIS')) {
+                        $ch->name = $tripayQrisName;
+                    }
+                }
                 $channels = array_merge($channels, $tripayChannels);
             }
         }
@@ -219,7 +225,7 @@ class HomeController extends Controller
         if (\App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') === 'on') {
             $channels[] = (object)[
                 'code' => 'IPAYMU_QRIS',
-                'name' => 'QRIS (iPaymu)',
+                'name' => \App\Models\Setting::getVal('ipaymu_qris_name', 'QRIS (iPaymu)'),
                 'icon_url' => asset('images/qris-logo.svg'),
                 'active' => true,
             ];

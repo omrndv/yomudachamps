@@ -268,6 +268,12 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS TriPay di Checkout</label>
+                    <input type="text" name="tripay_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                        placeholder="QRIS" value="{{ \App\Models\Setting::getVal('tripay_qris_name', 'QRIS') }}">
+                </div>
+
+                <div class="mb-3">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="payment_gateway_tripay" id="payment_gateway_tripay" value="on" {{ \App\Models\Setting::getVal('payment_gateway_tripay', 'on') === 'on' ? 'checked' : '' }}>
                         <label class="form-check-label small fw-bold text-dark" for="payment_gateway_tripay">Aktifkan Gateway TriPay</label>
@@ -307,6 +313,12 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS iPaymu di Checkout</label>
+                    <input type="text" name="ipaymu_qris_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                        placeholder="QRIS (iPaymu)" value="{{ \App\Models\Setting::getVal('ipaymu_qris_name', 'QRIS (iPaymu)') }}">
+                </div>
+
                 <div class="mb-0">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="payment_gateway_ipaymu" id="payment_gateway_ipaymu" value="on" {{ \App\Models\Setting::getVal('payment_gateway_ipaymu', 'off') === 'on' ? 'checked' : '' }}>
@@ -324,6 +336,12 @@
                     <a href="{{ route('admin.manual-payment') }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                         Kelola Gateway
                     </a>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Nama QRIS Manual di Checkout</label>
+                    <input type="text" name="manual_payment_name" class="form-control bg-light shadow-none p-2.5 rounded-3 border-0" style="font-size: 0.85rem;"
+                        placeholder="QRIS (All Payment)" value="{{ \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)') }}">
                 </div>
 
                 <div class="mb-0">

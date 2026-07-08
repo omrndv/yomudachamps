@@ -528,7 +528,10 @@ class AdminController extends Controller
             'mail_password',
             'mail_encryption',
             'mail_from_address',
-            'mail_from_name'
+            'mail_from_name',
+            'tripay_qris_name',
+            'ipaymu_qris_name',
+            'manual_payment_name'
         ];
 
         foreach ($keys as $key) {
