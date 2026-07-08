@@ -13,8 +13,8 @@
         }
 
         const origin = widgetContainer.getAttribute('data-origin') || window.location.origin;
-        const apiDetailsUrl = `${origin}/qris-gateway/api/checkout-details/${trxId}`;
-        const apiCheckUrl = `${origin}/qris-gateway/check/${trxId}`;
+        const apiDetailsUrl = `${origin}/payment/manual/api/checkout-details/${trxId}`;
+        const apiCheckUrl = `${origin}/payment/manual/check/${trxId}`;
 
         // Inject Premium Styles
         const style = document.createElement('style');
