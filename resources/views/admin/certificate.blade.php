@@ -1,6 +1,29 @@
 @extends('layouts.admin')
 
 @section('content')
+<style>
+    .card-custom {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+    .form-control-custom {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        background-color: #ffffff;
+        color: #1e293b;
+    }
+    .form-control-custom:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        outline: none;
+    }
+</style>
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
     <div class="row mb-4">
@@ -47,7 +70,7 @@
     <div class="row g-4">
         {{-- Kolom Kiri: Workspace Editor Figma-Level & Panel Unduh --}}
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="card card-custom p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <h5 class="fw-bold text-dark mb-0"><i class="bi bi-palette text-warning me-2"></i>Workspace Editor</h5>
                     
@@ -111,7 +134,7 @@
                 <div class="row g-4 mb-4">
                     {{-- Cetak Massal Google Drive --}}
                     <div class="col-md-6">
-                        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                        <div class="card card-custom p-4 h-100">
                             <h5 class="fw-bold text-dark mb-3"><i class="bi bi-google text-warning me-2"></i>Cetak ke Google Drive</h5>
                             
                             @if(!$googleConnected)
@@ -132,7 +155,7 @@
 
                                 <div class="mb-3" id="driveUploadSection">
                                     <label class="form-label small fw-bold text-secondary">Link Folder Google Drive Tujuan</label>
-                                    <input type="url" id="googleDriveLink" class="form-control rounded-3" value="{{ $layout->google_drive_link }}" placeholder="https://drive.google.com/drive/folders/..." required>
+                                    <input type="url" id="googleDriveLink" class="form-control-custom" value="{{ $layout->google_drive_link }}" placeholder="https://drive.google.com/drive/folders/..." required>
                                     <div class="form-text text-muted" style="font-size: 0.72rem;">Pastikan folder disetel publik/bisa diakses sebelum mulai generate.</div>
                                 </div>
 
@@ -165,7 +188,7 @@
 
                     {{-- Cetak Manual / Download Instan --}}
                     <div class="col-md-6">
-                        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                        <div class="card card-custom p-4 h-100">
                             <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-pdf text-warning me-2"></i>Cetak / Edit Manual</h5>
                             <p class="text-secondary small mb-3">
                                 Unduh sertifikat secara manual dengan mengetik nama secara langsung tanpa menyimpan data di database.
@@ -175,7 +198,7 @@
                                 <input type="hidden" name="season_id" value="{{ $season->id }}">
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-secondary">Ketik Nama Peserta</label>
-                                    <input type="text" name="name" class="form-control rounded-3" placeholder="Contoh: Muhammad Agus" required>
+                                    <input type="text" name="name" class="form-control-custom" placeholder="Contoh: Muhammad Agus" required>
                                 </div>
                                 <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold rounded-pill py-2">
                                     <i class="bi bi-download me-1"></i> Pratinjau & Download
@@ -190,7 +213,7 @@
         {{-- Kolom Kanan: Properties Inspector & Background Settings --}}
         <div class="col-lg-4">
             {{-- Card 0: Status Rilis Sertifikat (Selalu Terlihat & Mandiri) --}}
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="card card-custom p-4 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-broadcast text-warning me-2"></i>Status Publikasi</h5>
                 <div class="mb-0">
                     <div class="form-check form-switch">
@@ -205,7 +228,7 @@
 
             {{-- Card 1: Element Properties Inspector (Figma-Style Properties Panel) --}}
             @if($layout->template_path)
-                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" id="propertiesInspector" style="display: none;">
+                <div class="card card-custom p-4 mb-4" id="propertiesInspector" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold text-dark mb-0"><i class="bi bi-sliders text-warning me-2"></i>Inspektur Elemen</h5>
                         <button type="button" id="btnDeleteElement" class="btn btn-sm btn-outline-danger border-0 rounded-circle" style="padding: 2px 6px;">
@@ -217,7 +240,7 @@
                         {{-- Field 1: Konten Teks (Khusus Teks) --}}
                         <div class="mb-3" id="propTextContainer">
                             <label class="form-label small fw-bold text-secondary">Isi Teks</label>
-                            <textarea id="propTextContent" class="form-control rounded-3" rows="2" placeholder="Masukkan teks..."></textarea>
+                            <textarea id="propTextContent" class="form-control-custom" rows="2" placeholder="Masukkan teks..."></textarea>
                             <div class="form-text text-muted" id="propTextHelp" style="font-size: 0.68rem;">Gunakan tag `< NAMA PESERTA >` untuk nama dinamis. Gunakan `**kata**` untuk menebalkan kata tertentu.</div>
                         </div>
 
@@ -225,7 +248,7 @@
                         <div class="row g-2 mb-3" id="propFontContainer">
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Ukuran Font</label>
-                                <input type="number" id="propFontSize" class="form-control rounded-3" min="10" max="250">
+                                <input type="number" id="propFontSize" class="form-control-custom" min="10" max="250">
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Warna Teks</label>
@@ -241,10 +264,10 @@
                             <div class="btn-group w-100" role="group">
                                 <input type="checkbox" class="btn-check" id="propFontBold" autocomplete="off">
                                 <label class="btn btn-outline-secondary btn-sm" for="propFontBold"><i class="bi bi-type-bold"></i> Bold</label>
-
+ 
                                 <input type="radio" class="btn-check" name="propAlign" id="propAlignLeft" value="left" autocomplete="off">
                                 <label class="btn btn-outline-secondary btn-sm" for="propAlignLeft"><i class="bi bi-text-left"></i> Rata Kiri</label>
-
+ 
                                 <input type="radio" class="btn-check" name="propAlign" id="propAlignCenter" value="center" autocomplete="off">
                                 <label class="btn btn-outline-secondary btn-sm" for="propAlignCenter"><i class="bi bi-text-center"></i> Rata Tengah</label>
                             </div>
@@ -254,11 +277,11 @@
                         <div class="row g-2 mb-3" id="propDimensionContainer" style="display: none;">
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Lebar (px)</label>
-                                <input type="number" id="propImageWidth" class="form-control rounded-3" min="10">
+                                <input type="number" id="propImageWidth" class="form-control-custom" min="10">
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Tinggi (px)</label>
-                                <input type="number" id="propImageHeight" class="form-control rounded-3" min="10">
+                                <input type="number" id="propImageHeight" class="form-control-custom" min="10">
                             </div>
                         </div>
 
@@ -272,7 +295,7 @@
             @endif
 
             {{-- Card 2: Pengaturan Background Template --}}
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="card card-custom p-4 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-arrow-up text-warning me-2"></i>Ganti Background</h5>
                 
                 <form id="layoutForm" action="{{ route('admin.season.certificate.layout', $season->id) }}" method="POST" enctype="multipart/form-data">
@@ -285,13 +308,13 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Upload Background Template (PDF/JPG/PNG)</label>
-                        <input type="file" id="certTemplateInput" name="template" class="form-control rounded-3" accept="image/jpeg,image/png,application/pdf">
+                        <input type="file" id="certTemplateInput" name="template" class="form-control-custom" accept="image/jpeg,image/png,application/pdf">
                         <div class="form-text text-muted" style="font-size: 0.72rem;">Unggah background sertifikat beresolusi tinggi.</div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Font Kustom (.ttf)</label>
-                        <input type="file" name="font" class="form-control rounded-3" accept=".ttf">
+                        <input type="file" name="font" class="form-control-custom" accept=".ttf">
                         <div class="form-text text-muted" style="font-size: 0.72rem;">
                             @if($layout->font_path)
                                 <span class="text-success fw-bold"><i class="bi bi-file-earmark-check-fill"></i> Font aktif terpasang</span>

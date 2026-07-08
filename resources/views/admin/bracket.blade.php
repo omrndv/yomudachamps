@@ -4,6 +4,34 @@
 @php
     $startNumbers = [];
 @endphp
+<style>
+    .search-box-season {
+        display: flex;
+        align-items: center;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 2px 12px;
+        transition: all 0.2s ease;
+    }
+    .search-box-season:focus-within {
+        background: #ffffff;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    .search-box-season input {
+        border: 0;
+        background: transparent;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+        outline: none;
+        width: 100%;
+        color: #1e293b;
+    }
+    .search-box-season i {
+        color: #94a3b8;
+    }
+</style>
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
     <div class="row mb-4">
@@ -103,14 +131,14 @@
         </div>
     @else
         {{-- Controls Panel --}}
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
             <div class="row g-3 align-items-center">
                 {{-- Search Box --}}
                 <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
-                        <input type="text" id="adminTeamSearch" class="form-control border-start-0 bg-light" placeholder="Cari nama tim...">
-                        <button class="btn btn-outline-warning text-dark btn-sm d-flex align-items-center gap-1 px-3 fw-bold border-start-0" type="button" id="toggleSearchModeBtn" style="font-size: 0.72rem;">
+                    <div class="search-box-season" style="padding-right: 2px;">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="adminTeamSearch" placeholder="Cari nama tim...">
+                        <button class="btn btn-warning text-dark btn-sm d-flex align-items-center gap-1 px-3 fw-bold rounded-3" type="button" id="toggleSearchModeBtn" style="font-size: 0.72rem; margin: 2px; height: 32px; white-space: nowrap;">
                             <i class="bi bi-person-fill"></i> Nama
                         </button>
                     </div>

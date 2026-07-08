@@ -62,7 +62,7 @@
         
         {{-- Left: Unmatched Player Pool divided into 5 Role Sections --}}
         <div class="col-xl-5">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                     <h5 class="fw-bold text-dark mb-0">Pool Unmatched (Belum Tergabung)</h5>
                     <span class="badge bg-secondary text-white">{{ $unmatched_players->count() }} Player</span>
@@ -147,14 +147,14 @@
 
         {{-- Right: Created Teams & Interactive Drop Zones --}}
         <div class="col-xl-7">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
                 <h5 class="fw-bold text-dark mb-3">Daftar Tim Hasil Pengelompokan ({{ $solo_teams->count() }})</h5>
                 
                 <div class="row g-3">
                     @forelse($solo_teams as $team)
                         <div class="col-md-6">
-                            <div class="card border border-warning shadow-sm rounded-3 overflow-hidden bg-white h-100">
-                                <div class="card-header bg-warning-subtle py-2.5 px-3 border-bottom d-flex flex-column gap-2">
+                            <div class="card shadow-sm rounded-4 overflow-hidden bg-white h-100" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
+                                <div class="card-header bg-warning-subtle py-3 px-3 border-bottom border-light-subtle d-flex flex-column gap-2">
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div class="d-flex align-items-center gap-1.5 overflow-hidden">
                                             <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 100px;" id="team-name-title-{{ $team->id }}">
@@ -265,114 +265,114 @@
 </div>
 
 {{-- Modal: Buat Tim Kosong --}}
-<div class="modal fade" id="modalCreateEmptyTeam" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCreateEmptyTeam" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('admin.solo.createEmptyTeam', $current_season->id) }}" method="POST" class="modal-content border-0 shadow rounded-4">
+        <form action="{{ route('admin.solo.createEmptyTeam', $current_season->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 text-start">
             @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Buat Tim Solo Kosong</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-folder-plus text-warning me-1.5"></i>Buat Tim Solo Kosong</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">Nama Tim</label>
-                    <input type="text" name="team_name" class="form-control" placeholder="Contoh: Solo Rangers A" required>
+                    <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Nama Tim</label>
+                    <input type="text" name="team_name" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" placeholder="Contoh: Solo Rangers A" required style="font-size: 0.85rem;">
                 </div>
                 <p class="text-secondary small mb-0">Tim ini akan dibuat kosong dengan status <strong>PAID</strong>, siap untuk diisi player secara drag & drop.</p>
             </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-toggle="modal">Batal</button>
-                <button type="submit" class="btn btn-success btn-sm px-4 fw-bold rounded-pill text-white">Buat Tim</button>
+            <div class="modal-footer border-top border-light px-4 py-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold">Buat Tim</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Modal: Tambah Solo --}}
-<div class="modal fade" id="modalAddSolo" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalAddSolo" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('admin.solo.store', $current_season->id) }}" method="POST" class="modal-content border-0 shadow rounded-4">
+        <form action="{{ route('admin.solo.store', $current_season->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 text-start">
             @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Tambah Solo Player</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-person-plus text-warning me-1.5"></i>Tambah Solo Player</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">No. WhatsApp</label>
-                    <input type="text" name="wa_number" class="form-control" placeholder="Contoh: 081234567890" required>
+                    <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">No. WhatsApp</label>
+                    <input type="text" name="wa_number" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" placeholder="Contoh: 081234567890" required style="font-size: 0.85rem;">
                 </div>
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Role Utama</label>
-                        <select name="role" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Role Utama</label>
+                        <select name="role" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             @foreach($roles as $role)
                                 <option value="{{ $role }}">{{ $role }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Rank</label>
-                        <select name="rank" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Rank</label>
+                        <select name="rank" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             @foreach($ranks as $rank)
                                 <option value="{{ $rank }}">{{ $rank }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-0">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Nominal Pembayaran</label>
-                        <input type="number" name="amount_paid" class="form-control" value="8000" placeholder="Default 8000" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Nominal Pembayaran</label>
+                        <input type="number" name="amount_paid" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" value="8000" placeholder="Default 8000" required style="font-size: 0.85rem;">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Status</label>
-                        <select name="status" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Status</label>
+                        <select name="status" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             <option value="PAID">PAID (Lunas)</option>
                             <option value="PENDING">PENDING</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Player</button>
+            <div class="modal-footer border-top border-light px-4 py-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold">Simpan Player</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Modal: Bulk Add Solo --}}
-<div class="modal fade" id="modalBulkSolo" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalBulkSolo" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('admin.solo.bulkStore', $current_season->id) }}" method="POST" class="modal-content border-0 shadow rounded-4">
+        <form action="{{ route('admin.solo.bulkStore', $current_season->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 text-start">
             @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Bulk Add Solo Players</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-stack text-warning me-1.5"></i>Bulk Add Solo Players</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <p class="text-secondary small mb-3">Format input per baris:<br><code class="bg-light px-2 py-1 rounded">No. WA | Role | Rank</code></p>
                 <div class="mb-3">
-                    <textarea name="bulk_data" class="form-control text-monospace" rows="6" placeholder="08123456789 | Roamer | Legend&#10;08122233344 | Gold Lane | Mythic" required></textarea>
+                    <textarea name="bulk_data" class="form-control text-monospace rounded-3 shadow-none border-light-subtle py-2 px-3" rows="6" placeholder="08123456789 | Roamer | Legend&#10;08122233344 | Gold Lane | Mythic" required style="font-size: 0.85rem; font-family: monospace;"></textarea>
                 </div>
-                <div class="row g-2">
+                <div class="row g-2 mb-0">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Nominal per Player</label>
-                        <input type="number" name="default_amount" class="form-control" value="8000" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Nominal per Player</label>
+                        <input type="number" name="default_amount" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" value="8000" required style="font-size: 0.85rem;">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Status Default</label>
-                        <select name="default_status" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Status Default</label>
+                        <select name="default_status" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             <option value="PAID">PAID (Lunas)</option>
                             <option value="PENDING">PENDING</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-dark btn-sm px-4 fw-bold rounded-pill">Import Players</button>
+            <div class="modal-footer border-top border-light px-4 py-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold">Import Players</button>
             </div>
         </form>
     </div>
@@ -641,81 +641,81 @@
 </script>
 
 {{-- Modal: Edit Solo Player --}}
-<div class="modal fade" id="modalEditSoloPlayer" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEditSoloPlayer" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
     <div class="modal-dialog modal-dialog-centered">
-        <form id="formEditSolo" method="POST" class="modal-content border-0 shadow rounded-4">
+        <form id="formEditSolo" method="POST" class="modal-content border-0 shadow-lg rounded-4 text-start">
             @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Edit Solo Player</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pencil-square text-warning me-1.5"></i>Edit Solo Player</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">No. WhatsApp</label>
-                    <input type="text" name="wa_number" id="edit_wa_number" class="form-control" required>
+                    <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">No. WhatsApp</label>
+                    <input type="text" name="wa_number" id="edit_wa_number" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" required style="font-size: 0.85rem;">
                 </div>
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Role Utama</label>
-                        <select name="role" id="edit_role" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Role Utama</label>
+                        <select name="role" id="edit_role" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             @foreach($roles as $role)
                                 <option value="{{ $role }}">{{ $role }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Rank</label>
-                        <select name="rank" id="edit_rank" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Rank</label>
+                        <select name="rank" id="edit_rank" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             @foreach($ranks as $rank)
                                 <option value="{{ $rank }}">{{ $rank }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-0">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Nominal Pembayaran</label>
-                        <input type="number" name="amount_paid" id="edit_amount_paid" class="form-control" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Nominal Pembayaran</label>
+                        <input type="number" name="amount_paid" id="edit_amount_paid" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" required style="font-size: 0.85rem;">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Status</label>
-                        <select name="status" id="edit_status" class="form-select" required>
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Status</label>
+                        <select name="status" id="edit_status" class="form-select rounded-3 shadow-none border-light-subtle py-2" required style="font-size: 0.85rem;">
                             <option value="PAID">PAID (Lunas)</option>
                             <option value="PENDING">PENDING</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Perubahan</button>
+            <div class="modal-footer border-top border-light px-4 py-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold">Simpan Perubahan</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Modal: Edit Team Details --}}
-<div class="modal fade" id="modalEditTeamDetails" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEditTeamDetails" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
     <div class="modal-dialog modal-dialog-centered">
-        <form id="formEditTeamDetails" method="POST" class="modal-content border-0 shadow rounded-4">
+        <form id="formEditTeamDetails" method="POST" class="modal-content border-0 shadow-lg rounded-4 text-start">
             @csrf
-            <div class="modal-header border-bottom border-light">
-                <h5 class="modal-title fw-bold text-dark">Edit Detail Tim Solo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pencil-fill text-warning me-1.5"></i>Edit Detail Tim Solo</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">Nama Tim</label>
-                    <input type="text" name="name" id="edit_team_name_input" class="form-control" placeholder="Masukkan nama tim..." required>
+                    <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Nama Tim</label>
+                    <input type="text" name="name" id="edit_team_name_input" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" placeholder="Masukkan nama tim..." required style="font-size: 0.85rem;">
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">WhatsApp Perwakilan</label>
-                    <input type="text" name="wa_number" id="edit_team_wa_input" class="form-control" placeholder="Contoh: 081234567890" required>
+                <div class="mb-0">
+                    <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">WhatsApp Perwakilan</label>
+                    <input type="text" name="wa_number" id="edit_team_wa_input" class="form-control rounded-3 shadow-none border-light-subtle py-2 px-3" placeholder="Contoh: 081234567890" required style="font-size: 0.85rem;">
                 </div>
             </div>
-            <div class="modal-footer border-top border-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark rounded-pill">Simpan Perubahan</button>
+            <div class="modal-footer border-top border-light px-4 py-3">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold">Simpan Perubahan</button>
             </div>
         </form>
     </div>
