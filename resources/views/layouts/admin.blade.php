@@ -82,6 +82,7 @@
             flex: 1 1 auto;
             max-height: calc(100vh - 160px);
             overflow-y: auto;
+            overflow-x: hidden !important;
         }
 
         .sidebar-nav::-webkit-scrollbar {
