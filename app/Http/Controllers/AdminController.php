@@ -2672,6 +2672,10 @@ class AdminController extends Controller
     public function manualPaymentDashboard(Request $request)
     {
         $totalBalance = \App\Models\QrisTransaction::where('status', 'PAID')
+            ->where(function($q) {
+                $q->where('gopay_reference', 'like', 'PROOFS/%')
+                  ->orWhere('gopay_reference', 'like', 'MANUAL_SETTLE_%');
+            })
             ->sum('amount');
 
         $query = \App\Models\QrisTransaction::with('team.season')->orderBy('updated_at', 'desc');
