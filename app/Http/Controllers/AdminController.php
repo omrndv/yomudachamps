@@ -2728,4 +2728,135 @@ class AdminController extends Controller
 
         return back()->with('success', 'Konfigurasi Pembayaran Manual berhasil disimpan!');
     }
+
+    /**
+     * Penyelesaian Transaksi secara Manual (Manual Settle / Force Paid)
+     */
+    public function manualSettle($trx_id)
+    {
+        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $team = \App\Models\Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+
+        $statusLama = $team->status;
+        $team->status_tripay = 'PAID';
+
+        $currentPaidCount = \App\Models\Team::where('season_id', $team->season_id)
+            ->where('status', 'PAID')
+            ->count();
+
+        if ($currentPaidCount < $team->season->slot) {
+            $team->status = 'PAID';
+
+            if ($statusLama !== 'PAID') {
+                // Kirim notifikasi email ke admin
+                try {
+                    $adminEmail = \App\Models\Setting::getVal('admin_notification_email', 'monotp94@gmail.com');
+                    \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)->notify(new \App\Notifications\NewRegistration($team));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim email (manual settle): ' . $e->getMessage());
+                }
+
+                // Kirim WhatsApp otomatis ke perwakilan tim
+                try {
+                    \App\Services\WhatsappService::sendPaidNotification($team);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp otomatis (manual settle): ' . $e->getMessage());
+                }
+            }
+        } else {
+            $team->status = 'FAILED';
+            \Illuminate\Support\Facades\Log::warning("OVER-SLOT: Tim {$team->name} diselesaikan manual tapi slot penuh.");
+
+            // Kirim Notifikasi Over-slot
+            try {
+                \App\Services\WhatsappService::sendAdminOverSlotNotification($team);
+                \App\Services\WhatsappService::sendUserOverSlotNotification($team);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi Over-Slot (manual settle): ' . $e->getMessage());
+            }
+        }
+
+        $team->save();
+
+        // Clear anomalies count cache
+        \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+
+        // Update status transaksi QRIS
+        $gopayRef = request('gopay_ref') ?: 'MANUAL_SETTLE_' . strtoupper(\Illuminate\Support\Str::random(10));
+        $qrisTx->update([
+            'status' => 'PAID',
+            'paid_at' => now(),
+            'gopay_reference' => $gopayRef
+        ]);
+
+        return back()->with('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
+    }
+
+    /**
+     * Aksi Tolak Bukti Transfer (Kembalikan status ke EXPIRED agar di-upload ulang)
+     */
+    public function manualReject($trx_id)
+    {
+        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $team = \App\Models\Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+
+        $qrisTx->update([
+            'status' => 'EXPIRED'
+        ]);
+
+        $team->status = 'PENDING';
+        $team->save();
+
+        // Hapus file screenshot bukti transfer fisik di server jika ada
+        if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
+            $filename = str_replace('PROOFS/', '', $qrisTx->gopay_reference);
+            $filePath = public_path('uploads/proofs/' . $filename);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        // Kirim notifikasi WhatsApp penolakan ke nomor kapten
+        try {
+            $msg = "Halo Kapten! Bukti transfer pendaftaran Anda untuk Tim *{$team->name}* tidak dapat kami validasi (tidak terbaca / tidak sesuai / nominal tidak pas).\n\n"
+                . "Mohon unggah kembali bukti transfer yang sah melalui link pembayaran Anda agar slot tim Anda aman:\n"
+                . route('qris.pay', $trx_id) . "\n\n"
+                . "-- Yomuda Championship --";
+            
+            \App\Services\WhatsappService::sendMessage($team->wa_number, $msg);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal kirim WhatsApp reject: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Transaksi berhasil ditolak dan kapten telah diberi tahu melalui WhatsApp.');
+    }
+
+    /**
+     * Halaman PWA Mobile Verifikasi Pembayaran (CLAIMED)
+     */
+    public function verifyPaymentsPage()
+    {
+        $claimedTx = \App\Models\QrisTransaction::with('team.season')
+            ->where('status', 'CLAIMED')
+            ->orderBy('updated_at', 'asc')
+            ->get();
+
+        $recentTx = \App\Models\QrisTransaction::with('team.season')
+            ->where('status', 'PAID')
+            ->orderBy('paid_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin.verify_payments', compact('claimedTx', 'recentTx'));
+    }
+
+    /**
+     * API untuk menghitung transaksi CLAIMED secara real-time (untuk polling chime notifikasi)
+     */
+    public function pendingClaimsCountApi()
+    {
+        return response()->json([
+            'count' => \App\Models\QrisTransaction::where('status', 'CLAIMED')->count()
+        ]);
+    }
 }

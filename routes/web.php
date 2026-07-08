@@ -340,7 +340,7 @@ Route::get('/chat-debug-files', function() {
 // ==========================================
 Route::prefix('qris-gateway')->name('qris.')->group(function () {
     Route::get('/', function () {
-        return redirect()->route('qris.dashboard');
+        return redirect()->route('admin.manual-payment');
     });
 
     Route::get('/pay/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'showPayment'])->middleware('throttle:30,1')->name('pay');
@@ -350,35 +350,10 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
     Route::get('/debug/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'debugTrans'])->name('debug');
     Route::get('/api/checkout-details/{trx_id}', [\App\Http\Controllers\Qris\QrisController::class, 'checkoutDetails'])->name('api.checkout-details');
 
-
-
-    Route::middleware([\App\Http\Middleware\QrisAuthMiddleware::class])->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\Qris\QrisAdminController::class, 'dashboard'])->name('dashboard');
-        Route::get('/transactions', [\App\Http\Controllers\Qris\QrisAdminController::class, 'transactions'])->name('transactions');
-        Route::get('/settings', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settings'])->name('settings');
-        Route::get('/logs', [\App\Http\Controllers\Qris\QrisAdminController::class, 'logs'])->name('logs');
-        Route::match(['get', 'post'], '/quick-checkout', [\App\Http\Controllers\Qris\QrisAdminController::class, 'quickCheckout'])->name('quick-checkout');
-        Route::match(['get', 'post'], '/payouts', [\App\Http\Controllers\Qris\QrisAdminController::class, 'payouts'])->name('payouts');
-        Route::get('/test-poll', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testPoll'])->name('test-poll');
-        Route::post('/config', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateConfig'])->name('config.update');
-        Route::post('/delete-logo', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteLogo'])->name('delete-logo');
-        Route::post('/settle/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualSettle'])->name('settle');
-        Route::get('/verify-payments', [\App\Http\Controllers\Qris\QrisAdminController::class, 'verifyPaymentsPage'])->name('verify-payments');
-        Route::get('/api/verify-payments/count', [\App\Http\Controllers\Qris\QrisAdminController::class, 'pendingClaimsCountApi'])->name('verify-payments.count');
-        Route::post('/reject/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'manualReject'])->name('reject');
-        Route::post('/sync-pending', [\App\Http\Controllers\Qris\QrisAdminController::class, 'syncPending'])->name('sync-pending');
-        Route::delete('/delete/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteTransaction'])->name('delete');
-        Route::post('/delete-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'deleteBulkTransactions'])->name('delete-bulk');
-        Route::post('/settle-bulk', [\App\Http\Controllers\Qris\QrisAdminController::class, 'settleBulkTransactions'])->name('settle-bulk');
-        Route::get('/rekonsiliasi', [\App\Http\Controllers\Qris\QrisAdminController::class, 'rekonsiliasi'])->name('rekonsiliasi');
-        Route::get('/laporan', [\App\Http\Controllers\Qris\QrisAdminController::class, 'laporan'])->name('laporan');
-        Route::get('/export-csv', [\App\Http\Controllers\Qris\QrisAdminController::class, 'exportCsv'])->name('export-csv');
-        Route::get('/tim/{team_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'teamDetail'])->name('team-detail');
-        Route::post('/change-password', [\App\Http\Controllers\Qris\QrisAdminController::class, 'changePassword'])->name('change-password');
-        Route::post('/refund/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'refundTransaction'])->name('refund');
-        Route::post('/expiry/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'updateExpiry'])->name('expiry');
-        Route::get('/export-pdf', [\App\Http\Controllers\Qris\QrisAdminController::class, 'exportPdf'])->name('export-pdf');
-        Route::get('/invoice/{trx_id}', [\App\Http\Controllers\Qris\QrisAdminController::class, 'downloadInvoice'])->name('invoice');
-        Route::get('/test-gopay-response', [\App\Http\Controllers\Qris\QrisAdminController::class, 'testGopayResponse'])->name('test-gopay-response');
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/settle/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualSettle'])->name('settle');
+        Route::get('/verify-payments', [\App\Http\Controllers\AdminController::class, 'verifyPaymentsPage'])->name('verify-payments');
+        Route::get('/api/verify-payments/count', [\App\Http\Controllers\AdminController::class, 'pendingClaimsCountApi'])->name('verify-payments.count');
+        Route::post('/reject/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualReject'])->name('reject');
     });
 });
