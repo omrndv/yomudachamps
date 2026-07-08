@@ -163,7 +163,7 @@
 
                                 <div class="row g-2">
                                     <div class="col-6">
-                                        <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                        <form action="/qris-gateway/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                             @csrf
                                             <button type="submit" class="btn btn-success fw-bold w-100 py-2.5 rounded-3">
                                                 <i class="bi bi-check-circle-fill me-1"></i> Setujui
@@ -171,7 +171,7 @@
                                         </form>
                                     </div>
                                     <div class="col-6">
-                                        <form action="{{ route('qris.reject', $tx->trx_id) }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
+                                        <form action="/qris-gateway/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
                                             @csrf
                                             <button type="submit" class="btn btn-danger fw-bold w-100 py-2.5 rounded-3">
                                                 <i class="bi bi-x-circle-fill me-1"></i> Tolak
@@ -394,14 +394,14 @@
                             <td class="py-3 px-4 text-center">
                                 @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
                                 <div class="d-inline-flex gap-1">
-                                    <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                    <form action="/qris-gateway/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
                                             <i class="bi bi-check"></i>
                                         </button>
                                     </form>
                                     @if($tx->status === 'CLAIMED')
-                                    <form action="{{ route('qris.reject', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+                                    <form action="/qris-gateway/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
                                             <i class="bi bi-x"></i>
