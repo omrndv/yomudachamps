@@ -2696,7 +2696,19 @@ class AdminController extends Controller
             'admin_fee' => (int) \App\Models\Setting::getVal('manual_admin_fee', 0),
         ];
 
-        return view('admin.manual_payment', compact('totalBalance', 'transactions', 'settings'));
+        // Verifikator Data
+        $claimedTx = \App\Models\QrisTransaction::with('team.season')
+            ->where('status', 'CLAIMED')
+            ->orderBy('updated_at', 'asc')
+            ->get();
+
+        $recentTx = \App\Models\QrisTransaction::with('team.season')
+            ->where('status', 'PAID')
+            ->orderBy('paid_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin.manual_payment', compact('totalBalance', 'transactions', 'settings', 'claimedTx', 'recentTx'));
     }
 
     /**

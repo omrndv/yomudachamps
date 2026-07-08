@@ -352,7 +352,9 @@ Route::prefix('qris-gateway')->name('qris.')->group(function () {
 
     Route::middleware(['auth'])->group(function () {
         Route::post('/settle/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualSettle'])->name('settle');
-        Route::get('/verify-payments', [\App\Http\Controllers\AdminController::class, 'verifyPaymentsPage'])->name('verify-payments');
+        Route::get('/verify-payments', function () {
+            return redirect()->to(route('admin.manual-payment') . '?tab=verifier');
+        })->name('verify-payments');
         Route::get('/api/verify-payments/count', [\App\Http\Controllers\AdminController::class, 'pendingClaimsCountApi'])->name('verify-payments.count');
         Route::post('/reject/{trx_id}', [\App\Http\Controllers\AdminController::class, 'manualReject'])->name('reject');
     });

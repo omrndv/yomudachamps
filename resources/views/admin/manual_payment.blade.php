@@ -1,275 +1,591 @@
-@extends('layouts.manual_qris')
+@extends('layouts.admin')
+
 @section('title', 'Pembayaran Manual')
 
+@push('styles')
+<style>
+    .tab-nav-btn {
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 10px 20px;
+        border-radius: 50px;
+        transition: all 0.2s ease-in-out;
+    }
+    .tab-nav-btn.active {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
+    }
+    .tab-nav-btn:not(.active) {
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+    .dark .tab-nav-btn:not(.active) {
+        border-color: #2d3748;
+        color: #a0aec0;
+    }
+    .claim-card {
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #fff;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+        transition: all 0.2s ease-in-out;
+    }
+    .dark .claim-card {
+        background: #141618;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+    .proof-img-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: #f8fafc;
+        position: relative;
+        cursor: pointer;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .dark .proof-img-wrapper {
+        background: #080809;
+        border-color: rgba(255,255,255,0.08);
+    }
+    .proof-img-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .proof-img-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .proof-img-wrapper:hover .proof-img-overlay {
+        opacity: 1;
+    }
+    .sound-status-btn {
+        font-weight: 800;
+        font-size: 0.75rem;
+        border-radius: 50px;
+        padding: 6px 16px;
+    }
+    /* Lightbox Modal */
+    .lightbox-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .lightbox-content {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        color: #fff;
+        font-size: 1.8rem;
+        cursor: pointer;
+        background: rgba(255,255,255,0.1);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="space-y-8 pb-12">
-    <!-- Page Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <i data-lucide="credit-card" class="w-6 h-6 text-blue-600"></i> Setelan &amp; Transaksi Pembayaran Manual
-            </h2>
-            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Kelola QRIS statis, biaya admin, nominal unik, serta saldo masuk dalam satu dashboard terpadu.</p>
+            <h3 class="fw-bold text-dark mb-0">Pembayaran Manual</h3>
+            <p class="text-secondary small mb-0">Kelola QRIS statis, verifikasi klaim bukti transfer, dan riwayat dana masuk.</p>
         </div>
-        <a href="{{ route('qris.verify-payments') }}" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold py-2.5 px-5 rounded-2xl flex items-center gap-2 text-xs shadow-sm transition-all">
-            <i data-lucide="phone" class="w-4 h-4"></i> Buka Verifikator Mobile (PWA)
-        </a>
+        <!-- Sound alert for verifications -->
+        <button class="btn btn-outline-danger sound-status-btn d-flex align-items-center gap-2" id="toggle-sound" onclick="toggleSound()">
+            <i class="bi bi-volume-mute-fill"></i> Sound Off
+        </button>
     </div>
 
-    <!-- Quick Stats & Settings Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Balance Card -->
-        <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between h-full">
-            <div>
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Pendapatan Terverifikasi</span>
-                    <div class="w-8 h-8 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
-                        <i data-lucide="wallet" class="w-4.5 h-4.5"></i>
+    <!-- Tab Switcher Controls -->
+    <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+        <button class="tab-nav-btn active" id="tab-btn-verifier" onclick="switchTab('verifier')">
+            <i class="bi bi-shield-check me-1"></i> Antrean Verifikasi ({{ count($claimedTx) }})
+        </button>
+        <button class="tab-nav-btn" id="tab-btn-settings" onclick="switchTab('settings')">
+            <i class="bi bi-gear-fill me-1"></i> Pengaturan QRIS
+        </button>
+        <button class="tab-nav-btn" id="tab-btn-history" onclick="switchTab('history')">
+            <i class="bi bi-journal-text me-1"></i> Riwayat Transaksi
+        </button>
+    </div>
+
+    <!-- TAB 1: Antrean Verifikasi -->
+    <div class="tab-content-panel" id="tab-panel-verifier">
+        <div class="row">
+            <div class="col-12 col-xl-8">
+                <div class="row">
+                    @forelse($claimedTx as $tx)
+                        @php
+                            $team = $tx->team;
+                            $filename = str_replace('PROOFS/', '', $tx->gopay_reference);
+                            $imgUrl = asset('uploads/proofs/' . $filename);
+                        @endphp
+                        <div class="col-12 col-md-6 mb-4">
+                            <div class="claim-card p-4">
+                                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3 border-light border-opacity-10">
+                                    <div>
+                                        <h5 class="fw-extrabold mb-0 text-dark">{{ $team ? $team->name : 'N/A' }}</h5>
+                                        <span class="text-warning small fw-bold">{{ ($team && $team->season) ? $team->season->name : 'N/A' }}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-muted d-block uppercase small fw-bold" style="font-size: 0.65rem;">Nominal</span>
+                                        <h5 class="text-primary fw-black mb-0">Rp {{ number_format($tx->amount, 0, ',', '.') }}</h5>
+                                    </div>
+                                </div>
+
+                                <div class="proof-img-wrapper mb-3" onclick="openLightbox('{{ $imgUrl }}')">
+                                    <img src="{{ $imgUrl }}" alt="Bukti Transfer" loading="lazy">
+                                    <div class="proof-img-overlay">
+                                        <i class="bi bi-zoom-in text-white fs-3"></i>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    @if($team)
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $team->wa_number) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success rounded-pill fw-bold">
+                                            <i class="bi bi-whatsapp me-1"></i> WhatsApp Kapten
+                                        </a>
+                                    @endif
+                                    <span class="text-secondary font-monospace" style="font-size: 0.72rem;">TRX: {{ $tx->trx_id }}</span>
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success fw-bold w-100 py-2.5 rounded-3">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Setujui
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-6">
+                                        <form action="{{ route('qris.reject', $tx->trx_id) }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger fw-bold w-100 py-2.5 rounded-3">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Tolak
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                                <div class="fs-1 text-muted mb-2">😴</div>
+                                <h6 class="fw-bold mb-1">Semua Beres!</h6>
+                                <p class="text-secondary small mb-0">Belum ada antrean bukti transfer baru yang diklaim oleh peserta.</p>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Recent verifications sidebar -->
+            <div class="col-12 col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-secondary"></i> Baru Saja Disetujui (Hari Ini)
+                    </h5>
+                    <div class="list-group list-group-flush">
+                        @forelse($recentTx as $tx)
+                            <div class="list-group-item px-0 py-3 border-light border-opacity-10 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ $tx->team ? $tx->team->name : 'N/A' }}</h6>
+                                    <span class="text-secondary small" style="font-size: 0.7rem;">Lunas pada: {{ $tx->paid_at ? $tx->paid_at->timezone('Asia/Jakarta')->format('H:i') : '' }} WIB</span>
+                                </div>
+                                <span class="text-success fw-bold font-mono">
+                                    +Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                                </span>
+                            </div>
+                        @empty
+                            <p class="text-secondary text-center small py-4 my-0">Belum ada riwayat persetujuan hari ini.</p>
+                        @endforelse
                     </div>
                 </div>
-                <h3 class="text-3xl font-black font-mono text-white tracking-tight">
-                    Rp {{ number_format($totalBalance, 0, ',', '.') }}
-                </h3>
-                <p class="text-[10px] text-slate-500 mt-2 font-medium">Akumulasi seluruh transaksi manual lunas (PAID).</p>
             </div>
         </div>
-
-        <!-- Configuration Settings Form -->
-        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-6 flex items-center gap-2">
-                <i data-lucide="sliders" class="w-4.5 h-4.5 text-blue-600"></i> Konfigurasi Pembayaran Manual
-            </h4>
-
-            <form action="{{ route('admin.manual-payment.settings') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Status Switch -->
-                    <div class="flex flex-col justify-center">
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Status Gerbang Pembayaran</label>
-                        <label class="inline-flex items-center cursor-pointer mt-1">
-                            <input type="checkbox" name="enabled" class="sr-only peer" {{ $settings['enabled'] ? 'checked' : '' }}>
-                            <div class="relative w-11 h-6 bg-slate-200 peer-focus:outline-none dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
-                            <span class="ms-3 text-xs font-bold text-slate-700 dark:text-slate-300">Aktifkan Manual Payment</span>
-                        </label>
-                    </div>
-
-                    <!-- Admin Fee -->
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Biaya Admin (Rp)</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                            <input type="number" name="admin_fee" value="{{ $settings['admin_fee'] }}" required min="0"
-                                class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl ps-10 pe-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 transition-all font-semibold">
-                        </div>
-                    </div>
-
-                    <!-- Min Code -->
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Kode Unik Min</label>
-                        <input type="number" name="unique_min" value="{{ $settings['unique_min'] }}" required min="0"
-                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 transition-all font-semibold">
-                    </div>
-
-                    <!-- Max Code -->
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Kode Unik Max</label>
-                        <input type="number" name="unique_max" value="{{ $settings['unique_max'] }}" required min="0"
-                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 transition-all font-semibold">
-                    </div>
-                </div>
-
-                <!-- QRIS Upload & Preview -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">String QRIS Statis (EMVCo)</label>
-                        <textarea id="static_qris_input" name="static_qris_string" rows="3"
-                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 transition-all font-mono"
-                            placeholder="00020101021226650016...">{{ !Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']) ? $settings['qris_image'] : '' }}</textarea>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Unggah File Gambar QRIS Statis (Otomatis Ekstrak)</label>
-                        <input type="file" id="qr-input-file" accept="image/*" name="qris_image_file"
-                            class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400">
-                        <div id="qr-scan-result" class="mt-2 text-[10px] text-emerald-600 dark:text-emerald-400 hidden">
-                            ✓ Berhasil membaca QRIS! String disalin ke kolom kiri.
-                        </div>
-                        <div id="qr-scan-error" class="mt-2 text-[10px] text-rose-600 dark:text-rose-400 hidden">
-                            ⚠ Gagal membaca QR code dari file gambar. File akan diunggah langsung sebagai gambar statis.
-                        </div>
-                        <div id="reader" style="display:none;"></div>
-                    </div>
-                </div>
-
-                @if($settings['qris_image'])
-                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
-                        @if(Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']))
-                            <img src="{{ $settings['qris_image'] }}" alt="QRIS Statis" class="w-16 h-16 object-contain rounded-lg border border-slate-200 dark:border-slate-800 bg-white">
-                            <div>
-                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">QRIS Statis Aktif (Gambar)</span>
-                                <span class="text-[10px] text-slate-400 font-mono block mt-0.5">{{ $settings['qris_image'] }}</span>
-                            </div>
-                        @else
-                            <div class="w-16 h-16 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                <i data-lucide="qr-code" class="w-8 h-8"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">QRIS Statis Aktif (String Dinamis)</span>
-                                <span class="text-[9px] text-slate-400 font-mono block mt-1 line-clamp-2 max-w-md">{{ $settings['qris_image'] }}</span>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
-                <div class="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 text-xs shadow-sm transition-all">
-                        <i data-lucide="check" class="w-4 h-4"></i> Simpan Konfigurasi
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
-    <!-- Riwayat Transaksi Manual -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <i data-lucide="list-filter" class="w-4.5 h-4.5 text-blue-600"></i> Riwayat Pembayaran Manual
-            </h4>
-            <form action="{{ route('admin.manual-payment') }}" method="GET" class="flex gap-2 w-full md:w-auto">
-                <input type="text" name="search" placeholder="Cari TRX ID atau nama tim..." value="{{ request('search') }}"
-                    class="w-full md:w-64 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500 transition-all font-semibold">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm transition-all shrink-0">Cari</button>
-            </form>
-        </div>
+    <!-- TAB 2: Pengaturan QRIS -->
+    <div class="tab-content-panel d-none" id="tab-panel-settings">
+        <div class="row">
+            <!-- Balance info -->
+            <div class="col-12 col-lg-4 mb-4">
+                <div class="card border-0 bg-dark text-white shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="text-secondary text-uppercase small fw-bold tracking-wider d-block mb-3" style="font-size: 0.65rem;">Total Pendapatan Terverifikasi</span>
+                        <h2 class="fw-black font-mono text-white mb-2">Rp {{ number_format($totalBalance, 0, ',', '.') }}</h2>
+                        <p class="text-secondary small mb-0">Akumulasi saldo masuk dari transaksi manual lunas (PAID).</p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="overflow-x-auto custom-scroll border border-slate-100 dark:border-slate-800 rounded-2xl">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-850">
-                        <th class="py-4 px-6">TRX ID</th>
-                        <th class="py-4 px-6">Tim</th>
-                        <th class="py-4 px-6">Season</th>
-                        <th class="py-4 px-6 text-right">Jumlah</th>
-                        <th class="py-4 px-6 text-center">Status</th>
-                        <th class="py-4 px-6 text-center">Bukti Transfer</th>
-                        <th class="py-4 px-6 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                    @forelse($transactions as $tx)
-                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-950/20 transition-all">
-                        <td class="py-4 px-6 font-mono font-bold text-slate-500">{{ $tx->trx_id }}</td>
-                        <td class="py-4 px-6">
-                            <span class="font-bold text-slate-900 dark:text-white block">{{ $tx->team ? $tx->team->name : 'N/A' }}</span>
-                            @if($tx->team)
-                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tx->team->wa_number) }}" target="_blank" class="text-emerald-500 font-bold hover:underline inline-flex items-center gap-1 mt-0.5">
-                                <i data-lucide="phone" class="w-3.5 h-3.5"></i> {{ $tx->team->wa_number }}
-                            </a>
-                            @endif
-                        </td>
-                        <td class="py-4 px-6 text-slate-400">{{ ($tx->team && $tx->team->season) ? $tx->team->season->name : 'N/A' }}</td>
-                        <td class="py-4 px-6 text-right font-mono font-bold text-slate-800 dark:text-slate-200">Rp {{ number_format($tx->amount, 0, ',', '.') }}</td>
-                        <td class="py-4 px-6 text-center">
-                            @if($tx->status === 'PAID')
-                                <span class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full">PAID</span>
-                            @elseif($tx->status === 'CLAIMED')
-                                <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full">CLAIMED</span>
-                            @elseif($tx->status === 'PENDING')
-                                <span class="bg-slate-500/10 text-slate-500 font-extrabold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full">PENDING</span>
-                            @else
-                                <span class="bg-rose-500/10 text-rose-500 font-extrabold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full">EXPIRED</span>
-                            @endif
-                        </td>
-                        <td class="py-4 px-6 text-center">
-                            @if($tx->gopay_reference && str_starts_with($tx->gopay_reference, 'PROOFS/'))
-                                @php
-                                    $filename = str_replace('PROOFS/', '', $tx->gopay_reference);
-                                @endphp
-                                <a href="{{ asset('uploads/proofs/' . $filename) }}" target="_blank" class="border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 text-slate-600 dark:text-slate-300 font-extrabold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5">
-                                    <i data-lucide="image" class="w-3.5 h-3.5"></i> Lihat Bukti
-                                </a>
-                            @else
-                                <span class="text-slate-400">-</span>
-                            @endif
-                        </td>
-                        <td class="py-4 px-6 text-center">
-                            @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
-                            <div class="inline-flex gap-1.5">
-                                <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
-                                    @csrf
-                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white p-1.5 rounded-lg active:scale-95 transition-all" title="Setujui Pembayaran">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                    </button>
-                                </form>
-                                @if($tx->status === 'CLAIMED')
-                                <form action="{{ route('qris.reject', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
-                                    @csrf
-                                    <button type="submit" class="bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg active:scale-95 transition-all" title="Tolak Bukti">
-                                        <i data-lucide="x" class="w-4 h-4"></i>
-                                    </button>
-                                </form>
+            <!-- Configuration Settings Form -->
+            <div class="col-12 col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-sliders text-primary"></i> Konfigurasi Pembayaran Manual
+                    </h5>
+
+                    <form action="{{ route('admin.manual-payment.settings') }}" method="POST" enctype="multipart/form-data" class="row g-4">
+                        @csrf
+                        <!-- Status Switch -->
+                        <div class="col-12 col-md-6 d-flex flex-column justify-content-center">
+                            <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-2" style="font-size: 0.65rem;">Status Gerbang Pembayaran</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" role="switch" name="enabled" id="manualPaymentEnabled" {{ $settings['enabled'] ? 'checked' : '' }} style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                                <label class="form-check-label fw-bold text-dark ms-2" for="manualPaymentEnabled" style="cursor: pointer; line-height: 1.7;">Aktifkan Pembayaran Manual</label>
+                            </div>
+                        </div>
+
+                        <!-- Admin Fee -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Biaya Admin (Rp)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary border-end-0 fw-bold" style="font-size: 0.8rem;">Rp</span>
+                                <input type="number" name="admin_fee" value="{{ $settings['admin_fee'] }}" required min="0" class="form-control bg-light border-start-0 py-2 fw-semibold" style="font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <!-- Min Code -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Kode Unik Minimum</label>
+                            <input type="number" name="unique_min" value="{{ $settings['unique_min'] }}" required min="0" class="form-control bg-light py-2 fw-semibold" style="font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Max Code -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Kode Unik Maksimum</label>
+                            <input type="number" name="unique_max" value="{{ $settings['unique_max'] }}" required min="0" class="form-control bg-light py-2 fw-semibold" style="font-size: 0.85rem;">
+                        </div>
+
+                        <!-- QRIS Upload & Preview -->
+                        <div class="col-12 pt-3 border-top border-light border-opacity-10">
+                            <div class="row g-4">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">String QRIS Statis (EMVCo)</label>
+                                    <textarea id="static_qris_input" name="static_qris_string" rows="3" class="form-control bg-light font-monospace" style="font-size: 0.78rem;" placeholder="00020101021226650016...">{{ !Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']) ? $settings['qris_image'] : '' }}</textarea>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Unggah Gambar QRIS Statis (Otomatis Ekstrak)</label>
+                                    <input type="file" id="qr-input-file" accept="image/*" name="qris_image_file" class="form-control form-control-sm bg-light mb-2">
+                                    <div id="qr-scan-result" class="text-success small fw-bold d-none">
+                                        <i class="bi bi-check-circle-fill"></i> Berhasil membaca QRIS! String disalin ke kolom kiri.
+                                    </div>
+                                    <div id="qr-scan-error" class="text-danger small fw-bold d-none">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Gagal membaca QR code dari gambar. File akan diunggah langsung sebagai gambar statis.
+                                    </div>
+                                    <div id="reader" class="d-none"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active QRIS Preview -->
+                        @if($settings['qris_image'])
+                        <div class="col-12 pt-3 border-top border-light border-opacity-10">
+                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border">
+                                @if(Str::startsWith($settings['qris_image'], ['/uploads', '/storage', 'http']))
+                                    <img src="{{ $settings['qris_image'] }}" alt="QRIS Statis" class="rounded-3 border bg-white" style="width: 64px; height: 64px; object-fit: contain;">
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-dark">QRIS Statis Aktif (Gambar)</h6>
+                                        <span class="text-secondary font-monospace d-block small" style="font-size: 0.7rem;">{{ $settings['qris_image'] }}</span>
+                                    </div>
+                                @else
+                                    <div class="rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-10 flex items-center justify-center text-primary" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-qr-code fs-3"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-dark">QRIS Statis Aktif (String Dinamis)</h6>
+                                        <span class="text-secondary font-monospace d-block small text-truncate" style="font-size: 0.7rem; max-width: 320px;">{{ $settings['qris_image'] }}</span>
+                                    </div>
                                 @endif
                             </div>
-                            @else
-                                <span class="text-slate-400">-</span>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-400">
-                            <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700 mb-2"></i>
-                            <p class="mb-0 text-xs font-semibold">Belum ada transaksi pembayaran manual.</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                        </div>
+                        @endif
 
-        <!-- Pagination -->
-        <div class="mt-6 flex justify-center">
-            {{ $transactions->links() }}
+                        <div class="col-12 text-end pt-3 border-top border-light border-opacity-10">
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-check-lg me-1"></i> Simpan Konfigurasi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- TAB 3: Riwayat Transaksi -->
+    <div class="tab-content-panel d-none" id="tab-panel-history">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <h5 class="fw-bold mb-0">Riwayat Seluruh Transaksi</h5>
+                <form action="{{ route('admin.manual-payment') }}" method="GET" class="d-flex gap-2 w-100 w-md-auto">
+                    <!-- Maintain active tab context -->
+                    <input type="hidden" name="tab" value="history">
+                    <input type="text" name="search" placeholder="Cari TRX ID atau nama tim..." value="{{ request('search') }}" class="form-control form-control-sm px-3 py-2 rounded-3 bg-light border" style="font-size: 0.82rem; max-width: 250px;">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-3 px-3">Cari</button>
+                </form>
+            </div>
+
+            <div class="table-responsive rounded-3 border">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold" style="font-size: 0.68rem;">TRX ID</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold" style="font-size: 0.68rem;">Tim</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold" style="font-size: 0.68rem;">Season</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold text-end" style="font-size: 0.68rem;">Jumlah</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold text-center" style="font-size: 0.68rem;">Status</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold text-center" style="font-size: 0.68rem;">Bukti</th>
+                            <th class="py-3 px-4 text-secondary text-uppercase fw-bold text-center" style="font-size: 0.68rem;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($transactions as $tx)
+                        <tr>
+                            <td class="py-3 px-4 font-monospace fw-bold text-secondary">{{ $tx->trx_id }}</td>
+                            <td class="py-3 px-4">
+                                <span class="fw-bold text-dark d-block">{{ $tx->team ? $tx->team->name : 'N/A' }}</span>
+                                @if($tx->team)
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tx->team->wa_number) }}" target="_blank" class="text-success small fw-bold text-decoration-none">
+                                    <i class="bi bi-whatsapp"></i> {{ $tx->team->wa_number }}
+                                </a>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 text-secondary">{{ ($tx->team && $tx->team->season) ? $tx->team->season->name : 'N/A' }}</td>
+                            <td class="py-3 px-4 text-end fw-bold font-mono">Rp {{ number_format($tx->amount, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-center">
+                                @if($tx->status === 'PAID')
+                                    <span class="badge bg-success-subtle text-success border border-success border-opacity-10 px-2.5 py-1.5 rounded-pill uppercase font-black" style="font-size: 0.65rem;">PAID</span>
+                                @elseif($tx->status === 'CLAIMED')
+                                    <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-10 px-2.5 py-1.5 rounded-pill uppercase font-black" style="font-size: 0.65rem;">CLAIMED</span>
+                                @elseif($tx->status === 'PENDING')
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-10 px-2.5 py-1.5 rounded-pill uppercase font-black" style="font-size: 0.65rem;">PENDING</span>
+                                @else
+                                    <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-10 px-2.5 py-1.5 rounded-pill uppercase font-black" style="font-size: 0.65rem;">EXPIRED</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                @if($tx->gopay_reference && str_starts_with($tx->gopay_reference, 'PROOFS/'))
+                                    @php
+                                        $filename = str_replace('PROOFS/', '', $tx->gopay_reference);
+                                    @endphp
+                                    <a href="{{ asset('uploads/proofs/' . $filename) }}" target="_blank" class="btn btn-xs btn-outline-secondary px-2.5 py-1 rounded-3 small">
+                                        <i class="bi bi-image"></i> Lihat
+                                    </a>
+                                @else
+                                    <span class="text-secondary">-</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
+                                <div class="d-inline-flex gap-1">
+                                    <form action="{{ route('qris.settle', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                    </form>
+                                    @if($tx->status === 'CLAIMED')
+                                    <form action="{{ route('qris.reject', $tx->trx_id) }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                                @else
+                                    <span class="text-secondary">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-secondary small">Belum ada transaksi pembayaran manual.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4 d-flex justify-content-center">
+                {{ $transactions->appends(request()->input())->links() }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="lightbox-modal" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close"><i class="bi bi-x-lg"></i></span>
+    <img src="" class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
 </div>
 @endsection
 
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fileinput = document.getElementById('qr-input-file');
-    const staticQrisInput = document.getElementById('static_qris_input');
-    const scanResult = document.getElementById('qr-scan-result');
-    const scanError = document.getElementById('qr-scan-error');
+    let soundEnabled = false;
+    let currentClaimsCount = {{ count($claimedTx) }};
 
-    if (fileinput) {
-        fileinput.addEventListener('change', e => {
-            if (e.target.files.length == 0) {
-                return;
-            }
-            
-            scanResult.classList.add('hidden');
-            scanError.classList.add('hidden');
-            
-            const imageFile = e.target.files[0];
-            const html5QrCode = new Html5Qrcode("reader");
-
-            html5QrCode.scanFile(imageFile, true)
-            .then(decodedText => {
-                staticQrisInput.value = decodedText;
-                scanResult.classList.remove('hidden');
-            })
-            .catch(err => {
-                scanError.classList.remove('hidden');
-                console.log(`Error scanning file: ${err}`)
-            });
-        });
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        const btn = document.getElementById('toggle-sound');
+        if (soundEnabled) {
+            btn.classList.remove('btn-outline-danger');
+            btn.classList.add('btn-danger');
+            btn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Sound On';
+            playSyntheticChime();
+        } else {
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-outline-danger');
+            btn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Sound Off';
+        }
     }
-});
+
+    function playSyntheticChime() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+            gain1.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.3);
+            
+            setTimeout(() => {
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+                gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start();
+                osc2.stop(ctx.currentTime + 0.4);
+            }, 150);
+        } catch (e) {
+            console.log("Audio playing error:", e);
+        }
+    }
+
+    // Polling antrean baru
+    function checkNewClaims() {
+        fetch("{{ route('qris.verify-payments.count') }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.count > currentClaimsCount) {
+                    if (soundEnabled) {
+                        playSyntheticChime();
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else if (data.count < currentClaimsCount) {
+                    window.location.reload();
+                }
+            })
+            .catch(err => console.log("Error checking claims:", err));
+    }
+
+    setInterval(checkNewClaims, 15000); // Poll every 15 seconds
+
+    // Lightbox handlers
+    function openLightbox(url) {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = url;
+        lb.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.add('d-none'));
+        document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById('tab-panel-' + tabId).classList.remove('d-none');
+        document.getElementById('tab-btn-' + tabId).classList.add('active');
+
+        // Update URL hash context
+        history.replaceState(null, null, '?tab=' + tabId);
+    }
+
+    // Auto load tab from query string
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab');
+        if (activeTab && ['verifier', 'settings', 'history'].includes(activeTab)) {
+            switchTab(activeTab);
+        }
+
+        // QR Image Extractor Scanner
+        const fileinput = document.getElementById('qr-input-file');
+        const staticQrisInput = document.getElementById('static_qris_input');
+        const scanResult = document.getElementById('qr-scan-result');
+        const scanError = document.getElementById('qr-scan-error');
+
+        if (fileinput) {
+            fileinput.addEventListener('change', e => {
+                if (e.target.files.length == 0) return;
+                scanResult.classList.add('d-none');
+                scanError.classList.add('d-none');
+                
+                const imageFile = e.target.files[0];
+                const html5QrCode = new Html5Qrcode("reader");
+
+                html5QrCode.scanFile(imageFile, true)
+                .then(decodedText => {
+                    staticQrisInput.value = decodedText;
+                    scanResult.classList.remove('d-none');
+                })
+                .catch(err => {
+                    scanError.classList.remove('d-none');
+                    console.log(`QR scanning error: ${err}`);
+                });
+            });
+        }
+    });
 </script>
 @endpush
