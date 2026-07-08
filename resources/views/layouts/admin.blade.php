@@ -79,24 +79,23 @@
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            flex: 1 1 auto;
-            max-height: calc(100vh - 160px);
+            flex: 1;
             overflow-y: auto;
             overflow-x: hidden !important;
         }
 
         .sidebar-nav::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
         .sidebar-nav::-webkit-scrollbar-track {
             background: transparent;
         }
         .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(245, 158, 11, 0.4);
             border-radius: 10px;
         }
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(245, 158, 11, 0.7);
         }
 
         .nav-pills .nav-link {
