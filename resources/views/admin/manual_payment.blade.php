@@ -265,6 +265,12 @@
                             </div>
                         </div>
 
+                        <!-- Payment Method Name -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Nama Metode Pembayaran (di Checkout)</label>
+                            <input type="text" name="payment_name" value="{{ $settings['payment_name'] }}" required class="form-control bg-light py-2 fw-semibold" style="font-size: 0.85rem;" placeholder="QRIS (All Payment)">
+                        </div>
+
                         <!-- Admin Fee -->
                         <div class="col-12 col-md-6">
                             <label class="form-label text-uppercase text-secondary small fw-bold tracking-wider mb-1" style="font-size: 0.65rem;">Biaya Admin (Rp)</label>

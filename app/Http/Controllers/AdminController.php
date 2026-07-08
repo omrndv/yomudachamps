@@ -2703,6 +2703,7 @@ class AdminController extends Controller
             'unique_min' => (int) \App\Models\Setting::getVal('manual_unique_min', 200),
             'unique_max' => (int) \App\Models\Setting::getVal('manual_unique_max', 300),
             'admin_fee' => (int) \App\Models\Setting::getVal('manual_admin_fee', 0),
+            'payment_name' => \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)'),
         ];
 
         // Verifikator Data
@@ -2721,7 +2722,7 @@ class AdminController extends Controller
             ->take(10)
             ->get();
 
-        return view('admin.manual_payment', compact('totalBalance', 'transactions', 'settings', 'claimedTx', 'recentTx'));
+        return view('admin.manual_payment', compact('claimedTx', 'recentTx', 'transactions', 'settings', 'totalBalance'));
     }
 
     /**
@@ -2730,6 +2731,7 @@ class AdminController extends Controller
     public function updateManualPaymentSettings(Request $request)
     {
         $request->validate([
+            'payment_name' => 'required|string|max:100',
             'unique_min' => 'required|integer|min:0',
             'unique_max' => 'required|integer|min:0|gte:unique_min',
             'admin_fee' => 'required|integer|min:0',
@@ -2737,6 +2739,7 @@ class AdminController extends Controller
         ]);
 
         \App\Models\Setting::setVal('manual_payment_enabled', $request->has('enabled') ? 'true' : 'false');
+        \App\Models\Setting::setVal('manual_payment_name', $request->payment_name);
         \App\Models\Setting::setVal('manual_unique_min', $request->unique_min);
         \App\Models\Setting::setVal('manual_unique_max', $request->unique_max);
         \App\Models\Setting::setVal('manual_admin_fee', $request->admin_fee);

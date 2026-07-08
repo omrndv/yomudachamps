@@ -229,7 +229,7 @@ class HomeController extends Controller
         if (\App\Models\Setting::getVal('manual_payment_enabled', 'true') === 'true') {
             $channels[] = (object)[
                 'code' => 'GOPAY_QRIS',
-                'name' => 'QRIS (All Payment)',
+                'name' => \App\Models\Setting::getVal('manual_payment_name', 'QRIS (All Payment)'),
                 'icon_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
                 'active' => true,
             ];
