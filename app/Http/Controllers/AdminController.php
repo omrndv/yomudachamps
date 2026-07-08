@@ -2713,7 +2713,10 @@ class AdminController extends Controller
 
         $recentTx = \App\Models\QrisTransaction::with('team.season')
             ->where('status', 'PAID')
-            ->where('created_at', '>=', '2026-07-01')
+            ->where(function($q) {
+                $q->where('gopay_reference', 'like', 'PROOFS/%')
+                  ->orWhere('gopay_reference', 'like', 'MANUAL_SETTLE_%');
+            })
             ->orderBy('paid_at', 'desc')
             ->take(10)
             ->get();
