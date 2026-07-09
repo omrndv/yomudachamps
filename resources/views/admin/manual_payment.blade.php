@@ -501,8 +501,7 @@
 
                 <form id="bulk-delete-form" action="{{ route('admin.manual-payment.delete-bulk') }}" method="POST" onsubmit="return confirm('Hapus semua transaksi terpilih secara massal?')">
                     @csrf
-                </form>
-                <div class="table-responsive rounded-3 border">
+                    <div class="table-responsive rounded-3 border">
                         <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
                             <thead class="table-light">
                             <tr>
@@ -540,7 +539,7 @@
                                 data-wa-number="{{ $tx->team ? $tx->team->wa_number : '' }}"
                                 data-proof-url="{{ $imgUrl }}">
                                 <td class="py-3 px-3 text-center">
-                                    <input type="checkbox" name="selected_trx[]" value="{{ $tx->id }}" form="bulk-delete-form" class="form-check-input trx-checkbox" onclick="updateBulkButtonState()">
+                                    <input type="checkbox" name="selected_trx[]" value="{{ $tx->id }}" class="form-check-input trx-checkbox" onclick="updateBulkButtonState()">
                                 </td>
                                 <td class="py-3 px-4 font-monospace fw-bold text-secondary">{{ $tx->trx_id }}</td>
                                 <td class="py-3 px-4">
@@ -577,27 +576,18 @@
                                     @if($tx->status !== 'PAID')
                                     <div class="d-inline-flex gap-1">
                                         @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING')
-                                        <form action="/admin/manual-payment/settle/{{ $tx->id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
-                                                <i class="bi bi-check"></i>
-                                            </button>
-                                        </form>
+                                        <button type="submit" form="settle-form-{{ $tx->id }}" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
+                                            <i class="bi bi-check"></i>
+                                        </button>
                                         @endif
                                         @if($tx->status === 'CLAIMED')
-                                        <form action="/admin/manual-payment/reject/{{ $tx->id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
-                                                <i class="bi bi-x"></i>
-                                            </button>
-                                        </form>
+                                        <button type="submit" form="reject-form-{{ $tx->id }}" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
+                                            <i class="bi bi-x"></i>
+                                        </button>
                                         @endif
-                                        <form action="/admin/manual-payment/delete/{{ $tx->id }}" method="POST" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-secondary p-1 rounded" title="Hapus Transaksi">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="submit" form="delete-form-{{ $tx->id }}" class="btn btn-sm btn-secondary p-1 rounded" title="Hapus Transaksi">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                     @else
                                         <span class="text-secondary">-</span>
@@ -612,6 +602,7 @@
                         </tbody>
                     </table>
                 </div>
+                </form>
 
                 <!-- Pagination -->
                 <div class="mt-4 d-flex justify-content-center">
@@ -626,6 +617,25 @@
     <span class="lightbox-close"><i class="bi bi-x-lg"></i></span>
     <img src="" class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
 </div>
+
+{{-- Hidden Action Forms for Table Rows (Prevents HTML Form Nesting) --}}
+@foreach($transactions as $tx)
+    @if($tx->status !== 'PAID')
+        @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING')
+        <form id="settle-form-{{ $tx->id }}" action="/admin/manual-payment/settle/{{ $tx->id }}" method="POST" class="d-none" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+            @csrf
+        </form>
+        @endif
+        @if($tx->status === 'CLAIMED')
+        <form id="reject-form-{{ $tx->id }}" action="/admin/manual-payment/reject/{{ $tx->id }}" method="POST" class="d-none" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+            @csrf
+        </form>
+        @endif
+        <form id="delete-form-{{ $tx->id }}" action="/admin/manual-payment/delete/{{ $tx->id }}" method="POST" class="d-none" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
+            @csrf
+        </form>
+    @endif
+@endforeach
 @endsection
 
 @push('scripts')
