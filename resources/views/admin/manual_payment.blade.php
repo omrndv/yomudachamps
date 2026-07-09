@@ -280,7 +280,7 @@
 
                                 <div class="row g-2">
                                     <div class="col-4">
-                                        <form action="/admin/manual-payment/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                        <form action="/admin/manual-payment/settle/{{ $tx->id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                             @csrf
                                             <button type="submit" class="btn btn-success fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
                                                 Setujui
@@ -288,7 +288,7 @@
                                         </form>
                                     </div>
                                     <div class="col-4">
-                                        <form action="/admin/manual-payment/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
+                                        <form action="/admin/manual-payment/reject/{{ $tx->id }}" method="POST" onsubmit="return confirm('TOLAK pembayaran tim ini? Kapten akan diberitahu melalui WA untuk upload ulang.')">
                                             @csrf
                                             <button type="submit" class="btn btn-danger fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
                                                 Tolak
@@ -296,7 +296,7 @@
                                         </form>
                                     </div>
                                     <div class="col-4">
-                                        <form action="/admin/manual-payment/delete/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('HAPUS transaksi ini secara permanen dari sistem? Tindakan ini tidak bisa dibatalkan.')">
+                                        <form action="/admin/manual-payment/delete/{{ $tx->id }}" method="POST" onsubmit="return confirm('HAPUS transaksi ini secara permanen dari sistem? Tindakan ini tidak bisa dibatalkan.')">
                                             @csrf
                                             <button type="submit" class="btn btn-secondary fw-bold w-100 py-2.5 rounded-3" style="font-size: 0.78rem;">
                                                 Hapus
@@ -526,6 +526,7 @@
                             @endphp
                             <tr style="cursor: pointer;" onclick="rowClick(event, this)"
                                 data-trx-id="{{ $tx->trx_id }}"
+                                data-qris-id="{{ $tx->id }}"
                                 data-team-name="{{ $tx->team ? $tx->team->name : 'Quick Checkout' }}"
                                 data-season-name="{{ ($tx->team && $tx->team->season) ? $tx->team->season->name : 'Merchandise / Lainnya' }}"
                                 data-base-amount="Rp {{ number_format($tx->base_amount, 0, ',', '.') }}"
@@ -574,21 +575,21 @@
                                 <td class="py-3 px-4 text-center">
                                     @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
                                     <div class="d-inline-flex gap-1">
-                                        <form action="/admin/manual-payment/settle/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                                        <form action="/admin/manual-payment/settle/{{ $tx->id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
                                                 <i class="bi bi-check"></i>
                                             </button>
                                         </form>
                                         @if($tx->status === 'CLAIMED')
-                                        <form action="/admin/manual-payment/reject/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+                                        <form action="/admin/manual-payment/reject/{{ $tx->id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-danger p-1 rounded" title="Tolak Bukti">
                                                 <i class="bi bi-x"></i>
                                             </button>
                                         </form>
                                         @endif
-                                        <form action="/admin/manual-payment/delete/{{ $tx->trx_id }}" method="POST" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
+                                        <form action="/admin/manual-payment/delete/{{ $tx->id }}" method="POST" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-secondary p-1 rounded" title="Hapus Transaksi">
                                                 <i class="bi bi-trash"></i>
@@ -746,6 +747,7 @@
         }
         
         const trxId = element.getAttribute('data-trx-id');
+        const qrisId = element.getAttribute('data-qris-id') || trxId;
         const teamName = element.getAttribute('data-team-name');
         const seasonName = element.getAttribute('data-season-name');
         const baseAmount = element.getAttribute('data-base-amount');
@@ -801,7 +803,7 @@
         if (status === 'CLAIMED' || status === 'PENDING' || status === 'EXPIRED') {
             // Settle form
             actionsDiv.innerHTML += `
-                <form action="/admin/manual-payment/settle/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pembayaran tim ini?')">
+                <form action="/admin/manual-payment/settle/${qrisId}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-check"></i> Setujui</button>
                 </form>
@@ -810,7 +812,7 @@
             if (status === 'CLAIMED') {
                 // Reject form
                 actionsDiv.innerHTML += `
-                    <form action="/admin/manual-payment/reject/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
+                    <form action="/admin/manual-payment/reject/${qrisId}" method="POST" class="d-inline" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
                         <input type="hidden" name="_token" value="${csrfToken}">
                         <button type="submit" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-x"></i> Tolak</button>
                     </form>
@@ -819,7 +821,7 @@
             
             // Delete form
             actionsDiv.innerHTML += `
-                <form action="/admin/manual-payment/delete/${trxId}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
+                <form action="/admin/manual-payment/delete/${qrisId}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <button type="submit" class="btn btn-sm btn-secondary fw-bold px-3 py-1.5 rounded-3"><i class="bi bi-trash"></i> Hapus</button>
                 </form>

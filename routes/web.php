@@ -142,9 +142,9 @@ Route::middleware('admin.auth')->group(function () {
         Route::prefix('admin')->group(function () {
             Route::get('/manual-payment', [AdminController::class, 'manualPaymentDashboard'])->name('admin.manual-payment');
             Route::post('/manual-payment/settings', [AdminController::class, 'updateManualPaymentSettings'])->name('admin.manual-payment.settings');
-            Route::match(['get', 'post'], '/manual-payment/settle/{trx_id}', [AdminController::class, 'manualSettle'])->name('admin.manual-payment.settle');
-            Route::match(['get', 'post'], '/manual-payment/reject/{trx_id}', [AdminController::class, 'manualReject'])->name('admin.manual-payment.reject');
-            Route::match(['get', 'post'], '/manual-payment/delete/{trx_id}', [AdminController::class, 'manualDelete'])->name('admin.manual-payment.delete');
+            Route::match(['get', 'post'], '/manual-payment/settle/{id}', [AdminController::class, 'manualSettle'])->name('admin.manual-payment.settle');
+            Route::match(['get', 'post'], '/manual-payment/reject/{id}', [AdminController::class, 'manualReject'])->name('admin.manual-payment.reject');
+            Route::match(['get', 'post'], '/manual-payment/delete/{id}', [AdminController::class, 'manualDelete'])->name('admin.manual-payment.delete');
             Route::post('/manual-payment/delete-bulk', [AdminController::class, 'deleteBulkManual'])->name('admin.manual-payment.delete-bulk');
         });
     });

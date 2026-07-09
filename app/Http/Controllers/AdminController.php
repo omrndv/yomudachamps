@@ -2814,10 +2814,13 @@ class AdminController extends Controller
     /**
      * Penyelesaian Transaksi secara Manual (Manual Settle / Force Paid)
      */
-    public function manualSettle($trx_id)
+    public function manualSettle($id)
     {
-        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
-        $team = \App\Models\Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+        $qrisTx = \App\Models\QrisTransaction::find($id);
+        if (!$qrisTx) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $id)->firstOrFail();
+        }
+        $team = \App\Models\Team::with('season')->where('trx_id', $qrisTx->trx_id)->firstOrFail();
 
         $statusLama = $team->status;
         $team->status_tripay = 'PAID';
@@ -2894,10 +2897,13 @@ class AdminController extends Controller
     /**
      * Aksi Tolak Bukti Transfer (Kembalikan status ke EXPIRED agar di-upload ulang)
      */
-    public function manualReject($trx_id)
+    public function manualReject($id)
     {
-        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
-        $team = \App\Models\Team::with('season')->where('trx_id', $trx_id)->firstOrFail();
+        $qrisTx = \App\Models\QrisTransaction::find($id);
+        if (!$qrisTx) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $id)->firstOrFail();
+        }
+        $team = \App\Models\Team::with('season')->where('trx_id', $qrisTx->trx_id)->firstOrFail();
 
         $qrisTx->update([
             'status' => 'EXPIRED'
@@ -2954,9 +2960,12 @@ class AdminController extends Controller
     /**
      * Menghapus transaksi manual secara permanen
      */
-    public function manualDelete($trx_id)
+    public function manualDelete($id)
     {
-        $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->firstOrFail();
+        $qrisTx = \App\Models\QrisTransaction::find($id);
+        if (!$qrisTx) {
+            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $id)->firstOrFail();
+        }
         
         // Hapus file screenshot bukti transfer fisik di server jika ada
         if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
@@ -2968,7 +2977,7 @@ class AdminController extends Controller
         }
 
         // Tandai tim pendaftaran kembali ke pending (jika ada tim pendaftaran)
-        $team = \App\Models\Team::where('trx_id', $trx_id)->first();
+        $team = \App\Models\Team::where('trx_id', $qrisTx->trx_id)->first();
         if ($team) {
             $team->status = 'PENDING';
             $team->status_tripay = 'UNPAID';
