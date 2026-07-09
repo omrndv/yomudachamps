@@ -3026,8 +3026,11 @@ class AdminController extends Controller
         ]);
 
         $count = 0;
-        foreach ($request->selected_trx as $trx_id) {
-            $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)->first();
+        foreach ($request->selected_trx as $id) {
+            $qrisTx = \App\Models\QrisTransaction::find($id);
+            if (!$qrisTx) {
+                $qrisTx = \App\Models\QrisTransaction::where('trx_id', $id)->first();
+            }
             if ($qrisTx) {
                 if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
                     $filename = str_replace('PROOFS/', '', $qrisTx->gopay_reference);
@@ -3037,7 +3040,7 @@ class AdminController extends Controller
                     }
                 }
 
-                $team = \App\Models\Team::where('trx_id', $trx_id)->first();
+                $team = \App\Models\Team::where('trx_id', $qrisTx->trx_id)->first();
                 if ($team) {
                     $hasOtherPaid = \App\Models\QrisTransaction::where('trx_id', $qrisTx->trx_id)
                         ->where('id', '!=', $qrisTx->id)
