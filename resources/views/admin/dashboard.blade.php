@@ -274,7 +274,7 @@
                             $payType = 'ipaymu';
                         }
                     @endphp
-                    <tr class="team-row {{ $is_duplicate ? 'is-duplicate' : '' }}" data-pay-type="{{ $payType }}" style="border-bottom: 1px solid #f8fafc; {{ $is_duplicate ? 'border-left: 4px solid #ef4444 !important; background-color: rgba(239, 68, 68, 0.02) !important;' : '' }}">
+                    <tr class="team-row {{ $is_duplicate ? 'is-duplicate' : '' }}" data-pay-type="{{ $payType }}" data-status="{{ $team->status }}" style="border-bottom: 1px solid #f8fafc; {{ $is_duplicate ? 'border-left: 4px solid #ef4444 !important; background-color: rgba(239, 68, 68, 0.02) !important;' : '' }}">
                         <td class="px-3">
                             <input type="checkbox" class="form-check-input team-checkbox" value="{{ $team->id }}">
                         </td>
@@ -686,9 +686,10 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
         rows.forEach(row => {
             let text = row.innerText.toLowerCase();
             let rowType = row.getAttribute('data-pay-type');
+            let rowStatus = row.getAttribute('data-status');
             
             let matchesText = text.includes(textFilter);
-            let matchesType = (typeFilter === 'all' || rowType === typeFilter);
+            let matchesType = (typeFilter === 'all' || (rowType === typeFilter && rowStatus === 'PAID'));
             let matchesDuplicate = !showingOnlyDuplicates || row.classList.contains('is-duplicate');
 
             if (matchesText && matchesType && matchesDuplicate) {
