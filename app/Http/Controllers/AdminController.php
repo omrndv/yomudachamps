@@ -356,7 +356,7 @@ class AdminController extends Controller
         // 1. TriPay Income
         $tripay_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return !empty($t->tripay_reference);
+                return !empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS' && $t->payment_method !== 'IPAYMU_QRIS';
             });
         $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
@@ -365,7 +365,7 @@ class AdminController extends Controller
         // 2. iPaymu Income
         $ipaymu_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return empty($t->tripay_reference) && $t->payment_method === 'IPAYMU_QRIS';
+                return $t->payment_method === 'IPAYMU_QRIS';
             });
         $ipaymu_income = $ipaymu_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
@@ -374,7 +374,7 @@ class AdminController extends Controller
         // 3. Manual QRIS Income
         $manual_qris_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return empty($t->tripay_reference) && $t->payment_method === 'GOPAY_QRIS';
+                return $t->payment_method === 'GOPAY_QRIS';
             });
         $manual_qris_income = $manual_qris_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;

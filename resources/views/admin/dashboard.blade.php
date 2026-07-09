@@ -218,20 +218,13 @@
     {{-- Main Container / Table --}}
     <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
         <div class="row g-3 mb-4 align-items-center">
-            <div class="col-md-7 d-flex gap-2">
-                <div class="search-box-season flex-grow-1">
+            <div class="col-md-4">
+                <div class="search-box-season">
                     <i class="bi bi-search"></i>
                     <input type="text" id="searchTable" placeholder="Cari nama tim atau ID TRX...">
                 </div>
-                <select id="filterPayType" class="form-select rounded-3 shadow-none border" style="max-width: 200px; font-size: 0.82rem; padding: 0.5rem 1rem;">
-                    <option value="all">Semua Jalur</option>
-                    <option value="tripay">TriPay (Otomatis)</option>
-                    <option value="manual">Manual QRIS</option>
-                    <option value="solo">Solo Player</option>
-                    <option value="admin">Admin / Bulk</option>
-                </select>
             </div>
-            <div class="col-md-5 text-md-end text-muted small" id="tableMetaInfo">
+            <div class="col-md-8 text-md-end text-muted small" id="tableMetaInfo">
                 Menampilkan <span class="fw-bold text-dark">{{ $filtered_teams->count() }}</span> pendaftar.
             </div>
         </div>
@@ -261,24 +254,12 @@
                     @forelse($filtered_teams as $index => $team)
                     @php
                         $is_duplicate = ($name_counts[$team->name] > 1 || $wa_counts[$team->wa_number] > 1);
-                        
-                        // Tentukan jalur pendaftaran
-                        $payType = 'admin';
-                        if ($team->is_solo_team) {
-                            $payType = 'solo';
-                        } elseif (!empty($team->tripay_reference)) {
-                            $payType = 'tripay';
-                        } elseif ($team->payment_method === 'GOPAY_QRIS') {
-                            $payType = 'manual';
-                        } elseif ($team->payment_method === 'IPAYMU_QRIS') {
-                            $payType = 'ipaymu';
-                        }
                     @endphp
-                    <tr class="team-row {{ $is_duplicate ? 'is-duplicate' : '' }}" data-pay-type="{{ $payType }}" data-status="{{ $team->status }}" style="border-bottom: 1px solid #f8fafc; {{ $is_duplicate ? 'border-left: 4px solid #ef4444 !important; background-color: rgba(239, 68, 68, 0.02) !important;' : '' }}">
+                    <tr class="team-row {{ $is_duplicate ? 'is-duplicate' : '' }}" style="border-bottom: 1px solid #f8fafc; {{ $is_duplicate ? 'border-left: 4px solid #ef4444 !important; background-color: rgba(239, 68, 68, 0.02) !important;' : '' }}">
                         <td class="px-3">
                             <input type="checkbox" class="form-check-input team-checkbox" value="{{ $team->id }}">
                         </td>
-                        <td class="text-muted fw-semibold row-index">{{ $index + 1 }}</td>
+                        <td class="text-muted fw-semibold">{{ $index + 1 }}</td>
                         
                         <td>
                             <span class="d-block small fw-bold text-dark">{{ date('d M', strtotime($team->created_at)) }}</span>
@@ -605,18 +586,26 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
     let showingOnlyDuplicates = false;
 
     function toggleDuplicateFilter() {
+        const rows = document.querySelectorAll('.team-row');
         const btn = document.getElementById('btnFilterDuplicate');
         showingOnlyDuplicates = !showingOnlyDuplicates;
 
-        if (showingOnlyDuplicates) {
-            btn.innerHTML = '<i class="bi bi-arrow-left-square me-1"></i> Lihat Semua';
-            btn.classList.replace('btn-outline-danger', 'btn-danger');
-        } else {
-            btn.innerHTML = '<i class="bi bi-filter-square me-1"></i> Lihat Duplikat';
-            btn.classList.replace('btn-danger', 'btn-outline-danger');
-        }
-        
-        filterTable();
+        rows.forEach(row => {
+            if (showingOnlyDuplicates) {
+                if (row.classList.contains('is-duplicate')) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+                btn.innerHTML = '<i class="bi bi-arrow-left-square me-1"></i> Lihat Semua';
+                btn.classList.replace('btn-outline-danger', 'btn-danger');
+            } else {
+                row.style.display = "";
+                btn.innerHTML = '<i class="bi bi-filter-square me-1"></i> Lihat Duplikat';
+                btn.classList.replace('btn-danger', 'btn-outline-danger');
+            }
+        });
+        updateFloatingActionBar();
     }
 
     function updateFloatingActionBar() {
@@ -677,39 +666,34 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
         });
     }
 
-    function filterTable() {
-        let textFilter = document.getElementById('searchTable').value.toLowerCase();
-        let typeFilter = document.getElementById('filterPayType').value;
+    document.getElementById('searchTable').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
         let rows = document.querySelectorAll('.team-row');
         let visibleCount = 0;
 
         rows.forEach(row => {
             let text = row.innerText.toLowerCase();
-            let rowType = row.getAttribute('data-pay-type');
-            let rowStatus = row.getAttribute('data-status');
-            
-            let matchesText = text.includes(textFilter);
-            let matchesType = (typeFilter === 'all' || (rowType === typeFilter && rowStatus === 'PAID'));
-            let matchesDuplicate = !showingOnlyDuplicates || row.classList.contains('is-duplicate');
-
-            if (matchesText && matchesType && matchesDuplicate) {
-                row.style.display = "";
-                visibleCount++;
-                let indexTd = row.querySelector('.row-index');
-                if (indexTd) {
-                    indexTd.innerText = visibleCount;
+            if (showingOnlyDuplicates) {
+                if (row.classList.contains('is-duplicate') && text.includes(filter)) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
                 }
             } else {
-                row.style.display = "none";
+                if (text.includes(filter)) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
             }
         });
-
+        
+        // Update meta text count
         document.getElementById('tableMetaInfo').innerHTML = 'Menampilkan <span class="fw-bold text-dark">' + visibleCount + '</span> dari <span class="fw-bold">' + rows.length + '</span> pendaftar.';
         updateFloatingActionBar();
-    }
-
-    document.getElementById('searchTable').addEventListener('keyup', filterTable);
-    document.getElementById('filterPayType').addEventListener('change', filterTable);
+    });
 
     function copyToClipboard(elementId) {
         var copyText = document.getElementById(elementId);
