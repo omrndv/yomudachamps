@@ -573,14 +573,16 @@
                                     @endif
                                 </td>
                                 <td class="py-3 px-4 text-center">
-                                    @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING' || $tx->status === 'EXPIRED')
+                                    @if($tx->status !== 'PAID')
                                     <div class="d-inline-flex gap-1">
+                                        @if($tx->status === 'CLAIMED' || $tx->status === 'PENDING')
                                         <form action="/admin/manual-payment/settle/{{ $tx->id }}" method="POST" onsubmit="return confirm('Setujui pembayaran tim ini?')">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success p-1 rounded" title="Setujui Pembayaran">
                                                 <i class="bi bi-check"></i>
                                             </button>
                                         </form>
+                                        @endif
                                         @if($tx->status === 'CLAIMED')
                                         <form action="/admin/manual-payment/reject/{{ $tx->id }}" method="POST" onsubmit="return confirm('Tolak bukti transfer tim ini?')">
                                             @csrf
@@ -800,7 +802,7 @@
         const actionsDiv = document.getElementById('detail-actions');
         actionsDiv.innerHTML = '';
 
-        if (status === 'CLAIMED' || status === 'PENDING' || status === 'EXPIRED') {
+        if (status === 'CLAIMED' || status === 'PENDING') {
             // Settle form
             actionsDiv.innerHTML += `
                 <form action="/admin/manual-payment/settle/${qrisId}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pembayaran tim ini?')">
@@ -818,7 +820,9 @@
                     </form>
                 `;
             }
-            
+        }
+        
+        if (status !== 'PAID') {
             // Delete form
             actionsDiv.innerHTML += `
                 <form action="/admin/manual-payment/delete/${qrisId}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini secara permanen?')">
