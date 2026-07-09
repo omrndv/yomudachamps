@@ -2852,6 +2852,14 @@ class AdminController extends Controller
             'gopay_reference' => $gopayRef
         ]);
 
+        // Auto-expire other transactions under the same trx_id
+        \App\Models\QrisTransaction::where('trx_id', $qrisTx->trx_id)
+            ->where('id', '!=', $qrisTx->id)
+            ->whereIn('status', ['PENDING', 'CLAIMED'])
+            ->update([
+                'status' => 'EXPIRED'
+            ]);
+
         // Kirim respon kilat ke browser terlebih dahulu jika didukung FPM
         if (function_exists('fastcgi_finish_request')) {
             session()->flash('success', "Transaksi untuk tim {$team->name} berhasil diselesaikan secara manual!");
@@ -2909,8 +2917,15 @@ class AdminController extends Controller
             'status' => 'EXPIRED'
         ]);
 
-        $team->status = 'PENDING';
-        $team->save();
+        $hasOtherPaid = \App\Models\QrisTransaction::where('trx_id', $qrisTx->trx_id)
+            ->where('id', '!=', $qrisTx->id)
+            ->where('status', 'PAID')
+            ->exists();
+
+        if (!$hasOtherPaid) {
+            $team->status = 'PENDING';
+            $team->save();
+        }
 
         // Hapus file screenshot bukti transfer fisik di server jika ada
         if ($qrisTx->gopay_reference && str_starts_with($qrisTx->gopay_reference, 'PROOFS/')) {
@@ -2979,9 +2994,16 @@ class AdminController extends Controller
         // Tandai tim pendaftaran kembali ke pending (jika ada tim pendaftaran)
         $team = \App\Models\Team::where('trx_id', $qrisTx->trx_id)->first();
         if ($team) {
-            $team->status = 'PENDING';
-            $team->status_tripay = 'UNPAID';
-            $team->save();
+            $hasOtherPaid = \App\Models\QrisTransaction::where('trx_id', $qrisTx->trx_id)
+                ->where('id', '!=', $qrisTx->id)
+                ->where('status', 'PAID')
+                ->exists();
+
+            if (!$hasOtherPaid) {
+                $team->status = 'PENDING';
+                $team->status_tripay = 'UNPAID';
+                $team->save();
+            }
         }
 
         // Hapus transaksi QRIS dari database
@@ -3017,9 +3039,16 @@ class AdminController extends Controller
 
                 $team = \App\Models\Team::where('trx_id', $trx_id)->first();
                 if ($team) {
-                    $team->status = 'PENDING';
-                    $team->status_tripay = 'UNPAID';
-                    $team->save();
+                    $hasOtherPaid = \App\Models\QrisTransaction::where('trx_id', $qrisTx->trx_id)
+                        ->where('id', '!=', $qrisTx->id)
+                        ->where('status', 'PAID')
+                        ->exists();
+
+                    if (!$hasOtherPaid) {
+                        $team->status = 'PENDING';
+                        $team->status_tripay = 'UNPAID';
+                        $team->save();
+                    }
                 }
 
                 $qrisTx->delete();

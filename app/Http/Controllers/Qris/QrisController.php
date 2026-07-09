@@ -314,6 +314,11 @@ class QrisController extends Controller
             'proof_file' => 'required|image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
+        $team = \App\Models\Team::where('trx_id', $trx_id)->first();
+        if ($team && $team->status === 'PAID') {
+            return back()->with('error', 'Pembayaran untuk tim ini sudah lunas / terverifikasi.');
+        }
+
         $qrisTx = QrisTransaction::where('trx_id', $trx_id)->latest()->firstOrFail();
 
         if ($request->hasFile('proof_file')) {
