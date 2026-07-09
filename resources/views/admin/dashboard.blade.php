@@ -561,10 +561,10 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
         color: #64748b;
         background-color: #f8fafc;
         border-bottom: 1px solid #edf2f7;
-        padding: 14px 16px;
+        padding: 10px 12px;
     }
     .season-table td {
-        padding: 14px 16px;
+        padding: 8px 12px;
         border-bottom: 1px solid #f1f5f9;
         font-size: 0.85rem;
     }
