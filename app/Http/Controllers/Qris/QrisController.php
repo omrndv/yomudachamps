@@ -35,8 +35,13 @@ class QrisController extends Controller
 
         // Cari transaksi QRIS PENDING/CLAIMED yang masih valid (belum expired)
         $qrisTx = QrisTransaction::where('trx_id', $trx_id)
-            ->whereIn('status', ['PENDING', 'CLAIMED'])
-            ->where('expires_at', '>', now())
+            ->where(function($q) {
+                $q->where('status', 'CLAIMED')
+                  ->orWhere(function($sub) {
+                      $sub->where('status', 'PENDING')
+                          ->where('expires_at', '>', now());
+                  });
+            })
             ->first();
 
         // Jika tidak ada, buat baru
