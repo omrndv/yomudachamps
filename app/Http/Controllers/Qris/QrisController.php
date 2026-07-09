@@ -89,6 +89,11 @@ class QrisController extends Controller
             }
 
             try {
+                // Expire any existing pending/claimed transactions for this team to prevent duplicates
+                QrisTransaction::where('trx_id', $team->trx_id)
+                    ->whereIn('status', ['PENDING', 'CLAIMED'])
+                    ->update(['status' => 'EXPIRED']);
+
                 // Jika staticQris adalah file image (starts with /uploads atau http)
                 if (Str::startsWith($staticQris, ['/uploads', '/storage', 'http', 'https'])) {
                     $dynamicQrisString = $staticQris;
@@ -269,6 +274,12 @@ class QrisController extends Controller
                         $finalAmount = $baseAmount + $uniqueCode;
                         
                         $dynamicQrisString = QrisService::generateDynamicQris($staticQris, $finalAmount);
+                        
+                        // Expire any existing pending/claimed transactions for this team to prevent duplicates
+                        QrisTransaction::where('trx_id', $team->trx_id)
+                            ->whereIn('status', ['PENDING', 'CLAIMED'])
+                            ->update(['status' => 'EXPIRED']);
+
                         $qrisTx = QrisTransaction::create([
                             'id' => (string) Str::uuid(),
                             'trx_id' => $team->trx_id,
