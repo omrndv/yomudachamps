@@ -278,7 +278,7 @@
                         <td class="px-3">
                             <input type="checkbox" class="form-check-input team-checkbox" value="{{ $team->id }}">
                         </td>
-                        <td class="text-muted fw-semibold">{{ $index + 1 }}</td>
+                        <td class="text-muted fw-semibold row-index">{{ $index + 1 }}</td>
                         
                         <td>
                             <span class="d-block small fw-bold text-dark">{{ date('d M', strtotime($team->created_at)) }}</span>
@@ -694,6 +694,10 @@ Tim yang berada di bracket atas wajib membuat room dan mengundang tim lawan.
             if (matchesText && matchesType && matchesDuplicate) {
                 row.style.display = "";
                 visibleCount++;
+                let indexTd = row.querySelector('.row-index');
+                if (indexTd) {
+                    indexTd.innerText = visibleCount;
+                }
             } else {
                 row.style.display = "none";
             }
