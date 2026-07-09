@@ -501,7 +501,8 @@
 
                 <form id="bulk-delete-form" action="{{ route('admin.manual-payment.delete-bulk') }}" method="POST" onsubmit="return confirm('Hapus semua transaksi terpilih secara massal?')">
                     @csrf
-                    <div class="table-responsive rounded-3 border">
+                </form>
+                <div class="table-responsive rounded-3 border">
                         <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
                             <thead class="table-light">
                             <tr>
@@ -539,7 +540,7 @@
                                 data-wa-number="{{ $tx->team ? $tx->team->wa_number : '' }}"
                                 data-proof-url="{{ $imgUrl }}">
                                 <td class="py-3 px-3 text-center">
-                                    <input type="checkbox" name="selected_trx[]" value="{{ $tx->id }}" class="form-check-input trx-checkbox" onclick="updateBulkButtonState()">
+                                    <input type="checkbox" name="selected_trx[]" value="{{ $tx->id }}" form="bulk-delete-form" class="form-check-input trx-checkbox" onclick="updateBulkButtonState()">
                                 </td>
                                 <td class="py-3 px-4 font-monospace fw-bold text-secondary">{{ $tx->trx_id }}</td>
                                 <td class="py-3 px-4">
@@ -611,7 +612,6 @@
                         </tbody>
                     </table>
                 </div>
-                </form>
 
                 <!-- Pagination -->
                 <div class="mt-4 d-flex justify-content-center">
