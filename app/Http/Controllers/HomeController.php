@@ -387,7 +387,7 @@ class HomeController extends Controller
         if ($team->payment_method === 'GOPAY_QRIS') {
             // Get or generate QrisTransaction
             $qrisTx = \App\Models\QrisTransaction::where('trx_id', $trx_id)
-                ->where('status', 'PENDING')
+                ->whereIn('status', ['PENDING', 'CLAIMED'])
                 ->where('expires_at', '>', now())
                 ->first();
 

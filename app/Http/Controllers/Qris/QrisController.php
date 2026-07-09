@@ -33,9 +33,9 @@ class QrisController extends Controller
             return redirect()->route('payment.success', $team->trx_id);
         }
 
-        // Cari transaksi QRIS PENDING yang masih valid (belum expired)
+        // Cari transaksi QRIS PENDING/CLAIMED yang masih valid (belum expired)
         $qrisTx = QrisTransaction::where('trx_id', $trx_id)
-            ->where('status', 'PENDING')
+            ->whereIn('status', ['PENDING', 'CLAIMED'])
             ->where('expires_at', '>', now())
             ->first();
 
