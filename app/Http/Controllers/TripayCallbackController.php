@@ -84,7 +84,9 @@ class TripayCallbackController extends Controller
             case 'EXPIRED':
             case 'FAILED':
             case 'REFUND':
-                $team->status = 'PENDING';
+                if ($team->status !== 'PAID') {
+                    $team->status = 'PENDING';
+                }
                 break;
 
             default:

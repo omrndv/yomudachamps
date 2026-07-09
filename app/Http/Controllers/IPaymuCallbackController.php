@@ -146,10 +146,14 @@ class IPaymuCallbackController extends Controller
                 }
             }
         } elseif ($statusCode === -2) { // Expired
-            $team->status = 'PENDING';
+            if ($team->status !== 'PAID') {
+                $team->status = 'PENDING';
+            }
         } else {
             // Pending or other status
-            $team->status = 'PENDING';
+            if ($team->status !== 'PAID') {
+                $team->status = 'PENDING';
+            }
         }
 
         $team->save();
