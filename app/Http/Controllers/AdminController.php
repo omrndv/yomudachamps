@@ -839,6 +839,39 @@ class AdminController extends Controller
         AdminActivity::log('Memperbarui data tim: ' . $team->name . ' (Status: ' . $request->status . ')');
 
         if ($statusLama !== 'PAID' && $request->status === 'PAID') {
+            // SINKRONISASI PEMBAYARAN MANUAL QRIS
+            if ($team->payment_method === 'GOPAY_QRIS') {
+                $qrisTx = \App\Models\QrisTransaction::where('trx_id', $team->trx_id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($qrisTx) {
+                    // Update transaksi yang sudah ada menjadi PAID
+                    $qrisTx->update([
+                        'status' => 'PAID',
+                        'gopay_reference' => $qrisTx->gopay_reference ?: 'MANUAL_SETTLE_ADMIN',
+                        'paid_at' => $qrisTx->paid_at ?: now()
+                    ]);
+                } else {
+                    // Jika tidak ada transaksi sama sekali, buat baru agar tercatat di laporan
+                    \App\Models\QrisTransaction::create([
+                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'trx_id' => $team->trx_id,
+                        'base_amount' => $team->amount > 0 ? $team->amount : ($team->season->price ?? 10000),
+                        'unique_code' => 0,
+                        'amount' => $team->amount > 0 ? $team->amount : ($team->season->price ?? 10000),
+                        'qris_string' => 'MANUAL_OVERRIDE_ADMIN',
+                        'status' => 'PAID',
+                        'expires_at' => now()->addMinutes(30),
+                        'paid_at' => now(),
+                        'gopay_reference' => 'MANUAL_SETTLE_ADMIN'
+                    ]);
+                }
+
+                // Clear anomalies count cache jika ada
+                \Illuminate\Support\Facades\Cache::forget('qris_anomalies_count');
+            }
+
             try {
                 \App\Services\WhatsappService::sendPaidNotification($team);
             } catch (\Exception $e) {
