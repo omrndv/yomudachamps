@@ -382,10 +382,15 @@ class CertificateController extends Controller
             $skippedCount = 0;
 
             foreach ($teams as $team) {
+                // Check if process was cancelled/stopped by the admin
+                if (\Illuminate\Support\Facades\Cache::store('file')->get("cert_gen_status_{$season_id}") === 'stop') {
+                    $this->writeGenLog($season_id, "🛑 Proses dihentikan oleh Admin!");
+                    break;
+                }
+
                 $processedCount++;
                 $progressPercent = round(($processedCount / $totalTeams) * 100);
 
-                // Generate filename
                 // Generate filename (always PDF)
                 $fileName = 'Sertifikat - ' . $team->name . '.pdf';
                 $tempFilePath = $tempDir . '/' . $fileName;
@@ -435,6 +440,16 @@ class CertificateController extends Controller
             \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'idle', 1800);
             \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_progress_{$season_id}", 100, 1800);
         }
+    }
+
+    /**
+     * Menghentikan proses generate sertifikat yang sedang berjalan
+     */
+    public function stopGenerate($season_id)
+    {
+        \Illuminate\Support\Facades\Cache::store('file')->put("cert_gen_status_{$season_id}", 'stop', 1800);
+        $this->writeGenLog($season_id, "⏳ Mengirim sinyal pembatalan proses...");
+        return response()->json(['success' => true, 'message' => 'Sinyal pembatalan berhasil dikirim.']);
     }
 
     /**

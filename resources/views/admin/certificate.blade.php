@@ -181,6 +181,11 @@
                                          style="max-height: 150px; font-size: 0.72rem; line-height: 1.4; border: 1px solid #334155;">
                                         [SYSTEM] Menunggu pemrosesan...
                                     </div>
+
+                                    {{-- Cancel Button --}}
+                                    <button type="button" id="btnStopGenerate" class="btn btn-sm btn-outline-danger w-100 mt-2 rounded-pill fw-bold" style="font-size: 0.72rem; display: none;">
+                                        <i class="bi bi-x-circle me-1"></i> Hentikan Proses
+                                    </button>
                                 </div>
                             @endif
                         </div>
@@ -989,9 +994,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressPercent = document.getElementById('progressPercent');
         const progressText = document.getElementById('progressText');
         const terminalConsole = document.getElementById('terminalConsole');
+        const btnStopGenerate = document.getElementById('btnStopGenerate');
         
         progressContainer.style.display = 'block';
         if (btnGenerateToDrive) btnGenerateToDrive.disabled = true;
+        if (btnStopGenerate) {
+            btnStopGenerate.style.display = 'block';
+            btnStopGenerate.disabled = false;
+            btnStopGenerate.innerHTML = '<i class="bi bi-x-circle me-1"></i> Hentikan Proses';
+        }
 
         pollInterval = setInterval(() => {
             fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
@@ -1004,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     terminalConsole.innerHTML = res.logs.map(log => {
                         let colorClass = 'text-success';
                         if (log.includes('❌') || log.includes('🚨')) colorClass = 'text-danger';
-                        if (log.includes('✅') || log.includes('🎉')) colorClass = 'text-info';
+                        if (log.includes('✅') || log.includes('🎉') || log.includes('🛑')) colorClass = 'text-info';
                         return `<div class="mb-1 ${colorClass}">${log}</div>`;
                     }).join('');
                     
@@ -1015,6 +1026,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearInterval(pollInterval);
                     pollInterval = null;
                     if (btnGenerateToDrive) btnGenerateToDrive.disabled = false;
+                    if (btnStopGenerate) btnStopGenerate.style.display = 'none';
                     progressText.textContent = 'Sinkronisasi Selesai!';
                 } else {
                     progressText.textContent = 'Sedang mensinkronisasi sertifikat...';
@@ -1022,6 +1034,40 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => console.error('Error polling logs:', err));
         }, 300);
+    }
+
+    // Event listener for stop generate button
+    const btnStopGenerate = document.getElementById('btnStopGenerate');
+    if (btnStopGenerate) {
+        btnStopGenerate.addEventListener('click', function() {
+            if (!confirm('Apakah Anda yakin ingin menghentikan proses generate sertifikat?')) {
+                return;
+            }
+            btnStopGenerate.disabled = true;
+            btnStopGenerate.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menghentikan...';
+            
+            fetch("{{ route('admin.season.certificate.stop-generate', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success) {
+                    alert('Gagal menghentikan: ' + res.message);
+                    btnStopGenerate.disabled = false;
+                    btnStopGenerate.innerHTML = '<i class="bi bi-x-circle me-1"></i> Hentikan Proses';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Gagal mengirim perintah pembatalan.');
+                btnStopGenerate.disabled = false;
+                btnStopGenerate.innerHTML = '<i class="bi bi-x-circle me-1"></i> Hentikan Proses';
+            });
+        });
     }
 
     fetch("{{ route('admin.season.certificate.logs', $season->id) }}")
