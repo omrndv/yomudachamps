@@ -782,10 +782,6 @@
     
     <div class="search-area-container py-3" style="background-color: var(--bg-primary);">
         <div class="search-wrapper text-center px-2">
-            <div class="search-headline mb-3">
-                <span class="badge bg-warning text-dark px-3 py-1.5 mb-2 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.8px; box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);"><i class="bi bi-arrow-down-circle-fill"></i> CARI TIM KAMU DI SINI</span>
-                <h6 class="m-0 fw-bold text-white-50" style="font-size: 0.8rem; letter-spacing: 0.2px;">Cari Musuh, WA Kapten & Jadwal Main Di Sini:</h6>
-            </div>
             <div class="search-input-group d-flex align-items-center">
                 <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim kamu disini...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
