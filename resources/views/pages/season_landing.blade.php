@@ -89,6 +89,60 @@
             overflow: hidden;
         }
 
+        .season-poster-wrap {
+            width: 88px;
+            height: 88px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(255,122,0,0.2), rgba(255,122,0,0.05));
+            border: 2px solid rgba(255,122,0,0.35);
+            box-shadow: 0 0 24px rgba(255,122,0,0.25), 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            color: var(--accent-orange);
+            filter: drop-shadow(0 0 10px rgba(255,122,0,0.5));
+            margin: 0 auto 18px auto;
+        }
+
+        .season-stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 22px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .stat-item {
+            flex: 1;
+            padding: 10px 8px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--accent-orange);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.58rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 3px;
+        }
+
         .season-card::before {
             content: '';
             position: absolute;
@@ -167,7 +221,7 @@
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 122, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -558,24 +612,62 @@
 
     <div class="landing-container">
 
-        
         <div class="season-card">
-            <div class="season-poster d-flex align-items-center justify-content-center bg-dark text-warning mx-auto" style="font-size: 2.2rem; width: 80px; height: 80px; border-radius: 18px; border: 2px solid var(--border-color); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); margin-bottom: 16px;">
+        {{-- Trophy Icon --}}
+            <div class="season-poster-wrap">
                 <i class="bi bi-trophy-fill"></i>
             </div>
 
             <h1 class="season-title">{{ $season->name }}</h1>
-            <span class="season-badge">{{ $season->status ?? 'ACTIVE' }}</span>
+            @php
+                $statusMap = [
+                    'active'     => ['label' => '⚡ Berlangsung', 'color' => 'rgba(255,122,0,0.1)', 'border' => 'rgba(255,122,0,0.3)', 'text' => 'var(--accent-orange)'],
+                    'ACTIVE'     => ['label' => '⚡ Berlangsung', 'color' => 'rgba(255,122,0,0.1)', 'border' => 'rgba(255,122,0,0.3)', 'text' => 'var(--accent-orange)'],
+                    'completed'  => ['label' => '✅ Selesai',     'color' => 'rgba(16,185,129,0.1)', 'border' => 'rgba(16,185,129,0.3)', 'text' => '#10b981'],
+                    'COMPLETED'  => ['label' => '✅ Selesai',     'color' => 'rgba(16,185,129,0.1)', 'border' => 'rgba(16,185,129,0.3)', 'text' => '#10b981'],
+                    'upcoming'   => ['label' => '🕐 Segera Mulai','color' => 'rgba(99,102,241,0.1)', 'border' => 'rgba(99,102,241,0.3)', 'text' => '#818cf8'],
+                    'UPCOMING'   => ['label' => '🕐 Segera Mulai','color' => 'rgba(99,102,241,0.1)', 'border' => 'rgba(99,102,241,0.3)', 'text' => '#818cf8'],
+                ];
+                $rawStatus = $season->status ?? 'active';
+                $st = $statusMap[$rawStatus] ?? ['label' => strtoupper($rawStatus), 'color' => 'rgba(255,122,0,0.1)', 'border' => 'rgba(255,122,0,0.2)', 'text' => 'var(--accent-orange)'];
+                $teamCount = $season->teams()->count();
+                $roundCount = $rounds->count();
+            @endphp
+            <span class="season-badge" style="background-color: {{ $st['color'] }}; border-color: {{ $st['border'] }}; color: {{ $st['text'] }};">{{ $st['label'] }}</span>
 
-            
+            {{-- At-a-glance stats --}}
+            <div class="season-stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">{{ $teamCount }}</div>
+                    <div class="stat-label">Tim</div>
+                </div>
+                @if($roundCount > 0)
+                <div class="stat-item">
+                    <div class="stat-value">{{ $roundCount }}</div>
+                    <div class="stat-label">Babak</div>
+                </div>
+                @endif
+                @if($season->date_info)
+                <div class="stat-item">
+                    <div class="stat-value" style="font-size:0.72rem;">{{ Str::limit($season->date_info, 16) }}</div>
+                    <div class="stat-label">Jadwal</div>
+                </div>
+                @endif
+                @if($season->prize_pool)
+                <div class="stat-item">
+                    <div class="stat-value" style="font-size:0.72rem;">{{ $season->prize_pool }}</div>
+                    <div class="stat-label">Hadiah</div>
+                </div>
+                @endif
+            </div>
+
             <div class="menu-list">
-                
                 <a href="{{ route('public.season.bracket', $slug) }}" class="menu-item">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper">
                             <i class="bi bi-diagram-3-fill"></i>
                         </div>
-                        <span>Lihat Bagan / Musuh Bermain</span>
+                        <span>Lihat Bagan Pertandingan</span>
                     </div>
                     <i class="bi bi-chevron-right menu-arrow"></i>
                 </a>
@@ -603,18 +695,7 @@
                 </div>
 
                 
-                <div class="menu-item" id="btnLandingChatOpen">
-                    <div class="menu-content">
-                        <div class="menu-icon-wrapper">
-                            <i class="bi bi-chat-left-text-fill"></i>
-                        </div>
-                        <div class="d-flex flex-column align-items-start gap-1">
-                            <span>Chat Dengan Admin</span>
-                            <span class="badge bg-success rounded-pill px-2 py-0.5" style="font-size: 0.52rem; letter-spacing: 0.3px;">LIVE NOW</span>
-                        </div>
-                    </div>
-                    <i class="bi bi-chevron-right menu-arrow"></i>
-                </div>
+                {{-- Chat entry point moved to floating widget only --}}
 
                 
                 <div class="menu-item menu-item-cta" data-bs-toggle="modal" data-bs-target="#modalReportScore">
