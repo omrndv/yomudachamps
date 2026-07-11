@@ -205,34 +205,20 @@
             gap: 6px;
         }
 
-        .round-headers-bar {
-            display: flex;
-            background-color: var(--bg-primary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 8px 30px;
-            white-space: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            font-size: 0.7rem;
+        .round-column-header {
+            position: absolute;
+            top: -55px;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            text-align: center;
+        }
+        .round-column-title {
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 5;
-        }
-
-        .round-headers-bar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .round-header-item {
-            width: 185px;
-            margin-right: 80px;
-            flex-shrink: 0;
-            text-align: center;
+            letter-spacing: 0.8px;
         }
 
         .round-countdown-wrap {
@@ -268,7 +254,7 @@
 
         /* Bracket container layout */
         .bracket-container {
-            padding: 30px 30px 40px 30px;
+            padding: 85px 30px 40px 30px;
             overflow: auto;
             white-space: nowrap;
             cursor: grab;
@@ -525,17 +511,12 @@
            RESPONSIVE MOBILE STYLES (Screens <= 576px)
            ========================================================================== */
         @media (max-width: 576px) {
-            .round-headers-bar {
-                padding: 6px 15px;
-            }
-            
-            .round-header-item {
-                width: 155px;
-                margin-right: 40px;
+            .round-column-header {
+                top: -50px;
             }
 
             .bracket-container {
-                padding: 20px 15px 30px 15px;
+                padding: 70px 15px 30px 15px;
             }
 
             .bracket-round {
@@ -842,39 +823,6 @@
     </div>
 
     
-    <div class="round-headers-bar" id="roundHeadersBar">
-        @php
-            $totalRounds = count($rounds);
-        @endphp
-        @foreach($rounds as $roundNum => $matches)
-            @php
-                if ($roundNum == $totalRounds) {
-                    $title = "Grand Final";
-                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
-                    $title = "Semifinal";
-                } else {
-                    $title = "Babak " . $roundNum;
-                }
-                $roundTime = $matches->first()->match_time ?? null;
-                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
-            @endphp
-            <div class="round-header-item">
-                <div>{{ $title }}</div>
-                @if($roundTime)
-                    <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
-                        <span class="round-countdown-label"></span>
-                    </div>
-                @endif
-            </div>
-        @endforeach
-    </div>
-
-    <!-- Horizontal Scroll Indicator for Mobile
-    <div id="scrollIndicator" class="scroll-indicator d-md-none">
-        <i class="bi bi-arrow-left-right text-warning"></i>
-        <span>Geser ke samping untuk babak berikutnya</span>
-    </div>
-    -->
     
     <div class="bracket-container" id="bracketContainer">
         @php
@@ -892,8 +840,27 @@
                 $roundHeight = 4600;
                 $matchesCount = $columnMatches->count();
                 $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
+                
+                $totalRounds = count($rounds);
+                if ($roundNum == $totalRounds) {
+                    $roundTitle = "Grand Final";
+                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                    $roundTitle = "Semifinal";
+                } else {
+                    $roundTitle = "Babak " . $roundNum;
+                }
+                $roundTime = $matches->first()->match_time ?? null;
+                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
             @endphp
             <div class="bracket-round">
+                <div class="round-column-header">
+                    <div class="round-column-title">{{ $roundTitle }}</div>
+                    @if($roundTime)
+                        <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
+                            <span class="round-countdown-label"></span>
+                        </div>
+                    @endif
+                </div>
                 @foreach($columnMatches as $match)
                     <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
                         <div class="match-card-header">
@@ -1133,7 +1100,6 @@
 
     <script>
     let container = null;
-    let headerBar = null;
     const startNumbers = @json($startNumbers);
     const TOTAL_ROUNDS = {{ count($rounds) }};
     function getRoundName(roundNum) {
@@ -1318,54 +1284,45 @@
     initBracketSearch();
 
     document.addEventListener('DOMContentLoaded', function() {
-        headerBar = document.getElementById('roundHeadersBar');
         container = document.getElementById('bracketContainer');
-        if (container && headerBar) {
-            container.addEventListener('scroll', function() {
-                headerBar.scrollLeft = container.scrollLeft;
+
+        // Drag to scroll functionality
+        let isDown = false;
+        let startX, startY;
+        let scrollLeft, scrollTop;
+
+        if (container) {
+            container.addEventListener('mousedown', (e) => {
+                isDown = true;
+                container.style.cursor = 'grabbing';
+                startX = e.pageX - container.offsetLeft;
+                startY = e.pageY - container.offsetTop;
+                scrollLeft = container.scrollLeft;
+                scrollTop = container.scrollTop;
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isDown = false;
+                container.style.cursor = 'grab';
+            });
+            
+            container.addEventListener('mouseup', () => {
+                isDown = false;
+                container.style.cursor = 'grab';
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const y = e.pageY - container.offsetTop;
+                const walkX = (x - startX) * 1.5;
+                const walkY = (y - startY) * 1.5;
+                container.scrollLeft = scrollLeft - walkX;
+                container.scrollTop = scrollTop - walkY;
             });
         }
-
-            // Drag to scroll functionality
-            let isDown = false;
-            let startX, startY;
-            let scrollLeft, scrollTop;
-
-            if (container) {
-                container.addEventListener('mousedown', (e) => {
-                    isDown = true;
-                    container.style.cursor = 'grabbing';
-                    startX = e.pageX - container.offsetLeft;
-                    startY = e.pageY - container.offsetTop;
-                    scrollLeft = container.scrollLeft;
-                    scrollTop = container.scrollTop;
-                });
-                
-                container.addEventListener('mouseleave', () => {
-                    isDown = false;
-                    container.style.cursor = 'grab';
-                });
-                
-                container.addEventListener('mouseup', () => {
-                    isDown = false;
-                    container.style.cursor = 'grab';
-                });
-                
-                container.addEventListener('mousemove', (e) => {
-                    if(!isDown) return;
-                    e.preventDefault();
-                    const x = e.pageX - container.offsetLeft;
-                    const y = e.pageY - container.offsetTop;
-                    const walkX = (x - startX) * 1.5;
-                    const walkY = (y - startY) * 1.5;
-                    container.scrollLeft = scrollLeft - walkX;
-                    container.scrollTop = scrollTop - walkY;
-                    if (headerBar) {
-                        headerBar.scrollLeft = container.scrollLeft;
-                    }
-                });
-            }
-        }
+    });
 
         // Hover Highlighting Logic
         const teamRows = document.querySelectorAll('.team-row[data-team-id]');
