@@ -205,14 +205,15 @@
             gap: 6px;
         }
 
-        /* Sticky Round Titles Bar - Fixed height */
         .round-headers-bar {
             display: flex;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
             padding: 8px 30px;
             white-space: nowrap;
-            overflow-x: hidden;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-dim);
@@ -221,6 +222,10 @@
             flex-shrink: 0;
             position: relative;
             z-index: 5;
+        }
+
+        .round-headers-bar::-webkit-scrollbar {
+            display: none;
         }
 
         .round-header-item {
