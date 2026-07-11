@@ -207,20 +207,25 @@
 
         .round-headers-bar {
             display: flex;
-            background-color: var(--bg-secondary); /* Blends with container background */
+            background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
-            padding: 8px 0; /* Remove horizontal padding since it inherits from parent bracket-container */
-            margin-bottom: 20px;
+            padding: 8px 30px;
             white-space: nowrap;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-            flex-shrink: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        .round-headers-bar::-webkit-scrollbar {
+            display: none;
         }
 
         .round-header-item {
@@ -837,34 +842,41 @@
     </div>
 
     
-    <div class="bracket-container" id="bracketContainer">
-        <div class="round-headers-bar" id="roundHeadersBar">
+    <div class="round-headers-bar" id="roundHeadersBar">
+        @php
+            $totalRounds = count($rounds);
+        @endphp
+        @foreach($rounds as $roundNum => $matches)
             @php
-                $totalRounds = count($rounds);
+                if ($roundNum == $totalRounds) {
+                    $title = "Grand Final";
+                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                    $title = "Semifinal";
+                } else {
+                    $title = "Babak " . $roundNum;
+                }
+                $roundTime = $matches->first()->match_time ?? null;
+                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
             @endphp
-            @foreach($rounds as $roundNum => $matches)
-                @php
-                    if ($roundNum == $totalRounds) {
-                        $title = "Grand Final";
-                    } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
-                        $title = "Semifinal";
-                    } else {
-                        $title = "Babak " . $roundNum;
-                    }
-                    $roundTime = $matches->first()->match_time ?? null;
-                    $allFinished = $matches->every(fn($m) => $m->status === 'finished');
-                @endphp
-                <div class="round-header-item">
-                    <div>{{ $title }}</div>
-                    @if($roundTime)
-                        <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
-                            <span class="round-countdown-label"></span>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
-        </div>
+            <div class="round-header-item">
+                <div>{{ $title }}</div>
+                @if($roundTime)
+                    <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
+                        <span class="round-countdown-label"></span>
+                    </div>
+                @endif
+            </div>
+        @endforeach
+    </div>
 
+    <!-- Horizontal Scroll Indicator for Mobile
+    <div id="scrollIndicator" class="scroll-indicator d-md-none">
+        <i class="bi bi-arrow-left-right text-warning"></i>
+        <span>Geser ke samping untuk babak berikutnya</span>
+    </div>
+    -->
+    
+    <div class="bracket-container" id="bracketContainer">
         @php
             $startNumbers = [];
             $currentStart = 1;
@@ -1308,8 +1320,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         headerBar = document.getElementById('roundHeadersBar');
         container = document.getElementById('bracketContainer');
-
-
+        if (container && headerBar) {
+            container.addEventListener('scroll', function() {
+                headerBar.scrollLeft = container.scrollLeft;
+            });
+        }
 
             // Drag to scroll functionality
             let isDown = false;
@@ -1345,6 +1360,9 @@
                     const walkY = (y - startY) * 1.5;
                     container.scrollLeft = scrollLeft - walkX;
                     container.scrollTop = scrollTop - walkY;
+                    if (headerBar) {
+                        headerBar.scrollLeft = container.scrollLeft;
+                    }
                 });
             }
         }
