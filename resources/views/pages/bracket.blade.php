@@ -207,25 +207,20 @@
 
         .round-headers-bar {
             display: flex;
-            background-color: var(--bg-primary);
+            background-color: var(--bg-secondary); /* Blends with container background */
             border-bottom: 1px solid var(--border-color);
-            padding: 8px 30px;
+            padding: 8px 0; /* Remove horizontal padding since it inherits from parent bracket-container */
+            margin-bottom: 20px;
             white-space: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            flex-shrink: 0;
             font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 5;
-        }
-
-        .round-headers-bar::-webkit-scrollbar {
-            display: none;
         }
 
         .round-header-item {
@@ -842,51 +837,42 @@
     </div>
 
     
-    <div class="round-headers-bar" id="roundHeadersBar">
-        @php
-            $totalRounds = count($rounds);
-        @endphp
-        @foreach($rounds as $roundNum => $matches)
-            @php
-                if ($roundNum == $totalRounds) {
-                    $title = "Grand Final";
-                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
-                    $title = "Semifinal";
-                } else {
-                    $title = "Babak " . $roundNum;
-                }
-                $roundTime = $matches->first()->match_time ?? null;
-                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
-            @endphp
-            <div class="round-header-item">
-                <div>{{ $title }}</div>
-                @if($roundTime)
-                    <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
-                        <span class="round-countdown-label"></span>
-                    </div>
-                @endif
-            </div>
-        @endforeach
-    </div>
-
-    @php
-        $startNumbers = [];
-        $currentStart = 1;
-        foreach ($rounds as $rNum => $rMatches) {
-            $startNumbers[$rNum] = $currentStart;
-            $currentStart += $rMatches->count();
-        }
-    @endphp
-
-    
-    <!-- Horizontal Scroll Indicator for Mobile
-    <div id="scrollIndicator" class="scroll-indicator d-md-none">
-        <i class="bi bi-arrow-left-right text-warning"></i>
-        <span>Geser ke samping untuk babak berikutnya</span>
-    </div>
-    -->
-    
     <div class="bracket-container" id="bracketContainer">
+        <div class="round-headers-bar" id="roundHeadersBar">
+            @php
+                $totalRounds = count($rounds);
+            @endphp
+            @foreach($rounds as $roundNum => $matches)
+                @php
+                    if ($roundNum == $totalRounds) {
+                        $title = "Grand Final";
+                    } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                        $title = "Semifinal";
+                    } else {
+                        $title = "Babak " . $roundNum;
+                    }
+                    $roundTime = $matches->first()->match_time ?? null;
+                    $allFinished = $matches->every(fn($m) => $m->status === 'finished');
+                @endphp
+                <div class="round-header-item">
+                    <div>{{ $title }}</div>
+                    @if($roundTime)
+                        <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
+                            <span class="round-countdown-label"></span>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+
+        @php
+            $startNumbers = [];
+            $currentStart = 1;
+            foreach ($rounds as $rNum => $rMatches) {
+                $startNumbers[$rNum] = $currentStart;
+                $currentStart += $rMatches->count();
+            }
+        @endphp
         @foreach($rounds as $roundNum => $matches)
             @php
                 $isFinalRound = ($roundNum === $brackets->max('round_number'));
@@ -1323,21 +1309,7 @@
         headerBar = document.getElementById('roundHeadersBar');
         container = document.getElementById('bracketContainer');
 
-        // Sync sticky header bar horizontal scrolling with bracket scroll
-        if (container && headerBar) {
-            container.addEventListener('scroll', function() {
-                headerBar.scrollLeft = container.scrollLeft;
-                
-                const scrollIndicator = document.getElementById('scrollIndicator');
-                if (scrollIndicator && container.scrollLeft > 20) {
-                    scrollIndicator.style.opacity = '0';
-                    scrollIndicator.style.transform = 'translate(-50%, 15px)';
-                    setTimeout(() => {
-                        scrollIndicator.style.display = 'none';
-                    }, 500);
-                }
-            });
-        }
+
 
             // Drag to scroll functionality
             let isDown = false;
