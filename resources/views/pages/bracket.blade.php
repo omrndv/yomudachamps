@@ -65,24 +65,45 @@
             position: relative;
         }
 
+        @keyframes pulse-search-glow {
+            0% { 
+                box-shadow: 0 0 8px rgba(255, 122, 0, 0.3); 
+                border-color: rgba(255, 122, 0, 0.6);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(255, 122, 0, 0.75); 
+                border-color: rgba(255, 122, 0, 1);
+            }
+            100% { 
+                box-shadow: 0 0 8px rgba(255, 122, 0, 0.3); 
+                border-color: rgba(255, 122, 0, 0.6);
+            }
+        }
+
         .search-input-group {
-            background-color: #27272a;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 2px 4px;
+            background-color: #121214 !important;
+            border: 2px solid var(--accent-orange) !important;
+            border-radius: 12px !important;
+            padding: 6px 10px !important;
             position: relative;
+            animation: pulse-search-glow 2s infinite;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-input-group:focus-within {
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 10px rgba(255, 122, 0, 0.2);
+            border-color: #ffaa44 !important;
+            box-shadow: 0 0 30px rgba(255, 122, 0, 0.95) !important;
+            background-color: #09090b !important;
+            animation: none;
         }
 
         .search-input-group input {
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 0.78rem;
+            font-size: 0.88rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.3px;
             outline: none;
             padding: 5px 30px 5px 8px; /* Extra padding right for clear button */
             width: 100%;
@@ -759,10 +780,14 @@
     </header>
 
     
-    <div class="search-area-container">
-        <div class="search-wrapper text-center">
+    <div class="search-area-container py-3" style="background-color: var(--bg-primary);">
+        <div class="search-wrapper text-center px-2">
+            <div class="search-headline mb-3">
+                <span class="badge bg-warning text-dark px-3 py-1.5 mb-2 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.8px; box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);"><i class="bi bi-arrow-down-circle-fill"></i> CARI TIM KAMU DI SINI</span>
+                <h6 class="m-0 fw-bold text-white-50" style="font-size: 0.8rem; letter-spacing: 0.2px;">Cari Musuh, WA Kapten & Jadwal Main Di Sini:</h6>
+            </div>
             <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim kamu disini...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
