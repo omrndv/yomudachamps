@@ -76,26 +76,37 @@
         }
 
         @keyframes pulse-search-glow {
-            0% { box-shadow: 0 0 5px rgba(255, 122, 0, 0.2); }
-            50% { box-shadow: 0 0 16px rgba(255, 122, 0, 0.6); }
-            100% { box-shadow: 0 0 5px rgba(255, 122, 0, 0.2); }
+            0% { 
+                box-shadow: 0 0 8px rgba(255, 122, 0, 0.35); 
+                border-color: rgba(255, 122, 0, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 25px rgba(255, 122, 0, 0.85); 
+                border-color: rgba(255, 122, 0, 1);
+            }
+            100% { 
+                box-shadow: 0 0 8px rgba(255, 122, 0, 0.35); 
+                border-color: rgba(255, 122, 0, 0.7);
+            }
         }
         .prominent-search {
-            border: 2px solid var(--accent-orange) !important;
-            animation: pulse-search-glow 2.5s infinite;
-            background-color: #1a1a1e !important;
-            border-radius: 12px !important;
-            padding: 4px 8px !important;
-            transition: all 0.3s ease;
+            border: 3px solid var(--accent-orange) !important;
+            animation: pulse-search-glow 2s infinite;
+            background-color: #121214 !important;
+            border-radius: 16px !important;
+            padding: 8px 12px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .prominent-search:focus-within {
-            box-shadow: 0 0 25px rgba(255, 122, 0, 0.8) !important;
-            border-color: #ff912a !important;
+            box-shadow: 0 0 35px rgba(255, 122, 0, 0.95) !important;
+            border-color: #ffaa44 !important;
+            background-color: #09090b !important;
             animation: none;
         }
         .prominent-search input {
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;
+            font-size: 0.92rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.3px;
         }
 
         .search-input-group:focus-within {
@@ -807,18 +818,17 @@
     </header>
 
     
-    <div class="search-area-container py-3" style="background-color: var(--bg-primary);">
+    <div class="search-area-container py-4" style="background-color: var(--bg-primary);">
         <div class="search-wrapper text-center px-2">
             <div class="search-headline mb-3">
-                <span class="badge bg-warning text-dark px-3 py-1 mb-2 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(255, 122, 0, 0.4);"><i class="bi bi-exclamation-circle-fill"></i> WAJIB CARI NAMA TIM</span>
+                <span class="badge bg-warning text-dark px-3 py-1.5 mb-2 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.8px; box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);"><i class="bi bi-arrow-down-circle-fill"></i> CARI TIM KAMU DI SINI</span>
                 <h6 class="m-0 fw-bold text-white-50" style="font-size: 0.8rem; letter-spacing: 0.2px;">Cari Musuh, WA Kapten & Jadwal Main Di Sini:</h6>
             </div>
             <div class="search-input-group prominent-search d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim Anda...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim kamu disini...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
-
             
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
                 <div id="searchResultList"></div>
@@ -864,11 +874,12 @@
     @endphp
 
     
-    <!-- Horizontal Scroll Indicator for Mobile -->
+    <!-- Horizontal Scroll Indicator for Mobile
     <div id="scrollIndicator" class="scroll-indicator d-md-none">
         <i class="bi bi-arrow-left-right text-warning"></i>
         <span>Geser ke samping untuk babak berikutnya</span>
     </div>
+    -->
     
     <div class="bracket-container" id="bracketContainer">
         @foreach($rounds as $roundNum => $matches)
@@ -1308,6 +1319,7 @@
         container = document.getElementById('bracketContainer');
 
         // Sync sticky header bar horizontal scrolling with bracket scroll
+        if (container && headerBar) {
             container.addEventListener('scroll', function() {
                 headerBar.scrollLeft = container.scrollLeft;
                 
@@ -1320,41 +1332,44 @@
                     }, 500);
                 }
             });
+        }
 
             // Drag to scroll functionality
             let isDown = false;
             let startX, startY;
             let scrollLeft, scrollTop;
 
-            container.addEventListener('mousedown', (e) => {
-                isDown = true;
-                container.style.cursor = 'grabbing';
-                startX = e.pageX - container.offsetLeft;
-                startY = e.pageY - container.offsetTop;
-                scrollLeft = container.scrollLeft;
-                scrollTop = container.scrollTop;
-            });
-            
-            container.addEventListener('mouseleave', () => {
-                isDown = false;
-                container.style.cursor = 'grab';
-            });
-            
-            container.addEventListener('mouseup', () => {
-                isDown = false;
-                container.style.cursor = 'grab';
-            });
-            
-            container.addEventListener('mousemove', (e) => {
-                if(!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - container.offsetLeft;
-                const y = e.pageY - container.offsetTop;
-                const walkX = (x - startX) * 1.5;
-                const walkY = (y - startY) * 1.5;
-                container.scrollLeft = scrollLeft - walkX;
-                container.scrollTop = scrollTop - walkY;
-            });
+            if (container) {
+                container.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    container.style.cursor = 'grabbing';
+                    startX = e.pageX - container.offsetLeft;
+                    startY = e.pageY - container.offsetTop;
+                    scrollLeft = container.scrollLeft;
+                    scrollTop = container.scrollTop;
+                });
+                
+                container.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    container.style.cursor = 'grab';
+                });
+                
+                container.addEventListener('mouseup', () => {
+                    isDown = false;
+                    container.style.cursor = 'grab';
+                });
+                
+                container.addEventListener('mousemove', (e) => {
+                    if(!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - container.offsetLeft;
+                    const y = e.pageY - container.offsetTop;
+                    const walkX = (x - startX) * 1.5;
+                    const walkY = (y - startY) * 1.5;
+                    container.scrollLeft = scrollLeft - walkX;
+                    container.scrollTop = scrollTop - walkY;
+                });
+            }
         }
 
         // Hover Highlighting Logic
