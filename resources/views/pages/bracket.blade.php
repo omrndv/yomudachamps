@@ -82,9 +82,9 @@
 
         .search-input-group {
             background-color: #0b0b0c !important;
-            border: 3px solid var(--accent-orange) !important;
-            border-radius: 16px !important;
-            padding: 8px 14px !important;
+            border: 2px solid var(--accent-orange) !important;
+            border-radius: 10px !important;
+            padding: 4px 8px !important;
             position: relative;
             animation: pulse-search-glow 1.8s infinite;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -92,7 +92,7 @@
 
         .search-input-group:focus-within {
             border-color: #ffaa44 !important;
-            box-shadow: 0 0 45px rgba(255, 122, 0, 1) !important;
+            box-shadow: 0 0 35px rgba(255, 122, 0, 0.85) !important;
             background-color: #000000 !important;
             animation: none;
         }
@@ -101,7 +101,7 @@
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 0.92rem !important;
+            font-size: 0.82rem !important;
             font-weight: 700 !important;
             letter-spacing: 0.3px;
             outline: none;
