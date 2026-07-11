@@ -147,14 +147,14 @@
 
         /* Search Results Panel with smooth fade-in */
         .search-results-panel {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
+            background-color: #16161a;
+            border: 1px solid rgba(255, 122, 0, 0.25);
+            border-radius: 10px;
+            padding: 14px;
             margin-top: 8px;
             text-align: left;
             font-size: 0.75rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.75);
             position: absolute;
             width: 100%;
             left: 0;
@@ -176,11 +176,11 @@
             padding: 8px 30px;
             white-space: nowrap;
             overflow-x: hidden;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--text-dim);
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #d4d4d8;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             flex-shrink: 0;
             position: relative;
             z-index: 5;
@@ -277,19 +277,20 @@
 
         /* Challonge Match Card */
         .match-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
+            background-color: #323239;
+            border: 1px solid #47474f;
+            border-radius: 8px;
             width: 185px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
             transition: all 0.2s ease;
         }
 
         .match-card:hover {
-            border-color: #52525b;
+            border-color: #6b6b78;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
         }
 
         /* Beautiful glowing focus animation */
@@ -304,12 +305,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #202024;
-            border-bottom: 1px solid var(--border-color);
-            padding: 3px 6px;
+            background-color: #1c1c21;
+            border-bottom: 1px solid #3a3a42;
+            padding: 4px 8px;
             font-size: 0.58rem;
             font-weight: 700;
-            color: var(--text-dim);
+            color: #71717a;
         }
 
         .match-card-time {
@@ -320,11 +321,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 22px;
+            height: 24px;
             font-size: 0.68rem;
             padding-left: 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            background-color: var(--bg-card);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #323239;
             color: var(--text-light);
             cursor: pointer;
             transition: background 0.15s ease;
@@ -361,35 +362,37 @@
         }
 
         .team-score-box {
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.7rem;
-            background-color: #202024;
-            color: var(--text-dim);
-            border-left: 1px solid var(--border-color);
+            font-size: 0.72rem;
+            background-color: #1c1c21;
+            color: #71717a;
+            border-left: 1px solid #3a3a42;
             flex-shrink: 0;
         }
 
         .team-row.winner {
-            background-color: rgba(255, 122, 0, 0.02);
+            background-color: rgba(255, 122, 0, 0.12);
+            border-left: 2px solid var(--accent-orange);
         }
 
         .team-row.winner .team-name {
             color: #ffffff;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .team-row.winner .team-score-box {
             background-color: var(--accent-orange);
             color: #000000;
+            font-weight: 800;
         }
 
         .team-row.loser {
-            opacity: 0.45;
+            opacity: 0.38;
         }
 
         .team-row .text-muted {
