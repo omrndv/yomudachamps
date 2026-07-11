@@ -67,33 +67,33 @@
 
         @keyframes pulse-search-glow {
             0% { 
-                box-shadow: 0 0 8px rgba(255, 122, 0, 0.3); 
-                border-color: rgba(255, 122, 0, 0.6);
+                box-shadow: 0 0 15px rgba(255, 122, 0, 0.45); 
+                border-color: rgba(255, 122, 0, 0.8);
             }
             50% { 
-                box-shadow: 0 0 20px rgba(255, 122, 0, 0.75); 
+                box-shadow: 0 0 35px rgba(255, 122, 0, 0.95); 
                 border-color: rgba(255, 122, 0, 1);
             }
             100% { 
-                box-shadow: 0 0 8px rgba(255, 122, 0, 0.3); 
-                border-color: rgba(255, 122, 0, 0.6);
+                box-shadow: 0 0 15px rgba(255, 122, 0, 0.45); 
+                border-color: rgba(255, 122, 0, 0.8);
             }
         }
 
         .search-input-group {
-            background-color: #121214 !important;
-            border: 2px solid var(--accent-orange) !important;
-            border-radius: 12px !important;
-            padding: 6px 10px !important;
+            background-color: #0b0b0c !important;
+            border: 3px solid var(--accent-orange) !important;
+            border-radius: 16px !important;
+            padding: 8px 14px !important;
             position: relative;
-            animation: pulse-search-glow 2s infinite;
+            animation: pulse-search-glow 1.8s infinite;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-input-group:focus-within {
             border-color: #ffaa44 !important;
-            box-shadow: 0 0 30px rgba(255, 122, 0, 0.95) !important;
-            background-color: #09090b !important;
+            box-shadow: 0 0 45px rgba(255, 122, 0, 1) !important;
+            background-color: #000000 !important;
             animation: none;
         }
 
@@ -101,7 +101,7 @@
             background: transparent;
             border: none;
             color: #ffffff;
-            font-size: 0.88rem !important;
+            font-size: 0.92rem !important;
             font-weight: 700 !important;
             letter-spacing: 0.3px;
             outline: none;
@@ -1225,7 +1225,7 @@
                         <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
                             ${waButtonHtml}
                             <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
-                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button>
+                            <!-- <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button> -->
                         </div>
                     `;
                     resultList.appendChild(item);
