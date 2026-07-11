@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -71,6 +73,29 @@
             border-radius: 4px;
             padding: 2px 4px;
             position: relative;
+        }
+
+        @keyframes pulse-search-glow {
+            0% { box-shadow: 0 0 5px rgba(255, 122, 0, 0.2); }
+            50% { box-shadow: 0 0 16px rgba(255, 122, 0, 0.6); }
+            100% { box-shadow: 0 0 5px rgba(255, 122, 0, 0.2); }
+        }
+        .prominent-search {
+            border: 2px solid var(--accent-orange) !important;
+            animation: pulse-search-glow 2.5s infinite;
+            background-color: #1a1a1e !important;
+            border-radius: 12px !important;
+            padding: 4px 8px !important;
+            transition: all 0.3s ease;
+        }
+        .prominent-search:focus-within {
+            box-shadow: 0 0 25px rgba(255, 122, 0, 0.8) !important;
+            border-color: #ff912a !important;
+            animation: none;
+        }
+        .prominent-search input {
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
         }
 
         .search-input-group:focus-within {
@@ -145,6 +170,28 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(20, 20, 22, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 122, 0, 0.3);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #ffffff;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         /* Sticky Round Titles Bar - Fixed height */
@@ -726,7 +773,8 @@
             .chat-box-container {
                 width: calc(100vw - 32px) !important;
                 max-width: 320px;
-                height: 380px;
+                height: 65dvh;
+                max-height: 380px;
                 bottom: 60px;
             }
             .chat-input-wrapper input {
@@ -759,10 +807,14 @@
     </header>
 
     
-    <div class="search-area-container">
-        <div class="search-wrapper text-center">
-            <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda...">
+    <div class="search-area-container py-3" style="background-color: var(--bg-primary);">
+        <div class="search-wrapper text-center px-2">
+            <div class="search-headline mb-3">
+                <span class="badge bg-warning text-dark px-3 py-1 mb-2 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(255, 122, 0, 0.4);"><i class="bi bi-exclamation-circle-fill"></i> WAJIB CARI NAMA TIM</span>
+                <h6 class="m-0 fw-bold text-white-50" style="font-size: 0.8rem; letter-spacing: 0.2px;">Cari Musuh, WA Kapten & Jadwal Main Di Sini:</h6>
+            </div>
+            <div class="search-input-group prominent-search d-flex align-items-center">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim Anda...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
@@ -811,6 +863,12 @@
         }
     @endphp
 
+    
+    <!-- Horizontal Scroll Indicator for Mobile -->
+    <div id="scrollIndicator" class="scroll-indicator d-md-none">
+        <i class="bi bi-arrow-left-right text-warning"></i>
+        <span>Geser ke samping untuk babak berikutnya</span>
+    </div>
     
     <div class="bracket-container" id="bracketContainer">
         @foreach($rounds as $roundNum => $matches)
@@ -1204,7 +1262,7 @@
                         <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
                             ${waButtonHtml}
                             <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
-                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button>
+                            <!-- <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button> -->
                         </div>
                     `;
                     resultList.appendChild(item);
@@ -1250,9 +1308,17 @@
         container = document.getElementById('bracketContainer');
 
         // Sync sticky header bar horizontal scrolling with bracket scroll
-        if (container && headerBar) {
             container.addEventListener('scroll', function() {
                 headerBar.scrollLeft = container.scrollLeft;
+                
+                const scrollIndicator = document.getElementById('scrollIndicator');
+                if (scrollIndicator && container.scrollLeft > 20) {
+                    scrollIndicator.style.opacity = '0';
+                    scrollIndicator.style.transform = 'translate(-50%, 15px)';
+                    setTimeout(() => {
+                        scrollIndicator.style.display = 'none';
+                    }, 500);
+                }
             });
 
             // Drag to scroll functionality
@@ -1318,6 +1384,12 @@
             if (!cardId || !container) return;
             const cardElement = document.getElementById(cardId);
             if (!cardElement) return;
+            
+            const resultCard = document.getElementById('searchResultCard');
+            if (resultCard) {
+                resultCard.style.display = 'none';
+            }
+
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
             cardElement.classList.add('focus-glow');
             const containerRect = container.getBoundingClientRect();
@@ -1720,7 +1792,7 @@
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
                     if (file.size > 5 * 1024 * 1024) {
-                        alert("Ukuran file maksimal 5MB!");
+                        Swal.fire("Peringatan", "Ukuran file maksimal 5MB!", "warning");
                         return;
                     }
                     
@@ -1763,7 +1835,7 @@
                         if (res.success) {
                             fetchChatMessages();
                         } else {
-                            alert("Gagal mengunggah: " + res.message);
+                            Swal.fire("Gagal", "Gagal mengunggah: " + res.message, "error");
                         }
                     })
                     .catch(err => {
@@ -1771,7 +1843,7 @@
                         URL.revokeObjectURL(localImgUrl);
                         const tempEl = document.getElementById(tempId);
                         if (tempEl) tempEl.remove();
-                        alert("Gagal mengunggah gambar.");
+                        Swal.fire("Gagal", "Gagal mengunggah gambar.", "error");
                     });
                 }
             });
@@ -1915,8 +1987,24 @@
             btnVerifyReportWa.addEventListener('click', function() {
                 const wa = reportWaInput.value.trim();
                 if (!wa) {
-                    alert('Silakan masukkan nomor WhatsApp Anda.');
+                    Swal.fire("Peringatan", "Silakan masukkan nomor WhatsApp Anda.", "warning");
                     return;
+                }
+
+                // Client-side normalization matching the backend parsing
+                let waClean = wa.replace(/[^0-9+]/g, '');
+                if (waClean.startsWith('+62')) {
+                    waClean = '0' + waClean.substring(3);
+                } else if (waClean.startsWith('628')) {
+                    waClean = '0' + waClean.substring(2);
+                } else if (waClean.startsWith('+60')) {
+                    // Malaysia prefix - keep
+                } else if (waClean.startsWith('60')) {
+                    waClean = '+' + waClean;
+                } else if (waClean.startsWith('01')) {
+                    waClean = '+60' + waClean.substring(1);
+                } else if (!waClean.startsWith('0') && !waClean.startsWith('+') && waClean.length > 0) {
+                    waClean = '0' + waClean;
                 }
 
                 btnVerifyReportWa.disabled = true;
@@ -1928,7 +2016,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ wa_number: wa })
+                    body: JSON.stringify({ wa_number: waClean })
                 })
                 .then(r => r.json())
                 .then(res => {
@@ -1947,14 +2035,14 @@
                         reportStepVerification.style.display = 'none';
                         reportStepSubmit.style.display = 'block';
                     } else {
-                        alert(res.message);
+                        Swal.fire("Gagal", res.message, "error");
                     }
                 })
                 .catch(err => {
                     btnVerifyReportWa.disabled = false;
                     btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
                     console.error('Error finding match:', err);
-                    alert('Terjadi kesalahan saat mencari pertandingan.');
+                    Swal.fire("Error", "Terjadi kesalahan saat mencari pertandingan.", "error");
                 });
             });
         }
@@ -2008,18 +2096,18 @@
                 const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
 
                 if (score1 === 0 && score2 === 0) {
-                    alert('Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.');
+                    Swal.fire("Peringatan", "Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.", "warning");
                     return;
                 }
 
                 if (score1 === score2) {
-                    alert('Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.');
+                    Swal.fire("Peringatan", "Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.", "warning");
                     return;
                 }
                 
                 const fileInput = document.getElementById('reportImageInput');
                 if (!fileInput.files || fileInput.files.length === 0) {
-                    alert('Silakan pilih berkas bukti screenshot.');
+                    Swal.fire("Peringatan", "Silakan pilih berkas bukti screenshot.", "warning");
                     return;
                 }
 
@@ -2052,7 +2140,7 @@
                     btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
 
                     if (res.success) {
-                        alert(res.message);
+                        Swal.fire("Berhasil", res.message, "success");
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('modalReportScore'));
                         if (modal) modal.hide();
@@ -2063,14 +2151,14 @@
                         reportStepVerification.style.display = 'block';
                         reportStepSubmit.style.display = 'none';
                     } else {
-                        alert(res.message);
+                        Swal.fire("Gagal", res.message, "error");
                     }
                 })
                 .catch(err => {
                     btnSubmitReportScore.disabled = false;
                     btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
                     console.error('Error submitting report:', err);
-                    alert('Terjadi kesalahan saat mengirimkan laporan.');
+                    Swal.fire("Error", "Terjadi kesalahan saat mengirimkan laporan.", "error");
                 });
             });
         }

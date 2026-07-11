@@ -13,6 +13,8 @@
     
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
@@ -290,6 +292,32 @@
             background-color: #ff912a;
             color: #000000;
             transform: translateY(-1px);
+        }
+
+        @keyframes pulse-yellow-border {
+            0% {
+                border-color: rgba(255, 193, 7, 0.25);
+                box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.2);
+            }
+            70% {
+                border-color: rgba(255, 193, 7, 0.8);
+                box-shadow: 0 0 12px 4px rgba(255, 193, 7, 0.25);
+            }
+            100% {
+                border-color: rgba(255, 193, 7, 0.25);
+                box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+            }
+        }
+        .menu-item-cta {
+            border-color: rgba(255, 193, 7, 0.4) !important;
+            background-color: rgba(255, 193, 7, 0.05) !important;
+            animation: pulse-yellow-border 2s infinite;
+        }
+        .menu-item-cta:hover {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+            border-color: #ffc107 !important;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
+            transform: translateY(-2px);
         }
         /* Floating Live Chat Widget CSS */
         .chat-widget-wrapper {
@@ -589,7 +617,7 @@
                 </div>
 
                 
-                <div class="menu-item" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="border-color: rgba(255, 193, 7, 0.25); background-color: rgba(255, 193, 7, 0.02);">
+                <div class="menu-item menu-item-cta" data-bs-toggle="modal" data-bs-target="#modalReportScore">
                     <div class="menu-content">
                         <div class="menu-icon-wrapper" style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
                             <i class="bi bi-trophy-fill"></i>
@@ -1057,7 +1085,7 @@
                     if (this.files && this.files[0]) {
                         const file = this.files[0];
                         if (file.size > 5 * 1024 * 1024) {
-                            alert("Ukuran file maksimal 5MB!");
+                            Swal.fire("Peringatan", "Ukuran file maksimal 5MB!", "warning");
                             return;
                         }
                         
@@ -1100,7 +1128,7 @@
                             if (res.success) {
                                 fetchChatMessages();
                             } else {
-                                alert("Gagal mengunggah: " + res.message);
+                                Swal.fire("Gagal", "Gagal mengunggah: " + res.message, "error");
                             }
                         })
                         .catch(err => {
@@ -1108,7 +1136,7 @@
                             URL.revokeObjectURL(localImgUrl);
                             const tempEl = document.getElementById(tempId);
                             if (tempEl) tempEl.remove();
-                            alert("Gagal mengunggah gambar.");
+                            Swal.fire("Gagal", "Gagal mengunggah gambar.", "error");
                         });
                     }
                 });
@@ -1134,8 +1162,24 @@
                 btnVerifyReportWa.addEventListener('click', function() {
                     const wa = reportWaInput.value.trim();
                     if (!wa) {
-                        alert('Silakan masukkan nomor WhatsApp Anda.');
+                        Swal.fire("Peringatan", "Silakan masukkan nomor WhatsApp Anda.", "warning");
                         return;
+                    }
+
+                    // Client-side normalization matching the backend parsing
+                    let waClean = wa.replace(/[^0-9+]/g, '');
+                    if (waClean.startsWith('+62')) {
+                        waClean = '0' + waClean.substring(3);
+                    } else if (waClean.startsWith('628')) {
+                        waClean = '0' + waClean.substring(2);
+                    } else if (waClean.startsWith('+60')) {
+                        // Malaysia prefix - keep
+                    } else if (waClean.startsWith('60')) {
+                        waClean = '+' + waClean;
+                    } else if (waClean.startsWith('01')) {
+                        waClean = '+60' + waClean.substring(1);
+                    } else if (!waClean.startsWith('0') && !waClean.startsWith('+') && waClean.length > 0) {
+                        waClean = '0' + waClean;
                     }
 
                     btnVerifyReportWa.disabled = true;
@@ -1147,7 +1191,7 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({ wa_number: wa })
+                        body: JSON.stringify({ wa_number: waClean })
                     })
                     .then(r => r.json())
                     .then(res => {
@@ -1166,14 +1210,14 @@
                             reportStepVerification.style.display = 'none';
                             reportStepSubmit.style.display = 'block';
                         } else {
-                            alert(res.message);
+                            Swal.fire("Gagal", res.message, "error");
                         }
                     })
                     .catch(err => {
                         btnVerifyReportWa.disabled = false;
                         btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
                         console.error('Error finding match:', err);
-                        alert('Terjadi kesalahan saat mencari pertandingan.');
+                        Swal.fire("Error", "Terjadi kesalahan saat mencari pertandingan.", "error");
                     });
                 });
             }
@@ -1227,18 +1271,18 @@
                     const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
 
                     if (score1 === 0 && score2 === 0) {
-                        alert('Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.');
+                        Swal.fire("Peringatan", "Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.", "warning");
                         return;
                     }
 
                     if (score1 === score2) {
-                        alert('Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.');
+                        Swal.fire("Peringatan", "Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.", "warning");
                         return;
                     }
                     
                     const fileInput = document.getElementById('reportImageInput');
                     if (!fileInput.files || fileInput.files.length === 0) {
-                        alert('Silakan pilih berkas bukti screenshot.');
+                        Swal.fire("Peringatan", "Silakan pilih berkas bukti screenshot.", "warning");
                         return;
                     }
 
@@ -1271,7 +1315,7 @@
                         btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
 
                         if (res.success) {
-                            alert(res.message);
+                            Swal.fire("Berhasil", res.message, "success");
                             // Close modal
                             const modal = bootstrap.Modal.getInstance(document.getElementById('modalReportScore'));
                             if (modal) modal.hide();
@@ -1282,14 +1326,14 @@
                             reportStepVerification.style.display = 'block';
                             reportStepSubmit.style.display = 'none';
                         } else {
-                            alert(res.message);
+                            Swal.fire("Gagal", res.message, "error");
                         }
                     })
                     .catch(err => {
                         btnSubmitReportScore.disabled = false;
                         btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
                         console.error('Error submitting report:', err);
-                        alert('Terjadi kesalahan saat mengirimkan laporan.');
+                        Swal.fire("Error", "Terjadi kesalahan saat mengirimkan laporan.", "error");
                     });
                 });
             }
