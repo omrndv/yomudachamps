@@ -635,31 +635,6 @@
             @endphp
             <span class="season-badge" style="background-color: {{ $st['color'] }}; border-color: {{ $st['border'] }}; color: {{ $st['text'] }};">{{ $st['label'] }}</span>
 
-            {{-- At-a-glance stats --}}
-            <div class="season-stats-bar">
-                <div class="stat-item">
-                    <div class="stat-value">{{ $teamCount }}</div>
-                    <div class="stat-label">Tim</div>
-                </div>
-                @if($roundCount > 0)
-                <div class="stat-item">
-                    <div class="stat-value">{{ $roundCount }}</div>
-                    <div class="stat-label">Babak</div>
-                </div>
-                @endif
-                @if($season->date_info)
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size:0.72rem;">{{ Str::limit($season->date_info, 16) }}</div>
-                    <div class="stat-label">Jadwal</div>
-                </div>
-                @endif
-                @if($season->prize_pool)
-                <div class="stat-item">
-                    <div class="stat-value" style="font-size:0.72rem;">{{ $season->prize_pool }}</div>
-                    <div class="stat-label">Hadiah</div>
-                </div>
-                @endif
-            </div>
 
             <div class="menu-list">
                 <a href="{{ route('public.season.bracket', $slug) }}" class="menu-item">
