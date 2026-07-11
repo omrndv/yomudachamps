@@ -22,6 +22,40 @@
             --text-dim: #a1a1aa;
         }
 
+        /* Empty state */
+        .bracket-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 300px;
+            gap: 12px;
+            color: var(--text-dim);
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .bracket-empty-state i {
+            font-size: 3rem;
+            color: #3f3f52;
+        }
+
+        .bracket-empty-state h6 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #71717a;
+            margin: 0;
+        }
+
+        .bracket-empty-state p {
+            font-size: 0.75rem;
+            color: #52525b;
+            margin: 0;
+            max-width: 220px;
+            line-height: 1.5;
+        }
+
         /* Allow default mobile pull-to-refresh and page scroll while maintaining clean structure */
         html, body {
             height: 100%;
@@ -50,13 +84,44 @@
             flex-shrink: 0;
         }
 
+        .bracket-header-inner {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+        }
+
+        .bracket-header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bracket-header-center {
+            text-align: center;
+        }
+
+        .bracket-header-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
         /* Search Area Container - Fixed height */
         .search-area-container {
-            padding: 10px 15px;
+            padding: 8px 15px 4px 15px;
             background-color: var(--bg-secondary);
             flex-shrink: 0;
             position: relative;
             z-index: 999;
+        }
+
+        .search-hint {
+            text-align: center;
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            margin-top: 5px;
+            letter-spacing: 0.2px;
         }
 
         .search-wrapper {
@@ -444,7 +509,7 @@
 
         .connector-line {
             fill: none;
-            stroke: #44444f;
+            stroke: #5a5a6e;
             stroke-width: 1.5;
             transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
@@ -763,33 +828,36 @@
 
     
     <header class="bracket-header py-2">
-        <div class="container d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border-color: rgba(255,255,255,0.15); color: #a1a1aa; padding: 4px 12px; background-color: rgba(255,255,255,0.02);">
+        <div class="bracket-header-inner">
+            <div class="bracket-header-left">
+                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.15); color: #c4c4cc; padding: 4px 12px; background-color: rgba(255,255,255,0.05);">
                     <i class="bi bi-chevron-left"></i> Kembali
                 </a>
                 <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 12px; color: #000; border: none;">
                     <i class="bi bi-trophy-fill"></i> Lapor Skor
                 </button>
+            </div>
+            <div class="bracket-header-center">
+                <div class="fw-bold text-white" style="letter-spacing: 0.3px; font-size: 0.82rem; line-height: 1.2;">{{ strtoupper($season->name) }}</div>
+                <div class="text-secondary" style="font-size: 0.58rem; letter-spacing: 0.5px;">BAGAN PERTANDINGAN</div>
+            </div>
+            <div class="bracket-header-right">
                 <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 12px; border-color: rgba(255, 122, 0, 0.4); color: var(--accent-orange); background-color: rgba(255, 122, 0, 0.05);">
                     <i class="bi bi-info-circle-fill"></i> Panduan
                 </button>
-            </div>
-            <div class="text-end">
-                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
-                <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>
             </div>
         </div>
     </header>
 
     
-    <div class="search-area-container py-3" style="background-color: var(--bg-primary);">
+    <div class="search-area-container py-2" style="background-color: var(--bg-primary);">
         <div class="search-wrapper text-center px-2">
             <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim kamu disini...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama timmu...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
+            <p class="search-hint"><i class="bi bi-info-circle me-1"></i>Ketik nama tim untuk cari jadwal &amp; musuh bermainmu</p>
 
             
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
@@ -837,6 +905,13 @@
 
     
     <div class="bracket-container" id="bracketContainer">
+        @if($rounds->isEmpty())
+            <div class="bracket-empty-state">
+                <i class="bi bi-diagram-3"></i>
+                <h6>Bagan belum tersedia</h6>
+                <p>Panitia belum mempublikasikan bagan pertandingan. Cek kembali nanti ya!</p>
+            </div>
+        @else
         @foreach($rounds as $roundNum => $matches)
             @php
                 $isFinalRound = ($roundNum === $brackets->max('round_number'));
@@ -944,6 +1019,7 @@
                 @endif
             </div>
         @endforeach
+        @endif
     </div>
 
     
