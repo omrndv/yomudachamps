@@ -828,26 +828,25 @@
 
     
     <header class="bracket-header py-2">
-        <div class="bracket-header-inner">
-            <div class="bracket-header-left">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.15); color: #c4c4cc; padding: 4px 12px; background-color: rgba(255,255,255,0.05);">
                     <i class="bi bi-chevron-left"></i> Kembali
                 </a>
                 <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 12px; color: #000; border: none;">
                     <i class="bi bi-trophy-fill"></i> Lapor Skor
                 </button>
-            </div>
-            <div class="bracket-header-center">
-                <div class="fw-bold text-white" style="letter-spacing: 0.3px; font-size: 0.82rem; line-height: 1.2;">{{ strtoupper($season->name) }}</div>
-                <div class="text-secondary" style="font-size: 0.58rem; letter-spacing: 0.5px;">BAGAN PERTANDINGAN</div>
-            </div>
-            <div class="bracket-header-right">
                 <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 12px; border-color: rgba(255, 122, 0, 0.4); color: var(--accent-orange); background-color: rgba(255, 122, 0, 0.05);">
                     <i class="bi bi-info-circle-fill"></i> Panduan
                 </button>
             </div>
+            <div class="text-end">
+                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
+                <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>
+            </div>
         </div>
     </header>
+
 
     
     <div class="search-area-container py-2" style="background-color: var(--bg-primary);">
