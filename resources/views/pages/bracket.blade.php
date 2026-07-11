@@ -1118,51 +1118,40 @@
     // -----------------------------------------------------------------------
     const matchesData = [
         @foreach($brackets as $b)
-            @if($b->team1_id && $b->team2_id)
-                @php
-                    $tr2 = count($rounds);
-                    if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
-                    elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
-                    else { $rLabel = 'Babak ' . $b->round_number; }
-                    $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                    $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                    $scheduleStr = $b->match_time ?? '20:00 WIB';
-                @endphp
+            @php
+                $tr2 = count($rounds);
+                if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
+                elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
+                else { $rLabel = 'Babak ' . $b->round_number; }
+                $scheduleStr = $b->match_time ?? '20:00 WIB';
+                $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                $startNum = $startNumbers[$b->round_number] ?? 1;
+                $bracketLabel = 'Bracket ' . ($startNum + ($b->match_number - 1));
+            @endphp
+            @if($b->team1_id)
                 {
                     teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
                     name: {{ Js::from($b->team1->name ?? '') }},
-                    opponent: {{ Js::from($b->team2->name ?? '') }},
+                    opponent: {{ Js::from($b->team2->name ?? ($b->round_number === 1 ? 'Lolos (BYE)' : 'TBD')) }},
                     opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
+                    bracket: {{ Js::from($bracketLabel) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status1) }},
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
+            @endif
+            @if($b->team2_id)
                 {
                     teamKey: {{ Js::from(mb_strtolower($b->team2->name ?? '')) }},
                     name: {{ Js::from($b->team2->name ?? '') }},
-                    opponent: {{ Js::from($b->team1->name ?? '') }},
+                    opponent: {{ Js::from($b->team1->name ?? 'TBD') }},
                     opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
+                    bracket: {{ Js::from($bracketLabel) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status2) }},
-                    cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
-                },
-            @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
-                @php
-                    $scheduleStr = $b->match_time ?? '20:00 WIB';
-                @endphp
-                {
-                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
-                    name: {{ Js::from($b->team1->name ?? '') }},
-                    opponent: "Lolos (BYE)",
-                    opponentWA: "-",
-                    schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
-                    round: "Babak 1",
-                    status: "Lolos",
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
             @endif
