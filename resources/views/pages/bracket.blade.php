@@ -9,8 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -73,40 +71,6 @@
             border-radius: 4px;
             padding: 2px 4px;
             position: relative;
-        }
-
-        @keyframes pulse-search-glow {
-            0% { 
-                box-shadow: 0 0 8px rgba(255, 122, 0, 0.35); 
-                border-color: rgba(255, 122, 0, 0.7);
-            }
-            50% { 
-                box-shadow: 0 0 25px rgba(255, 122, 0, 0.85); 
-                border-color: rgba(255, 122, 0, 1);
-            }
-            100% { 
-                box-shadow: 0 0 8px rgba(255, 122, 0, 0.35); 
-                border-color: rgba(255, 122, 0, 0.7);
-            }
-        }
-        .prominent-search {
-            border: 3px solid var(--accent-orange) !important;
-            animation: pulse-search-glow 2s infinite;
-            background-color: #121214 !important;
-            border-radius: 16px !important;
-            padding: 8px 12px !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .prominent-search:focus-within {
-            box-shadow: 0 0 35px rgba(255, 122, 0, 0.95) !important;
-            border-color: #ffaa44 !important;
-            background-color: #09090b !important;
-            animation: none;
-        }
-        .prominent-search input {
-            font-size: 0.92rem !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.3px;
         }
 
         .search-input-group:focus-within {
@@ -183,42 +147,29 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .scroll-indicator {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(20, 20, 22, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 122, 0, 0.3);
-            padding: 8px 18px;
-            border-radius: 50px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: #ffffff;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-            pointer-events: none;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .round-column-header {
-            position: absolute;
-            top: -55px;
-            left: 0;
-            width: 100%;
-            pointer-events: none;
-            text-align: center;
-        }
-        .round-column-title {
-            font-size: 0.72rem;
+        /* Sticky Round Titles Bar - Fixed height */
+        .round-headers-bar {
+            display: flex;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 30px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        .round-header-item {
+            width: 185px;
+            margin-right: 80px;
+            flex-shrink: 0;
+            text-align: center;
         }
 
         .round-countdown-wrap {
@@ -254,7 +205,7 @@
 
         /* Bracket container layout */
         .bracket-container {
-            padding: 85px 30px 40px 30px;
+            padding: 30px 30px 40px 30px;
             overflow: auto;
             white-space: nowrap;
             cursor: grab;
@@ -511,12 +462,17 @@
            RESPONSIVE MOBILE STYLES (Screens <= 576px)
            ========================================================================== */
         @media (max-width: 576px) {
-            .round-column-header {
-                top: -50px;
+            .round-headers-bar {
+                padding: 6px 15px;
+            }
+            
+            .round-header-item {
+                width: 155px;
+                margin-right: 40px;
             }
 
             .bracket-container {
-                padding: 70px 15px 30px 15px;
+                padding: 20px 15px 30px 15px;
             }
 
             .bracket-round {
@@ -770,8 +726,7 @@
             .chat-box-container {
                 width: calc(100vw - 32px) !important;
                 max-width: 320px;
-                height: 65dvh;
-                max-height: 380px;
+                height: 380px;
                 bottom: 60px;
             }
             .chat-input-wrapper input {
@@ -804,17 +759,14 @@
     </header>
 
     
-    <div class="search-area-container py-4" style="background-color: var(--bg-primary);">
-        <div class="search-wrapper text-center px-2">
-            <div class="search-headline mb-3">
-                <span class="badge bg-warning text-dark px-3 py-1.5 mb-2 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.8px; box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);"><i class="bi bi-arrow-down-circle-fill"></i> CARI TIM KAMU DI SINI</span>
-                <h6 class="m-0 fw-bold text-white-50" style="font-size: 0.8rem; letter-spacing: 0.2px;">Cari Musuh, WA Kapten & Jadwal Main Di Sini:</h6>
-            </div>
-            <div class="search-input-group prominent-search d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Ketik nama tim kamu disini...">
+    <div class="search-area-container">
+        <div class="search-wrapper text-center">
+            <div class="search-input-group d-flex align-items-center">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim Anda...">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
+
             
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
                 <div id="searchResultList"></div>
@@ -823,16 +775,44 @@
     </div>
 
     
+    <div class="round-headers-bar" id="roundHeadersBar">
+        @php
+            $totalRounds = count($rounds);
+        @endphp
+        @foreach($rounds as $roundNum => $matches)
+            @php
+                if ($roundNum == $totalRounds) {
+                    $title = "Grand Final";
+                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
+                    $title = "Semifinal";
+                } else {
+                    $title = "Babak " . $roundNum;
+                }
+                $roundTime = $matches->first()->match_time ?? null;
+                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
+            @endphp
+            <div class="round-header-item">
+                <div>{{ $title }}</div>
+                @if($roundTime)
+                    <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
+                        <span class="round-countdown-label"></span>
+                    </div>
+                @endif
+            </div>
+        @endforeach
+    </div>
+
+    @php
+        $startNumbers = [];
+        $currentStart = 1;
+        foreach ($rounds as $rNum => $rMatches) {
+            $startNumbers[$rNum] = $currentStart;
+            $currentStart += $rMatches->count();
+        }
+    @endphp
+
     
     <div class="bracket-container" id="bracketContainer">
-        @php
-            $startNumbers = [];
-            $currentStart = 1;
-            foreach ($rounds as $rNum => $rMatches) {
-                $startNumbers[$rNum] = $currentStart;
-                $currentStart += $rMatches->count();
-            }
-        @endphp
         @foreach($rounds as $roundNum => $matches)
             @php
                 $isFinalRound = ($roundNum === $brackets->max('round_number'));
@@ -840,27 +820,8 @@
                 $roundHeight = 4600;
                 $matchesCount = $columnMatches->count();
                 $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
-                
-                $totalRounds = count($rounds);
-                if ($roundNum == $totalRounds) {
-                    $roundTitle = "Grand Final";
-                } elseif ($roundNum == $totalRounds - 1 && $totalRounds > 1) {
-                    $roundTitle = "Semifinal";
-                } else {
-                    $roundTitle = "Babak " . $roundNum;
-                }
-                $roundTime = $matches->first()->match_time ?? null;
-                $allFinished = $matches->every(fn($m) => $m->status === 'finished');
             @endphp
             <div class="bracket-round">
-                <div class="round-column-header">
-                    <div class="round-column-title">{{ $roundTitle }}</div>
-                    @if($roundTime)
-                        <div class="round-countdown-wrap" data-round-time="{{ $roundTime }}" data-round-finished="{{ $allFinished ? '1' : '0' }}">
-                            <span class="round-countdown-label"></span>
-                        </div>
-                    @endif
-                </div>
                 @foreach($columnMatches as $match)
                     <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
                         <div class="match-card-header">
@@ -1100,6 +1061,7 @@
 
     <script>
     let container = null;
+    let headerBar = null;
     const startNumbers = @json($startNumbers);
     const TOTAL_ROUNDS = {{ count($rounds) }};
     function getRoundName(roundNum) {
@@ -1118,40 +1080,51 @@
     // -----------------------------------------------------------------------
     const matchesData = [
         @foreach($brackets as $b)
-            @php
-                $tr2 = count($rounds);
-                if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
-                elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
-                else { $rLabel = 'Babak ' . $b->round_number; }
-                $scheduleStr = $b->match_time ?? '20:00 WIB';
-                $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                $startNum = $startNumbers[$b->round_number] ?? 1;
-                $bracketLabel = 'Bracket ' . ($startNum + ($b->match_number - 1));
-            @endphp
-            @if($b->team1_id)
+            @if($b->team1_id && $b->team2_id)
+                @php
+                    $tr2 = count($rounds);
+                    if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
+                    elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
+                    else { $rLabel = 'Babak ' . $b->round_number; }
+                    $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                    $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                    $scheduleStr = $b->match_time ?? '20:00 WIB';
+                @endphp
                 {
                     teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
                     name: {{ Js::from($b->team1->name ?? '') }},
-                    opponent: {{ Js::from($b->team2->name ?? ($b->round_number === 1 ? 'Lolos (BYE)' : 'TBD')) }},
+                    opponent: {{ Js::from($b->team2->name ?? '') }},
                     opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from($bracketLabel) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status1) }},
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
-            @endif
-            @if($b->team2_id)
                 {
                     teamKey: {{ Js::from(mb_strtolower($b->team2->name ?? '')) }},
                     name: {{ Js::from($b->team2->name ?? '') }},
-                    opponent: {{ Js::from($b->team1->name ?? 'TBD') }},
+                    opponent: {{ Js::from($b->team1->name ?? '') }},
                     opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
-                    bracket: {{ Js::from($bracketLabel) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
                     round: {{ Js::from($rLabel) }},
                     status: {{ Js::from($status2) }},
+                    cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
+                },
+            @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
+                @php
+                    $scheduleStr = $b->match_time ?? '20:00 WIB';
+                @endphp
+                {
+                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
+                    name: {{ Js::from($b->team1->name ?? '') }},
+                    opponent: "Lolos (BYE)",
+                    opponentWA: "-",
+                    schedule: {{ Js::from($scheduleStr) }},
+                    bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
+                    round: "Babak 1",
+                    status: "Lolos",
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
             @endif
@@ -1185,8 +1158,7 @@
             }
             if (searchClearBtn) searchClearBtn.style.display = 'block';
 
-            console.log('Running search for:', query, 'Total matches index:', matchesData.length);
-            const matched = matchesData.filter(m => m && m.teamKey && m.teamKey.includes(query)).reverse();
+            const matched = matchesData.filter(m => m.teamKey.includes(query)).reverse();
 
             if (matched.length > 0) {
                 resultCard.style.display = 'block';
@@ -1232,7 +1204,7 @@
                         <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
                             ${waButtonHtml}
                             <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
-                            <!-- <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button> -->
+                            <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button>
                         </div>
                     `;
                     resultList.appendChild(item);
@@ -1274,14 +1246,20 @@
     initBracketSearch();
 
     document.addEventListener('DOMContentLoaded', function() {
+        headerBar = document.getElementById('roundHeadersBar');
         container = document.getElementById('bracketContainer');
 
-        // Drag to scroll functionality
-        let isDown = false;
-        let startX, startY;
-        let scrollLeft, scrollTop;
+        // Sync sticky header bar horizontal scrolling with bracket scroll
+        if (container && headerBar) {
+            container.addEventListener('scroll', function() {
+                headerBar.scrollLeft = container.scrollLeft;
+            });
 
-        if (container) {
+            // Drag to scroll functionality
+            let isDown = false;
+            let startX, startY;
+            let scrollLeft, scrollTop;
+
             container.addEventListener('mousedown', (e) => {
                 isDown = true;
                 container.style.cursor = 'grabbing';
@@ -1312,7 +1290,6 @@
                 container.scrollTop = scrollTop - walkY;
             });
         }
-    });
 
         // Hover Highlighting Logic
         const teamRows = document.querySelectorAll('.team-row[data-team-id]');
@@ -1341,12 +1318,6 @@
             if (!cardId || !container) return;
             const cardElement = document.getElementById(cardId);
             if (!cardElement) return;
-            
-            const resultCard = document.getElementById('searchResultCard');
-            if (resultCard) {
-                resultCard.style.display = 'none';
-            }
-
             document.querySelectorAll('.match-card').forEach(card => card.classList.remove('focus-glow'));
             cardElement.classList.add('focus-glow');
             const containerRect = container.getBoundingClientRect();
@@ -1749,7 +1720,7 @@
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
                     if (file.size > 5 * 1024 * 1024) {
-                        Swal.fire("Peringatan", "Ukuran file maksimal 5MB!", "warning");
+                        alert("Ukuran file maksimal 5MB!");
                         return;
                     }
                     
@@ -1792,7 +1763,7 @@
                         if (res.success) {
                             fetchChatMessages();
                         } else {
-                            Swal.fire("Gagal", "Gagal mengunggah: " + res.message, "error");
+                            alert("Gagal mengunggah: " + res.message);
                         }
                     })
                     .catch(err => {
@@ -1800,7 +1771,7 @@
                         URL.revokeObjectURL(localImgUrl);
                         const tempEl = document.getElementById(tempId);
                         if (tempEl) tempEl.remove();
-                        Swal.fire("Gagal", "Gagal mengunggah gambar.", "error");
+                        alert("Gagal mengunggah gambar.");
                     });
                 }
             });
@@ -1944,24 +1915,8 @@
             btnVerifyReportWa.addEventListener('click', function() {
                 const wa = reportWaInput.value.trim();
                 if (!wa) {
-                    Swal.fire("Peringatan", "Silakan masukkan nomor WhatsApp Anda.", "warning");
+                    alert('Silakan masukkan nomor WhatsApp Anda.');
                     return;
-                }
-
-                // Client-side normalization matching the backend parsing
-                let waClean = wa.replace(/[^0-9+]/g, '');
-                if (waClean.startsWith('+62')) {
-                    waClean = '0' + waClean.substring(3);
-                } else if (waClean.startsWith('628')) {
-                    waClean = '0' + waClean.substring(2);
-                } else if (waClean.startsWith('+60')) {
-                    // Malaysia prefix - keep
-                } else if (waClean.startsWith('60')) {
-                    waClean = '+' + waClean;
-                } else if (waClean.startsWith('01')) {
-                    waClean = '+60' + waClean.substring(1);
-                } else if (!waClean.startsWith('0') && !waClean.startsWith('+') && waClean.length > 0) {
-                    waClean = '0' + waClean;
                 }
 
                 btnVerifyReportWa.disabled = true;
@@ -1973,7 +1928,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ wa_number: waClean })
+                    body: JSON.stringify({ wa_number: wa })
                 })
                 .then(r => r.json())
                 .then(res => {
@@ -1992,14 +1947,14 @@
                         reportStepVerification.style.display = 'none';
                         reportStepSubmit.style.display = 'block';
                     } else {
-                        Swal.fire("Gagal", res.message, "error");
+                        alert(res.message);
                     }
                 })
                 .catch(err => {
                     btnVerifyReportWa.disabled = false;
                     btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
                     console.error('Error finding match:', err);
-                    Swal.fire("Error", "Terjadi kesalahan saat mencari pertandingan.", "error");
+                    alert('Terjadi kesalahan saat mencari pertandingan.');
                 });
             });
         }
@@ -2053,18 +2008,18 @@
                 const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
 
                 if (score1 === 0 && score2 === 0) {
-                    Swal.fire("Peringatan", "Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.", "warning");
+                    alert('Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.');
                     return;
                 }
 
                 if (score1 === score2) {
-                    Swal.fire("Peringatan", "Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.", "warning");
+                    alert('Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.');
                     return;
                 }
                 
                 const fileInput = document.getElementById('reportImageInput');
                 if (!fileInput.files || fileInput.files.length === 0) {
-                    Swal.fire("Peringatan", "Silakan pilih berkas bukti screenshot.", "warning");
+                    alert('Silakan pilih berkas bukti screenshot.');
                     return;
                 }
 
@@ -2097,7 +2052,7 @@
                     btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
 
                     if (res.success) {
-                        Swal.fire("Berhasil", res.message, "success");
+                        alert(res.message);
                         // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('modalReportScore'));
                         if (modal) modal.hide();
@@ -2108,14 +2063,14 @@
                         reportStepVerification.style.display = 'block';
                         reportStepSubmit.style.display = 'none';
                     } else {
-                        Swal.fire("Gagal", res.message, "error");
+                        alert(res.message);
                     }
                 })
                 .catch(err => {
                     btnSubmitReportScore.disabled = false;
                     btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
                     console.error('Error submitting report:', err);
-                    Swal.fire("Error", "Terjadi kesalahan saat mengirimkan laporan.", "error");
+                    alert('Terjadi kesalahan saat mengirimkan laporan.');
                 });
             });
         }
