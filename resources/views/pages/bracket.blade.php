@@ -852,11 +852,11 @@
     <div class="search-area-container py-2" style="background-color: var(--bg-primary);">
         <div class="search-wrapper text-center px-2">
             <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama timmu...">
+                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim mu disini..">
                 <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
                 <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
             </div>
-            <p class="search-hint"><i class="bi bi-info-circle me-1"></i>Ketik nama tim untuk cari jadwal &amp; musuh bermainmu</p>
+            <p class="search-hint"><i class="bi bi-info-circle me-1"></i>Ketik nama tim untuk cari jadwal &amp; musuhmu</p>
 
             
             <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
