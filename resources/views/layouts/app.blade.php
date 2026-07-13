@@ -148,12 +148,138 @@
                 padding: 6px 12px;
             }
         }
+
+        /* Global Page & Submission Loader */
+        .global-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 20, 23, 0.96);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .global-loader-overlay.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .global-loader-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            animation: loader-bounce 2s infinite ease-in-out;
+        }
+
+        .loader-spinner-wrapper {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, #ffc107 0%, transparent 60%, #ffc107 100%);
+            -webkit-mask: 
+               linear-gradient(#fff 0 0) content-box, 
+               linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: loader-spin 1.2s infinite linear;
+        }
+
+        .loader-icon {
+            font-size: 2.2rem;
+            color: #ffc107;
+            filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));
+            animation: loader-pulse 1.5s infinite ease-in-out;
+        }
+
+        .loader-branding {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .loader-logo-text {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .loader-logo-sub {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #ffc107;
+            letter-spacing: 4px;
+            margin: 0;
+        }
+
+        .loader-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+            transition: all 0.2s ease;
+        }
+
+        @keyframes loader-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes loader-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.12); opacity: 1; filter: drop-shadow(0 0 18px rgba(255, 193, 7, 0.85)); }
+        }
+
+        @keyframes loader-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
     </style>
 
     @stack('styles')
 </head>
 
 <body>
+    <!-- Global Page & Submission Loader Overlay -->
+    <div id="global-page-loader" class="global-loader-overlay">
+        <div class="global-loader-content">
+            <div class="loader-spinner-wrapper">
+                <div class="loader-ring"></div>
+                <i class="bi bi-trophy-fill loader-icon"></i>
+            </div>
+            <div class="loader-branding">
+                <span class="loader-logo-text">YOMUDA</span>
+                <span class="loader-logo-sub">CHAMPIONSHIP</span>
+            </div>
+            <div class="loader-status" id="global-loader-status">Memuat Halaman...</div>
+        </div>
+    </div>
+
     <a href="{{ route('check.team') }}" class="floating-check-team d-flex align-items-center justify-content-center">
         <i class="bi bi-search me-1"></i>
         CEK TIM KAMU
@@ -519,6 +645,60 @@
                     });
                 });
             }
+            // Global Page Loader Controls
+            const pageLoader = document.getElementById('global-page-loader');
+            const loaderStatus = document.getElementById('global-loader-status');
+
+            // Hide loader when page is fully loaded
+            window.addEventListener('load', function() {
+                if (pageLoader) {
+                    pageLoader.classList.add('fade-out');
+                }
+            });
+
+            // Ensure loader hides when navigating back via back/forward cache
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted && pageLoader) {
+                    pageLoader.classList.add('fade-out');
+                }
+            });
+
+            // Show loader when leaving the page or submitting form
+            document.addEventListener('submit', function(e) {
+                if (e.target && e.target.id === 'ai-chat-form') {
+                    return;
+                }
+                if (pageLoader) {
+                    if (loaderStatus) {
+                        if (e.target && e.target.id === 'regForm') {
+                            loaderStatus.innerText = 'Menyiapkan Pembayaran...';
+                        } else {
+                            loaderStatus.innerText = 'Memproses...';
+                        }
+                    }
+                    pageLoader.classList.remove('fade-out');
+                }
+            });
+
+            // Show loader on checkout or important action link clicks
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('a, button');
+                if (!target) return;
+
+                const href = target.getAttribute('href');
+                const isFormSubmit = target.getAttribute('type') === 'submit';
+                
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !target.hasAttribute('target') && !isFormSubmit) {
+                    if (href.includes('/daftar') || href.includes('/payment') || href.includes('/check-team')) {
+                        if (pageLoader) {
+                            if (loaderStatus) {
+                                loaderStatus.innerText = 'Menghubungkan...';
+                            }
+                            pageLoader.classList.remove('fade-out');
+                        }
+                    }
+                }
+            });
         });
     </script>
 
