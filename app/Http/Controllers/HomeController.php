@@ -300,6 +300,7 @@ class HomeController extends Controller
                 $team->update([
                     'tripay_reference' => $transaction->transaction_id,
                     'payment_method'   => $qrCodeUrl,
+                    'amount'           => $transaction->amount_with_fee,
                 ]);
 
                 return redirect()->route('payment.detail', $team->trx_id);

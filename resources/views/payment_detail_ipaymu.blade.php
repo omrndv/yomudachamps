@@ -117,8 +117,15 @@
         </div>
 
         <div class="text-center mb-4">
-            <span class="text-secondary small d-block mb-1">Total Pembayaran:</span>
-            <h3 class="fw-bold text-warning" style="font-family: 'Arial Black';">Rp {{ number_format($team->season->price, 0, ',', '.') }}</h3>
+            <span class="text-secondary small d-block mb-1">Total Pembayaran (Termasuk Biaya Admin):</span>
+            <h3 class="fw-bold text-warning mb-0" style="font-family: 'Arial Black';">Rp {{ number_format($team->amount > 0 ? $team->amount : $team->season->price, 0, ',', '.') }}</h3>
+            <span class="text-muted small" style="font-size: 0.72rem;">(Biaya pendaftaran Rp {{ number_format($team->season->price, 0, ',', '.') }} + Biaya Layanan QRIS)</span>
+        </div>
+
+        {{-- Countdown Timer --}}
+        <div class="text-center mb-4 p-2 rounded-3" style="background: rgba(239, 68, 68, 0.08); border: 1px dashed #ef4444; max-width: 280px; margin: 0 auto;">
+            <span class="text-secondary small d-block mb-1" style="font-size: 0.72rem;"><i class="bi bi-clock-history text-danger me-1"></i>Batas Waktu Pembayaran:</span>
+            <div id="countdownTimer" class="fw-bold text-danger" style="font-size: 1.1rem; letter-spacing: 1px;">00:00:00</div>
         </div>
 
         <div class="text-center mb-4">
@@ -202,6 +209,32 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         autoCheckStatus();
+
+        // JS Countdown Timer
+        const expiryTime = new Date("{{ $team->updated_at->addDay()->toIso8601String() }}").getTime();
+        
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = expiryTime - now;
+
+            if (distance < 0) {
+                document.getElementById("countdownTimer").innerHTML = "KEDALUWARSA";
+                clearInterval(timerInterval);
+                return;
+            }
+
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("countdownTimer").innerHTML = 
+                (hours < 10 ? "0" + hours : hours) + ":" + 
+                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                (seconds < 10 ? "0" + seconds : seconds);
+        }
+
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
     });
 </script>
 @endsection
