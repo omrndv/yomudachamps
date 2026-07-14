@@ -21,9 +21,9 @@ class IPaymuController extends Controller
                 ? 'https://sandbox.ipaymu.com/api/v2/payment/direct'
                 : 'https://my.ipaymu.com/api/v2/payment/direct';
 
-            $baseAmount = (int) ($team->amount > 0 ? $team->amount : ($team->season->price ?? 0));
-            $adminFee = (int) round($baseAmount * 0.007) + 179;
-            $finalAmount = $baseAmount + $adminFee;
+            $requestAmount = (int) ($team->season->price ?? 10000);
+            $adminFee = (int) round($requestAmount * 0.007) + 179;
+            $finalAmount = $requestAmount + $adminFee;
 
             $notifyUrl = config('app.url') ? rtrim(config('app.url'), '/') . '/api/ipaymu/callback' : url('/api/ipaymu/callback');
 
@@ -37,7 +37,7 @@ class IPaymuController extends Controller
                 'name' => $team->name,
                 'email' => 'player@yomuda.com',
                 'phone' => $phone,
-                'amount' => $finalAmount,
+                'amount' => $requestAmount,
                 'notifyUrl' => $notifyUrl,
                 'returnUrl' => route('payment.success', $team->trx_id),
                 'cancelUrl' => route('payment.confirm', $team->trx_id),
