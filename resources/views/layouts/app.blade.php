@@ -333,7 +333,7 @@
     </script>
     @endif
 
-    
+    {{--
     <div id="yomuda-ai-chat" class="position-fixed bottom-0 end-0 m-3 m-md-4" style="z-index: 2000; font-family: 'Outfit', sans-serif;">
         
         <button id="ai-chat-toggle" class="btn btn-warning rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border: 2px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;">
@@ -460,9 +460,11 @@
             }
         }
     </style>
+    --}}
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            /* COMMENT OUT CHATBOT JS
             const toggleBtn = document.getElementById('ai-chat-toggle');
             const closeBtn = document.getElementById('ai-chat-close-btn');
             const clearBtn = document.getElementById('ai-chat-clear-btn');
@@ -645,6 +647,7 @@
                     });
                 });
             }
+            */
             // Global Page Loader Controls
             const pageLoader = document.getElementById('global-page-loader');
             const loaderStatus = document.getElementById('global-loader-status');
