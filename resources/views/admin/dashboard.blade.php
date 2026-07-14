@@ -264,15 +264,17 @@
                         
                         // Tentukan jalur pendaftaran berdasarkan logika halaman finance
                         $payType = 'other';
+                        $isIpaymu = str_contains($team->payment_method ?? '', 'qrserver') || str_contains($team->payment_method ?? '', 'ipaymu') || $team->payment_method === 'IPAYMU_QRIS';
+                        
                         if ($team->is_solo_team) {
                             $payType = 'solo';
-                        } elseif (!empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && $team->payment_method !== 'IPAYMU_QRIS') {
+                        } elseif (!empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && !$isIpaymu) {
                             $payType = 'tripay';
-                        } elseif ($team->payment_method === 'IPAYMU_QRIS') {
+                        } elseif ($isIpaymu) {
                             $payType = 'ipaymu';
                         } elseif ($team->payment_method === 'GOPAY_QRIS') {
                             $payType = 'manual';
-                        } elseif (str_starts_with($team->trx_id, 'YMD' . $current_season->id) && empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && $team->payment_method !== 'IPAYMU_QRIS') {
+                        } elseif (str_starts_with($team->trx_id, 'YMD' . $current_season->id) && empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && !$isIpaymu) {
                             $payType = 'admin';
                         }
                     @endphp
