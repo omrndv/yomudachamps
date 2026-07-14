@@ -25,10 +25,16 @@ class IPaymuController extends Controller
 
             $notifyUrl = config('app.url') ? rtrim(config('app.url'), '/') . '/api/ipaymu/callback' : url('/api/ipaymu/callback');
 
+            // Bersihkan nomor whatsapp agar hanya berisi angka
+            $phone = preg_replace('/[^0-9]/', '', $team->wa_number);
+            if (str_starts_with($phone, '0')) {
+                $phone = '62' . substr($phone, 1);
+            }
+
             $body = [
                 'name' => $team->name,
                 'email' => 'player@yomuda.com',
-                'phone' => $team->wa_number,
+                'phone' => $phone,
                 'amount' => $amount,
                 'notifyUrl' => $notifyUrl,
                 'returnUrl' => route('payment.success', $team->trx_id),
@@ -73,18 +79,26 @@ class IPaymuController extends Controller
 
             $result = json_decode($response);
 
-            if (isset($result->Status) && $result->Status == 200 && isset($result->Data->QrImage)) {
+            // Handle keys (bisa Status/status, Data/data, Message/message)
+            $resStatus = $result->Status ?? $result->status ?? null;
+            $resData = $result->Data ?? $result->data ?? null;
+            $resMessage = $result->Message ?? $result->message ?? null;
+
+            if ($resStatus == 200 && $resData && (isset($resData->QrImage) || isset($resData->qr_image))) {
                 return (object)[
                     'success' => true,
-                    'transaction_id' => $result->Data->TransactionId,
-                    'qr_image' => $result->Data->QrImage,
-                    'qr_string' => $result->Data->QrString ?? '',
-                    'expired' => $result->Data->Expired,
+                    'transaction_id' => $resData->TransactionId ?? $resData->transaction_id ?? '',
+                    'qr_image' => $resData->QrImage ?? $resData->qr_image ?? '',
+                    'qr_string' => $resData->QrString ?? $resData->qr_string ?? '',
+                    'expired' => $resData->Expired ?? $resData->expired ?? '',
                     'message' => 'Success'
                 ];
             }
 
-            $msg = $result->Message ?? 'Gagal membuat transaksi ke iPaymu';
+            $msg = $resMessage ?? 'Gagal membuat transaksi ke iPaymu';
+            if ($response) {
+                $msg .= ' (API Response: ' . $response . ')';
+            }
             Log::error('IPaymu Request Transaction Failed: ' . $response);
             return (object)[
                 'success' => false,
