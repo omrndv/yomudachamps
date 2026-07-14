@@ -464,7 +464,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            /* COMMENT OUT CHATBOT JS
+            if (false) { // Nonaktifkan Chatbot JS
             const toggleBtn = document.getElementById('ai-chat-toggle');
             const closeBtn = document.getElementById('ai-chat-close-btn');
             const clearBtn = document.getElementById('ai-chat-clear-btn');
@@ -647,7 +647,7 @@
                     });
                 });
             }
-            */
+            }
             // Global Page Loader Controls
             const pageLoader = document.getElementById('global-page-loader');
             const loaderStatus = document.getElementById('global-loader-status');
