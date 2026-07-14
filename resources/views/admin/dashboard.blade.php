@@ -226,6 +226,7 @@
                 <select id="filterPayType" class="form-select rounded-3 shadow-none border" style="max-width: 200px; font-size: 0.82rem; padding: 0.5rem 1rem;">
                     <option value="all">Semua Jalur</option>
                     <option value="tripay">TriPay QRIS</option>
+                    <option value="ipaymu">iPaymu QRIS</option>
                     <option value="manual">Manual QRIS</option>
                     <option value="solo">Solo Player</option>
                     <option value="admin">Admin / Bulk</option>
