@@ -19,7 +19,7 @@ class IPaymuController extends Controller
 
             $url = ($mode === 'sandbox')
                 ? 'https://sandbox.ipaymu.com/api/v2/payment/direct'
-                : 'https://payment.ipaymu.com/api/v2/payment/direct';
+                : 'https://my.ipaymu.com/api/v2/payment/direct';
 
             $amount = (int) $team->season->price;
 
