@@ -289,6 +289,11 @@ class HomeController extends Controller
                 return back()->with('error', 'Metode pembayaran iPaymu sedang tidak aktif.');
             }
 
+            // CEK TRANSAKSI AKTIF (Agar tidak request dobel ke iPaymu)
+            if ($team->tripay_reference && str_starts_with($team->payment_method ?? '', 'http')) {
+                return redirect()->route('payment.detail', $team->trx_id);
+            }
+
             $ipaymu = new IPaymuController();
             $transaction = $ipaymu->requestTransaction($team);
 
@@ -310,6 +315,11 @@ class HomeController extends Controller
         } else {
             if (\App\Models\Setting::getVal('payment_gateway_tripay', 'on') !== 'on') {
                 return back()->with('error', 'Metode pembayaran TriPay sedang tidak aktif.');
+            }
+
+            // CEK TRANSAKSI AKTIF (Agar tidak request dobel ke TriPay)
+            if ($team->tripay_reference && $team->payment_method === $method) {
+                return redirect()->route('payment.detail', $team->trx_id);
             }
 
             $tripay = new TripayController();
