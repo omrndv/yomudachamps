@@ -129,7 +129,7 @@
         <div class="text-center mb-4">
             <span class="text-secondary small d-block mb-1">Total Pembayaran (Termasuk Biaya Admin):</span>
             <h3 class="fw-bold text-warning mb-0" style="font-family: 'Arial Black';">Rp {{ number_format($displayAmount, 0, ',', '.') }}</h3>
-            <span class="text-muted small" style="font-size: 0.72rem;">(Biaya pendaftaran Rp {{ number_format($team->season->price, 0, ',', '.') }} + Biaya Layanan QRIS)</span>
+            <span class="small" style="font-size: 0.72rem; color: rgba(255, 255, 255, 0.6) !important;">(Biaya pendaftaran Rp {{ number_format($team->season->price, 0, ',', '.') }} + Biaya Layanan QRIS)</span>
         </div>
 
         {{-- Countdown Timer --}}
