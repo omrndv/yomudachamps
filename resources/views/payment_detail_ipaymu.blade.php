@@ -116,9 +116,19 @@
             <p class="text-secondary small mt-1">Selesaikan pembayaran secara instan di bawah ini</p>
         </div>
 
+        @php
+            $baseAmount = $team->amount > 0 ? $team->amount : $team->season->price;
+            // Jika nominal di database belum include biaya admin, hitung dinamis di view agar data lama langsung update
+            if ($baseAmount == $team->season->price) {
+                $adminFee = (int) round($baseAmount * 0.007) + 179;
+                $displayAmount = $baseAmount + $adminFee;
+            } else {
+                $displayAmount = $baseAmount;
+            }
+        @endphp
         <div class="text-center mb-4">
             <span class="text-secondary small d-block mb-1">Total Pembayaran (Termasuk Biaya Admin):</span>
-            <h3 class="fw-bold text-warning mb-0" style="font-family: 'Arial Black';">Rp {{ number_format($team->amount > 0 ? $team->amount : $team->season->price, 0, ',', '.') }}</h3>
+            <h3 class="fw-bold text-warning mb-0" style="font-family: 'Arial Black';">Rp {{ number_format($displayAmount, 0, ',', '.') }}</h3>
             <span class="text-muted small" style="font-size: 0.72rem;">(Biaya pendaftaran Rp {{ number_format($team->season->price, 0, ',', '.') }} + Biaya Layanan QRIS)</span>
         </div>
 
