@@ -2493,7 +2493,7 @@ class AdminController extends Controller
                     'season_name' => $season->name,
                     'juara1' => $season->manual_juara1,
                     'juara2' => $season->manual_juara2 ?? '[Belum Ditentukan]',
-                    'juara3' => $season->manual_juara3 ?? '[Tidak Ada / Belum Ditentukan]',
+                    'juara3' => !empty($season->manual_juara3) ? $season->manual_juara3 : '[Opsional / Tidak Didaftarkan]',
                     'team_count' => \App\Models\Team::where('season_id', $season->id)->where('status', 'PAID')->count()
                 ];
                 continue;

@@ -2675,12 +2675,14 @@ fetchAdminChatThreads();
                         @php
                             $juara1 = '[Belum Ditentukan]';
                             $juara2 = '[Belum Ditentukan]';
-                            $juara3 = '[Belum Ditentukan]';
+                            $juara3 = null;
+                            $juara4 = null;
 
                             if (!empty($season->manual_juara1)) {
                                 $juara1 = $season->manual_juara1;
                                 $juara2 = $season->manual_juara2 ?? '[Belum Ditentukan]';
-                                $juara3 = $season->manual_juara3 ?? '[Tidak Ada / Belum Ditentukan]';
+                                $juara3 = $season->manual_juara3 ?: null;
+                                $juara4 = $season->manual_juara4 ?: null;
                             } else {
                                 $finalRoundNumber = $brackets->max('round_number') ?? 0;
                                 $finalMatch = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 1)->first();
@@ -2704,8 +2706,11 @@ Pengumuman Juara Yomuda Championship {{ $season->name }} resmi dirilis! 🎉
 Berikut kami umumkan para juara turnamen kali ini:
 
 🥇 *Juara 1: {{ $juara1 }}* 
-🥈 *Juara 2: {{ $juara2 }}* 
-🥉 *Juara 3: {{ $juara3 }}* 
+🥈 *Juara 2: {{ $juara2 }}* @if($juara3)
+
+🥉 *Juara 3: {{ $juara3 }}*@endif @if($juara4)
+
+🏅 *Juara 4: {{ $juara4 }}*@endif
 
 Selamat kepada para pemenang! Kalian udah menunjukkan permainan terbaik dan pantas jadi yang teratas! 🔥💯
 
@@ -2855,7 +2860,7 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara2" name="manual_juara2" value="{{ $season->manual_juara2 }}" placeholder="Contoh: TEAM EVOS">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">🥉 Juara 3</label>
+                        <label class="form-label small fw-bold text-dark">🥉 Juara 3 (Opsional)</label>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara3" name="manual_juara3" value="{{ $season->manual_juara3 }}" placeholder="Contoh: TEAM RRQ">
                     </div>
                     <div class="mb-3">
