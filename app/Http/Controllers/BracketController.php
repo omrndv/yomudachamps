@@ -55,6 +55,9 @@ class BracketController extends Controller
     /**
      * Generate/Seed bracket baru untuk season
      */
+    /**
+     * Generate/Seed bracket baru untuk season
+     */
     public function generateBracket(Request $request, $season_id)
     {
         $season = Season::findOrFail($season_id);
@@ -83,19 +86,135 @@ class BracketController extends Controller
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
-            // Shuffle teams for fair seeding
-            $shuffledTeams = $teams->shuffle()->values();
+            // Categorize teams: YMD (Buyslot), Solo, Regular
+            $ymdList = [];
+            $soloList = [];
+            $regularList = [];
 
-            // Generate Matches for Round 1
+            foreach ($teams->shuffle() as $team) {
+                if (preg_match('/^ymd-/i', trim($team->name))) {
+                    $ymdList[] = $team;
+                } elseif ($team->is_solo_team) {
+                    $soloList[] = $team;
+                } else {
+                    $regularList[] = $team;
+                }
+            }
+
             $matchesInRound1 = $bracketSize / 2;
+            $matchSlots = [];
+            for ($m = 1; $m <= $matchesInRound1; $m++) {
+                $matchSlots[$m] = ['team1' => null, 'team2' => null];
+            }
+
+            // 1. PLACEMENT OF YMD TEAMS WITH SPACING
+            $totalYmdMatches = (int) ceil(count($ymdList) / 2);
+            if ($totalYmdMatches > 0) {
+                // Determine number of blocks (each block up to 4 matches = 8 teams)
+                $numBlocks = (int) ceil($totalYmdMatches / 4);
+                
+                // Determine target start match index for each block
+                $blockStarts = [];
+                if ($matchesInRound1 >= 16 && $numBlocks > 1) {
+                    $remainingMatches = $matchesInRound1 - $totalYmdMatches;
+                    for ($k = 0; $k < $numBlocks; $k++) {
+                        $accumulatedMatches = $k * 4;
+                        $accumulatedGap = (int) floor($k * $remainingMatches / $numBlocks);
+                        $startMatch = 1 + $accumulatedMatches + $accumulatedGap;
+                        if ($startMatch > $matchesInRound1) {
+                            $startMatch = $matchesInRound1;
+                        }
+                        $blockStarts[] = $startMatch;
+                    }
+                } else {
+                    // Sequential placement starting at match 1
+                    $currentMatch = 1;
+                    for ($k = 0; $k < $numBlocks; $k++) {
+                        $blockStarts[] = $currentMatch;
+                        $currentMatch += 4;
+                    }
+                }
+
+                // Fill YMD matches into matchSlots
+                $ymdIndex = 0;
+                $ymdCount = count($ymdList);
+
+                for ($k = 0; $k < $numBlocks; $k++) {
+                    $matchesInThisBlock = min(4, $totalYmdMatches - ($k * 4));
+                    $startMatch = $blockStarts[$k];
+
+                    for ($b = 0; $b < $matchesInThisBlock; $b++) {
+                        $targetMatchNum = $startMatch + $b;
+                        // Find closest unassigned match slot if targetMatchNum is taken
+                        while ($targetMatchNum <= $matchesInRound1 && ($matchSlots[$targetMatchNum]['team1'] !== null || $matchSlots[$targetMatchNum]['team2'] !== null)) {
+                            $targetMatchNum++;
+                        }
+                        if ($targetMatchNum > $matchesInRound1) {
+                            // fallback to first empty slot
+                            for ($findEmpty = 1; $findEmpty <= $matchesInRound1; $findEmpty++) {
+                                if ($matchSlots[$findEmpty]['team1'] === null && $matchSlots[$findEmpty]['team2'] === null) {
+                                    $targetMatchNum = $findEmpty;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($targetMatchNum <= $matchesInRound1) {
+                            $t1 = $ymdList[$ymdIndex++] ?? null;
+                            $t2 = ($ymdIndex < $ymdCount) ? $ymdList[$ymdIndex++] : null;
+                            $matchSlots[$targetMatchNum] = ['team1' => $t1, 'team2' => $t2];
+                        }
+                    }
+                }
+            }
+
+            // 2. PLACEMENT OF SOLO TEAMS (Solo vs Solo)
+            $soloIndex = 0;
+            $soloCount = count($soloList);
+            while ($soloIndex < $soloCount) {
+                $t1 = $soloList[$soloIndex++];
+                $t2 = ($soloIndex < $soloCount) ? $soloList[$soloIndex++] : null;
+
+                // Find next completely empty match slot
+                $foundSlot = null;
+                for ($m = 1; $m <= $matchesInRound1; $m++) {
+                    if ($matchSlots[$m]['team1'] === null && $matchSlots[$m]['team2'] === null) {
+                        $foundSlot = $m;
+                        break;
+                    }
+                }
+
+                if ($foundSlot !== null) {
+                    $matchSlots[$foundSlot] = ['team1' => $t1, 'team2' => $t2];
+                } else {
+                    // If no completely empty slot, put into regular queue
+                    $regularList[] = $t1;
+                    if ($t2) $regularList[] = $t2;
+                }
+            }
+
+            // 3. FILL REGULAR TEAMS & COMPLETE PARTIAL SLOTS
+            // First: fill team2 for any slot that has team1 but no team2 (from odd YMD or odd Solo)
+            for ($m = 1; $m <= $matchesInRound1; $m++) {
+                if ($matchSlots[$m]['team1'] !== null && $matchSlots[$m]['team2'] === null && count($regularList) > 0) {
+                    $matchSlots[$m]['team2'] = array_shift($regularList);
+                }
+            }
+
+            // Second: fill completely empty slots with pairs from regularList
+            for ($m = 1; $m <= $matchesInRound1; $m++) {
+                if ($matchSlots[$m]['team1'] === null && $matchSlots[$m]['team2'] === null) {
+                    $t1 = array_shift($regularList);
+                    $t2 = array_shift($regularList);
+                    $matchSlots[$m] = ['team1' => $t1, 'team2' => $t2];
+                }
+            }
+
+            // Generate DB Brackets for Round 1
             $round1Matches = [];
-
             for ($matchNum = 1; $matchNum <= $matchesInRound1; $matchNum++) {
-                $t1Index = ($matchNum - 1) * 2;
-                $t2Index = $t1Index + 1;
-
-                $team1 = $shuffledTeams->get($t1Index);
-                $team2 = $shuffledTeams->get($t2Index);
+                $team1 = $matchSlots[$matchNum]['team1'];
+                $team2 = $matchSlots[$matchNum]['team2'];
 
                 $bracket = new Bracket();
                 $bracket->season_id = $season_id;
@@ -103,11 +222,11 @@ class BracketController extends Controller
                 $bracket->match_number = $matchNum;
                 $bracket->team1_id = $team1 ? $team1->id : null;
                 $bracket->team2_id = $team2 ? $team2->id : null;
-                $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount); // Default time
+                $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount);
                 $bracket->status = 'upcoming';
 
-                // Handle BYE automatically
-                if ($team1 && !$team2 && $t2Index >= $teamCount) {
+                // Handle BYE automatically if team1 exists but team2 does not
+                if ($team1 && !$team2) {
                     $bracket->winner_id = $team1->id;
                     $bracket->team1_score = 1;
                     $bracket->team2_score = 0;
@@ -144,7 +263,7 @@ class BracketController extends Controller
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'Bagan tanding berhasil di-generate secara acak untuk ' . $teamCount . ' tim!');
+            return redirect()->back()->with('success', 'Bagan tanding berhasil di-generate sesuai aturan pengelompokan untuk ' . $teamCount . ' tim!');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withErrors(['error' => 'Gagal generate bracket: ' . $e->getMessage()]);
