@@ -2487,6 +2487,18 @@ class AdminController extends Controller
         $completedTournaments = [];
 
         foreach ($seasons as $season) {
+            // Check manual champions first (override if set)
+            if (!empty($season->manual_juara1)) {
+                $completedTournaments[] = [
+                    'season_name' => $season->name,
+                    'juara1' => $season->manual_juara1,
+                    'juara2' => $season->manual_juara2 ?? '[Belum Ditentukan]',
+                    'juara3' => $season->manual_juara3 ?? '[Tidak Ada / Belum Ditentukan]',
+                    'team_count' => \App\Models\Team::where('season_id', $season->id)->where('status', 'PAID')->count()
+                ];
+                continue;
+            }
+
             $brackets = \App\Models\Bracket::where('season_id', $season->id)->with(['team1', 'team2', 'winner'])->get();
             if ($brackets->isEmpty()) {
                 continue;

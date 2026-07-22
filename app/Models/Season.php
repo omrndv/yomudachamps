@@ -19,7 +19,11 @@ class Season extends Model
         'prize_pool',
         'rules_link',
         'schedule_info',
-        'is_bracket_visible'
+        'is_bracket_visible',
+        'manual_juara1',
+        'manual_juara2',
+        'manual_juara3',
+        'manual_juara4'
     ];
 
     public function teams(): HasMany

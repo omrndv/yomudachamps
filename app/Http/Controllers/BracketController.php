@@ -877,6 +877,34 @@ class BracketController extends Controller
         }
     }
 
+    /**
+     * Update/Reset manual winners for season (Admin API)
+     */
+    public function updateManualWinners(Request $request, $season_id)
+    {
+        $season = Season::findOrFail($season_id);
+
+        $request->validate([
+            'manual_juara1' => 'nullable|string|max:255',
+            'manual_juara2' => 'nullable|string|max:255',
+            'manual_juara3' => 'nullable|string|max:255',
+            'manual_juara4' => 'nullable|string|max:255',
+        ]);
+
+        $season->manual_juara1 = $request->manual_juara1 ? trim($request->manual_juara1) : null;
+        $season->manual_juara2 = $request->manual_juara2 ? trim($request->manual_juara2) : null;
+        $season->manual_juara3 = $request->manual_juara3 ? trim($request->manual_juara3) : null;
+        $season->manual_juara4 = $request->manual_juara4 ? trim($request->manual_juara4) : null;
+        $season->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $season->manual_juara1 
+                ? 'Data Juara Manual berhasil disimpan!' 
+                : 'Data Juara Manual direset! Hasil juara akan kembali diambil otomatis dari bracket.'
+        ]);
+    }
+
     // =========================================================================
     // Real-Time Live Chat Controller Methods
     // =========================================================================

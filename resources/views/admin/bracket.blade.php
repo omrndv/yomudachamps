@@ -92,6 +92,10 @@
                         <i class="bi bi-clipboard me-1"></i> Copy Daftar Tim (Backup)
                     </button>
                     
+                    <button type="button" class="btn {{ $season->manual_juara1 ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalManualWinners">
+                        <i class="bi bi-trophy-fill me-1"></i> {{ $season->manual_juara1 ? '🏆 Juara Manual (Aktif)' : 'Input Juara Manual' }}
+                    </button>
+                    
                     @if($brackets->count() > 0)
                         <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" onsubmit="return confirm('PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?')" class="d-inline">
                             @csrf
@@ -2669,23 +2673,29 @@ fetchAdminChatThreads();
                     </div>
                     <div class="card-body p-3">
                         @php
-                            $finalRoundNumber = $brackets->max('round_number') ?? 0;
-                            $finalMatch = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 1)->first();
-                            $bronzeMatchObj = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 2)->first();
-
                             $juara1 = '[Belum Ditentukan]';
                             $juara2 = '[Belum Ditentukan]';
                             $juara3 = '[Belum Ditentukan]';
 
-                            if ($finalMatch && $finalMatch->status === 'finished' && $finalMatch->winner) {
-                                $juara1 = $finalMatch->winner->name;
-                                $juara2 = ($finalMatch->winner_id == $finalMatch->team1_id) 
-                                    ? ($finalMatch->team2->name ?? '[Belum Ditentukan]') 
-                                    : ($finalMatch->team1->name ?? '[Belum Ditentukan]');
-                            }
+                            if (!empty($season->manual_juara1)) {
+                                $juara1 = $season->manual_juara1;
+                                $juara2 = $season->manual_juara2 ?? '[Belum Ditentukan]';
+                                $juara3 = $season->manual_juara3 ?? '[Tidak Ada / Belum Ditentukan]';
+                            } else {
+                                $finalRoundNumber = $brackets->max('round_number') ?? 0;
+                                $finalMatch = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 1)->first();
+                                $bronzeMatchObj = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 2)->first();
 
-                            if ($bronzeMatchObj && $bronzeMatchObj->status === 'finished' && $bronzeMatchObj->winner) {
-                                $juara3 = $bronzeMatchObj->winner->name;
+                                if ($finalMatch && $finalMatch->status === 'finished' && $finalMatch->winner) {
+                                    $juara1 = $finalMatch->winner->name;
+                                    $juara2 = ($finalMatch->winner_id == $finalMatch->team1_id) 
+                                        ? ($finalMatch->team2->name ?? '[Belum Ditentukan]') 
+                                        : ($finalMatch->team1->name ?? '[Belum Ditentukan]');
+                                }
+
+                                if ($bronzeMatchObj && $bronzeMatchObj->status === 'finished' && $bronzeMatchObj->winner) {
+                                    $juara3 = $bronzeMatchObj->winner->name;
+                                }
                             }
                         @endphp
                         <textarea id="textareaJuara" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="8" readonly style="font-size: 0.78rem;">*🎉🏆 JUARA YOMUDA CHAMPIONSHIP {{ strtoupper($season->name) }} 🏆🎉*
@@ -2816,5 +2826,100 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
 
     // Run generateRoomtour once on modal show to prefill
     document.getElementById('modalShareTemplates').addEventListener('show.bs.modal', generateRoomtour);
+</script>
+
+{{-- Modal Input Juara Manual --}}
+<div class="modal fade" id="modalManualWinners" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-dark">
+            <div class="modal-header border-bottom border-light p-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>Input / Edit Juara Manual
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formManualWinners">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 small mb-3">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Jika data juara manual diisi, maka rekap AI di <b>/dashboard</b> dan Teks Share WA akan menggunakan juara manual ini. Jika dikosongkan/direset, sistem akan otomatis mengambil juara dari hasil pertandingan bracket.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">🥇 Juara 1</label>
+                        <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara1" name="manual_juara1" value="{{ $season->manual_juara1 }}" placeholder="Contoh: TEAM OPM">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">🥈 Juara 2</label>
+                        <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara2" name="manual_juara2" value="{{ $season->manual_juara2 }}" placeholder="Contoh: TEAM EVOS">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">🥉 Juara 3</label>
+                        <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara3" name="manual_juara3" value="{{ $season->manual_juara3 }}" placeholder="Contoh: TEAM RRQ">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">🏅 Juara 4 (Opsional)</label>
+                        <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara4" name="manual_juara4" value="{{ $season->manual_juara4 }}" placeholder="Contoh: TEAM ONIC">
+                    </div>
+
+                    <datalist id="teamsList">
+                        @foreach($teams as $t)
+                            <option value="{{ $t->name }}">
+                        @endforeach
+                    </datalist>
+                </div>
+                <div class="modal-footer border-top border-light p-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="resetManualWinners()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset (Gunakan Bracket)
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold small" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold small text-dark">
+                            <i class="bi bi-check-lg me-1"></i>Simpan Juara
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('formManualWinners').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch("{{ route('admin.season.bracket.update-manual-winners', $season->id) }}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: data.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Gagal menyimpan data.', 'error');
+            }
+        })
+        .catch(err => Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error'));
+    });
+
+    function resetManualWinners() {
+        if (!confirm('Hapus inputan juara manual dan kembali gunakan hasil otomatis bracket?')) return;
+        document.getElementById('inputManualJuara1').value = '';
+        document.getElementById('inputManualJuara2').value = '';
+        document.getElementById('inputManualJuara3').value = '';
+        document.getElementById('inputManualJuara4').value = '';
+        document.getElementById('formManualWinners').dispatchEvent(new Event('submit'));
+    }
 </script>
 @endsection
