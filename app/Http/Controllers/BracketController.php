@@ -891,18 +891,32 @@ class BracketController extends Controller
             'manual_juara4' => 'nullable|string|max:255',
         ]);
 
-        $season->manual_juara1 = $request->manual_juara1 ? trim($request->manual_juara1) : null;
-        $season->manual_juara2 = $request->manual_juara2 ? trim($request->manual_juara2) : null;
-        $season->manual_juara3 = $request->manual_juara3 ? trim($request->manual_juara3) : null;
-        $season->manual_juara4 = $request->manual_juara4 ? trim($request->manual_juara4) : null;
-        $season->save();
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('seasons', 'manual_juara1')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Database di server belum di-migrate. Silakan jalankan "php artisan migrate" di SSH/Terminal server hosting Anda.'
+                ], 400);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => $season->manual_juara1 
-                ? 'Data Juara Manual berhasil disimpan!' 
-                : 'Data Juara Manual direset! Hasil juara akan kembali diambil otomatis dari bracket.'
-        ]);
+            $season->manual_juara1 = $request->manual_juara1 ? trim($request->manual_juara1) : null;
+            $season->manual_juara2 = $request->manual_juara2 ? trim($request->manual_juara2) : null;
+            $season->manual_juara3 = $request->manual_juara3 ? trim($request->manual_juara3) : null;
+            $season->manual_juara4 = $request->manual_juara4 ? trim($request->manual_juara4) : null;
+            $season->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => $season->manual_juara1 
+                    ? 'Data Juara Manual berhasil disimpan!' 
+                    : 'Data Juara Manual direset! Hasil juara akan kembali diambil otomatis dari bracket.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan juara manual: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // =========================================================================

@@ -2488,7 +2488,7 @@ class AdminController extends Controller
 
         foreach ($seasons as $season) {
             // Check manual champions first (override if set)
-            if (!empty($season->manual_juara1)) {
+            if (isset($season->manual_juara1) && !empty($season->manual_juara1)) {
                 $completedTournaments[] = [
                     'season_name' => $season->name,
                     'juara1' => $season->manual_juara1,
