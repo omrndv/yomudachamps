@@ -102,111 +102,72 @@ class BracketController extends Controller
             }
 
             $matchesInRound1 = $bracketSize / 2;
-            $matchSlots = [];
-            for ($m = 1; $m <= $matchesInRound1; $m++) {
-                $matchSlots[$m] = ['team1' => null, 'team2' => null];
+
+            // Build List of Matches for Round 1
+            $allMatchPairs = [];
+
+            // 1. BUILD YMD MATCH BLOCKS (per 4 matches / 8 teams)
+            $ymdIndex = 0;
+            $ymdCount = count($ymdList);
+            while ($ymdIndex < $ymdCount) {
+                $block = [];
+                for ($b = 0; $b < 4 && $ymdIndex < $ymdCount; $b++) {
+                    $t1 = $ymdList[$ymdIndex++];
+                    $t2 = ($ymdIndex < $ymdCount) ? $ymdList[$ymdIndex++] : null;
+                    $block[] = ['team1' => $t1, 'team2' => $t2];
+                }
+                $allMatchPairs[] = $block; // Store block of up to 4 matches
             }
 
-            // 1. PLACEMENT OF YMD TEAMS WITH SPACING
-            $totalYmdMatches = (int) ceil(count($ymdList) / 2);
-            if ($totalYmdMatches > 0) {
-                // Determine number of blocks (each block up to 4 matches = 8 teams)
-                $numBlocks = (int) ceil($totalYmdMatches / 4);
-                
-                // Determine target start match index for each block
-                $blockStarts = [];
-                if ($matchesInRound1 >= 16 && $numBlocks > 1) {
-                    $remainingMatches = $matchesInRound1 - $totalYmdMatches;
-                    for ($k = 0; $k < $numBlocks; $k++) {
-                        $accumulatedMatches = $k * 4;
-                        $accumulatedGap = (int) floor($k * $remainingMatches / $numBlocks);
-                        $startMatch = 1 + $accumulatedMatches + $accumulatedGap;
-                        if ($startMatch > $matchesInRound1) {
-                            $startMatch = $matchesInRound1;
-                        }
-                        $blockStarts[] = $startMatch;
-                    }
-                } else {
-                    // Sequential placement starting at match 1
-                    $currentMatch = 1;
-                    for ($k = 0; $k < $numBlocks; $k++) {
-                        $blockStarts[] = $currentMatch;
-                        $currentMatch += 4;
-                    }
-                }
-
-                // Fill YMD matches into matchSlots
-                $ymdIndex = 0;
-                $ymdCount = count($ymdList);
-
-                for ($k = 0; $k < $numBlocks; $k++) {
-                    $matchesInThisBlock = min(4, $totalYmdMatches - ($k * 4));
-                    $startMatch = $blockStarts[$k];
-
-                    for ($b = 0; $b < $matchesInThisBlock; $b++) {
-                        $targetMatchNum = $startMatch + $b;
-                        // Find closest unassigned match slot if targetMatchNum is taken
-                        while ($targetMatchNum <= $matchesInRound1 && ($matchSlots[$targetMatchNum]['team1'] !== null || $matchSlots[$targetMatchNum]['team2'] !== null)) {
-                            $targetMatchNum++;
-                        }
-                        if ($targetMatchNum > $matchesInRound1) {
-                            // fallback to first empty slot
-                            for ($findEmpty = 1; $findEmpty <= $matchesInRound1; $findEmpty++) {
-                                if ($matchSlots[$findEmpty]['team1'] === null && $matchSlots[$findEmpty]['team2'] === null) {
-                                    $targetMatchNum = $findEmpty;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($targetMatchNum <= $matchesInRound1) {
-                            $t1 = $ymdList[$ymdIndex++] ?? null;
-                            $t2 = ($ymdIndex < $ymdCount) ? $ymdList[$ymdIndex++] : null;
-                            $matchSlots[$targetMatchNum] = ['team1' => $t1, 'team2' => $t2];
-                        }
-                    }
-                }
-            }
-
-            // 2. PLACEMENT OF SOLO TEAMS (Solo vs Solo)
+            // 2. BUILD SOLO MATCHES (Solo vs Solo)
             $soloIndex = 0;
             $soloCount = count($soloList);
             while ($soloIndex < $soloCount) {
                 $t1 = $soloList[$soloIndex++];
                 $t2 = ($soloIndex < $soloCount) ? $soloList[$soloIndex++] : null;
+                $allMatchPairs[] = [['team1' => $t1, 'team2' => $t2]]; // Single match block
+            }
 
-                // Find next completely empty match slot
-                $foundSlot = null;
-                for ($m = 1; $m <= $matchesInRound1; $m++) {
-                    if ($matchSlots[$m]['team1'] === null && $matchSlots[$m]['team2'] === null) {
-                        $foundSlot = $m;
-                        break;
+            // 3. COMPLETE PARTIAL MATCHES IF ANY (odd YMD or odd Solo) WITH REGULAR TEAMS
+            foreach ($allMatchPairs as &$unit) {
+                foreach ($unit as &$mPair) {
+                    if ($mPair['team1'] !== null && $mPair['team2'] === null && count($regularList) > 0) {
+                        $mPair['team2'] = array_shift($regularList);
                     }
                 }
+            }
+            unset($unit, $mPair);
 
-                if ($foundSlot !== null) {
-                    $matchSlots[$foundSlot] = ['team1' => $t1, 'team2' => $t2];
-                } else {
-                    // If no completely empty slot, put into regular queue
-                    $regularList[] = $t1;
-                    if ($t2) $regularList[] = $t2;
-                }
+            // 4. BUILD REGULAR MATCHES
+            while (count($regularList) > 0) {
+                $t1 = array_shift($regularList);
+                $t2 = count($regularList) > 0 ? array_shift($regularList) : null;
+                $allMatchPairs[] = [['team1' => $t1, 'team2' => $t2]];
             }
 
-            // 3. FILL REGULAR TEAMS & COMPLETE PARTIAL SLOTS
-            // First: fill team2 for any slot that has team1 but no team2 (from odd YMD or odd Solo)
-            for ($m = 1; $m <= $matchesInRound1; $m++) {
-                if ($matchSlots[$m]['team1'] !== null && $matchSlots[$m]['team2'] === null && count($regularList) > 0) {
-                    $matchSlots[$m]['team2'] = array_shift($regularList);
-                }
+            // 5. FILL EMPTY MATCHES IF TOTAL MATCHES < matchesInRound1 (for BYE placeholders)
+            $currentTotalMatches = 0;
+            foreach ($allMatchPairs as $unit) {
+                $currentTotalMatches += count($unit);
             }
 
-            // Second: fill completely empty slots with pairs from regularList
-            for ($m = 1; $m <= $matchesInRound1; $m++) {
-                if ($matchSlots[$m]['team1'] === null && $matchSlots[$m]['team2'] === null) {
-                    $t1 = array_shift($regularList);
-                    $t2 = array_shift($regularList);
-                    $matchSlots[$m] = ['team1' => $t1, 'team2' => $t2];
+            while ($currentTotalMatches < $matchesInRound1) {
+                $allMatchPairs[] = [['team1' => null, 'team2' => null]];
+                $currentTotalMatches++;
+            }
+
+            // 6. SHUFFLE THE MATCH UNITS (Randomize position of YMD 4-match blocks, Solo matches, & Regular matches)
+            shuffle($allMatchPairs);
+
+            // 7. FLATTEN INTO ROUND 1 MATCH SLOTS (1 to matchesInRound1)
+            $matchSlots = [];
+            $slotNum = 1;
+            foreach ($allMatchPairs as $unit) {
+                foreach ($unit as $mPair) {
+                    if ($slotNum <= $matchesInRound1) {
+                        $matchSlots[$slotNum] = $mPair;
+                        $slotNum++;
+                    }
                 }
             }
 
