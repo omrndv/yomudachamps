@@ -159,17 +159,54 @@ class BracketController extends Controller
             $numSectors = (int) ceil($matchesInRound1 / 4);
             $sectors = array_fill(0, $numSectors, []);
 
-            // 1. Assign full YMD blocks into available sector slots (avoid Sector 0 / Match 1-4 if multiple sectors exist)
-            $availableSectorIndexes = range(0, $numSectors - 1);
+            // Candidate sector indexes (exclude Sector 0 / Match 1-4 if 2+ sectors exist)
+            $candidateSectorIndexes = range(0, $numSectors - 1);
             if ($numSectors >= 2) {
-                // Remove Sector 0 (Match 1-4) from candidate YMD sectors
-                $availableSectorIndexes = array_values(array_diff($availableSectorIndexes, [0]));
+                $candidateSectorIndexes = array_values(array_diff($candidateSectorIndexes, [0]));
             }
-            shuffle($availableSectorIndexes); // Randomize among remaining sectors (Sector 1 = Match 5-8, Sector 2 = Match 9-12, etc.)
 
+            // Pick sector indexes with enforced spacing (gaps between YMD sectors)
+            $chosenYmdSectorIndexes = [];
+            $totalYmdBlocks = count($ymdBlocks);
+
+            if ($totalYmdBlocks > 0 && count($candidateSectorIndexes) > 0) {
+                // Shuffle candidates first for randomness
+                shuffle($candidateSectorIndexes);
+
+                foreach ($candidateSectorIndexes as $candIdx) {
+                    if (count($chosenYmdSectorIndexes) >= $totalYmdBlocks) {
+                        break;
+                    }
+                    // Check if this candidate is adjacent to any already chosen YMD sector
+                    $isAdjacent = false;
+                    foreach ($chosenYmdSectorIndexes as $chosen) {
+                        if (abs($chosen - $candIdx) <= 1) {
+                            $isAdjacent = true;
+                            break;
+                        }
+                    }
+                    if (!$isAdjacent) {
+                        $chosenYmdSectorIndexes[] = $candIdx;
+                    }
+                }
+
+                // Fallback: If strict non-adjacent space was unavailable (e.g. lots of YMD blocks), fill from remaining candidates
+                if (count($chosenYmdSectorIndexes) < $totalYmdBlocks) {
+                    foreach ($candidateSectorIndexes as $candIdx) {
+                        if (count($chosenYmdSectorIndexes) >= $totalYmdBlocks) {
+                            break;
+                        }
+                        if (!in_array($candIdx, $chosenYmdSectorIndexes)) {
+                            $chosenYmdSectorIndexes[] = $candIdx;
+                        }
+                    }
+                }
+            }
+
+            // Fill chosen sectors with YMD blocks
             foreach ($ymdBlocks as $yBlock) {
-                if (count($availableSectorIndexes) > 0) {
-                    $secIdx = array_shift($availableSectorIndexes);
+                if (count($chosenYmdSectorIndexes) > 0) {
+                    $secIdx = array_shift($chosenYmdSectorIndexes);
                     // Fill this sector with the YMD block (and pad with other matches if YMD block < 4)
                     while (count($yBlock) < 4 && count($otherMatches) > 0) {
                         $yBlock[] = array_shift($otherMatches);
