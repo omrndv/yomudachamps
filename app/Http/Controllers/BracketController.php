@@ -103,10 +103,8 @@ class BracketController extends Controller
 
             $matchesInRound1 = $bracketSize / 2;
 
-            // Build List of Matches for Round 1
-            $allMatchPairs = [];
-
-            // 1. BUILD YMD MATCH BLOCKS (per 4 matches / 8 teams)
+            // Build YMD 4-match blocks (each up to 4 matches / 8 teams)
+            $ymdBlocks = [];
             $ymdIndex = 0;
             $ymdCount = count($ymdList);
             while ($ymdIndex < $ymdCount) {
@@ -116,54 +114,82 @@ class BracketController extends Controller
                     $t2 = ($ymdIndex < $ymdCount) ? $ymdList[$ymdIndex++] : null;
                     $block[] = ['team1' => $t1, 'team2' => $t2];
                 }
-                $allMatchPairs[] = $block; // Store block of up to 4 matches
+                $ymdBlocks[] = $block;
             }
 
-            // 2. BUILD SOLO MATCHES (Solo vs Solo)
+            // Build Solo matches (Solo vs Solo)
+            $soloMatches = [];
             $soloIndex = 0;
             $soloCount = count($soloList);
             while ($soloIndex < $soloCount) {
                 $t1 = $soloList[$soloIndex++];
                 $t2 = ($soloIndex < $soloCount) ? $soloList[$soloIndex++] : null;
-                $allMatchPairs[] = [['team1' => $t1, 'team2' => $t2]]; // Single match block
+                $soloMatches[] = ['team1' => $t1, 'team2' => $t2];
             }
 
-            // 3. COMPLETE PARTIAL MATCHES IF ANY (odd YMD or odd Solo) WITH REGULAR TEAMS
-            foreach ($allMatchPairs as &$unit) {
-                foreach ($unit as &$mPair) {
+            // Complete partial YMD or Solo matches with Regular teams if team2 is missing
+            foreach ($ymdBlocks as &$block) {
+                foreach ($block as &$mPair) {
                     if ($mPair['team1'] !== null && $mPair['team2'] === null && count($regularList) > 0) {
                         $mPair['team2'] = array_shift($regularList);
                     }
                 }
             }
-            unset($unit, $mPair);
+            unset($block, $mPair);
 
-            // 4. BUILD REGULAR MATCHES
+            foreach ($soloMatches as &$mPair) {
+                if ($mPair['team1'] !== null && $mPair['team2'] === null && count($regularList) > 0) {
+                    $mPair['team2'] = array_shift($regularList);
+                }
+            }
+            unset($mPair);
+
+            // Build remaining non-YMD matches (Solo + Regular + BYEs)
+            $otherMatches = $soloMatches;
             while (count($regularList) > 0) {
                 $t1 = array_shift($regularList);
                 $t2 = count($regularList) > 0 ? array_shift($regularList) : null;
-                $allMatchPairs[] = [['team1' => $t1, 'team2' => $t2]];
+                $otherMatches[] = ['team1' => $t1, 'team2' => $t2];
             }
 
-            // 5. FILL EMPTY MATCHES IF TOTAL MATCHES < matchesInRound1 (for BYE placeholders)
-            $currentTotalMatches = 0;
-            foreach ($allMatchPairs as $unit) {
-                $currentTotalMatches += count($unit);
+            // Shuffle non-YMD individual matches for random variety
+            shuffle($otherMatches);
+
+            // Divide Round 1 into 4-match Sectors (Tree branches of 4 matches = 8 team slots)
+            $numSectors = (int) ceil($matchesInRound1 / 4);
+            $sectors = array_fill(0, $numSectors, []);
+
+            // 1. Assign full YMD blocks into available sector slots
+            $availableSectorIndexes = range(0, $numSectors - 1);
+            shuffle($availableSectorIndexes); // Randomize which sectors get YMD blocks
+
+            foreach ($ymdBlocks as $yBlock) {
+                if (count($availableSectorIndexes) > 0) {
+                    $secIdx = array_shift($availableSectorIndexes);
+                    // Fill this sector with the YMD block (and pad with other matches if YMD block < 4)
+                    while (count($yBlock) < 4 && count($otherMatches) > 0) {
+                        $yBlock[] = array_shift($otherMatches);
+                    }
+                    $sectors[$secIdx] = $yBlock;
+                }
             }
 
-            while ($currentTotalMatches < $matchesInRound1) {
-                $allMatchPairs[] = [['team1' => null, 'team2' => null]];
-                $currentTotalMatches++;
+            // 2. Fill remaining empty sectors with other matches & BYE placeholders
+            for ($s = 0; $s < $numSectors; $s++) {
+                while (count($sectors[$s]) < 4) {
+                    if (count($otherMatches) > 0) {
+                        $sectors[$s][] = array_shift($otherMatches);
+                    } else {
+                        $sectors[$s][] = ['team1' => null, 'team2' => null];
+                    }
+                }
             }
 
-            // 6. SHUFFLE THE MATCH UNITS (Randomize position of YMD 4-match blocks, Solo matches, & Regular matches)
-            shuffle($allMatchPairs);
-
-            // 7. FLATTEN INTO ROUND 1 MATCH SLOTS (1 to matchesInRound1)
+            // 3. Flatten sectors into 1-based Round 1 match slots
             $matchSlots = [];
             $slotNum = 1;
-            foreach ($allMatchPairs as $unit) {
-                foreach ($unit as $mPair) {
+            for ($s = 0; $s < $numSectors; $s++) {
+                foreach ($sectors[$s] as $mPair) {
                     if ($slotNum <= $matchesInRound1) {
                         $matchSlots[$slotNum] = $mPair;
                         $slotNum++;
