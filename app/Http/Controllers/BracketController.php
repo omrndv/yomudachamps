@@ -159,9 +159,13 @@ class BracketController extends Controller
             $numSectors = (int) ceil($matchesInRound1 / 4);
             $sectors = array_fill(0, $numSectors, []);
 
-            // 1. Assign full YMD blocks into available sector slots
+            // 1. Assign full YMD blocks into available sector slots (avoid Sector 0 / Match 1-4 if multiple sectors exist)
             $availableSectorIndexes = range(0, $numSectors - 1);
-            shuffle($availableSectorIndexes); // Randomize which sectors get YMD blocks
+            if ($numSectors >= 2) {
+                // Remove Sector 0 (Match 1-4) from candidate YMD sectors
+                $availableSectorIndexes = array_values(array_diff($availableSectorIndexes, [0]));
+            }
+            shuffle($availableSectorIndexes); // Randomize among remaining sectors (Sector 1 = Match 5-8, Sector 2 = Match 9-12, etc.)
 
             foreach ($ymdBlocks as $yBlock) {
                 if (count($availableSectorIndexes) > 0) {
