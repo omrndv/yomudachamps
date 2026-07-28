@@ -2184,13 +2184,29 @@ function toggleByeVisibilitySetting(switchEl) {
                     card.style.removeProperty('display');
                 }
             });
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: res.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
         } else {
             switchEl.checked = !isChecked;
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: res.message || 'Gagal mengubah mode BYE.'
+            });
         }
     })
     .catch(err => {
         switchEl.checked = !isChecked;
-        console.error('Toggle BYE mode error:', err);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Gagal mengubah mode BYE karena masalah jaringan atau database server.'
+        });
     });
 }
 

@@ -394,16 +394,31 @@ class BracketController extends Controller
     public function toggleByeVisibility($season_id)
     {
         $season = Season::findOrFail($season_id);
-        $season->is_bye_hidden = !$season->is_bye_hidden;
-        $season->save();
 
-        return response()->json([
-            'success' => true,
-            'is_bye_hidden' => $season->is_bye_hidden,
-            'message' => $season->is_bye_hidden 
-                ? 'Tampilan Mode Challonge AKTIF (Match BYE Babak 1 disembunyikan).' 
-                : 'Tampilan Mode Standard AKTIF (Seluruh Match Babak 1 ditampilkan).'
-        ]);
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('seasons', 'is_bye_hidden')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kolom database is_bye_hidden belum ada. Silakan jalankan php artisan migrate di server.'
+                ], 400);
+            }
+
+            $season->is_bye_hidden = !$season->is_bye_hidden;
+            $season->save();
+
+            return response()->json([
+                'success' => true,
+                'is_bye_hidden' => $season->is_bye_hidden,
+                'message' => $season->is_bye_hidden 
+                    ? 'Tampilan Mode Challonge AKTIF (Match BYE Babak 1 disembunyikan).' 
+                    : 'Tampilan Mode Standard AKTIF (Seluruh Match Babak 1 ditampilkan).'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah mode BYE: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
