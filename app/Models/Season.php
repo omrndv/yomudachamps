@@ -20,6 +20,7 @@ class Season extends Model
         'rules_link',
         'schedule_info',
         'is_bracket_visible',
+        'is_bye_hidden',
         'manual_juara1',
         'manual_juara2',
         'manual_juara3',

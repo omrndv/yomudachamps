@@ -148,10 +148,21 @@
                     </div>
                 </div>
                 {{-- Dark/Light Theme Switch --}}
-                <div class="col-md-3 text-start">
-                    <div class="form-check form-switch ps-5">
+                <div class="col-md-2 text-start">
+                    <div class="form-check form-switch ps-4">
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleBracketThemeSwitch" checked style="cursor: pointer;">
-                        <label class="form-check-label small fw-bold text-dark" for="toggleBracketThemeSwitch" style="cursor: pointer;">Tema Bagan Gelap (Dark)</label>
+                        <label class="form-check-label small fw-bold text-dark" for="toggleBracketThemeSwitch" style="cursor: pointer;">Tema Dark</label>
+                    </div>
+                </div>
+                {{-- Mode Challonge / Hide BYE Switch --}}
+                <div class="col-md-3 text-start">
+                    <div class="form-check form-switch ps-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleByeVisibilitySwitch" {{ $season->is_bye_hidden ? 'checked' : '' }} onchange="toggleByeVisibilitySetting(this)" style="cursor: pointer;">
+                        <label class="form-check-label small fw-bold text-dark" for="toggleByeVisibilitySwitch" style="cursor: pointer;">
+                            <span id="byeVisibilityLabel" class="{{ $season->is_bye_hidden ? 'text-primary' : 'text-dark' }}">
+                                {{ $season->is_bye_hidden ? '⚡ Mode Challonge (Sembunyikan BYE)' : '📋 Mode Standard (Tampilkan BYE)' }}
+                            </span>
+                        </label>
                     </div>
                 </div>
                 {{-- Bronze Match Toggle Switch --}}
@@ -163,13 +174,13 @@
                             $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->isNotEmpty();
                         }
                     @endphp
-                    <div class="form-check form-switch ps-5">
+                    <div class="form-check form-switch ps-4">
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)" style="cursor: pointer;">
                         <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch" style="cursor: pointer;">Bronze Match (Juara 3/4)</label>
                     </div>
                 </div>
                 {{-- Info text --}}
-                <div class="col-md-2 text-end">
+                <div class="col-md-4 text-end d-flex justify-content-end gap-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-bold" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
                         <i class="bi bi-clock-fill text-warning me-1"></i> Jam Babak
                     </button>
@@ -220,8 +231,13 @@
                     @endphp
                     <div class="bracket-round">
                         @foreach($columnMatches as $match)
-                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
+                            @php
+                                $isByeMatch = ($match->round_number === 1 && (($match->team1_id && !$match->team2_id) || (!$match->team1_id && $match->team2_id)));
+                            @endphp
+                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }} {{ $isByeMatch ? 'bye-match-card' : '' }}" 
                                  id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
+                                 data-is-bye="{{ $isByeMatch ? 'true' : 'false' }}"
+                                 style="{{ ($isByeMatch && $season->is_bye_hidden) ? 'display: none !important;' : '' }}"
                                  onclick="openEditMatchModal({{ json_encode([
                                      'id' => $match->id,
                                      'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
@@ -2138,6 +2154,45 @@ document.getElementById('toggleBracketVisibility')?.addEventListener('change', f
         console.error('Toggle visibility error:', err);
     });
 });
+
+function toggleByeVisibilitySetting(switchEl) {
+    const label = document.getElementById('byeVisibilityLabel');
+    const isChecked = switchEl.checked;
+    
+    fetch(`/admin/dashboard/{{ $season->id }}/bracket/toggle-bye-visibility`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            if (res.is_bye_hidden) {
+                label.className = 'text-primary';
+                label.textContent = '⚡ Mode Challonge (Sembunyikan BYE)';
+            } else {
+                label.className = 'text-dark';
+                label.textContent = '📋 Mode Standard (Tampilkan BYE)';
+            }
+            // Toggle visibility of BYE cards in DOM immediately without full reload
+            document.querySelectorAll('.bye-match-card').forEach(card => {
+                if (res.is_bye_hidden) {
+                    card.style.setProperty('display', 'none', 'important');
+                } else {
+                    card.style.removeProperty('display');
+                }
+            });
+        } else {
+            switchEl.checked = !isChecked;
+        }
+    })
+    .catch(err => {
+        switchEl.checked = !isChecked;
+        console.error('Toggle BYE mode error:', err);
+    });
+}
 
 // Admin Live Chat Dashboard Scripting
 // ----------------------------------------------------

@@ -389,6 +389,24 @@ class BracketController extends Controller
     }
 
     /**
+     * Toggle BYE visibility / Challonge mode (Admin API)
+     */
+    public function toggleByeVisibility($season_id)
+    {
+        $season = Season::findOrFail($season_id);
+        $season->is_bye_hidden = !$season->is_bye_hidden;
+        $season->save();
+
+        return response()->json([
+            'success' => true,
+            'is_bye_hidden' => $season->is_bye_hidden,
+            'message' => $season->is_bye_hidden 
+                ? 'Tampilan Mode Challonge AKTIF (Match BYE Babak 1 disembunyikan).' 
+                : 'Tampilan Mode Standard AKTIF (Seluruh Match Babak 1 ditampilkan).'
+        ]);
+    }
+
+    /**
      * Rilis halaman publik bagan tanding untuk season tertentu
      */
     public function publicBracket($slug)
