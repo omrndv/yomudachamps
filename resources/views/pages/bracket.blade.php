@@ -921,10 +921,7 @@
             @endphp
             <div class="bracket-round">
                 @foreach($columnMatches as $match)
-                    @php
-                        $isByeMatch = ($match->round_number === 1 && (($match->team1_id && !$match->team2_id) || (!$match->team1_id && $match->team2_id) || ($match->status === 'finished' && $match->team1_id && !$match->team2_id)));
-                    @endphp
-                    <div class="match-card {{ $isByeMatch ? 'bye-match-card' : '' }}" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}" style="{{ ($isByeMatch && $season->is_bye_hidden) ? 'display: none !important;' : '' }}">
+                    <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
                         <div class="match-card-header">
                             <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
                             <span class="match-card-time">
