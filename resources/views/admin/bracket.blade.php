@@ -232,7 +232,7 @@
                     <div class="bracket-round">
                         @foreach($columnMatches as $match)
                             @php
-                                $isByeMatch = ($match->round_number === 1 && (($match->team1_id && !$match->team2_id) || (!$match->team1_id && $match->team2_id)));
+                                $isByeMatch = ($match->round_number === 1 && (($match->team1_id && !$match->team2_id) || (!$match->team1_id && $match->team2_id) || ($match->status === 'finished' && $match->team1_id && !$match->team2_id)));
                             @endphp
                             <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }} {{ $isByeMatch ? 'bye-match-card' : '' }}" 
                                  id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
