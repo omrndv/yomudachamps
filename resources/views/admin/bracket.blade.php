@@ -2188,8 +2188,10 @@ function toggleByeVisibilitySetting(switchEl) {
                 icon: 'success',
                 title: 'Berhasil!',
                 text: res.message,
-                timer: 1500,
+                timer: 1200,
                 showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
             });
         } else {
             switchEl.checked = !isChecked;
