@@ -1010,18 +1010,19 @@
                 @if($roundNum < count($rounds))
                     <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                         @php
+                            $rawMatchCount = $matches->count();
                             $nextRoundMatches = isset($rounds[$roundNum + 1]) ? $rounds[$roundNum + 1] : collect([]);
                             $nextCount = $nextRoundMatches->count();
                         @endphp
                         @foreach($columnMatches as $idx => $m)
                             @php
-                                $mIndexOne = $idx + 1;
-                                $targetNextIndex = ($roundNum === 1) ? $m->match_number : ceil($m->match_number / 2);
-                                $startY = ($matchesCount > 0) ? ($roundHeight / $matchesCount) * ($mIndexOne - 0.5) : 0;
-                                $endY = ($nextCount > 0) ? ($roundHeight / $nextCount) * ($targetNextIndex - 0.5) : $startY;
+                                $mNum = $m->match_number;
+                                $nextMatchIndex = ceil($mNum / 2);
+                                $startY = ($rawMatchCount > 0) ? ($roundHeight / $rawMatchCount) * ($mNum - 0.5) : 0;
+                                $endY = ($nextCount > 0) ? ($roundHeight / $nextCount) * ($nextMatchIndex - 0.5) : $startY;
                                 $midX = 40;
                             @endphp
-                            <path class="connector-line" id="line_{{ $roundNum }}_{{ $mIndexOne }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                            <path class="connector-line" id="line_{{ $roundNum }}_{{ $mNum }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
                         @endforeach
                     </svg>
                 @endif

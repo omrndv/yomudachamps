@@ -226,15 +226,36 @@ class BracketController extends Controller
                 }
             }
 
-            // 3. Flatten sectors into 1-based Round 1 match slots
-            $matchSlots = [];
-            $slotNum = 1;
+            // Separate matches into BYE matches (1 team) and full matches (2 teams)
+            $byeMatches = [];
+            $fullMatches = [];
+            $emptyMatches = [];
+
             for ($s = 0; $s < $numSectors; $s++) {
                 foreach ($sectors[$s] as $mPair) {
-                    if ($slotNum <= $matchesInRound1) {
-                        $matchSlots[$slotNum] = $mPair;
-                        $slotNum++;
+                    $hasT1 = $mPair['team1'] !== null;
+                    $hasT2 = $mPair['team2'] !== null;
+
+                    if (($hasT1 && !$hasT2) || (!$hasT1 && $hasT2)) {
+                        $byeMatches[] = $mPair;
+                    } elseif ($hasT1 && $hasT2) {
+                        $fullMatches[] = $mPair;
+                    } else {
+                        $emptyMatches[] = $mPair;
                     }
+                }
+            }
+
+            // Combine with BYE matches at the top (top to bottom order)
+            $orderedMatches = array_merge($byeMatches, $fullMatches, $emptyMatches);
+
+            // 3. Flatten into 1-based Round 1 match slots
+            $matchSlots = [];
+            $slotNum = 1;
+            foreach ($orderedMatches as $mPair) {
+                if ($slotNum <= $matchesInRound1) {
+                    $matchSlots[$slotNum] = $mPair;
+                    $slotNum++;
                 }
             }
 
