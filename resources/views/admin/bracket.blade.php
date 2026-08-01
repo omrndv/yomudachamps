@@ -331,18 +331,18 @@
                         @if($roundNum < count($rounds))
                             <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                                 @php
-                                    $rawMatchCount = $matches->count();
                                     $nextRoundMatches = isset($rounds[$roundNum + 1]) ? $rounds[$roundNum + 1] : collect([]);
                                     $nextCount = $nextRoundMatches->count();
                                 @endphp
                                 @foreach($columnMatches as $idx => $m)
                                     @php
-                                        $mNum = $m->match_number;
-                                        $nextMatchIndex = ceil($mNum / 2);
+                                        $mIndexOne = $idx + 1;
+                                        // Next round match index for this displayed match card
+                                        $targetNextIndex = ($roundNum === 1) ? $m->match_number : ceil($m->match_number / 2);
                                         
-                                        // Vertical center calculation matching exact card positions
-                                        $startY = ($rawMatchCount > 0) ? ($roundHeight / $rawMatchCount) * ($mNum - 0.5) : 0;
-                                        $endY = ($nextCount > 0) ? ($roundHeight / $nextCount) * ($nextMatchIndex - 0.5) : $startY;
+                                        // Calculate exact vertical centers based on rendered columnMatches
+                                        $startY = ($matchesCount > 0) ? ($roundHeight / $matchesCount) * ($mIndexOne - 0.5) : 0;
+                                        $endY = ($nextCount > 0) ? ($roundHeight / $nextCount) * ($targetNextIndex - 0.5) : $startY;
                                         $midX = 40;
                                     @endphp
                                     <path class="connector-line" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
