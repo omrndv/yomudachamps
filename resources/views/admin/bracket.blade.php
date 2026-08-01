@@ -213,23 +213,13 @@
                 @foreach($rounds as $roundNum => $matches)
                     @php
                         $isFinalRound = ($roundNum === $brackets->max('round_number'));
-                        $rawColumnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
-                        
-                        // Opsi A (Challonge-style): Di Babak 1, hanya tampilkan match yang benar-benar adu tim (tim 1 & tim 2 ada). Match BYE disembunyikan.
-                        if ($roundNum === 1) {
-                            $columnMatches = $rawColumnMatches->filter(function($m) {
-                                return $m->team1_id && $m->team2_id;
-                            })->values();
-                        } else {
-                            $columnMatches = $rawColumnMatches->values();
-                        }
-
+                        $columnMatches = $isFinalRound ? $matches->where('match_number', 1) : $matches;
                         $roundHeight = 4600;
                         $matchesCount = $columnMatches->count();
                         $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
                     @endphp
                     <div class="bracket-round">
-                        @foreach($columnMatches as $mIndex => $match)
+                        @foreach($columnMatches as $match)
                             <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
                                  id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
                                  onclick="openEditMatchModal({{ json_encode([
@@ -256,17 +246,6 @@
                                 </div>
 
                                 {{-- Team 1 Row --}}
-                                @php
-                                    $t1IsByeWinner = false;
-                                    if ($roundNum === 2 && $match->team1_id) {
-                                        // Check if team1 in round 2 came from a BYE match in round 1
-                                        $prevM1Num = ($match->match_number * 2) - 1;
-                                        $prevM1 = $brackets->where('round_number', 1)->where('match_number', $prevM1Num)->first();
-                                        if ($prevM1 && ($prevM1->team1_id && !$prevM1->team2_id)) {
-                                            $t1IsByeWinner = true;
-                                        }
-                                    }
-                                @endphp
                                 <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
                                      data-team-id="{{ $match->team1_id ?? '' }}"
                                      data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
@@ -278,9 +257,6 @@
                                      <div class="team-info">
                                         @if($match->team1)
                                             <span class="team-name fw-semibold">{{ $match->team1->name }}</span>
-                                            @if($t1IsByeWinner)
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-1 ms-1" style="font-size: 0.52rem;">BYE</span>
-                                            @endif
                                         @else
                                             <span class="team-name text-muted italic">Belum Ada Tim</span>
                                         @endif
@@ -289,17 +265,6 @@
                                 </div>
 
                                 {{-- Team 2 Row --}}
-                                @php
-                                    $t2IsByeWinner = false;
-                                    if ($roundNum === 2 && $match->team2_id) {
-                                        // Check if team2 in round 2 came from a BYE match in round 1
-                                        $prevM2Num = $match->match_number * 2;
-                                        $prevM2 = $brackets->where('round_number', 1)->where('match_number', $prevM2Num)->first();
-                                        if ($prevM2 && ($prevM2->team1_id && !$prevM2->team2_id)) {
-                                            $t2IsByeWinner = true;
-                                        }
-                                    }
-                                @endphp
                                 <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
                                      data-team-id="{{ $match->team2_id ?? '' }}"
                                      data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
@@ -311,9 +276,6 @@
                                      <div class="team-info">
                                         @if($match->team2)
                                             <span class="team-name fw-semibold">{{ $match->team2->name }}</span>
-                                            @if($t2IsByeWinner)
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-1 ms-1" style="font-size: 0.52rem;">BYE</span>
-                                            @endif
                                         @else
                                             @if($match->round_number === 1)
                                                 <span class="team-name text-success fw-bold">BYE (Lolos)</span>
@@ -330,23 +292,15 @@
                         {{-- Draw dynamic SVG connector lines between columns --}}
                         @if($roundNum < count($rounds))
                             <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
-                                @php
-                                    $nextRoundMatches = isset($rounds[$roundNum + 1]) ? $rounds[$roundNum + 1] : collect([]);
-                                    $nextCount = $nextRoundMatches->count();
-                                @endphp
-                                @foreach($columnMatches as $idx => $m)
+                                @for($m = 1; $m <= $matchesCount; $m++)
                                     @php
-                                        $mIndexOne = $idx + 1;
-                                        // Next round match index for this displayed match card
-                                        $targetNextIndex = ($roundNum === 1) ? $m->match_number : ceil($m->match_number / 2);
-                                        
-                                        // Calculate exact vertical centers based on rendered columnMatches
-                                        $startY = ($matchesCount > 0) ? ($roundHeight / $matchesCount) * ($mIndexOne - 0.5) : 0;
-                                        $endY = ($nextCount > 0) ? ($roundHeight / $nextCount) * ($targetNextIndex - 0.5) : $startY;
+                                        $nextMatchIndex = ceil($m / 2);
+                                        $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
+                                        $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
                                         $midX = 40;
                                     @endphp
                                     <path class="connector-line" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
-                                @endforeach
+                                @endfor
                             </svg>
                         @endif
 
