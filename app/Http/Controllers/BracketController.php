@@ -645,7 +645,7 @@ class BracketController extends Controller
     public function addYmdSlots(Request $request, $season_id)
     {
         $request->validate([
-            'count' => 'required|integer|min:1|max:50'
+            'count' => 'required|integer|min:1|max:100'
         ]);
 
         $season = Season::findOrFail($season_id);

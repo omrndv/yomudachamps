@@ -470,7 +470,7 @@
                                     <span class="small text-secondary">Jumlah:</span>
                                 </div>
                                 <div class="col-4 col-sm-3">
-                                    <input type="number" id="ymdAddCount" class="form-control form-control-sm" min="1" max="32" value="5">
+                                    <input type="number" id="ymdAddCount" class="form-control form-control-sm" min="1" max="100" value="5">
                                 </div>
                                 <div class="col-auto">
                                     <button type="button" class="btn btn-warning btn-sm fw-bold px-3 rounded" onclick="bulkAddYmdSlots()">
@@ -1962,11 +1962,11 @@ function toggleBronzeMatchSetting(switchEl) {
 function bulkAddYmdSlots() {
     const count = parseInt(document.getElementById('ymdAddCount').value);
     
-    if (isNaN(count) || count < 1 || count > 50) {
+    if (isNaN(count) || count < 1 || count > 100) {
         Swal.fire({
             icon: 'warning',
             title: 'Jumlah Invalid',
-            text: 'Silakan masukkan jumlah slot YMD antara 1 s/d 50.'
+            text: 'Silakan masukkan jumlah slot YMD antara 1 s/d 100.'
         });
         return;
     }
