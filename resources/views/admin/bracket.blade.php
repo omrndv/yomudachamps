@@ -478,6 +478,11 @@
                                     </button>
                                 </div>
                                 <div class="col-auto">
+                                    <button type="button" class="btn btn-success btn-sm fw-bold px-3 rounded" onclick="winAllYmdSlots()">
+                                        <i class="bi bi-trophy-fill"></i> Loloskan Semua Slot YMD
+                                    </button>
+                                </div>
+                                <div class="col-auto">
                                     <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-3 rounded" onclick="deleteAllYmdSlots()">
                                         <i class="bi bi-trash-fill"></i> Hapus Semua Slot
                                     </button>
@@ -1901,6 +1906,62 @@ function deleteAllYmdSlots() {
                     icon: 'error',
                     title: 'Error!',
                     text: 'Gagal menghapus slot karena masalah koneksi.'
+                });
+            });
+        }
+    });
+}
+
+// ----------------------------------------------------
+// Win All YMD Slots to Round 2
+// ----------------------------------------------------
+function winAllYmdSlots() {
+    Swal.fire({
+        title: 'Loloskan Semua Slot YMD?',
+        text: "Semua pertandingan yang berisi slot YMD- di Babak 1 akan otomatis dimenangkan (skor 1-0) dan diloloskan ke Babak 2.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Loloskan Ke Babak 2!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            
+            fetch("{{ route('admin.season.bracket.win-ymd-slots', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: res.message
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal memenangkan slot YMD karena masalah koneksi.'
                 });
             });
         }
