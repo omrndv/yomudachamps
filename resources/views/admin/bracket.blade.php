@@ -1918,12 +1918,12 @@ function deleteAllYmdSlots() {
 function winAllYmdSlots() {
     Swal.fire({
         title: 'Loloskan Semua Slot YMD?',
-        text: "Semua pertandingan yang berisi slot YMD- di Babak 1 akan otomatis dimenangkan (skor 1-0) dan diloloskan ke Babak 2.",
+        text: "Semua pertandingan yang berisi slot YMD- di Babak 1 & Babak 2 akan otomatis dimenangkan (skor 1-0) dan diloloskan hingga ke Babak 3.",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#10b981',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Ya, Loloskan Ke Babak 2!',
+        confirmButtonText: 'Ya, Loloskan Ke Babak 3!',
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {

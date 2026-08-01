@@ -763,7 +763,7 @@ class BracketController extends Controller
     }
 
     /**
-     * Set semua match berisi slot YMD di Babak 1 sebagai Menang (Skor 1-0) dan loloskan ke Babak 2
+     * Set semua match berisi slot YMD di Babak 1 & Babak 2 sebagai Menang (Skor 1-0) dan loloskan hingga ke Babak 3
      */
     public function winYmdSlots($season_id)
     {
@@ -771,47 +771,50 @@ class BracketController extends Controller
 
         DB::beginTransaction();
         try {
-            // Forward matches in round 1 that contain a YMD team
-            $r1Matches = Bracket::where('season_id', $season_id)
-                ->where('round_number', 1)
-                ->with(['team1', 'team2'])
-                ->get();
-
             $updatedCount = 0;
-            foreach ($r1Matches as $match) {
-                $hasYmd1 = $match->team1 && str_starts_with(strtolower($match->team1->name), 'ymd');
-                $hasYmd2 = $match->team2 && str_starts_with(strtolower($match->team2->name), 'ymd');
 
-                if ($hasYmd1 || $hasYmd2) {
-                    // Pick winner
-                    if ($hasYmd1 && !$hasYmd2) {
-                        $match->winner_id = $match->team1_id;
-                        $match->team1_score = 1;
-                        $match->team2_score = 0;
-                    } elseif (!$hasYmd1 && $hasYmd2) {
-                        $match->winner_id = $match->team2_id;
-                        $match->team1_score = 0;
-                        $match->team2_score = 1;
-                    } else {
-                        // Both are YMD teams, pick team1
-                        $match->winner_id = $match->team1_id;
-                        $match->team1_score = 1;
-                        $match->team2_score = 0;
+            // Process Round 1 & Round 2 sequentially
+            foreach ([1, 2] as $targetRound) {
+                $matches = Bracket::where('season_id', $season_id)
+                    ->where('round_number', $targetRound)
+                    ->with(['team1', 'team2'])
+                    ->get();
+
+                foreach ($matches as $match) {
+                    $hasYmd1 = $match->team1 && str_starts_with(strtolower($match->team1->name), 'ymd');
+                    $hasYmd2 = $match->team2 && str_starts_with(strtolower($match->team2->name), 'ymd');
+
+                    if ($hasYmd1 || $hasYmd2) {
+                        // Pick winner
+                        if ($hasYmd1 && !$hasYmd2) {
+                            $match->winner_id = $match->team1_id;
+                            $match->team1_score = 1;
+                            $match->team2_score = 0;
+                        } elseif (!$hasYmd1 && $hasYmd2) {
+                            $match->winner_id = $match->team2_id;
+                            $match->team1_score = 0;
+                            $match->team2_score = 1;
+                        } else {
+                            // Both are YMD teams, pick team1
+                            $match->winner_id = $match->team1_id;
+                            $match->team1_score = 1;
+                            $match->team2_score = 0;
+                        }
+
+                        $match->status = 'finished';
+                        $match->save();
+
+                        // Advance winner to next round
+                        $this->advanceWinner($match);
+                        $updatedCount++;
                     }
-
-                    $match->status = 'finished';
-                    $match->save();
-
-                    // Advance winner to round 2
-                    $this->advanceWinner($match);
-                    $updatedCount++;
                 }
             }
 
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil memenangkan ' . $updatedCount . ' pertandingan slot YMD ke Babak 2!'
+                'message' => 'Berhasil memenangkan slot YMD di Babak 1 & 2 hingga lolos ke Babak 3!'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
