@@ -828,34 +828,40 @@
 
         .floating-report-btn {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 85px;
+            right: 20px;
             z-index: 9999;
-            background: linear-gradient(135deg, #ff7a00, #f59e0b);
+            background: linear-gradient(135deg, #ff7a00 0%, #ffae00 100%);
             color: #000000;
             font-weight: 800;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             padding: 10px 18px;
             border-radius: 50px;
-            border: none;
-            box-shadow: 0 6px 20px rgba(255, 122, 0, 0.45);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 122, 0, 0.55), 0 0 15px rgba(255, 174, 0, 0.4);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: pulse-floating-btn 2.5s infinite;
+            animation: pulse-report-btn 2.2s infinite ease-in-out;
         }
 
         .floating-report-btn:hover {
-            transform: scale(1.08) translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255, 122, 0, 0.65);
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 122, 0, 0.75), 0 0 25px rgba(255, 174, 0, 0.6);
             color: #000000;
         }
 
-        @keyframes pulse-floating-btn {
-            0%, 100% { box-shadow: 0 6px 20px rgba(255, 122, 0, 0.45); }
-            50% { box-shadow: 0 6px 30px rgba(255, 122, 0, 0.85); transform: scale(1.03); }
+        @keyframes pulse-report-btn {
+            0%, 100% { 
+                box-shadow: 0 8px 25px rgba(255, 122, 0, 0.55), 0 0 15px rgba(255, 174, 0, 0.4);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 10px 35px rgba(255, 122, 0, 0.85), 0 0 25px rgba(255, 200, 0, 0.7); 
+                transform: scale(1.04);
+            }
         }
 
         @media (max-width: 576px) {
@@ -877,10 +883,11 @@
                 font-size: 16px !important;
             }
             .floating-report-btn {
-                bottom: 16px;
-                left: 16px;
-                font-size: 0.72rem;
-                padding: 9px 14px;
+                bottom: 80px;
+                right: 16px;
+                left: auto;
+                font-size: 0.75rem;
+                padding: 9px 15px;
             }
         }
     </style>
