@@ -3048,7 +3048,7 @@ fetchAdminChatThreads();
                     </div>
                     <div class="card-body p-3">
                         @php
-                            $seasonPublicUrl = url('/season/' . \App\Http\Controllers\BracketController::encodeId($season->id) . '/bracket');
+                            $seasonPublicUrl = route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id));
                         @endphp
                         <textarea id="textareaInfoWebsite" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="14" readonly style="font-size: 0.78rem;">Halo, ges! 👋
 
