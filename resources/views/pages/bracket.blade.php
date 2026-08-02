@@ -826,44 +826,6 @@
             transform: scale(1.1);
         }
 
-        .floating-report-btn {
-            position: fixed;
-            bottom: 85px;
-            right: 20px;
-            z-index: 9999;
-            background: linear-gradient(135deg, #ff7a00 0%, #ffae00 100%);
-            color: #000000;
-            font-weight: 800;
-            font-size: 0.82rem;
-            padding: 10px 18px;
-            border-radius: 50px;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 25px rgba(255, 122, 0, 0.55), 0 0 15px rgba(255, 174, 0, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: pulse-report-btn 2.2s infinite ease-in-out;
-        }
-
-        .floating-report-btn:hover {
-            transform: scale(1.08) translateY(-3px);
-            box-shadow: 0 12px 30px rgba(255, 122, 0, 0.75), 0 0 25px rgba(255, 174, 0, 0.6);
-            color: #000000;
-        }
-
-        @keyframes pulse-report-btn {
-            0%, 100% { 
-                box-shadow: 0 8px 25px rgba(255, 122, 0, 0.55), 0 0 15px rgba(255, 174, 0, 0.4);
-                transform: scale(1);
-            }
-            50% { 
-                box-shadow: 0 10px 35px rgba(255, 122, 0, 0.85), 0 0 25px rgba(255, 200, 0, 0.7); 
-                transform: scale(1.04);
-            }
-        }
-
         @media (max-width: 576px) {
             .chat-widget-wrapper {
                 bottom: 16px;
@@ -882,61 +844,49 @@
             .chat-input-wrapper input {
                 font-size: 16px !important;
             }
-            .floating-report-btn {
-                bottom: 80px;
-                right: 16px;
-                left: auto;
-                font-size: 0.75rem;
-                padding: 9px 15px;
-            }
         }
     </style>
 </head>
 <body>
 
     
-    <!-- Header Style -->
-    <header class="bracket-header py-2">
-        <div class="container d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.15); color: #c4c4cc; padding: 4px 12px; background-color: rgba(255,255,255,0.05);">
-                    <i class="bi bi-chevron-left"></i> Kembali
-                </a>
-                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 12px; border-color: rgba(255, 122, 0, 0.4); color: var(--accent-orange); background-color: rgba(255, 122, 0, 0.05);">
-                    <i class="bi bi-info-circle-fill"></i> Panduan
-                </button>
+    <!-- Header Style - Mobile First Compact -->
+    <header class="bracket-header py-1.5 px-3" style="background-color: var(--bg-primary); border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div class="container-fluid px-1 d-flex align-items-center justify-content-between">
+            <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold text-white-50 d-flex align-items-center gap-1" style="font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.15); padding: 3px 10px; background-color: rgba(255,255,255,0.04);">
+                <i class="bi bi-chevron-left"></i> Kembali
+            </a>
+            <div class="text-center">
+                <h6 class="fw-bold m-0 text-white" style="letter-spacing: 0.4px; font-size: 0.88rem;">{{ strtoupper($season->name) }}</h6>
             </div>
-            <div class="text-end">
-                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
-                <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>
-            </div>
+            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill text-warning d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 3px 9px; border-color: rgba(255,122,0,0.4); background-color: rgba(255,122,0,0.05);" title="Panduan">
+                <i class="bi bi-info-circle-fill me-0.5"></i> Panduan
+            </button>
         </div>
     </header>
 
-    <!-- Search Area Container -->
-    <div class="search-area-container py-2" style="background-color: var(--bg-primary);">
-        <div class="search-wrapper text-center px-2">
-            <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim mu disini..">
-                <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
-                <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
-            </div>
-            <p class="search-hint"><i class="bi bi-info-circle me-1"></i>Ketik nama tim untuk cari jadwal &amp; musuhmu</p>
+    <!-- Search Area + Lapor Skor Button Side-by-Side (Mobile Friendly Bar) -->
+    <div class="search-area-container py-1.5 px-2" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
+        <div class="container-fluid px-1 d-flex align-items-center gap-2">
+            <!-- Search Box (Flex Grow) -->
+            <div class="search-wrapper flex-grow-1" style="position: relative; max-width: 100%;">
+                <div class="search-input-group d-flex align-items-center" style="margin: 0;">
+                    <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim mu disini..">
+                    <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
+                    <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
+                </div>
 
-            <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
-                <div id="searchResultList"></div>
+                <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
+                    <div id="searchResultList"></div>
+                </div>
             </div>
+
+            <!-- Tombol Lapor Skor / Menang (Sejajar di Samping Search Bar) -->
+            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark flex-shrink-0 d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.72rem; padding: 6px 12px; background: linear-gradient(135deg, #ff7a00, #f59e0b); border: none;">
+                <i class="bi bi-trophy-fill"></i> <span>Lapor Skor</span>
+            </button>
         </div>
     </div>
-
-    <!-- Floating Button Lapor Skor / Lapor Menang -->
-    <button type="button" 
-            class="floating-report-btn" 
-            data-bs-toggle="modal" 
-            data-bs-target="#modalReportScore">
-        <i class="bi bi-trophy-fill text-dark me-1"></i>
-        <span>Lapor Skor</span>
-    </button>
 
     
     <div class="round-headers-bar" id="roundHeadersBar">
