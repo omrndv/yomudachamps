@@ -641,7 +641,23 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <p class="text-secondary small mb-3">Masukkan jadwal (Tanggal & Jam) tanding untuk masing-masing babak di bawah. Jadwal akan langsung terupdate serentak ke semua pertandingan pada babak terkait.</p>
+                {{-- Preset Buttons Bar --}}
+                <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-3 mb-4 text-dark">
+                    <label class="small fw-bold d-block mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Preset Otomatis Jam Fast Tour (1-Klik Isi Semua):</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-warning btn-sm fw-bold rounded-pill text-dark" onclick="applyFastTourPreset(20, 0, 35)">
+                            <i class="bi bi-moon-stars-fill me-1"></i> Malam (Mulai 20:00 WIB, +35m)
+                        </button>
+                        <button type="button" class="btn btn-outline-warning text-dark btn-sm fw-bold rounded-pill" onclick="applyFastTourPreset(16, 0, 35)">
+                            <i class="bi bi-sun-fill me-1"></i> Sore (Mulai 16:00 WIB, +35m)
+                        </button>
+                        <button type="button" class="btn btn-outline-dark btn-sm fw-bold rounded-pill" onclick="applyFastTourPreset(19, 30, 40)">
+                            <i class="bi bi-clock-history me-1"></i> Malam 19:30 (+40m)
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-secondary small mb-3">Masukkan jadwal jam tanding untuk masing-masing babak di bawah. Anda bisa ubah per babak atau simpan sekaligus.</p>
                 <div class="row g-3">
                     @php
                         $totalRounds = count($rounds);
@@ -661,7 +677,7 @@
                             <div class="p-3 border rounded bg-light">
                                 <label class="d-block small fw-bold text-dark mb-1.5">{{ $title }}</label>
                                 <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="roundTime_{{ $roundNum }}" value="{{ $firstMatch->match_time ?? '20:00 WIB' }}" placeholder="Contoh: 29 Juni, 20:00 WIB">
+                                    <input type="text" class="form-control" id="roundTime_{{ $roundNum }}" value="{{ $firstMatch->match_time ?? '20:00 WIB' }}" placeholder="Contoh: 20:00 WIB">
                                     <button class="btn btn-warning" type="button" onclick="saveRoundTime({{ $roundNum }})">
                                         <i class="bi bi-check-lg"></i> Simpan
                                     </button>
@@ -671,8 +687,11 @@
                     @endforeach
                 </div>
             </div>
-            <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4">
-                <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold rounded-pill text-white" data-bs-dismiss="modal">Selesai</button>
+            <div class="modal-footer bg-light border-0 py-3 rounded-bottom-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary btn-sm px-3 fw-bold rounded-pill text-white" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-success btn-sm px-4 fw-bold rounded-pill text-white shadow" onclick="saveAllRoundTimes()">
+                    <i class="bi bi-check2-all me-1"></i> Simpan Semua Jam Babak (1-Klik)
+                </button>
             </div>
         </div>
     </div>
@@ -2134,6 +2153,94 @@ function saveRoundTime(roundNum) {
             });
         }
     });
+}
+
+// Preset Fast Tour Times (20:00, 20:40, 21:15, 21:50, 22:20, dst)
+function applyFastTourPreset(startHour = 20, startMinute = 0, intervalMinutes = 35) {
+    const totalRounds = {{ count($rounds) }};
+    let currentMinutes = startHour * 60 + startMinute;
+
+    for (let r = 1; r <= totalRounds; r++) {
+        const input = document.getElementById(`roundTime_${r}`);
+        if (!input) continue;
+
+        const h = Math.floor(currentMinutes / 60) % 24;
+        const m = currentMinutes % 60;
+        const pad = (n) => n.toString().padStart(2, '0');
+        
+        input.value = `${pad(h)}:${pad(m)} WIB`;
+        currentMinutes += intervalMinutes;
+    }
+
+    const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2500
+    });
+    toast.fire({
+        icon: 'success',
+        title: 'Preset Jam Diterapkan!',
+        text: 'Klik "Simpan Semua Jam Babak" untuk menyimpan ke database.'
+    });
+}
+
+// Batch Save All Round Times (1-Click)
+function saveAllRoundTimes() {
+    const totalRounds = {{ count($rounds) }};
+    const promises = [];
+
+    Swal.fire({
+        title: 'Menyimpan Jam Semua Babak...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    for (let r = 1; r <= totalRounds; r++) {
+        const input = document.getElementById(`roundTime_${r}`);
+        if (!input) continue;
+        const val = input.value;
+
+        promises.push(
+            fetch("{{ route('admin.season.bracket.update-round-times', $season->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    round_number: r,
+                    match_time: val
+                })
+            })
+        );
+    }
+
+    Promise.all(promises)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'Semua jam babak berhasil disimpan!',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                if (typeof saveScrollAndReload === 'function') {
+                    saveScrollAndReload();
+                } else {
+                    window.location.reload();
+                }
+            });
+        })
+        .catch(err => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Gagal menyimpan jam babak.'
+            });
+        });
 }
 
 // ----------------------------------------------------
