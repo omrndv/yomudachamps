@@ -2152,12 +2152,12 @@ function saveRoundTime(roundNum) {
 // Official Yomuda Fast Tour Schedule Matrix
 function applyOfficialYomudaPreset() {
     const totalRounds = {{ count($rounds) }};
-    const officialTimetable = [
-        "20.00 – 20.40", // Babak 1
-        "20.40 – 21.15", // Babak 2
-        "21.15 – 21.50", // Babak 3
-        "21.50 – 22.20", // Babak 4
-        "22.20 – 22.50", // Babak 5
+    const officialStartTimes = [
+        "20:00 WIB", // Babak 1
+        "20:40 WIB", // Babak 2
+        "21:15 WIB", // Babak 3
+        "21:50 WIB", // Babak 4
+        "22:20 WIB", // Babak 5
     ];
 
     for (let r = 1; r <= totalRounds; r++) {
@@ -2166,12 +2166,12 @@ function applyOfficialYomudaPreset() {
 
         let timeStr = "";
         if (r === totalRounds) {
-            timeStr = "23.20 – Selesai";
+            timeStr = "23:20 WIB"; // Grand Final / Bronze
         } else if (r === totalRounds - 1 && totalRounds > 1) {
-            timeStr = "22.50 – 23.20";
+            timeStr = "22:50 WIB"; // Semifinal
         } else {
             const idx = r - 1;
-            timeStr = officialTimetable[idx] || officialTimetable[officialTimetable.length - 1];
+            timeStr = officialStartTimes[idx] || officialStartTimes[officialStartTimes.length - 1];
         }
 
         input.value = timeStr;
