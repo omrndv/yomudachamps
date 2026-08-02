@@ -238,10 +238,10 @@
             display: flex;
             background-color: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
-            padding: 8px 30px;
+            padding: 4px 30px;
             white-space: nowrap;
             overflow-x: hidden;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 800;
             color: #d4d4d8;
             text-transform: uppercase;
@@ -850,54 +850,43 @@
 <body>
 
     
-    <!-- Header Style - Sleek Pro Esports Navbar -->
-    <header class="bracket-header py-2" style="background-color: var(--bg-primary); border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <div class="container-fluid px-3 d-flex align-items-center justify-content-between">
-            <!-- Left: Back Button & Brand -->
-            <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold text-white-50 d-flex align-items-center gap-1" style="font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.15); padding: 4px 10px; background-color: rgba(255,255,255,0.04);">
-                    <i class="bi bi-arrow-left"></i> Kembali
+    <!-- Single Sleek Compact Top Bar -->
+    <header class="bracket-header py-1.5 px-2" style="background-color: var(--bg-primary); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;">
+        <div class="container-fluid px-2 d-flex align-items-center justify-content-between gap-2">
+            <!-- Left: Back Button & Season Name -->
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold text-white-50 d-flex align-items-center gap-1" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.15); padding: 3px 8px; background-color: rgba(255,255,255,0.04);">
+                    <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Kembali</span>
                 </a>
-                <span class="badge bg-dark border border-secondary text-warning d-none d-md-inline-flex align-items-center gap-1" style="font-size: 0.65rem; padding: 5px 9px;">
-                    <i class="bi bi-trophy-fill text-warning"></i> YOMUDA
-                </span>
+                <div class="d-none d-md-block">
+                    <h6 class="fw-bold m-0 text-white" style="font-size: 0.82rem; line-height: 1.1;">{{ strtoupper($season->name) }}</h6>
+                </div>
             </div>
 
-            <!-- Center: Season Title & Live Sync Badge -->
-            <div class="text-center">
-                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.5px; font-size: 0.92rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
-                <span class="badge bg-danger text-white rounded-pill px-2 py-0.2" style="font-size: 0.52rem; letter-spacing: 0.3px;"><i class="bi bi-broadcast me-1"></i>LIVE SYNC ACTIVE</span>
+            <!-- Center: Compact Integrated Search Bar -->
+            <div class="search-wrapper flex-grow-1 mx-1" style="max-width: 340px; position: relative;">
+                <div class="search-input-group d-flex align-items-center">
+                    <input type="text" id="teamSearchInput" autocomplete="off" placeholder="🔍 Cari tim mu / musuh...">
+                    <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
+                    <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
+                </div>
+
+                <div id="searchResultCard" class="search-results-panel" style="max-height: 380px; overflow-y: auto; display: none;">
+                    <div id="searchResultList"></div>
+                </div>
             </div>
 
-            <!-- Right: Action Modals -->
-            <div class="d-flex align-items-center gap-1.5">
-                <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 11px; border: none;">
-                    <i class="bi bi-trophy-fill"></i> Lapor Skor
+            <!-- Right: Lapor Skor & Panduan -->
+            <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 3px 10px; border: none;">
+                    <i class="bi bi-trophy-fill"></i> <span class="d-none d-sm-inline">Lapor Skor</span>
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill text-warning d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 8px; border-color: rgba(255, 122, 0, 0.35); background-color: rgba(255,122,0,0.05);">
+                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill text-warning d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 3px 8px; border-color: rgba(255, 122, 0, 0.35); background-color: rgba(255,122,0,0.05);" title="Panduan">
                     <i class="bi bi-question-circle-fill"></i>
                 </button>
             </div>
         </div>
     </header>
-
-
-    
-    <div class="search-area-container py-2" style="background-color: var(--bg-primary);">
-        <div class="search-wrapper text-center px-2">
-            <div class="search-input-group d-flex align-items-center">
-                <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim mu disini..">
-                <button class="search-clear-btn" id="searchClearBtn"><i class="bi bi-x-circle-fill"></i></button>
-                <button class="search-icon-btn" id="searchIconBtn"><i class="bi bi-search"></i></button>
-            </div>
-            <p class="search-hint"><i class="bi bi-info-circle me-1"></i>Ketik nama tim untuk cari jadwal &amp; musuhmu</p>
-
-            
-            <div id="searchResultCard" class="search-results-panel" style="max-height: 420px; overflow-y: auto; display: none;">
-                <div id="searchResultList"></div>
-            </div>
-        </div>
-    </div>
 
     
     <div class="round-headers-bar" id="roundHeadersBar">
