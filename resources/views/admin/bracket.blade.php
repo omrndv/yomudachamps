@@ -168,9 +168,12 @@
                         <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch" style="cursor: pointer;">Bronze Match (Juara 3/4)</label>
                     </div>
                 </div>
-                {{-- Info text --}}
-                <div class="col-md-2 text-end">
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-bold" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
+                {{-- Info text & Mode Swap Toggle --}}
+                <div class="col-md-2 text-end d-flex align-items-center justify-content-end gap-1.5">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2.5 fw-bold text-nowrap" id="toggleSwapModeBtn" style="font-size: 0.68rem;">
+                        <i class="bi bi-arrow-down-up me-1"></i> <span id="swapModeText">Tukar Posisi</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-bold text-nowrap" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
                         <i class="bi bi-clock-fill text-warning me-1"></i> Jam Babak
                     </button>
                 </div>
@@ -1497,9 +1500,42 @@ document.addEventListener('DOMContentLoaded', function() {
     container.addEventListener('drop', stopDragScroll);
 
     // ----------------------------------------------------
-    // Click-to-Swap Teams (Klik Tim A -> Klik Tim B -> Tukar!)
+    // Click-to-Swap Teams (Mode Tukar Posisi Tim Babak 1)
     // ----------------------------------------------------
+    let isSwapModeActive = false;
     let firstSelectedTeamRow = null;
+
+    const toggleSwapBtn = document.getElementById('toggleSwapModeBtn');
+    const swapText = document.getElementById('swapModeText');
+
+    if (toggleSwapBtn) {
+        toggleSwapBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isSwapModeActive = !isSwapModeActive;
+            if (isSwapModeActive) {
+                this.classList.remove('btn-outline-warning');
+                this.classList.add('btn-warning', 'shadow');
+                if (swapText) swapText.textContent = 'Mode Tukar (AKTIF)';
+                
+                const toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                toast.fire({
+                    icon: 'warning',
+                    title: 'Mode Tukar Posisi AKTIF',
+                    text: 'Klik Tim A lalu Klik Tim B di Babak 1 untuk menukar posisi.'
+                });
+            } else {
+                this.classList.remove('btn-warning', 'shadow');
+                this.classList.add('btn-outline-warning');
+                if (swapText) swapText.textContent = 'Tukar Posisi';
+                clearSwapSelection();
+            }
+        });
+    }
 
     function clearSwapSelection() {
         if (firstSelectedTeamRow) {
@@ -1509,13 +1545,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.addEventListener('click', function(e) {
+        // Only act if swap mode is ON OR if a team is already selected for swap
+        if (!isSwapModeActive && !firstSelectedTeamRow) return;
+
         const teamRow = e.target.closest('.team-row[data-round="1"]');
         if (e.target.closest('.btn-quick-win') || e.target.closest('button')) return;
 
         if (!teamRow) {
-            clearSwapSelection();
+            if (!e.target.closest('#toggleSwapModeBtn')) {
+                clearSwapSelection();
+            }
             return;
         }
+
+        // STOP propagation so edit match modal DOES NOT OPEN during swap selection!
+        e.stopPropagation();
+        e.preventDefault();
 
         const matchId = teamRow.dataset.matchId;
         const slot = teamRow.dataset.slot;
@@ -1613,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-    });
+    }, true);
 
     // ----------------------------------------------------
     // Drag and Drop (Rearrange Seeding inside Round 1)
@@ -2811,12 +2856,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let previousGlobalUnread = -1;
-let lastSoundPlayedTime = 0;
 
 function playNotificationSound() {
     const now = Date.now();
-    if (now - lastSoundPlayedTime < 3000) return; // Prevent spamming sound within 3 seconds
-    lastSoundPlayedTime = now;
+    const lastGlobalSound = parseInt(localStorage.getItem('yomuda_global_last_sound_time') || '0', 10);
+    
+    // Cross-tab lock: If ANY tab played audio in the last 4 seconds, skip playing in other tabs
+    if (now - lastGlobalSound < 4000) return;
+    
+    localStorage.setItem('yomuda_global_last_sound_time', now.toString());
 
     try {
         const context = new (window.AudioContext || window.webkitAudioContext)();

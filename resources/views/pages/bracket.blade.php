@@ -1777,6 +1777,11 @@
         let isInitialLoad = true;
 
         function playNotificationSound() {
+            const now = Date.now();
+            const lastGlobalSound = parseInt(localStorage.getItem('yomuda_global_last_sound_time') || '0', 10);
+            if (now - lastGlobalSound < 4000) return;
+            localStorage.setItem('yomuda_global_last_sound_time', now.toString());
+
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc1 = audioCtx.createOscillator();
