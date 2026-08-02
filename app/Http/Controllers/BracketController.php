@@ -104,8 +104,25 @@ class BracketController extends Controller
                 }
             }
 
-            // Pool all teams into an ordered list
-            $allTeamsList = array_merge($ymdList, $soloList, $regularList);
+            // Pool teams for BYE vs Round 1
+            // Priority 1: YMD (Buyslot) teams fill the Round 2 BYE slots if BYEs exist!
+            $byeTeamsPool = [];
+            $r1TeamsPool = [];
+
+            if ($numBYEMatches > 0) {
+                while (count($ymdList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
+                    $byeTeamsPool[] = array_shift($ymdList);
+                }
+                while (count($soloList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
+                    $byeTeamsPool[] = array_shift($soloList);
+                }
+                while (count($regularList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
+                    $byeTeamsPool[] = array_shift($regularList);
+                }
+            }
+
+            // All remaining teams play in Round 1
+            $r1TeamsPool = array_merge($ymdList, $soloList, $regularList);
 
             // Determine which slots in Round 1 are BYE slots (evenly distributed across tree)
             $isByeSlot = array_fill(1, $matchesInRound1, false);
@@ -125,17 +142,17 @@ class BracketController extends Controller
                 }
             }
 
-            // Fill Round 1 slots using $allTeamsList
+            // Fill Round 1 slots
             $matchSlots = [];
             for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
                 if ($isByeSlot[$slotNum]) {
-                    // BYE slot -> 1 team
-                    $t1 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
+                    // BYE slot -> 1 team from $byeTeamsPool (YMD Buyslot prioritized)
+                    $t1 = count($byeTeamsPool) > 0 ? array_shift($byeTeamsPool) : null;
                     $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => null];
                 } else {
-                    // 2-team match slot -> 2 teams
-                    $t1 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
-                    $t2 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
+                    // 2-team match slot -> 2 teams from $r1TeamsPool
+                    $t1 = count($r1TeamsPool) > 0 ? array_shift($r1TeamsPool) : null;
+                    $t2 = count($r1TeamsPool) > 0 ? array_shift($r1TeamsPool) : null;
                     $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => $t2];
                 }
             }
