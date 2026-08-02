@@ -2426,6 +2426,100 @@
 
         container.addEventListener('mouseleave', clearHighlight, true);
     })();
+
+    // ----------------------------------------------------
+    // LIVE Real-Time Auto-Sync (Updates scores & matches without refresh)
+    // Optimized with Page Visibility API to save battery & bandwidth
+    // ----------------------------------------------------
+    (function initPublicLiveSync() {
+        const dataUrl = "{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}";
+
+        function fetchLiveUpdates() {
+            if (document.hidden) return;
+
+            fetch(dataUrl)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && Array.isArray(res.matches)) {
+                        res.matches.forEach(m => {
+                            const card = document.getElementById(`card_m_${m.round_number}_${m.match_number}`);
+                            if (!card) return;
+
+                            // 1. Update match time / LIVE badge
+                            const timeSpan = card.querySelector('.match-card-time');
+                            if (timeSpan) {
+                                if (m.status === 'live') {
+                                    timeSpan.innerHTML = '<span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>';
+                                } else {
+                                    let timeDisplay = m.match_time || '20:00 WIB';
+                                    if (timeDisplay.includes(',')) {
+                                        const parts = timeDisplay.split(',');
+                                        timeDisplay = parts[parts.length - 1].trim();
+                                    }
+                                    timeSpan.innerHTML = `<i class="bi bi-clock"></i> ${timeDisplay}`;
+                                }
+                            }
+
+                            // 2. Update Team 1 row (name, score, winner/loser class)
+                            const teamRows = card.querySelectorAll('.team-row');
+                            if (teamRows.length >= 1) {
+                                const row1 = teamRows[0];
+                                row1.setAttribute('data-team-id', m.team1_id || '');
+                                
+                                const nameSpan1 = row1.querySelector('.team-name');
+                                if (nameSpan1) {
+                                    if (m.team1_name) {
+                                        let isYmd = /^ymd-/i.test(m.team1_name.trim());
+                                        let badgeHtml = isYmd ? '<span class="badge bg-warning text-dark me-1" style="font-size:0.48rem; padding:1px 3px; font-weight:800;">⚡BUYSLOT</span>' : '';
+                                        nameSpan1.innerHTML = badgeHtml + m.team1_name;
+                                    } else {
+                                        nameSpan1.innerHTML = '<span class="text-muted italic">TBD</span>';
+                                    }
+                                }
+
+                                const scoreSpan1 = row1.querySelector('.team-score-box');
+                                if (scoreSpan1) scoreSpan1.textContent = m.team1_score ?? 0;
+
+                                row1.className = `team-row ${m.winner_id && m.winner_id === m.team1_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team1_id ? 'loser' : ''}`;
+                            }
+
+                            // 3. Update Team 2 row (name, score, winner/loser class)
+                            if (teamRows.length >= 2) {
+                                const row2 = teamRows[1];
+                                row2.setAttribute('data-team-id', m.team2_id || '');
+                                
+                                const nameSpan2 = row2.querySelector('.team-name');
+                                if (nameSpan2) {
+                                    if (m.team2_name) {
+                                        let isYmd = /^ymd-/i.test(m.team2_name.trim());
+                                        let badgeHtml = isYmd ? '<span class="badge bg-warning text-dark me-1" style="font-size:0.48rem; padding:1px 3px; font-weight:800;">⚡BUYSLOT</span>' : '';
+                                        nameSpan2.innerHTML = badgeHtml + m.team2_name;
+                                    } else {
+                                        nameSpan2.innerHTML = '<span class="text-muted italic">TBD</span>';
+                                    }
+                                }
+
+                                const scoreSpan2 = row2.querySelector('.team-score-box');
+                                if (scoreSpan2) scoreSpan2.textContent = m.team2_score ?? 0;
+
+                                row2.className = `team-row ${m.winner_id && m.winner_id === m.team2_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team2_id ? 'loser' : ''}`;
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.debug('Live sync poll error:', err));
+        }
+
+        // Start polling every 4 seconds
+        setInterval(fetchLiveUpdates, 4000);
+
+        // Trigger update when returning to tab
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                fetchLiveUpdates();
+            }
+        });
+    })();
     </script>
 </body>
 </html>
