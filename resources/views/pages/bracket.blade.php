@@ -850,9 +850,9 @@
 <body>
 
     
-    <!-- Header Style - Mobile First Compact -->
+    <!-- Header Style - Mobile First & Desktop Constrained -->
     <header class="bracket-header py-1.5 px-3" style="background-color: var(--bg-primary); border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <div class="container-fluid px-1 d-flex align-items-center justify-content-between">
+        <div class="container-xl px-1 d-flex align-items-center justify-content-between">
             <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold text-white-50 d-flex align-items-center gap-1" style="font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.15); padding: 3px 10px; background-color: rgba(255,255,255,0.04);">
                 <i class="bi bi-chevron-left"></i> Kembali
             </a>
@@ -865,10 +865,10 @@
         </div>
     </header>
 
-    <!-- Search Area + Lapor Skor Button Side-by-Side (Mobile Friendly Bar) -->
+    <!-- Search Area + Lapor Win Button Side-by-Side (Desktop Constrained) -->
     <div class="search-area-container py-1.5 px-2" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
-        <div class="container-fluid px-1 d-flex align-items-center gap-2">
-            <!-- Search Box (Flex Grow) -->
+        <div class="container-xl px-1 d-flex align-items-center gap-2">
+            <!-- Search Box (Flex Grow with Max Width on Desktop) -->
             <div class="search-wrapper flex-grow-1" style="position: relative; max-width: 100%;">
                 <div class="search-input-group d-flex align-items-center" style="margin: 0;">
                     <input type="text" id="teamSearchInput" autocomplete="off" placeholder="Cari nama tim mu disini..">
@@ -882,11 +882,37 @@
             </div>
 
             <!-- Tombol Lapor Win (Sejajar di Samping Search Bar) -->
-            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark flex-shrink-0 d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.72rem; padding: 6px 12px; background: linear-gradient(135deg, #ff7a00, #f59e0b); border: none;">
+            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark flex-shrink-0 d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.72rem; padding: 6px 14px; background: linear-gradient(135deg, #ff7a00, #f59e0b); border: none;">
                 <i class="bi bi-trophy-fill"></i> <span>Lapor Win</span>
             </button>
         </div>
     </div>
+
+    @php
+        $finalRound = $rounds->last();
+        $grandFinalMatch = $finalRound ? $finalRound->first() : null;
+        $isTournamentFinished = $grandFinalMatch && $grandFinalMatch->status === 'finished' && $grandFinalMatch->winner_id;
+        $winnerTeam = $isTournamentFinished ? $grandFinalMatch->winner : null;
+        $runnerUpTeam = $isTournamentFinished ? ($grandFinalMatch->winner_id == $grandFinalMatch->team1_id ? $grandFinalMatch->team2 : $grandFinalMatch->team1) : null;
+    @endphp
+
+    @if($isTournamentFinished && $winnerTeam)
+        <div class="champion-hero-banner py-2 px-3 text-center" style="background: linear-gradient(135deg, rgba(255, 122, 0, 0.25), rgba(245, 158, 11, 0.15)); border-bottom: 1px solid #ff7a00; flex-shrink: 0;">
+            <div class="container-xl d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="fs-5">🏆</span>
+                    <span class="text-warning fw-bold" style="font-size: 0.82rem; letter-spacing: 0.5px;">JUARA 1:</span>
+                    <strong class="text-white fs-6 fw-bold">{{ $winnerTeam->name }}</strong>
+                </div>
+                @if($runnerUpTeam)
+                    <div class="d-flex align-items-center gap-1.5 opacity-85" style="font-size: 0.78rem;">
+                        <span class="text-secondary">🥈 JUARA 2:</span>
+                        <strong class="text-light">{{ $runnerUpTeam->name }}</strong>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
 
     
     <div class="round-headers-bar" id="roundHeadersBar">
@@ -2426,6 +2452,43 @@
 
         container.addEventListener('mouseleave', clearHighlight, true);
     })();
+
+    // ----------------------------------------------------
+    // Canvas Zoom Controller (60% to 140%)
+    // ----------------------------------------------------
+    (function initCanvasZoom() {
+        const bracketContainer = document.getElementById('bracketContainer');
+        const zoomIn = document.getElementById('btnZoomIn');
+        const zoomOut = document.getElementById('btnZoomOut');
+        const zoomReset = document.getElementById('btnZoomReset');
+        const zoomLabel = document.getElementById('zoomLevelLabel');
+
+        if (!bracketContainer || !zoomIn) return;
+
+        let currentZoom = 1;
+
+        function applyZoom(zoom) {
+            currentZoom = Math.max(0.6, Math.min(1.4, Math.round(zoom * 10) / 10));
+            const tree = bracketContainer.querySelector('.bracket-tree');
+            if (tree) {
+                tree.style.transform = `scale(${currentZoom})`;
+                tree.style.transformOrigin = 'top left';
+            }
+            if (zoomLabel) zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        zoomIn.addEventListener('click', () => applyZoom(currentZoom + 0.1));
+        zoomOut.addEventListener('click', () => applyZoom(currentZoom - 0.1));
+        zoomReset.addEventListener('click', () => applyZoom(1));
+    })();
     </script>
+
+    <!-- Zoom Controls Widget for Desktop -->
+    <div class="zoom-controls-widget d-none d-md-flex align-items-center gap-1 p-1 bg-dark border border-secondary rounded-pill shadow-lg" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(20,20,24,0.92) !important; backdrop-filter: blur(8px);">
+        <button type="button" class="btn btn-sm btn-dark text-white rounded-circle p-1" id="btnZoomOut" title="Zoom Out" style="width: 28px; height: 28px; font-size: 0.7rem; line-height: 1;"><i class="bi bi-dash"></i></button>
+        <span id="zoomLevelLabel" class="text-warning fw-bold px-1" style="font-size: 0.65rem; min-width: 36px; text-align: center;">100%</span>
+        <button type="button" class="btn btn-sm btn-dark text-white rounded-circle p-1" id="btnZoomIn" title="Zoom In" style="width: 28px; height: 28px; font-size: 0.7rem; line-height: 1;"><i class="bi bi-plus"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 rounded-circle p-1 ms-1" id="btnZoomReset" title="Reset Zoom" style="width: 28px; height: 28px; font-size: 0.62rem; line-height: 1;"><i class="bi bi-aspect-ratio"></i></button>
+    </div>
 </body>
 </html>
