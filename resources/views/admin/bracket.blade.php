@@ -645,14 +645,8 @@
                 <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-3 mb-4 text-dark">
                     <label class="small fw-bold d-block mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Preset Otomatis Jam Fast Tour (1-Klik Isi Semua):</label>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-warning btn-sm fw-bold rounded-pill text-dark" onclick="applyFastTourPreset(20, 0, 35)">
-                            <i class="bi bi-moon-stars-fill me-1"></i> Malam (Mulai 20:00 WIB, +35m)
-                        </button>
-                        <button type="button" class="btn btn-outline-warning text-dark btn-sm fw-bold rounded-pill" onclick="applyFastTourPreset(16, 0, 35)">
-                            <i class="bi bi-sun-fill me-1"></i> Sore (Mulai 16:00 WIB, +35m)
-                        </button>
-                        <button type="button" class="btn btn-outline-dark btn-sm fw-bold rounded-pill" onclick="applyFastTourPreset(19, 30, 40)">
-                            <i class="bi bi-clock-history me-1"></i> Malam 19:30 (+40m)
+                        <button type="button" class="btn btn-warning btn-sm fw-bold rounded-pill text-dark shadow-sm" onclick="applyOfficialYomudaPreset()">
+                            <i class="bi bi-clock-fill me-1"></i> Preset Resmi Fast Tour Yomuda (20.00 – Selesai)
                         </button>
                     </div>
                 </div>
@@ -2155,21 +2149,32 @@ function saveRoundTime(roundNum) {
     });
 }
 
-// Preset Fast Tour Times (20:00, 20:40, 21:15, 21:50, 22:20, dst)
-function applyFastTourPreset(startHour = 20, startMinute = 0, intervalMinutes = 35) {
+// Official Yomuda Fast Tour Schedule Matrix
+function applyOfficialYomudaPreset() {
     const totalRounds = {{ count($rounds) }};
-    let currentMinutes = startHour * 60 + startMinute;
+    const officialTimetable = [
+        "20.00 – 20.40", // Babak 1
+        "20.40 – 21.15", // Babak 2
+        "21.15 – 21.50", // Babak 3
+        "21.50 – 22.20", // Babak 4
+        "22.20 – 22.50", // Babak 5
+    ];
 
     for (let r = 1; r <= totalRounds; r++) {
         const input = document.getElementById(`roundTime_${r}`);
         if (!input) continue;
 
-        const h = Math.floor(currentMinutes / 60) % 24;
-        const m = currentMinutes % 60;
-        const pad = (n) => n.toString().padStart(2, '0');
-        
-        input.value = `${pad(h)}:${pad(m)} WIB`;
-        currentMinutes += intervalMinutes;
+        let timeStr = "";
+        if (r === totalRounds) {
+            timeStr = "23.20 – Selesai";
+        } else if (r === totalRounds - 1 && totalRounds > 1) {
+            timeStr = "22.50 – 23.20";
+        } else {
+            const idx = r - 1;
+            timeStr = officialTimetable[idx] || officialTimetable[officialTimetable.length - 1];
+        }
+
+        input.value = timeStr;
     }
 
     const toast = Swal.mixin({
@@ -2180,7 +2185,7 @@ function applyFastTourPreset(startHour = 20, startMinute = 0, intervalMinutes = 
     });
     toast.fire({
         icon: 'success',
-        title: 'Preset Jam Diterapkan!',
+        title: 'Preset Resmi Yomuda Diterapkan!',
         text: 'Klik "Simpan Semua Jam Babak" untuk menyimpan ke database.'
     });
 }
