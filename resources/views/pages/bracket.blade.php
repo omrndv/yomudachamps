@@ -895,11 +895,20 @@
     </div>
 
     @php
+        $totalRounds = $brackets->max('round_number') ?? 1;
+        $treeSlotsR1 = (int) pow(2, $totalRounds - 1); // e.g. 32 slots for 64-tree
+
+        $r1MatchCounter = 0;
         $startNumbers = [];
         $currentStart = 1;
         foreach ($rounds as $rNum => $rMatches) {
             $startNumbers[$rNum] = $currentStart;
-            $currentStart += $rMatches->count();
+            if ($rNum === 1) {
+                $realR1Matches = $rMatches->filter(fn($m) => $m->team1_id && $m->team2_id);
+                $currentStart += $realR1Matches->count();
+            } else {
+                $currentStart += $rMatches->count();
+            }
         }
     @endphp
 
@@ -924,17 +933,25 @@
                 @foreach($columnMatches as $match)
                     @php
                         // Skip render di Babak 1 jika match tidak memiliki 2 tim bertanding (BYE atau slot kosong)
-                        $isByeMatch = ($match->round_number === 1 && (!$match->team1_id || !$match->team2_id));
-                        // Absolute positioning berdasarkan match_number
-                        $slotHeight = $roundHeight / $matchesCount;
+                        $isByeMatch = ($roundNum === 1 && (!$match->team1_id || !$match->team2_id));
+                        
+                        $totalPosInCol = ($roundNum === 1) ? $treeSlotsR1 : $matchesCount;
+                        $slotHeight = $roundHeight / $totalPosInCol;
                         $cardTop = (int)(($match->match_number - 0.5) * $slotHeight) - 32;
+
+                        if ($roundNum === 1 && !$isByeMatch) {
+                            $r1MatchCounter++;
+                            $badgeNumber = $r1MatchCounter;
+                        } else {
+                            $badgeNumber = $startNumbers[$roundNum] + ($match->match_number - 1);
+                        }
                     @endphp
 
                     @if(!$isByeMatch)
                         <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
                              style="position: absolute; top: {{ $cardTop }}px;">
                             <div class="match-card-header">
-                                <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
+                                <span>BRACKET {{ $badgeNumber }}</span>
                                 <span class="match-card-time">
                                     @if($match->status === 'live')
                                         <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
@@ -978,15 +995,19 @@
 
                 
                 @if($roundNum < count($rounds))
+                    @php
+                        $connSlotsCount = ($roundNum === 1) ? $treeSlotsR1 : $matchesCount;
+                        $nextColSlotsCount = ($roundNum === 1) ? ($treeSlotsR1 / 2) : ($matchesCount / 2);
+                    @endphp
                     <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
-                        @for($m = 1; $m <= $matchesCount; $m++)
+                        @for($m = 1; $m <= $connSlotsCount; $m++)
                             @php
                                 // Skip connector untuk posisi BYE/kosong di Babak 1
-                                $matchAtConnPos = $columnMatches->firstWhere('match_number', $m);
+                                $matchAtConnPos = ($roundNum === 1) ? $columnMatches->firstWhere('match_number', $m) : null;
                                 $isByeConnPos = ($roundNum === 1 && (!$matchAtConnPos || !$matchAtConnPos->team1_id || !$matchAtConnPos->team2_id));
                                 $nextMatchIndex = ceil($m / 2);
-                                $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
-                                $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
+                                $startY = ($roundHeight / $connSlotsCount) * ($m - 0.5);
+                                $endY = ($roundHeight / $nextColSlotsCount) * ($nextMatchIndex - 0.5);
                                 $midX = 40;
                             @endphp
                             @if(!$isByeConnPos)

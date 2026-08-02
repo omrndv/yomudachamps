@@ -238,34 +238,8 @@ class BracketController extends Controller
                 }
             }
 
-            // Generate DB Brackets for Round 1
-            $round1Matches = [];
-            for ($matchNum = 1; $matchNum <= $matchesInRound1; $matchNum++) {
-                $team1 = $matchSlots[$matchNum]['team1'];
-                $team2 = $matchSlots[$matchNum]['team2'];
-
-                $bracket = new Bracket();
-                $bracket->season_id = $season_id;
-                $bracket->round_number = 1;
-                $bracket->match_number = $matchNum;
-                $bracket->team1_id = $team1 ? $team1->id : null;
-                $bracket->team2_id = $team2 ? $team2->id : null;
-                $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount);
-                $bracket->status = 'upcoming';
-
-                // Handle BYE automatically if team1 exists but team2 does not
-                if ($team1 && !$team2) {
-                    $bracket->winner_id = $team1->id;
-                    $bracket->team1_score = 1;
-                    $bracket->team2_score = 0;
-                    $bracket->status = 'finished';
-                }
-
-                $bracket->save();
-                $round1Matches[$matchNum] = $bracket;
-            }
-
-            // Generate empty matches for subsequent rounds
+            // 1. Generate empty matches for Round 2 to Final
+            $round2Matches = [];
             for ($round = 2; $round <= $roundsCount; $round++) {
                 $matchesInRound = $bracketSize / (pow(2, $round));
                 for ($matchNum = 1; $matchNum <= $matchesInRound; $matchNum++) {
@@ -280,14 +254,47 @@ class BracketController extends Controller
                     $bracket->match_time = $this->getDefaultTimeForRound($round, $roundsCount);
                     $bracket->status = 'upcoming';
                     $bracket->save();
+                    if ($round === 2) {
+                        $round2Matches[$matchNum] = $bracket;
+                    }
                 }
             }
 
-            // Auto-advance BYEs from Round 1 to Round 2
-            foreach ($round1Matches as $matchNum => $match) {
-                if ($match->winner_id) {
-                    $this->advanceWinner($match);
+            // 2. Process Round 1 slots (1..matchesInRound1)
+            // Real matches (both team1 & team2 exist) get created in Round 1 DB
+            // Single teams (BYE) get placed directly into Round 2 DB slots!
+            for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
+                $team1 = $matchSlots[$slotNum]['team1'] ?? null;
+                $team2 = $matchSlots[$slotNum]['team2'] ?? null;
+
+                if ($team1 && $team2) {
+                    // REAL MATCH in Round 1
+                    $bracket = new Bracket();
+                    $bracket->season_id = $season_id;
+                    $bracket->round_number = 1;
+                    $bracket->match_number = $slotNum; // 64-tree slot index for accurate positioning
+                    $bracket->team1_id = $team1->id;
+                    $bracket->team2_id = $team2->id;
+                    $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount);
+                    $bracket->status = 'upcoming';
+                    $bracket->save();
+                } else if ($team1 || $team2) {
+                    // BYE! Put team directly into Round 2 slot
+                    $byeTeam = $team1 ?? $team2;
+                    $r2MatchNum = (int) ceil($slotNum / 2);
+                    $isSlot1InR2 = ($slotNum % 2 !== 0);
+
+                    if (isset($round2Matches[$r2MatchNum])) {
+                        $r2Match = $round2Matches[$r2MatchNum];
+                        if ($isSlot1InR2) {
+                            $r2Match->team1_id = $byeTeam->id;
+                        } else {
+                            $r2Match->team2_id = $byeTeam->id;
+                        }
+                        $r2Match->save();
+                    }
                 }
+                // If neither team1 nor team2 exists -> empty slot, skip completely!
             }
 
             DB::commit();
