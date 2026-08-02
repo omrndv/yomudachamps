@@ -923,8 +923,8 @@
             <div class="bracket-round">
                 @foreach($columnMatches as $match)
                     @php
-                        // BYE match di Babak 1: tim sudah muncul di Babak 2, skip render
-                        $isByeMatch = ($match->round_number === 1 && $match->team1_id && !$match->team2_id && $match->status === 'finished');
+                        // Skip render di Babak 1 jika match tidak memiliki 2 tim bertanding (BYE atau slot kosong)
+                        $isByeMatch = ($match->round_number === 1 && (!$match->team1_id || !$match->team2_id));
                         // Absolute positioning berdasarkan match_number
                         $slotHeight = $roundHeight / $matchesCount;
                         $cardTop = (int)(($match->match_number - 0.5) * $slotHeight) - 32;
@@ -981,9 +981,9 @@
                     <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                         @for($m = 1; $m <= $matchesCount; $m++)
                             @php
-                                // Skip connector untuk posisi BYE di Babak 1
+                                // Skip connector untuk posisi BYE/kosong di Babak 1
                                 $matchAtConnPos = $columnMatches->firstWhere('match_number', $m);
-                                $isByeConnPos = ($roundNum === 1 && $matchAtConnPos && $matchAtConnPos->team1_id && !$matchAtConnPos->team2_id && $matchAtConnPos->status === 'finished');
+                                $isByeConnPos = ($roundNum === 1 && (!$matchAtConnPos || !$matchAtConnPos->team1_id || !$matchAtConnPos->team2_id));
                                 $nextMatchIndex = ceil($m / 2);
                                 $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
                                 $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
