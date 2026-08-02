@@ -86,6 +86,9 @@ class BracketController extends Controller
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
+            $matchesInRound1 = $bracketSize / 2;
+            $numBYEMatches = $bracketSize - $teamCount;
+
             // Categorize teams: YMD (Buyslot), Solo, Regular
             $ymdList = [];
             $soloList = [];
@@ -101,140 +104,39 @@ class BracketController extends Controller
                 }
             }
 
-            $matchesInRound1 = $bracketSize / 2;
+            // Pool all teams into an ordered list
+            $allTeamsList = array_merge($ymdList, $soloList, $regularList);
 
-            // Build YMD 4-match blocks (each up to 4 matches / 8 teams)
-            $ymdBlocks = [];
-            $ymdIndex = 0;
-            $ymdCount = count($ymdList);
-            while ($ymdIndex < $ymdCount) {
-                $block = [];
-                for ($b = 0; $b < 4 && $ymdIndex < $ymdCount; $b++) {
-                    $t1 = $ymdList[$ymdIndex++];
-                    $t2 = ($ymdIndex < $ymdCount) ? $ymdList[$ymdIndex++] : null;
-                    $block[] = ['team1' => $t1, 'team2' => $t2];
+            // Determine which slots in Round 1 are BYE slots (evenly distributed across tree)
+            $isByeSlot = array_fill(1, $matchesInRound1, false);
+
+            if ($numBYEMatches > 0 && $numBYEMatches < $matchesInRound1) {
+                for ($i = 0; $i < $numBYEMatches; $i++) {
+                    $idx = (int) round(($i + 0.5) * ($matchesInRound1 / $numBYEMatches));
+                    $idx = max(1, min($matchesInRound1, $idx));
+                    while ($isByeSlot[$idx]) {
+                        $idx = ($idx % $matchesInRound1) + 1;
+                    }
+                    $isByeSlot[$idx] = true;
                 }
-                $ymdBlocks[] = $block;
-            }
-
-            // Build Solo matches (Solo vs Solo)
-            $soloMatches = [];
-            $soloIndex = 0;
-            $soloCount = count($soloList);
-            while ($soloIndex < $soloCount) {
-                $t1 = $soloList[$soloIndex++];
-                $t2 = ($soloIndex < $soloCount) ? $soloList[$soloIndex++] : null;
-                $soloMatches[] = ['team1' => $t1, 'team2' => $t2];
-            }
-
-            // Complete partial YMD or Solo matches with Regular teams if team2 is missing
-            foreach ($ymdBlocks as &$block) {
-                foreach ($block as &$mPair) {
-                    if ($mPair['team1'] !== null && $mPair['team2'] === null && count($regularList) > 0) {
-                        $mPair['team2'] = array_shift($regularList);
-                    }
-                }
-            }
-            unset($block, $mPair);
-
-            foreach ($soloMatches as &$mPair) {
-                if ($mPair['team1'] !== null && $mPair['team2'] === null && count($regularList) > 0) {
-                    $mPair['team2'] = array_shift($regularList);
-                }
-            }
-            unset($mPair);
-
-            // Build remaining non-YMD matches (Solo + Regular + BYEs)
-            $otherMatches = $soloMatches;
-            while (count($regularList) > 0) {
-                $t1 = array_shift($regularList);
-                $t2 = count($regularList) > 0 ? array_shift($regularList) : null;
-                $otherMatches[] = ['team1' => $t1, 'team2' => $t2];
-            }
-
-            // Shuffle non-YMD individual matches for random variety
-            shuffle($otherMatches);
-
-            // Divide Round 1 into 4-match Sectors (Tree branches of 4 matches = 8 team slots)
-            $numSectors = (int) ceil($matchesInRound1 / 4);
-            $sectors = array_fill(0, $numSectors, []);
-
-            // Candidate sector indexes (exclude Sector 0 / Match 1-4 if 2+ sectors exist)
-            $candidateSectorIndexes = range(0, $numSectors - 1);
-            if ($numSectors >= 2) {
-                $candidateSectorIndexes = array_values(array_diff($candidateSectorIndexes, [0]));
-            }
-
-            // Pick sector indexes with enforced spacing (gaps between YMD sectors)
-            $chosenYmdSectorIndexes = [];
-            $totalYmdBlocks = count($ymdBlocks);
-
-            if ($totalYmdBlocks > 0 && count($candidateSectorIndexes) > 0) {
-                // Shuffle candidates first for randomness
-                shuffle($candidateSectorIndexes);
-
-                foreach ($candidateSectorIndexes as $candIdx) {
-                    if (count($chosenYmdSectorIndexes) >= $totalYmdBlocks) {
-                        break;
-                    }
-                    // Check if this candidate is adjacent to any already chosen YMD sector
-                    $isAdjacent = false;
-                    foreach ($chosenYmdSectorIndexes as $chosen) {
-                        if (abs($chosen - $candIdx) <= 1) {
-                            $isAdjacent = true;
-                            break;
-                        }
-                    }
-                    if (!$isAdjacent) {
-                        $chosenYmdSectorIndexes[] = $candIdx;
-                    }
-                }
-
-                // Fallback: If strict non-adjacent space was unavailable (e.g. lots of YMD blocks), fill from remaining candidates
-                if (count($chosenYmdSectorIndexes) < $totalYmdBlocks) {
-                    foreach ($candidateSectorIndexes as $candIdx) {
-                        if (count($chosenYmdSectorIndexes) >= $totalYmdBlocks) {
-                            break;
-                        }
-                        if (!in_array($candIdx, $chosenYmdSectorIndexes)) {
-                            $chosenYmdSectorIndexes[] = $candIdx;
-                        }
-                    }
+            } else if ($numBYEMatches >= $matchesInRound1) {
+                for ($s = 1; $s <= $matchesInRound1; $s++) {
+                    $isByeSlot[$s] = true;
                 }
             }
 
-            // Fill chosen sectors with YMD blocks
-            foreach ($ymdBlocks as $yBlock) {
-                if (count($chosenYmdSectorIndexes) > 0) {
-                    $secIdx = array_shift($chosenYmdSectorIndexes);
-                    // Fill this sector with the YMD block (and pad with other matches if YMD block < 4)
-                    while (count($yBlock) < 4 && count($otherMatches) > 0) {
-                        $yBlock[] = array_shift($otherMatches);
-                    }
-                    $sectors[$secIdx] = $yBlock;
-                }
-            }
-
-            // 2. Fill remaining empty sectors with other matches & BYE placeholders
-            for ($s = 0; $s < $numSectors; $s++) {
-                while (count($sectors[$s]) < 4) {
-                    if (count($otherMatches) > 0) {
-                        $sectors[$s][] = array_shift($otherMatches);
-                    } else {
-                        $sectors[$s][] = ['team1' => null, 'team2' => null];
-                    }
-                }
-            }
-
-            // 3. Flatten sectors into 1-based Round 1 match slots
+            // Fill Round 1 slots using $allTeamsList
             $matchSlots = [];
-            $slotNum = 1;
-            for ($s = 0; $s < $numSectors; $s++) {
-                foreach ($sectors[$s] as $mPair) {
-                    if ($slotNum <= $matchesInRound1) {
-                        $matchSlots[$slotNum] = $mPair;
-                        $slotNum++;
-                    }
+            for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
+                if ($isByeSlot[$slotNum]) {
+                    // BYE slot -> 1 team
+                    $t1 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
+                    $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => null];
+                } else {
+                    // 2-team match slot -> 2 teams
+                    $t1 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
+                    $t2 = count($allTeamsList) > 0 ? array_shift($allTeamsList) : null;
+                    $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => $t2];
                 }
             }
 
@@ -260,9 +162,9 @@ class BracketController extends Controller
                 }
             }
 
-            // 2. Process Round 1 slots (1..matchesInRound1)
-            // Real matches (both team1 & team2 exist) get created in Round 1 DB
-            // Single teams (BYE) get placed directly into Round 2 DB slots!
+            // 2. Process Round 1 slots
+            // Real 2-team matches get created in Round 1 DB
+            // 1-team BYEs get placed directly into Round 2 DB slots!
             for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
                 $team1 = $matchSlots[$slotNum]['team1'] ?? null;
                 $team2 = $matchSlots[$slotNum]['team2'] ?? null;
@@ -294,7 +196,6 @@ class BracketController extends Controller
                         $r2Match->save();
                     }
                 }
-                // If neither team1 nor team2 exists -> empty slot, skip completely!
             }
 
             DB::commit();
