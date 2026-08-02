@@ -881,9 +881,9 @@
                 </div>
             </div>
 
-            <!-- Tombol Lapor Skor / Menang (Sejajar di Samping Search Bar) -->
+            <!-- Tombol Lapor Win (Sejajar di Samping Search Bar) -->
             <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark flex-shrink-0 d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.72rem; padding: 6px 12px; background: linear-gradient(135deg, #ff7a00, #f59e0b); border: none;">
-                <i class="bi bi-trophy-fill"></i> <span>Lapor Skor</span>
+                <i class="bi bi-trophy-fill"></i> <span>Lapor Win</span>
             </button>
         </div>
     </div>
@@ -1335,7 +1335,8 @@
                     let waButtonHtml = '';
                     if (matchData.opponentWA && matchData.opponentWA !== '-') {
                         const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
-                        waButtonHtml = `<a href="https://wa.me/${numericWA}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
+                        const drafText = encodeURIComponent(`Halo ini team ${matchData.opponent} yakk?, gw dari tim ${matchData.name} yang kita ketemu di ${matchData.round.toLowerCase()} yomuda. Udah ready belom?`);
+                        waButtonHtml = `<a href="https://wa.me/${numericWA}?text=${drafText}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
                     }
                     const escName = matchData.name.replace(/"/g, '&quot;');
                     const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
