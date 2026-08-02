@@ -364,7 +364,7 @@
                                         $midX = 40;
                                     @endphp
                                     @if(!$isByeConnPos)
-                                        <path class="connector-line" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                                        <path class="connector-line" id="line_{{ $roundNum }}_{{ $m }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
                                     @endif
                                 @endfor
                             </svg>
@@ -1074,6 +1074,29 @@
         z-index: 100;
     }
 
+    /* Team Path Highlight on Hover */
+    .team-row.team-path-highlight {
+        background-color: rgba(255, 122, 0, 0.25) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        box-shadow: inset 3px 0 0 #ff7a00;
+    }
+
+    .match-card.match-path-highlight {
+        border-color: #ff7a00 !important;
+        box-shadow: 0 0 16px rgba(255, 122, 0, 0.5) !important;
+        transform: scale(1.025);
+        z-index: 60 !important;
+    }
+
+    .connector-line.line-path-highlight,
+    .connector-line.highlighted {
+        stroke: #ff7a00 !important;
+        stroke-width: 3px !important;
+        filter: drop-shadow(0 0 6px rgba(255, 122, 0, 0.8));
+        opacity: 1 !important;
+    }
+
     @keyframes pulse {
         from { opacity: 0.6; }
         to { opacity: 1; }
@@ -1651,6 +1674,61 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ----------------------------------------------------
+    // Team Path Highlighting on Hover (Challonge-style)
+    // ----------------------------------------------------
+    (function initTeamPathHighlight() {
+        const container = document.getElementById('adminBracketContainer');
+        if (!container) return;
+
+        function clearHighlight() {
+            document.querySelectorAll('.team-path-highlight').forEach(el => el.classList.remove('team-path-highlight'));
+            document.querySelectorAll('.match-path-highlight').forEach(el => el.classList.remove('match-path-highlight'));
+            document.querySelectorAll('.connector-line.highlighted, .connector-line.line-path-highlight').forEach(el => el.classList.remove('highlighted', 'line-path-highlight'));
+        }
+
+        function highlightPath(teamId) {
+            clearHighlight();
+            if (!teamId) return;
+
+            const teamRows = document.querySelectorAll(`.team-row[data-team-id="${teamId}"]`);
+            const teamMatchesByRound = {};
+
+            teamRows.forEach(row => {
+                row.classList.add('team-path-highlight');
+                const card = row.closest('.match-card');
+                if (card) {
+                    card.classList.add('match-path-highlight');
+                    const parts = card.id ? card.id.split('_') : [];
+                    if (parts.length >= 4) {
+                        const rNum = parseInt(parts[2]);
+                        const mNum = parseInt(parts[3]);
+                        teamMatchesByRound[rNum] = mNum;
+                    }
+                }
+            });
+
+            // Highlight connector lines for rounds where team appears
+            Object.keys(teamMatchesByRound).forEach(rStr => {
+                const rNum = parseInt(rStr);
+                const mNum = teamMatchesByRound[rNum];
+                const line = document.getElementById(`line_${rNum}_${mNum}`);
+                if (line) {
+                    line.classList.add('line-path-highlight', 'highlighted');
+                }
+            });
+        }
+
+        container.addEventListener('mouseover', function(e) {
+            const teamRow = e.target.closest('.team-row[data-team-id]');
+            if (!teamRow) return;
+            const teamId = teamRow.getAttribute('data-team-id');
+            if (teamId) highlightPath(teamId);
+        });
+
+        container.addEventListener('mouseleave', clearHighlight, true);
+    })();
 
     // ----------------------------------------------------
     // Search & Filter inside YMD Slots Modal
