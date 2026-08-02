@@ -850,22 +850,33 @@
 <body>
 
     
-    <header class="bracket-header py-2">
-        <div class="container d-flex align-items-center justify-content-between">
+    <!-- Header Style - Sleek Pro Esports Navbar -->
+    <header class="bracket-header py-2" style="background-color: var(--bg-primary); border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div class="container-fluid px-3 d-flex align-items-center justify-content-between">
+            <!-- Left: Back Button & Brand -->
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" style="font-size: 0.68rem; border: 1px solid rgba(255,255,255,0.15); color: #c4c4cc; padding: 4px 12px; background-color: rgba(255,255,255,0.05);">
-                    <i class="bi bi-chevron-left"></i> Kembali
+                <a href="{{ route('public.season.landing', $slug) }}" class="btn btn-sm rounded-pill fw-bold text-white-50 d-flex align-items-center gap-1" style="font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.15); padding: 4px 10px; background-color: rgba(255,255,255,0.04);">
+                    <i class="bi bi-arrow-left"></i> Kembali
                 </a>
-                <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 12px; color: #000; border: none;">
+                <span class="badge bg-dark border border-secondary text-warning d-none d-md-inline-flex align-items-center gap-1" style="font-size: 0.65rem; padding: 5px 9px;">
+                    <i class="bi bi-trophy-fill text-warning"></i> YOMUDA
+                </span>
+            </div>
+
+            <!-- Center: Season Title & Live Sync Badge -->
+            <div class="text-center">
+                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.5px; font-size: 0.92rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
+                <span class="badge bg-danger text-white rounded-pill px-2 py-0.2" style="font-size: 0.52rem; letter-spacing: 0.3px;"><i class="bi bi-broadcast me-1"></i>LIVE SYNC ACTIVE</span>
+            </div>
+
+            <!-- Right: Action Modals -->
+            <div class="d-flex align-items-center gap-1.5">
+                <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalReportScore" style="font-size: 0.68rem; padding: 4px 11px; border: none;">
                     <i class="bi bi-trophy-fill"></i> Lapor Skor
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 12px; border-color: rgba(255, 122, 0, 0.4); color: var(--accent-orange); background-color: rgba(255, 122, 0, 0.05);">
-                    <i class="bi bi-info-circle-fill"></i> Panduan
+                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill text-warning d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalGuideInfo" style="font-size: 0.68rem; padding: 4px 8px; border-color: rgba(255, 122, 0, 0.35); background-color: rgba(255,122,0,0.05);">
+                    <i class="bi bi-question-circle-fill"></i>
                 </button>
-            </div>
-            <div class="text-end">
-                <h5 class="fw-bold m-0 text-white" style="letter-spacing: 0.3px; font-size: 0.95rem; line-height: 1.2;">{{ strtoupper($season->name) }}</h5>
-                <p class="text-secondary m-0" style="font-size: 0.65rem;">Bagan Yomuda</p>
             </div>
         </div>
     </header>
@@ -1313,55 +1324,98 @@
 
             const matched = matchesData.filter(m => m.teamKey.includes(query)).reverse();
 
+            const matched = matchesData.filter(m => m.teamKey.includes(query));
+
             if (matched.length > 0) {
                 resultCard.style.display = 'block';
-                matched.forEach((matchData, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'search-result-item pb-3 mb-3';
-                    if (index < matched.length - 1) {
-                        item.classList.add('border-bottom', 'border-secondary', 'border-opacity-25');
-                    }
-                    let statusBadgeClass = 'badge bg-warning text-dark rounded-pill px-2.5 py-0.5';
-                    if (matchData.status === 'Lolos') {
-                        statusBadgeClass = 'badge bg-success text-white rounded-pill px-2.5 py-0.5';
-                    } else if (matchData.status === 'Kalah') {
-                        statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2.5 py-0.5';
-                    }
-                    let scheduleClean = matchData.schedule;
-                    if (scheduleClean.includes(',')) {
-                        const parts = scheduleClean.split(',');
-                        scheduleClean = parts[parts.length - 1].trim();
-                    }
-                    let waButtonHtml = '';
-                    if (matchData.opponentWA && matchData.opponentWA !== '-') {
-                        const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
-                        waButtonHtml = `<a href="https://wa.me/${numericWA}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
-                    }
-                    const escName = matchData.name.replace(/"/g, '&quot;');
-                    const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
-                    const escSchedule = scheduleClean.replace(/"/g, '&quot;');
-                    const escRound = matchData.round.replace(/"/g, '&quot;');
-                    const escBracket = matchData.bracket.replace(/"/g, '&quot;');
-                    item.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center pb-1.5 mb-2">
-                            <strong class="text-warning" style="font-size: 0.85rem;">${matchData.name}</strong>
-                            <span class="${statusBadgeClass}" style="font-size: 0.6rem;">${matchData.status}</span>
-                        </div>
-                        <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.72rem;">
-                            <div class="col-6">Team Musuh: <strong class="text-white">${matchData.opponent}</strong></div>
-                            <div class="col-6">Nomer WA Musuh: <strong class="text-warning">${matchData.opponentWA}</strong></div>
-                            <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
-                            <div class="col-6">Babak: <strong class="text-white">${matchData.round}</strong></div>
-                            <div class="col-6">Bracket: <strong class="text-white">${matchData.bracket}</strong></div>
-                        </div>
-                        <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
-                            ${waButtonHtml}
-                            <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
-                            <!-- <button type="button" class="btn btn-outline-warning btn-sm fw-bold px-2.5 py-1 rounded-pill d-inline-flex align-items-center gap-1" onclick="shareMatchdayDirect('${escName}', '${escOpponent}', '${escSchedule}', '${escRound}', '${escBracket}')" style="font-size: 0.7rem;"><i class="bi bi-download"></i> Share</button> -->
-                        </div>
-                    `;
-                    resultList.appendChild(item);
-                });
+                
+                // Separate active/upcoming match from finished history matches
+                const activeMatches = matched.filter(m => m.status === 'Belum Main' || m.status === 'LIVE');
+                const historyMatches = matched.filter(m => m.status !== 'Belum Main' && m.status !== 'LIVE').reverse();
+
+                // 1. Render Active Match at the VERY TOP with glowing border
+                if (activeMatches.length > 0) {
+                    const activeHeader = document.createElement('div');
+                    activeHeader.className = 'd-flex align-items-center gap-1.5 pb-2 text-warning fw-bold';
+                    activeHeader.style.fontSize = '0.75rem';
+                    activeHeader.innerHTML = `<i class="bi bi-fire text-danger fs-6"></i> MATCH KAMU SEKARANG (AKTIF)`;
+                    resultList.appendChild(activeHeader);
+
+                    activeMatches.forEach(matchData => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item p-3 mb-3 rounded-3 shadow-lg';
+                        item.style.background = 'linear-gradient(135deg, rgba(255, 122, 0, 0.18), rgba(20, 20, 24, 0.95))';
+                        item.style.border = '2px solid #ff7a00';
+
+                        let scheduleClean = matchData.schedule;
+                        if (scheduleClean.includes(',')) {
+                            const parts = scheduleClean.split(',');
+                            scheduleClean = parts[parts.length - 1].trim();
+                        }
+                        let waButtonHtml = '';
+                        if (matchData.opponentWA && matchData.opponentWA !== '-') {
+                            const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
+                            const messageText = encodeURIComponent(`Halo Tim ${matchData.opponent}, saya dari Tim ${matchData.name} untuk ${matchData.round} (${matchData.bracket}) Yomuda Champs. Siap tanding jam ${scheduleClean}?`);
+                            waButtonHtml = `<a href="https://wa.me/${numericWA}?text=${messageText}" target="_blank" class="btn btn-success btn-sm fw-bold px-3 py-1.5 rounded-pill text-white shadow d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;"><i class="bi bi-whatsapp"></i> Hubungi WA Musuh</a>`;
+                        }
+
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-warning border-opacity-25 mb-2">
+                                <strong class="text-white fs-6">${matchData.name}</strong>
+                                <span class="badge bg-danger text-white rounded-pill px-2.5 py-1" style="font-size: 0.65rem;">${matchData.round}</span>
+                            </div>
+                            <div class="row g-2 mb-2 text-white-50" style="font-size: 0.78rem;">
+                                <div class="col-6">Tim Musuh: <strong class="text-warning">${matchData.opponent}</strong></div>
+                                <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
+                                <div class="col-6">No. WA Musuh: <strong class="text-warning fw-bold">${matchData.opponentWA}</strong></div>
+                                <div class="col-6">Slot: <strong class="text-white">${matchData.bracket}</strong></div>
+                            </div>
+                            <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
+                                ${waButtonHtml}
+                                <button type="button" class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.75rem;">Fokuskan ke Bagan</button>
+                            </div>
+                        `;
+                        resultList.appendChild(item);
+                    });
+                }
+
+                // 2. Render Completed History Matches Below
+                if (historyMatches.length > 0) {
+                    const historyHeader = document.createElement('div');
+                    historyHeader.className = 'd-flex align-items-center gap-1.5 pt-2 pb-2 text-secondary fw-bold';
+                    historyHeader.style.fontSize = '0.72rem';
+                    historyHeader.innerHTML = `<i class="bi bi-clock-history"></i> Riwayat Match Selesai (${historyMatches.length})`;
+                    resultList.appendChild(historyHeader);
+
+                    historyMatches.forEach((matchData, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item p-2.5 mb-2 rounded-2 bg-dark bg-opacity-50 border border-secondary border-opacity-25 opacity-75';
+                        
+                        let statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2 py-0.5';
+                        if (matchData.status === 'Lolos') {
+                            statusBadgeClass = 'badge bg-success text-white rounded-pill px-2 py-0.5';
+                        } else if (matchData.status === 'Kalah') {
+                            statusBadgeClass = 'badge bg-danger text-white rounded-pill px-2 py-0.5';
+                        }
+                        let scheduleClean = matchData.schedule;
+                        if (scheduleClean.includes(',')) {
+                            const parts = scheduleClean.split(',');
+                            scheduleClean = parts[parts.length - 1].trim();
+                        }
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-white-50 style="font-size: 0.75rem;">${matchData.round} (${matchData.bracket})</span>
+                                <span class="${statusBadgeClass}" style="font-size: 0.58rem;">${matchData.status}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center text-white-50" style="font-size: 0.7rem;">
+                                <span>vs <strong class="text-white">${matchData.opponent}</strong></span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill text-white-50" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.62rem;">Lihat</button>
+                            </div>
+                        `;
+                        resultList.appendChild(item);
+                    });
+                }
+
                 if (matched[0]) window._activeFocusedCardId = matched[0].cardId;
             } else {
                 resultCard.style.display = 'block';
