@@ -175,6 +175,33 @@
                     </button>
                 </div>
             </div>
+
+            {{-- Filter Babak / Round Tab Focus --}}
+            <div class="row pt-3 border-top mt-3 align-items-center">
+                <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small fw-bold text-secondary me-1" style="font-size: 0.75rem;"><i class="bi bi-funnel-fill text-warning me-1"></i>Fokus Babak:</span>
+                    <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold round-filter-btn active" data-round="all" style="font-size: 0.72rem;">
+                        Semua Babak
+                    </button>
+                    @php
+                        $totalRoundsCount = count($rounds);
+                    @endphp
+                    @foreach($rounds as $rNum => $rMatches)
+                        @php
+                            if ($rNum == $totalRoundsCount) {
+                                $rLabel = "Grand Final";
+                            } elseif ($rNum == $totalRoundsCount - 1 && $totalRoundsCount > 1) {
+                                $rLabel = "Semifinal";
+                            } else {
+                                $rLabel = "Babak " . $rNum;
+                            }
+                        @endphp
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold round-filter-btn" data-round="{{ $rNum }}" style="font-size: 0.72rem;">
+                            {{ $rLabel }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
         </div>
 
         {{-- Bracket Tree Viewer --}}
@@ -184,7 +211,7 @@
                     $totalRounds = count($rounds);
                 @endphp
                 @foreach($rounds as $roundNum => $matches)
-                    <div class="round-header-item">
+                    <div class="round-header-item" data-round-header="{{ $roundNum }}">
                         @php
                             if ($roundNum == $totalRounds) {
                                 $title = "Grand Final";
@@ -218,7 +245,7 @@
                         $matchesCount = $columnMatches->count();
                         $bronzeMatch = $isFinalRound ? $brackets->where('round_number', $roundNum)->where('match_number', 2)->first() : null;
                     @endphp
-                    <div class="bracket-round">
+                    <div class="bracket-round" data-round-col="{{ $roundNum }}">
                         @foreach($columnMatches as $match)
                             <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
                                  id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
@@ -261,6 +288,11 @@
                                             <span class="team-name text-muted italic">Belum Ada Tim</span>
                                         @endif
                                     </div>
+                                    @if($match->team1_id && $match->status !== 'finished')
+                                        <button type="button" class="btn-quick-win btn-quick-win-t1" title="Loloskan {{ $match->team1->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team1_id }}, '{{ addslashes($match->team1->name) }}')">
+                                            <i class="bi bi-trophy-fill"></i>
+                                        </button>
+                                    @endif
                                     <span class="team-score-box">{{ $match->team1_score }}</span>
                                 </div>
 
@@ -284,6 +316,11 @@
                                             @endif
                                         @endif
                                     </div>
+                                    @if($match->team2_id && $match->status !== 'finished')
+                                        <button type="button" class="btn-quick-win btn-quick-win-t2" title="Loloskan {{ $match->team2->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team2_id }}, '{{ addslashes($match->team2->name) }}')">
+                                            <i class="bi bi-trophy-fill"></i>
+                                        </button>
+                                    @endif
                                     <span class="team-score-box">{{ $match->team2_score }}</span>
                                 </div>
                             </div>
@@ -960,6 +997,46 @@
 
     .italic {
         font-style: italic;
+    }
+
+    /* Quick Win Button Styling */
+    .btn-quick-win {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #f59e0b;
+        color: #ffffff;
+        border: none;
+        font-size: 0.6rem;
+        padding: 0;
+        margin-right: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.4);
+    }
+    .team-row:hover .btn-quick-win {
+        display: inline-flex;
+    }
+    .btn-quick-win:hover {
+        transform: scale(1.25);
+        background-color: #d97706;
+    }
+
+    #bracketCardContainer.theme-dark .btn-quick-win {
+        background-color: #ff7a00;
+        color: #000000;
+        box-shadow: 0 2px 6px rgba(255, 122, 0, 0.5);
+    }
+    #bracketCardContainer.theme-dark .btn-quick-win:hover {
+        background-color: #f97316;
+    }
+
+    .round-filter-btn.active {
+        box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
     }
 
     /* Highlight matching cards on search */
@@ -2987,5 +3064,132 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
         document.getElementById('inputManualJuara4').value = '';
         document.getElementById('formManualWinners').dispatchEvent(new Event('submit'));
     }
+
+    // ----------------------------------------------------
+    // Quick 1-Click Winner JS Action
+    // ----------------------------------------------------
+    function quickWinMatch(matchId, winnerTeamId, winnerTeamName) {
+        Swal.fire({
+            title: 'Loloskan ' + winnerTeamName + '?',
+            text: 'Tim ini akan otomatis dinyatakan MENANG (skor 1-0) dan maju ke babak berikutnya.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Loloskan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Find match card to determine team1 or team2 score
+                const card = document.getElementById('card_m_' + matchId) || document.querySelector('[data-match-id="' + matchId + '"]')?.closest('.match-card');
+                let t1Score = 1;
+                let t2Score = 0;
+
+                if (card) {
+                    const row2 = card.querySelectorAll('.team-row')[1];
+                    if (row2 && row2.dataset.teamId == winnerTeamId) {
+                        t1Score = 0;
+                        t2Score = 1;
+                    }
+                }
+
+                const formData = new FormData();
+                formData.append('match_id', matchId);
+                formData.append('team1_score', t1Score);
+                formData.append('team2_score', t2Score);
+                formData.append('status', 'finished');
+                formData.append('_token', '{{ csrf_token() }}');
+
+                fetch("{{ route('admin.season.bracket.update-match', $season->id) }}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: winnerTeamName + ' berhasil diloloskan!',
+                            timer: 1200,
+                            showConfirmButton: false
+                        }).then(() => {
+                            if (typeof container !== 'undefined' && container) {
+                                sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
+                                sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
+                            }
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Gagal meloloskan tim.', 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'Terjadi kesalahan sistem saat meloloskan tim.', 'error');
+                });
+            }
+        });
+    }
+
+    // ----------------------------------------------------
+    // Filter Babak / Round Tab Focus Logic
+    // ----------------------------------------------------
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterBtns = document.querySelectorAll('.round-filter-btn');
+        const roundCols = document.querySelectorAll('.bracket-round');
+        const roundHeaders = document.querySelectorAll('.round-header-item');
+        const bContainer = document.getElementById('adminBracketContainer');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetRound = this.getAttribute('data-round');
+
+                // Update button active states
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'btn-warning');
+                    b.classList.add('btn-outline-secondary');
+                });
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('active', 'btn-warning');
+
+                if (targetRound === 'all') {
+                    roundCols.forEach(col => col.style.display = '');
+                    roundHeaders.forEach(h => h.style.display = '');
+                } else {
+                    roundCols.forEach(col => {
+                        if (col.getAttribute('data-round-col') === targetRound) {
+                            col.style.display = '';
+                        } else {
+                            col.style.display = 'none';
+                        }
+                    });
+
+                    roundHeaders.forEach(h => {
+                        if (h.getAttribute('data-round-header') === targetRound) {
+                            h.style.display = '';
+                        } else {
+                            h.style.display = 'none';
+                        }
+                    });
+                }
+
+                if (bContainer) {
+                    bContainer.scrollLeft = 0;
+                    bContainer.scrollTop = 0;
+                }
+            });
+        });
+    });
 </script>
 @endsection
