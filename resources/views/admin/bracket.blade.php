@@ -1097,6 +1097,21 @@
         opacity: 1 !important;
     }
 
+    /* Click-to-Swap Selection Highlight */
+    .team-row.team-row-swap-selected {
+        background-color: rgba(255, 122, 0, 0.35) !important;
+        border: 2px solid #ff7a00 !important;
+        box-shadow: 0 0 14px rgba(255, 122, 0, 0.9) !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        animation: swapPulse 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes swapPulse {
+        from { box-shadow: 0 0 8px rgba(255, 122, 0, 0.6); }
+        to { box-shadow: 0 0 22px rgba(255, 122, 0, 1); }
+    }
+
     @keyframes pulse {
         from { opacity: 0.6; }
         to { opacity: 1; }
@@ -1480,6 +1495,125 @@ document.addEventListener('DOMContentLoaded', function() {
 
     container.addEventListener('dragend', stopDragScroll);
     container.addEventListener('drop', stopDragScroll);
+
+    // ----------------------------------------------------
+    // Click-to-Swap Teams (Klik Tim A -> Klik Tim B -> Tukar!)
+    // ----------------------------------------------------
+    let firstSelectedTeamRow = null;
+
+    function clearSwapSelection() {
+        if (firstSelectedTeamRow) {
+            firstSelectedTeamRow.classList.remove('team-row-swap-selected');
+            firstSelectedTeamRow = null;
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const teamRow = e.target.closest('.team-row[data-round="1"]');
+        if (e.target.closest('.btn-quick-win') || e.target.closest('button')) return;
+
+        if (!teamRow) {
+            clearSwapSelection();
+            return;
+        }
+
+        const matchId = teamRow.dataset.matchId;
+        const slot = teamRow.dataset.slot;
+
+        if (!matchId || !slot) return;
+
+        const teamName = teamRow.querySelector('.team-name')?.textContent || 'Tim';
+
+        if (!firstSelectedTeamRow) {
+            firstSelectedTeamRow = teamRow;
+            teamRow.classList.add('team-row-swap-selected');
+
+            const toast = Swal.mixin({
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 3500,
+                timerProgressBar: true
+            });
+            toast.fire({
+                icon: 'info',
+                title: `Tim "${teamName}" Dipilih!`,
+                text: 'Klik tim kedua di Babak 1 untuk menukar posisi.'
+            });
+        } else if (firstSelectedTeamRow === teamRow) {
+            clearSwapSelection();
+        } else {
+            const team1Row = firstSelectedTeamRow;
+            const team2Row = teamRow;
+
+            const team1Name = team1Row.querySelector('.team-name')?.textContent || 'Tim 1';
+            const team2Name = team2Row.querySelector('.team-name')?.textContent || 'Tim 2';
+
+            const m1_id = team1Row.dataset.matchId;
+            const slot1 = team1Row.dataset.slot;
+            const m2_id = team2Row.dataset.matchId;
+            const slot2 = team2Row.dataset.slot;
+
+            clearSwapSelection();
+
+            Swal.fire({
+                title: 'Tukar Posisi Tim?',
+                html: `Anda akan menukar posisi <strong>${team1Name}</strong> dengan <strong>${team2Name}</strong> di Babak 1.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Tukar!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+
+                    fetch("{{ route('admin.season.bracket.swap-teams', $season->id) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            match1_id: m1_id,
+                            slot1: slot1,
+                            match2_id: m2_id,
+                            slot2: slot2
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                saveScrollAndReload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: res.message
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Gagal menukar posisi tim karena masalah koneksi.'
+                        });
+                    });
+                }
+            });
+        }
+    });
 
     // ----------------------------------------------------
     // Drag and Drop (Rearrange Seeding inside Round 1)
@@ -2903,6 +3037,36 @@ fetchAdminChatThreads();
             </div>
             <div class="modal-body p-4">
                 <p class="text-secondary small mb-4">Pilih dan salin template teks berikut untuk dibagikan ke WhatsApp peserta atau media sosial.</p>
+                
+                {{-- 1. Template Info Website Season --}}
+                <div class="card border border-light-subtle rounded-3 mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2.5 px-3">
+                        <span class="fw-bold text-dark small"><i class="bi bi-globe2 text-success me-1"></i>Template Pengumuman Website Season (Share ke Grup WA)</span>
+                        <button class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-bold text-uppercase" style="font-size: 0.72rem;" onclick="copyText('textareaInfoWebsite')">
+                            <i class="bi bi-copy me-1"></i>Salin Teks
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        @php
+                            $seasonPublicUrl = url('/season/' . \App\Http\Controllers\BracketController::encodeId($season->id) . '/bracket');
+                        @endphp
+                        <textarea id="textareaInfoWebsite" class="form-control bg-light border-0 small text-dark p-3 font-monospace" rows="14" readonly style="font-size: 0.78rem;">Halo, ges! 👋
+
+Seluruh informasi mengenai {{ $season->name }} bisa kalian akses melalui website berikut:
+
+🌐 {{ $seasonPublicUrl }}
+
+Di website tersebut kalian bisa melihat:
+
+🏆 Bagan/Bracket Turnamen (ada juga cek musuh dan nomer wa musuh)
+📅 Jadwal Tanding
+📖 Rules Turnamen
+💬 Chat dengan Admin
+📝 Form Laporan Hasil Pertandingan
+
+Jadi sebelum bertanya di grup, pastikan cek website terlebih dahulu ya, karena seluruh informasi terbaru akan selalu diperbarui di sana. 🔥</textarea>
+                    </div>
+                </div>
                 
                 {{-- 1. Template Juara --}}
                 <div class="card border border-light-subtle rounded-3 mb-4">
