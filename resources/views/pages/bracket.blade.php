@@ -330,9 +330,7 @@
 
         /* Bracket Column per Round */
         .bracket-round {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: space-around;
+            display: inline-block;
             height: 4600px;
             vertical-align: top;
             width: 185px;
@@ -357,6 +355,9 @@
             border-color: #6b6b78;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
         }
+
+        /* BYE Phantom Card CSS dihapus — BYE match tidak dirender di Babak 1,
+           tim BYE langsung tampil di Babak 2 (sudah di-advance oleh backend) */
 
         /* Beautiful glowing focus animation */
         .match-card.focus-glow {
@@ -921,53 +922,58 @@
             @endphp
             <div class="bracket-round">
                 @foreach($columnMatches as $match)
-                    <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}">
-                        <div class="match-card-header">
-                            <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
-                            <span class="match-card-time">
-                                @if($match->status === 'live')
-                                    <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
-                                @else
-                                    @php
-                                        $timeDisplay = $match->match_time ?? '20:00 WIB';
-                                        if (strpos($timeDisplay, ',') !== false) {
-                                            $parts = explode(',', $timeDisplay);
-                                            $timeDisplay = trim(end($parts));
-                                        }
-                                    @endphp
-                                    <i class="bi bi-clock"></i> {{ $timeDisplay }}
-                                @endif
-                            </span>
-                        </div>
-                        
-                        
-                        <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
-                            <div class="team-info">
-                                @if($match->team1)
-                                    <span class="team-name">{{ $match->team1->name }}</span>
-                                @else
-                                    <span class="team-name text-muted italic">TBD</span>
-                                @endif
-                            </div>
-                            <span class="team-score-box">{{ $match->team1_score }}</span>
-                        </div>
+                    @php
+                        // BYE match di Babak 1: tim sudah muncul di Babak 2, skip render
+                        $isByeMatch = ($match->round_number === 1 && $match->team1_id && !$match->team2_id && $match->status === 'finished');
+                        // Absolute positioning berdasarkan match_number
+                        $slotHeight = $roundHeight / $matchesCount;
+                        $cardTop = (int)(($match->match_number - 0.5) * $slotHeight) - 32;
+                    @endphp
 
-                        
-                        <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
-                            <div class="team-info">
-                                @if($match->team2)
-                                    <span class="team-name">{{ $match->team2->name }}</span>
-                                @else
-                                    @if($match->round_number === 1)
-                                        <span class="team-name text-success">BYE (Lolos)</span>
+                    @if(!$isByeMatch)
+                        <div class="match-card" id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
+                             style="position: absolute; top: {{ $cardTop }}px;">
+                            <div class="match-card-header">
+                                <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
+                                <span class="match-card-time">
+                                    @if($match->status === 'live')
+                                        <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>
+                                    @else
+                                        @php
+                                            $timeDisplay = $match->match_time ?? '20:00 WIB';
+                                            if (strpos($timeDisplay, ',') !== false) {
+                                                $parts = explode(',', $timeDisplay);
+                                                $timeDisplay = trim(end($parts));
+                                            }
+                                        @endphp
+                                        <i class="bi bi-clock"></i> {{ $timeDisplay }}
+                                    @endif
+                                </span>
+                            </div>
+                            
+                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
+                                <div class="team-info">
+                                    @if($match->team1)
+                                        <span class="team-name">{{ $match->team1->name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
-                                @endif
+                                </div>
+                                <span class="team-score-box">{{ $match->team1_score }}</span>
                             </div>
-                            <span class="team-score-box">{{ $match->team2_score }}</span>
+
+                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
+                                <div class="team-info">
+                                    @if($match->team2)
+                                        <span class="team-name">{{ $match->team2->name }}</span>
+                                    @else
+                                        <span class="team-name text-muted italic">TBD</span>
+                                    @endif
+                                </div>
+                                <span class="team-score-box">{{ $match->team2_score }}</span>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 @endforeach
 
                 
@@ -975,12 +981,17 @@
                     <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                         @for($m = 1; $m <= $matchesCount; $m++)
                             @php
+                                // Skip connector untuk posisi BYE di Babak 1
+                                $matchAtConnPos = $columnMatches->firstWhere('match_number', $m);
+                                $isByeConnPos = ($roundNum === 1 && $matchAtConnPos && $matchAtConnPos->team1_id && !$matchAtConnPos->team2_id && $matchAtConnPos->status === 'finished');
                                 $nextMatchIndex = ceil($m / 2);
                                 $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
                                 $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
                                 $midX = 40;
                             @endphp
-                            <path class="connector-line" id="line_{{ $roundNum }}_{{ $m }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                            @if(!$isByeConnPos)
+                                <path class="connector-line" id="line_{{ $roundNum }}_{{ $m }}" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                            @endif
                         @endfor
                     </svg>
                 @endif

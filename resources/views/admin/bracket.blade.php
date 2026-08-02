@@ -247,83 +247,86 @@
                     @endphp
                     <div class="bracket-round" data-round-col="{{ $roundNum }}">
                         @foreach($columnMatches as $match)
-                            <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
-                                 id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
-                                 onclick="openEditMatchModal({{ json_encode([
-                                     'id' => $match->id,
-                                     'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
-                                     'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
-                                     'team1_score' => $match->team1_score,
-                                     'team2_score' => $match->team2_score,
-                                     'match_time' => $match->match_time ?? '20:00 WIB',
-                                     'status' => $match->status,
-                                     'team1_exists' => (bool)$match->team1_id,
-                                     'team2_exists' => (bool)$match->team2_id
-                                 ]) }})">
-                                
-                                <div class="match-card-header">
-                                    <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
-                                    <span class="match-card-time">
-                                        @if($match->status === 'live')
-                                            <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>
-                                        @else
-                                            <i class="bi bi-clock"></i> {{ $match->match_time ?? '20:00 WIB' }}
-                                        @endif
-                                    </span>
-                                </div>
+                            @php
+                                // BYE match: round 1, team1 ada, team2 null, sudah auto-finish → skip, tim sudah muncul di Babak 2
+                                $isByeMatch = ($match->round_number === 1 && $match->team1_id && !$match->team2_id && $match->status === 'finished');
+                                // Absolute position: setiap kartu ditempatkan berdasarkan match_number
+                                $slotHeight = $roundHeight / $matchesCount;
+                                $cardTop = (int)(($match->match_number - 0.5) * $slotHeight) - 32;
+                            @endphp
 
-                                {{-- Team 1 Row --}}
-                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
-                                     data-team-id="{{ $match->team1_id ?? '' }}"
-                                     data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
-                                     data-team-wa="{{ $match->team1 ? strtolower($match->team1->wa_number) : '' }}"
-                                     data-match-id="{{ $match->id }}"
-                                     data-slot="1"
-                                     data-round="{{ $match->round_number }}"
-                                     @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
-                                     <div class="team-info">
-                                        @if($match->team1)
-                                            <span class="team-name fw-semibold">{{ $match->team1->name }}</span>
-                                        @else
-                                            <span class="team-name text-muted italic">Belum Ada Tim</span>
-                                        @endif
+                            @if(!$isByeMatch)
+                                <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
+                                     id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
+                                     style="position: absolute; top: {{ $cardTop }}px;"
+                                     onclick="openEditMatchModal({{ json_encode([
+                                         'id' => $match->id,
+                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
+                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
+                                         'team1_score' => $match->team1_score,
+                                         'team2_score' => $match->team2_score,
+                                         'match_time' => $match->match_time ?? '20:00 WIB',
+                                         'status' => $match->status,
+                                         'team1_exists' => (bool)$match->team1_id,
+                                         'team2_exists' => (bool)$match->team2_id
+                                     ]) }})">
+                                    
+                                    <div class="match-card-header">
+                                        <span>BRACKET {{ $startNumbers[$roundNum] + ($match->match_number - 1) }}</span>
+                                        <span class="match-card-time">
+                                            @if($match->status === 'live')
+                                                <span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem; animation: pulse 1s infinite alternate;">LIVE</span>
+                                            @else
+                                                <i class="bi bi-clock"></i> {{ $match->match_time ?? '20:00 WIB' }}
+                                            @endif
+                                        </span>
                                     </div>
-                                    @if($match->team1_id && $match->status !== 'finished')
-                                        <button type="button" class="btn-quick-win btn-quick-win-t1" title="Loloskan {{ $match->team1->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team1_id }}, '{{ addslashes($match->team1->name) }}')">
-                                            <i class="bi bi-trophy-fill"></i>
-                                        </button>
-                                    @endif
-                                    <span class="team-score-box">{{ $match->team1_score }}</span>
-                                </div>
 
-                                {{-- Team 2 Row --}}
-                                <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
-                                     data-team-id="{{ $match->team2_id ?? '' }}"
-                                     data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
-                                     data-team-wa="{{ $match->team2 ? strtolower($match->team2->wa_number) : '' }}"
-                                     data-match-id="{{ $match->id }}"
-                                     data-slot="2"
-                                     data-round="{{ $match->round_number }}"
-                                     @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
-                                     <div class="team-info">
-                                        @if($match->team2)
-                                            <span class="team-name fw-semibold">{{ $match->team2->name }}</span>
-                                        @else
-                                            @if($match->round_number === 1)
-                                                <span class="team-name text-success fw-bold">BYE (Lolos)</span>
+                                    {{-- Team 1 Row --}}
+                                    <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
+                                         data-team-id="{{ $match->team1_id ?? '' }}"
+                                         data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
+                                         data-team-wa="{{ $match->team1 ? strtolower($match->team1->wa_number) : '' }}"
+                                         data-match-id="{{ $match->id }}"
+                                         data-slot="1"
+                                         data-round="{{ $match->round_number }}"
+                                         @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
+                                         <div class="team-info">
+                                            @if($match->team1)
+                                                <span class="team-name fw-semibold">{{ $match->team1->name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
+                                        </div>
+                                        @if($match->team1_id && $match->status !== 'finished')
+                                            <button type="button" class="btn-quick-win btn-quick-win-t1" title="Loloskan {{ $match->team1->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team1_id }}, '{{ addslashes($match->team1->name) }}')"><i class="bi bi-trophy-fill"></i></button>
                                         @endif
+                                        <span class="team-score-box">{{ $match->team1_score }}</span>
                                     </div>
-                                    @if($match->team2_id && $match->status !== 'finished')
-                                        <button type="button" class="btn-quick-win btn-quick-win-t2" title="Loloskan {{ $match->team2->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team2_id }}, '{{ addslashes($match->team2->name) }}')">
-                                            <i class="bi bi-trophy-fill"></i>
-                                        </button>
-                                    @endif
-                                    <span class="team-score-box">{{ $match->team2_score }}</span>
+
+                                    {{-- Team 2 Row --}}
+                                    <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
+                                         data-team-id="{{ $match->team2_id ?? '' }}"
+                                         data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
+                                         data-team-wa="{{ $match->team2 ? strtolower($match->team2->wa_number) : '' }}"
+                                         data-match-id="{{ $match->id }}"
+                                         data-slot="2"
+                                         data-round="{{ $match->round_number }}"
+                                         @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
+                                         <div class="team-info">
+                                            @if($match->team2)
+                                                <span class="team-name fw-semibold">{{ $match->team2->name }}</span>
+                                            @else
+                                                <span class="team-name text-muted italic">Belum Ada Tim</span>
+                                            @endif
+                                        </div>
+                                        @if($match->team2_id && $match->status !== 'finished')
+                                            <button type="button" class="btn-quick-win btn-quick-win-t2" title="Loloskan {{ $match->team2->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team2_id }}, '{{ addslashes($match->team2->name) }}')"><i class="bi bi-trophy-fill"></i></button>
+                                        @endif
+                                        <span class="team-score-box">{{ $match->team2_score }}</span>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @endforeach
 
                         {{-- Draw dynamic SVG connector lines between columns --}}
@@ -331,12 +334,17 @@
                             <svg class="round-connectors" viewBox="0 0 80 {{ $roundHeight }}" preserveAspectRatio="none">
                                 @for($m = 1; $m <= $matchesCount; $m++)
                                     @php
+                                        // Cek apakah posisi ini adalah BYE match (skip connector untuk BYE)
+                                        $matchAtConnPos = $columnMatches->firstWhere('match_number', $m);
+                                        $isByeConnPos = ($roundNum === 1 && $matchAtConnPos && $matchAtConnPos->team1_id && !$matchAtConnPos->team2_id && $matchAtConnPos->status === 'finished');
                                         $nextMatchIndex = ceil($m / 2);
                                         $startY = ($roundHeight / $matchesCount) * ($m - 0.5);
                                         $endY = ($roundHeight / ($matchesCount / 2)) * ($nextMatchIndex - 0.5);
                                         $midX = 40;
                                     @endphp
-                                    <path class="connector-line" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                                    @if(!$isByeConnPos)
+                                        <path class="connector-line" d="M 0,{{ $startY }} L {{ $midX }},{{ $startY }} L {{ $midX }},{{ $endY }} L 80,{{ $endY }}"></path>
+                                    @endif
                                 @endfor
                             </svg>
                         @endif
@@ -854,9 +862,7 @@
     }
 
     .bracket-round {
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: space-around;
+        display: inline-block;
         height: 4600px;
         vertical-align: top;
         width: 185px;
@@ -1572,9 +1578,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetCard = matchRow.closest('.match-card');
             if (targetCard) {
                 targetCard.classList.add('search-focus-glow');
-                if (!firstCard) {
-                    firstCard = targetCard;
-                }
+                if (!firstCard) firstCard = targetCard;
             }
         });
 
