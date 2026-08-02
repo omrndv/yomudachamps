@@ -2469,9 +2469,7 @@
                                 const nameSpan1 = row1.querySelector('.team-name');
                                 if (nameSpan1) {
                                     if (m.team1_name) {
-                                        let isYmd = /^ymd-/i.test(m.team1_name.trim());
-                                        let badgeHtml = isYmd ? '<span class="badge bg-warning text-dark me-1" style="font-size:0.48rem; padding:1px 3px; font-weight:800;">⚡BUYSLOT</span>' : '';
-                                        nameSpan1.innerHTML = badgeHtml + m.team1_name;
+                                        nameSpan1.textContent = m.team1_name;
                                     } else {
                                         nameSpan1.innerHTML = '<span class="text-muted italic">TBD</span>';
                                     }
@@ -2491,9 +2489,7 @@
                                 const nameSpan2 = row2.querySelector('.team-name');
                                 if (nameSpan2) {
                                     if (m.team2_name) {
-                                        let isYmd = /^ymd-/i.test(m.team2_name.trim());
-                                        let badgeHtml = isYmd ? '<span class="badge bg-warning text-dark me-1" style="font-size:0.48rem; padding:1px 3px; font-weight:800;">⚡BUYSLOT</span>' : '';
-                                        nameSpan2.innerHTML = badgeHtml + m.team2_name;
+                                        nameSpan2.textContent = m.team2_name;
                                     } else {
                                         nameSpan2.innerHTML = '<span class="text-muted italic">TBD</span>';
                                     }
