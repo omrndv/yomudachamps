@@ -1315,53 +1315,94 @@
 
             if (matched.length > 0) {
                 resultCard.style.display = 'block';
-                matched.forEach((matchData, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'search-result-item pb-3 mb-3';
-                    if (index < matched.length - 1) {
-                        item.classList.add('border-bottom', 'border-secondary', 'border-opacity-25');
-                    }
-                    let statusBadgeClass = 'badge bg-warning text-dark rounded-pill px-2.5 py-0.5';
-                    if (matchData.status === 'Lolos') {
-                        statusBadgeClass = 'badge bg-success text-white rounded-pill px-2.5 py-0.5';
-                    } else if (matchData.status === 'Kalah') {
-                        statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2.5 py-0.5';
-                    }
-                    let scheduleClean = matchData.schedule;
-                    if (scheduleClean.includes(',')) {
-                        const parts = scheduleClean.split(',');
-                        scheduleClean = parts[parts.length - 1].trim();
-                    }
-                    let waButtonHtml = '';
-                    if (matchData.opponentWA && matchData.opponentWA !== '-') {
-                        const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
-                        const drafText = encodeURIComponent(`Halo ini team ${matchData.opponent} yakk?, gw dari tim ${matchData.name} yang kita ketemu di ${matchData.round.toLowerCase()} yomuda. Udah ready belom?`);
-                        waButtonHtml = `<a href="https://wa.me/${numericWA}?text=${drafText}" target="_blank" class="btn-whatsapp-chat me-2 text-decoration-none"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
-                    }
-                    const escName = matchData.name.replace(/"/g, '&quot;');
-                    const escOpponent = matchData.opponent.replace(/"/g, '&quot;');
-                    const escSchedule = scheduleClean.replace(/"/g, '&quot;');
-                    const escRound = matchData.round.replace(/"/g, '&quot;');
-                    const escBracket = matchData.bracket.replace(/"/g, '&quot;');
-                    item.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center pb-1.5 mb-2">
-                            <strong class="text-warning" style="font-size: 0.85rem;">${matchData.name}</strong>
-                            <span class="${statusBadgeClass}" style="font-size: 0.6rem;">${matchData.status}</span>
-                        </div>
-                        <div class="row g-2 mb-2.5 text-white-50" style="font-size: 0.72rem;">
-                            <div class="col-6">Team Musuh: <strong class="text-white">${matchData.opponent}</strong></div>
-                            <div class="col-6">Nomer WA Musuh: <strong class="text-warning">${matchData.opponentWA}</strong></div>
-                            <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
-                            <div class="col-6">Babak: <strong class="text-white">${matchData.round}</strong></div>
-                            <div class="col-6">Bracket: <strong class="text-white">${matchData.bracket}</strong></div>
-                        </div>
-                        <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
-                            ${waButtonHtml}
-                            <button type="button" class="btn btn-warning btn-sm fw-bold px-2.5 py-1 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.7rem;">Fokuskan ke Bagan</button>
-                        </div>
-                    `;
-                    resultList.appendChild(item);
-                });
+
+                // Separate active/upcoming match from finished history matches
+                const activeMatches = matched.filter(m => m.status === 'Belum Main' || m.status === 'live');
+                const historyMatches = matched.filter(m => m.status !== 'Belum Main' && m.status !== 'live').reverse();
+
+                // 1. Render Active Match at the VERY TOP
+                if (activeMatches.length > 0) {
+                    const activeHeader = document.createElement('div');
+                    activeHeader.className = 'd-flex align-items-center gap-1.5 pb-2 text-warning fw-bold';
+                    activeHeader.style.fontSize = '0.75rem';
+                    activeHeader.innerHTML = `<i class="bi bi-fire text-danger fs-6 me-1"></i> MATCH KAMU SEKARANG (AKTIF)`;
+                    resultList.appendChild(activeHeader);
+
+                    activeMatches.forEach(matchData => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item p-3 mb-3 rounded-3 shadow-lg';
+                        item.style.background = 'linear-gradient(135deg, rgba(255, 122, 0, 0.18), rgba(20, 20, 24, 0.95))';
+                        item.style.border = '2px solid #ff7a00';
+
+                        let scheduleClean = matchData.schedule;
+                        if (scheduleClean.includes(',')) {
+                            const parts = scheduleClean.split(',');
+                            scheduleClean = parts[parts.length - 1].trim();
+                        }
+                        let waButtonHtml = '';
+                        if (matchData.opponentWA && matchData.opponentWA !== '-') {
+                            const numericWA = matchData.opponentWA.replace(/^0/, '62').replace(/[^\d]/g, '');
+                            const drafText = encodeURIComponent(`Halo ini team ${matchData.opponent} yakk?, gw dari tim ${matchData.name} yang kita ketemu di ${matchData.round.toLowerCase()} yomuda. Udah ready belom?`);
+                            waButtonHtml = `<a href="https://wa.me/${numericWA}?text=${drafText}" target="_blank" class="btn btn-success btn-sm fw-bold px-3 py-1.5 rounded-pill text-white shadow d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;"><i class="bi bi-whatsapp"></i> Hubungi Musuh</a>`;
+                        }
+
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-warning border-opacity-25 mb-2">
+                                <strong class="text-white fs-6">${matchData.name}</strong>
+                                <span class="badge bg-danger text-white rounded-pill px-2.5 py-1" style="font-size: 0.65rem;">${matchData.round}</span>
+                            </div>
+                            <div class="row g-2 mb-2 text-white-50" style="font-size: 0.78rem;">
+                                <div class="col-6">Tim Musuh: <strong class="text-warning">${matchData.opponent}</strong></div>
+                                <div class="col-6">Jam Main: <strong class="text-white">${scheduleClean}</strong></div>
+                                <div class="col-6">No. WA Musuh: <strong class="text-warning fw-bold">${matchData.opponentWA}</strong></div>
+                                <div class="col-6">Slot: <strong class="text-white">${matchData.bracket}</strong></div>
+                            </div>
+                            <div class="result-actions-wrapper pt-2 d-flex flex-wrap gap-2">
+                                ${waButtonHtml}
+                                <button type="button" class="btn btn-warning btn-sm fw-bold px-3 py-1.5 rounded-pill text-dark" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.75rem;">Fokuskan ke Bagan</button>
+                            </div>
+                        `;
+                        resultList.appendChild(item);
+                    });
+                }
+
+                // 2. Render Completed History Matches Below
+                if (historyMatches.length > 0) {
+                    const historyHeader = document.createElement('div');
+                    historyHeader.className = 'd-flex align-items-center gap-1.5 pt-2 pb-2 text-secondary fw-bold';
+                    historyHeader.style.fontSize = '0.72rem';
+                    historyHeader.innerHTML = `<i class="bi bi-clock-history me-1"></i> Riwayat Match Selesai (${historyMatches.length})`;
+                    resultList.appendChild(historyHeader);
+
+                    historyMatches.forEach((matchData, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item p-2.5 mb-2 rounded-2 bg-dark bg-opacity-50 border border-secondary border-opacity-25 opacity-75';
+                        
+                        let statusBadgeClass = 'badge bg-secondary text-white rounded-pill px-2 py-0.5';
+                        if (matchData.status === 'Lolos') {
+                            statusBadgeClass = 'badge bg-success text-white rounded-pill px-2 py-0.5';
+                        } else if (matchData.status === 'Kalah') {
+                            statusBadgeClass = 'badge bg-danger text-white rounded-pill px-2 py-0.5';
+                        }
+                        let scheduleClean = matchData.schedule;
+                        if (scheduleClean.includes(',')) {
+                            const parts = scheduleClean.split(',');
+                            scheduleClean = parts[parts.length - 1].trim();
+                        }
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-white-50" style="font-size: 0.75rem;">${matchData.round} (${matchData.bracket})</span>
+                                <span class="${statusBadgeClass}" style="font-size: 0.58rem;">${matchData.status}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center text-white-50" style="font-size: 0.7rem;">
+                                <span>vs <strong class="text-white">${matchData.opponent}</strong></span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill text-white-50" onclick="focusBracketCard('${matchData.cardId}')" style="font-size: 0.62rem;">Lihat</button>
+                            </div>
+                        `;
+                        resultList.appendChild(item);
+                    });
+                }
+
                 if (matched[0]) window._activeFocusedCardId = matched[0].cardId;
             } else {
                 resultCard.style.display = 'block';
