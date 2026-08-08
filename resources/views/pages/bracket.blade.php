@@ -2439,12 +2439,22 @@
     (function initPublicLiveSync() {
         const dataUrl = "{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}";
 
+        let isBackoffActive = false;
+
         function fetchLiveUpdates() {
-            if (document.hidden) return;
+            if (document.hidden || isBackoffActive) return;
 
             fetch(dataUrl)
-                .then(r => r.json())
+                .then(r => {
+                    if (r.status === 503 || r.status === 429) {
+                        isBackoffActive = true;
+                        setTimeout(() => { isBackoffActive = false; }, 30000); // Pause 30s on server busy
+                        return null;
+                    }
+                    return r.json();
+                })
                 .then(res => {
+                    if (!res) return;
                     if (res.success && Array.isArray(res.matches)) {
                         res.matches.forEach(m => {
                             const card = document.getElementById(`card_m_${m.round_number}_${m.match_number}`);
@@ -2511,8 +2521,8 @@
                 .catch(err => console.debug('Live sync poll error:', err));
         }
 
-        // Start polling every 4 seconds
-        setInterval(fetchLiveUpdates, 4000);
+        // Start polling every 12 seconds (optimized for Hostinger)
+        setInterval(fetchLiveUpdates, 12000);
 
         // Trigger update when returning to tab
         document.addEventListener('visibilitychange', function() {
