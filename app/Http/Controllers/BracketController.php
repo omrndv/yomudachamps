@@ -121,8 +121,9 @@ class BracketController extends Controller
                 }
             }
 
-            // All remaining teams play in Round 1
+            // All remaining teams play in Round 1 (shuffled so YMD, SOLO, and regular teams are distributed randomly)
             $r1TeamsPool = array_merge($ymdList, $soloList, $regularList);
+            shuffle($r1TeamsPool);
 
             // Determine which slots in Round 1 are BYE slots (evenly distributed across tree)
             $isByeSlot = array_fill(1, $matchesInRound1, false);
