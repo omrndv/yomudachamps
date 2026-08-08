@@ -163,92 +163,69 @@ class BracketController extends Controller
             }
 
             // --- OFFICIAL YOMUDA PAIRING LOGIC ---
-            // Rule 1: Buyslot (YMD) placed every 4th bracket match
-            // Rule 2: SOLO vs SOLO pairing
-            // Rule 3: TEAM vs TEAM (regular vs regular) pairing
-            // Rule 4: Odd/Ganjil spillover matched with remaining available teams
+            // Rule 1: YMD vs YMD pairing in Round 1, grouped in clusters of 4 matches (8 YMD teams per cluster)
+            // Rule 2: SOLO vs SOLO pairing in Round 1
+            // Rule 3: TEAM vs TEAM (regular vs regular) pairing in Round 1
+            // Rule 4: If odd (ganjil), leftover team is paired with another category
 
-            // 1. Distribute remaining YMD teams into every 4th non-BYE match slot (e.g. slots 1, 5, 9, 13...)
-            if (count($ymdList) > 0 && count($nonByeSlots) > 0) {
-                $numNonBye = count($nonByeSlots);
-                $step = 4;
-                $slotPointer = 0;
-
-                while (count($ymdList) > 0 && $slotPointer < $numNonBye) {
-                    $targetSlot = $nonByeSlots[$slotPointer];
-                    if ($matchSlots[$targetSlot]['team1'] === null) {
-                        $matchSlots[$targetSlot]['team1'] = array_shift($ymdList);
-                    }
-                    $slotPointer += $step;
-                    if ($slotPointer >= $numNonBye && count($ymdList) > 0) {
-                        $found = false;
-                        for ($k = 0; $k < $numNonBye; $k++) {
-                            if ($matchSlots[$nonByeSlots[$k]]['team1'] === null) {
-                                $slotPointer = $k;
-                                $found = true;
-                                break;
-                            }
-                        }
-                        if (!$found) break;
-                    }
-                }
+            // 1. Build YMD vs YMD pairs
+            $ymdPairs = [];
+            while (count($ymdList) >= 2) {
+                $ymdPairs[] = [array_shift($ymdList), array_shift($ymdList)];
             }
 
-            // 2. Build pairs for SOLO vs SOLO and REGULAR vs REGULAR
+            // 2. Build SOLO vs SOLO pairs
             $soloPairs = [];
             while (count($soloList) >= 2) {
                 $soloPairs[] = [array_shift($soloList), array_shift($soloList)];
             }
 
+            // 3. Build REGULAR vs REGULAR pairs
             $regularPairs = [];
             while (count($regularList) >= 2) {
                 $regularPairs[] = [array_shift($regularList), array_shift($regularList)];
             }
 
-            // Pool for odd remaining teams
+            // 4. Pool odd remaining teams across categories
             $singleSpillover = array_merge($ymdList, $soloList, $regularList);
             shuffle($singleSpillover);
 
-            $getNextTeam = function() use (&$singleSpillover, &$soloPairs, &$regularPairs) {
-                if (count($singleSpillover) > 0) {
-                    return array_shift($singleSpillover);
-                }
-                if (count($soloPairs) > 0) {
-                    $pair = array_shift($soloPairs);
-                    if (count($pair) > 1) {
-                        $singleSpillover[] = $pair[1];
-                    }
-                    return $pair[0];
-                }
-                if (count($regularPairs) > 0) {
-                    $pair = array_shift($regularPairs);
-                    if (count($pair) > 1) {
-                        $singleSpillover[] = $pair[1];
-                    }
-                    return $pair[0];
-                }
-                return null;
-            };
+            $mixedPairs = [];
+            while (count($singleSpillover) >= 2) {
+                $mixedPairs[] = [array_shift($singleSpillover), array_shift($singleSpillover)];
+            }
 
-            // 3. Fill non-BYE match slots
+            // Group pairs: YMD served in clusters of 4 matches (8 YMD teams per cluster)
+            $allMatchPairs = [];
+
+            while (count($ymdPairs) > 0 || count($soloPairs) > 0 || count($regularPairs) > 0 || count($mixedPairs) > 0) {
+                // Add up to 4 YMD pairs (8 YMD teams = 4 bracket matches)
+                for ($k = 0; $k < 4 && count($ymdPairs) > 0; $k++) {
+                    $allMatchPairs[] = array_shift($ymdPairs);
+                }
+                // Add up to 4 SOLO pairs
+                for ($k = 0; $k < 4 && count($soloPairs) > 0; $k++) {
+                    $allMatchPairs[] = array_shift($soloPairs);
+                }
+                // Add up to 4 REGULAR pairs
+                for ($k = 0; $k < 4 && count($regularPairs) > 0; $k++) {
+                    $allMatchPairs[] = array_shift($regularPairs);
+                }
+                // Add mixed pairs if any
+                while (count($mixedPairs) > 0) {
+                    $allMatchPairs[] = array_shift($mixedPairs);
+                }
+            }
+
+            // Fill non-BYE match slots
             foreach ($nonByeSlots as $s) {
-                if ($matchSlots[$s]['team1'] !== null) {
-                    if ($matchSlots[$s]['team2'] === null) {
-                        $matchSlots[$s]['team2'] = $getNextTeam();
-                    }
-                } else {
-                    if (count($soloPairs) > 0) {
-                        $pair = array_shift($soloPairs);
-                        $matchSlots[$s]['team1'] = $pair[0];
-                        $matchSlots[$s]['team2'] = $pair[1];
-                    } elseif (count($regularPairs) > 0) {
-                        $pair = array_shift($regularPairs);
-                        $matchSlots[$s]['team1'] = $pair[0];
-                        $matchSlots[$s]['team2'] = $pair[1];
-                    } else {
-                        $matchSlots[$s]['team1'] = $getNextTeam();
-                        $matchSlots[$s]['team2'] = $getNextTeam();
-                    }
+                if (count($allMatchPairs) > 0) {
+                    $pair = array_shift($allMatchPairs);
+                    $matchSlots[$s]['team1'] = $pair[0] ?? null;
+                    $matchSlots[$s]['team2'] = $pair[1] ?? null;
+                } elseif (count($singleSpillover) > 0) {
+                    $matchSlots[$s]['team1'] = array_shift($singleSpillover);
+                    $matchSlots[$s]['team2'] = count($singleSpillover) > 0 ? array_shift($singleSpillover) : null;
                 }
             }
 
