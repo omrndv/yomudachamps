@@ -143,18 +143,112 @@ class BracketController extends Controller
                 }
             }
 
-            // Fill Round 1 slots
+            // Identify non-BYE match slots in Round 1
+            $nonByeSlots = [];
+            for ($s = 1; $s <= $matchesInRound1; $s++) {
+                if (!$isByeSlot[$s]) {
+                    $nonByeSlots[] = $s;
+                }
+            }
+
+            // Initialize matchSlots structure
             $matchSlots = [];
-            for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
-                if ($isByeSlot[$slotNum]) {
-                    // BYE slot -> 1 team from $byeTeamsPool (YMD Buyslot prioritized)
+            for ($s = 1; $s <= $matchesInRound1; $s++) {
+                if ($isByeSlot[$s]) {
                     $t1 = count($byeTeamsPool) > 0 ? array_shift($byeTeamsPool) : null;
-                    $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => null];
+                    $matchSlots[$s] = ['team1' => $t1, 'team2' => null];
                 } else {
-                    // 2-team match slot -> 2 teams from $r1TeamsPool
-                    $t1 = count($r1TeamsPool) > 0 ? array_shift($r1TeamsPool) : null;
-                    $t2 = count($r1TeamsPool) > 0 ? array_shift($r1TeamsPool) : null;
-                    $matchSlots[$slotNum] = ['team1' => $t1, 'team2' => $t2];
+                    $matchSlots[$s] = ['team1' => null, 'team2' => null];
+                }
+            }
+
+            // --- OFFICIAL YOMUDA PAIRING LOGIC ---
+            // Rule 1: Buyslot (YMD) placed every 4th bracket match
+            // Rule 2: SOLO vs SOLO pairing
+            // Rule 3: TEAM vs TEAM (regular vs regular) pairing
+            // Rule 4: Odd/Ganjil spillover matched with remaining available teams
+
+            // 1. Distribute remaining YMD teams into every 4th non-BYE match slot (e.g. slots 1, 5, 9, 13...)
+            if (count($ymdList) > 0 && count($nonByeSlots) > 0) {
+                $numNonBye = count($nonByeSlots);
+                $step = 4;
+                $slotPointer = 0;
+
+                while (count($ymdList) > 0 && $slotPointer < $numNonBye) {
+                    $targetSlot = $nonByeSlots[$slotPointer];
+                    if ($matchSlots[$targetSlot]['team1'] === null) {
+                        $matchSlots[$targetSlot]['team1'] = array_shift($ymdList);
+                    }
+                    $slotPointer += $step;
+                    if ($slotPointer >= $numNonBye && count($ymdList) > 0) {
+                        $found = false;
+                        for ($k = 0; $k < $numNonBye; $k++) {
+                            if ($matchSlots[$nonByeSlots[$k]]['team1'] === null) {
+                                $slotPointer = $k;
+                                $found = true;
+                                break;
+                            }
+                        }
+                        if (!$found) break;
+                    }
+                }
+            }
+
+            // 2. Build pairs for SOLO vs SOLO and REGULAR vs REGULAR
+            $soloPairs = [];
+            while (count($soloList) >= 2) {
+                $soloPairs[] = [array_shift($soloList), array_shift($soloList)];
+            }
+
+            $regularPairs = [];
+            while (count($regularList) >= 2) {
+                $regularPairs[] = [array_shift($regularList), array_shift($regularList)];
+            }
+
+            // Pool for odd remaining teams
+            $singleSpillover = array_merge($ymdList, $soloList, $regularList);
+            shuffle($singleSpillover);
+
+            $getNextTeam = function() use (&$singleSpillover, &$soloPairs, &$regularPairs) {
+                if (count($singleSpillover) > 0) {
+                    return array_shift($singleSpillover);
+                }
+                if (count($soloPairs) > 0) {
+                    $pair = array_shift($soloPairs);
+                    if (count($pair) > 1) {
+                        $singleSpillover[] = $pair[1];
+                    }
+                    return $pair[0];
+                }
+                if (count($regularPairs) > 0) {
+                    $pair = array_shift($regularPairs);
+                    if (count($pair) > 1) {
+                        $singleSpillover[] = $pair[1];
+                    }
+                    return $pair[0];
+                }
+                return null;
+            };
+
+            // 3. Fill non-BYE match slots
+            foreach ($nonByeSlots as $s) {
+                if ($matchSlots[$s]['team1'] !== null) {
+                    if ($matchSlots[$s]['team2'] === null) {
+                        $matchSlots[$s]['team2'] = $getNextTeam();
+                    }
+                } else {
+                    if (count($soloPairs) > 0) {
+                        $pair = array_shift($soloPairs);
+                        $matchSlots[$s]['team1'] = $pair[0];
+                        $matchSlots[$s]['team2'] = $pair[1];
+                    } elseif (count($regularPairs) > 0) {
+                        $pair = array_shift($regularPairs);
+                        $matchSlots[$s]['team1'] = $pair[0];
+                        $matchSlots[$s]['team2'] = $pair[1];
+                    } else {
+                        $matchSlots[$s]['team1'] = $getNextTeam();
+                        $matchSlots[$s]['team2'] = $getNextTeam();
+                    }
                 }
             }
 
