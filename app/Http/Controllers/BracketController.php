@@ -37,6 +37,8 @@ class BracketController extends Controller
     {
         $season = Season::findOrFail($season_id);
         $teams = Team::where('season_id', $season_id)->where('status', 'PAID')->get();
+        self::fixOrphanBracketData($season_id);
+
         $brackets = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2', 'winner'])
             ->orderBy('round_number')
@@ -394,6 +396,8 @@ class BracketController extends Controller
         if (!$season_id) abort(404);
 
         $season = Season::findOrFail($season_id);
+        self::fixOrphanBracketData($season_id);
+
         $brackets = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2', 'winner'])
             ->orderBy('round_number')
@@ -829,6 +833,8 @@ class BracketController extends Controller
     {
         $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
         if (!$season_id) return response()->json(['success' => false, 'message' => 'Season not found'], 404);
+
+        self::fixOrphanBracketData($season_id);
 
         $matches = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2'])
@@ -1844,6 +1850,72 @@ class BracketController extends Controller
             $report->ai_notes = 'Error: ' . $e->getMessage();
             $report->save();
             return false;
+        }
+    }
+
+    /**
+     * Self-healing integrity check: Erase ghost/orphan teams from subsequent rounds
+     * when previous round matches were reset or not finished yet.
+     */
+    public static function fixOrphanBracketData($seasonId)
+    {
+        $brackets = Bracket::where('season_id', $seasonId)->get();
+        if ($brackets->isEmpty()) return;
+
+        $byRound = $brackets->groupBy('round_number');
+        $maxRound = $brackets->max('round_number');
+
+        for ($r = 2; $r <= $maxRound; $r++) {
+            $currentMatches = $byRound->get($r, collect());
+            $prevMatches = $byRound->get($r - 1, collect());
+
+            foreach ($currentMatches as $m) {
+                $prevMatch1Num = ($m->match_number * 2) - 1;
+                $prevMatch2Num = $m->match_number * 2;
+
+                $prevM1 = $prevMatches->firstWhere('match_number', $prevMatch1Num);
+                $prevM2 = $prevMatches->firstWhere('match_number', $prevMatch2Num);
+
+                // Valid team1 must come from prevM1 (either winner if finished, or BYE team)
+                $validT1 = null;
+                if ($prevM1) {
+                    if ($prevM1->status === 'finished' && $prevM1->winner_id) {
+                        $validT1 = $prevM1->winner_id;
+                    } elseif (!$prevM1->team1_id || !$prevM1->team2_id) {
+                        $validT1 = $prevM1->team1_id ?? $prevM1->team2_id;
+                    }
+                }
+
+                // Valid team2 must come from prevM2 (either winner if finished, or BYE team)
+                $validT2 = null;
+                if ($prevM2) {
+                    if ($prevM2->status === 'finished' && $prevM2->winner_id) {
+                        $validT2 = $prevM2->winner_id;
+                    } elseif (!$prevM2->team2_id || !$prevM2->team1_id) {
+                        $validT2 = $prevM2->team2_id ?? $prevM2->team1_id;
+                    }
+                }
+
+                $changed = false;
+                if ($m->team1_id && $m->team1_id != $validT1) {
+                    $m->team1_id = $validT1;
+                    $changed = true;
+                }
+                if ($m->team2_id && $m->team2_id != $validT2) {
+                    $m->team2_id = $validT2;
+                    $changed = true;
+                }
+
+                if ($changed) {
+                    if (!$m->team1_id || !$m->team2_id || $m->team1_id == $m->team2_id) {
+                        $m->winner_id = null;
+                        $m->team1_score = 0;
+                        $m->team2_score = 0;
+                        $m->status = 'upcoming';
+                    }
+                    $m->save();
+                }
+            }
         }
     }
 }
