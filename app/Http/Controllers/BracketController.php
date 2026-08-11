@@ -894,20 +894,15 @@ class BracketController extends Controller
             $count = $ymdTeams->count();
             
             foreach ($ymdTeams as $team) {
-                // Check if this YMD team is currently rendered inside the bracket
-                $inBracket = Bracket::where('season_id', $season_id)
-                    ->where(function($q) use ($team) {
-                        $q->where('team1_id', $team->id)->orWhere('team2_id', $team->id);
-                    })->exists();
+                Bracket::where('season_id', $season_id)
+                    ->where('team1_id', $team->id)
+                    ->update(['team1_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
+                    
+                Bracket::where('season_id', $season_id)
+                    ->where('team2_id', $team->id)
+                    ->update(['team2_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
 
-                if ($inBracket) {
-                    // Do not delete immediately so the bracket UI does not break.
-                    // Just mark as CANCELLED so it is skipped & permanently deleted on next Generate
-                    $team->name = '[CANCELLED] ' . $team->name;
-                    $team->save();
-                } else {
-                    $team->delete();
-                }
+                $team->delete();
             }
             
             DB::commit();
