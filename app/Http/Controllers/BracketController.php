@@ -90,8 +90,7 @@ class BracketController extends Controller
 
             // Clean up CANCELLED YMD teams from previous deletion requests
             Team::where('season_id', $season_id)
-                ->where('name', 'LIKE', 'YMD-%')
-                ->where('status', 'CANCELLED')
+                ->where('name', 'LIKE', '[CANCELLED]%')
                 ->delete();
 
             $matchesInRound1 = $bracketSize / 2;
@@ -904,7 +903,7 @@ class BracketController extends Controller
                 if ($inBracket) {
                     // Do not delete immediately so the bracket UI does not break.
                     // Just mark as CANCELLED so it is skipped & permanently deleted on next Generate
-                    $team->status = 'CANCELLED';
+                    $team->name = '[CANCELLED] ' . $team->name;
                     $team->save();
                 } else {
                     $team->delete();
