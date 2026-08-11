@@ -704,8 +704,8 @@
                 <p class="text-secondary small mb-3">Salin daftar tim lunas di bawah untuk di-import langsung ke Challonge (satu tim per baris) sebagai cadangan.</p>
                 <textarea class="form-control bg-light" id="teamsListArea" rows="10" readonly style="font-family: monospace; font-size: 0.85rem;">@php
                     $added = [];
-                    $babak1Matches = $brackets->where('round_number', 1)->sortBy('match_number');
-                    foreach($babak1Matches as $m) {
+                    // Scan seluruh match (semua babak) agar tim yang mendapat slot BYE (langsung ke Babak 2) tidak terlewat
+                    foreach($brackets as $m) {
                         if ($m->team1 && !in_array($m->team1->name, $added)) {
                             echo $m->team1->name . "\n";
                             $added[] = $m->team1->name;

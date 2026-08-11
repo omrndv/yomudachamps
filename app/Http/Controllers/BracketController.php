@@ -88,6 +88,12 @@ class BracketController extends Controller
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
+            // Clean up CANCELLED YMD teams from previous deletion requests
+            Team::where('season_id', $season_id)
+                ->where('name', 'LIKE', 'YMD-%')
+                ->where('status', 'CANCELLED')
+                ->delete();
+
             $matchesInRound1 = $bracketSize / 2;
             $numBYEMatches = $bracketSize - $teamCount;
 
@@ -254,37 +260,50 @@ class BracketController extends Controller
             }
 
             // 2. Process Round 1 slots
-            // Real 2-team matches get created in Round 1 DB
-            // 1-team BYEs get placed directly into Round 2 DB slots!
+            // Semua match di Babak 1 wajib dibuat di DB agar fixOrphanBracketData tidak menganggapnya yatim (orphan) dan menghapus BYE di Babak 2
             for ($slotNum = 1; $slotNum <= $matchesInRound1; $slotNum++) {
                 $team1 = $matchSlots[$slotNum]['team1'] ?? null;
                 $team2 = $matchSlots[$slotNum]['team2'] ?? null;
 
-                if ($team1 && $team2) {
-                    // REAL MATCH in Round 1
+                if ($team1 || $team2) {
                     $bracket = new Bracket();
                     $bracket->season_id = $season_id;
                     $bracket->round_number = 1;
                     $bracket->match_number = $slotNum; // 64-tree slot index for accurate positioning
-                    $bracket->team1_id = $team1->id;
-                    $bracket->team2_id = $team2->id;
+                    $bracket->team1_id = $team1 ? $team1->id : null;
+                    $bracket->team2_id = $team2 ? $team2->id : null;
                     $bracket->match_time = $this->getDefaultTimeForRound(1, $roundsCount);
-                    $bracket->status = 'upcoming';
+                    
+                    if ($team1 && $team2) {
+                        // REAL MATCH in Round 1
+                        $bracket->team1_score = 0;
+                        $bracket->team2_score = 0;
+                        $bracket->status = 'upcoming';
+                    } else {
+                        // BYE Match in Round 1
+                        $byeTeam = $team1 ?? $team2;
+                        $bracket->team1_score = $team1 ? 1 : 0;
+                        $bracket->team2_score = $team2 ? 1 : 0;
+                        $bracket->status = 'finished';
+                        $bracket->winner_id = $byeTeam->id;
+                    }
                     $bracket->save();
-                } else if ($team1 || $team2) {
-                    // BYE! Put team directly into Round 2 slot
-                    $byeTeam = $team1 ?? $team2;
-                    $r2MatchNum = (int) ceil($slotNum / 2);
-                    $isSlot1InR2 = ($slotNum % 2 !== 0);
 
-                    if (isset($round2Matches[$r2MatchNum])) {
-                        $r2Match = $round2Matches[$r2MatchNum];
-                        if ($isSlot1InR2) {
-                            $r2Match->team1_id = $byeTeam->id;
-                        } else {
-                            $r2Match->team2_id = $byeTeam->id;
+                    // If it's a BYE, also push it to Round 2 slot
+                    if (!$team1 || !$team2) {
+                        $byeTeam = $team1 ?? $team2;
+                        $r2MatchNum = (int) ceil($slotNum / 2);
+                        $isSlot1InR2 = ($slotNum % 2 !== 0);
+
+                        if (isset($round2Matches[$r2MatchNum])) {
+                            $r2Match = $round2Matches[$r2MatchNum];
+                            if ($isSlot1InR2) {
+                                $r2Match->team1_id = $byeTeam->id;
+                            } else {
+                                $r2Match->team2_id = $byeTeam->id;
+                            }
+                            $r2Match->save();
                         }
-                        $r2Match->save();
                     }
                 }
             }
@@ -870,20 +889,26 @@ class BracketController extends Controller
             
             $ymdTeams = Team::where('season_id', $season_id)
                 ->where('name', 'LIKE', 'YMD-%')
+                ->where('status', 'PAID')
                 ->get();
                 
             $count = $ymdTeams->count();
             
             foreach ($ymdTeams as $team) {
-                Bracket::where('season_id', $season_id)
-                    ->where('team1_id', $team->id)
-                    ->update(['team1_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
-                    
-                Bracket::where('season_id', $season_id)
-                    ->where('team2_id', $team->id)
-                    ->update(['team2_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
+                // Check if this YMD team is currently rendered inside the bracket
+                $inBracket = Bracket::where('season_id', $season_id)
+                    ->where(function($q) use ($team) {
+                        $q->where('team1_id', $team->id)->orWhere('team2_id', $team->id);
+                    })->exists();
 
-                $team->delete();
+                if ($inBracket) {
+                    // Do not delete immediately so the bracket UI does not break.
+                    // Just mark as CANCELLED so it is skipped & permanently deleted on next Generate
+                    $team->status = 'CANCELLED';
+                    $team->save();
+                } else {
+                    $team->delete();
+                }
             }
             
             DB::commit();
@@ -1897,11 +1922,11 @@ class BracketController extends Controller
                 }
 
                 $changed = false;
-                if ($m->team1_id && $m->team1_id != $validT1) {
+                if ($m->team1_id !== $validT1) {
                     $m->team1_id = $validT1;
                     $changed = true;
                 }
-                if ($m->team2_id && $m->team2_id != $validT2) {
+                if ($m->team2_id !== $validT2) {
                     $m->team2_id = $validT2;
                     $changed = true;
                 }
