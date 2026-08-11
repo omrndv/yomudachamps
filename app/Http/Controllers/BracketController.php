@@ -1906,8 +1906,6 @@ class BracketController extends Controller
                 if ($prevM1) {
                     if ($prevM1->status === 'finished' && $prevM1->winner_id) {
                         $validT1 = $prevM1->winner_id;
-                    } elseif (!$prevM1->team1_id || !$prevM1->team2_id) {
-                        $validT1 = $prevM1->team1_id ?? $prevM1->team2_id;
                     }
                 }
 
@@ -1916,8 +1914,6 @@ class BracketController extends Controller
                 if ($prevM2) {
                     if ($prevM2->status === 'finished' && $prevM2->winner_id) {
                         $validT2 = $prevM2->winner_id;
-                    } elseif (!$prevM2->team2_id || !$prevM2->team1_id) {
-                        $validT2 = $prevM2->team2_id ?? $prevM2->team1_id;
                     }
                 }
 
