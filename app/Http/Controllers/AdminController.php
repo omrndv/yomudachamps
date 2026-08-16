@@ -1679,8 +1679,16 @@ class AdminController extends Controller
 
             if (count($parts) >= 1) {
                 $wa = $parts[0];
-                $role = isset($parts[1]) ? $parts[1] : 'Roamer';
-                $rank = isset($parts[2]) ? $parts[2] : 'Legend';
+                $role = isset($parts[1]) ? strtolower(trim($parts[1])) : 'roamer';
+                $rank = isset($parts[2]) ? trim($parts[2]) : 'Legend';
+
+                // Normalize role
+                if (in_array($role, ['mid', 'midlane', 'mid lane', 'mage'])) $role = 'Mid Lane';
+                elseif (in_array($role, ['exp', 'explane', 'exp lane', 'fighter'])) $role = 'Exp Lane';
+                elseif (in_array($role, ['gold', 'goldlane', 'gold lane', 'mm', 'marksman'])) $role = 'Gold Lane';
+                elseif (in_array($role, ['roam', 'roamer', 'tank', 'support'])) $role = 'Roamer';
+                elseif (in_array($role, ['jungle', 'jungler', 'core'])) $role = 'Jungler';
+                else $role = ucwords($role); // Fallback
 
                 \App\Models\SoloPlayer::create([
                     'season_id' => $season_id,

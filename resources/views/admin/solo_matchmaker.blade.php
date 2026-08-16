@@ -78,12 +78,16 @@
                     @foreach($rolesList as $roleName)
                         @php
                             $rolePlayers = $unmatched_players->filter(function($p) use ($roleName) {
-                                return strtolower(trim($p->role)) === strtolower(trim($roleName)) || 
-                                       (strtolower(trim($roleName)) === 'jungler' && strtolower(trim($p->role)) === 'jungler') ||
-                                       (strtolower(trim($roleName)) === 'mid lane' && strtolower(trim($p->role)) === 'mid lane') ||
-                                       (strtolower(trim($roleName)) === 'gold lane' && strtolower(trim($p->role)) === 'gold lane') ||
-                                       (strtolower(trim($roleName)) === 'exp lane' && strtolower(trim($p->role)) === 'exp lane') ||
-                                       (strtolower(trim($roleName)) === 'roamer' && strtolower(trim($p->role)) === 'roamer');
+                                $playerRole = strtolower(trim($p->role));
+                                $targetRole = strtolower(trim($roleName));
+                                
+                                if ($targetRole === 'jungler' && in_array($playerRole, ['jungler', 'jungle', 'core'])) return true;
+                                if ($targetRole === 'mid lane' && in_array($playerRole, ['mid lane', 'mid', 'midlane', 'mage'])) return true;
+                                if ($targetRole === 'gold lane' && in_array($playerRole, ['gold lane', 'gold', 'goldlane', 'mm', 'marksman'])) return true;
+                                if ($targetRole === 'exp lane' && in_array($playerRole, ['exp lane', 'exp', 'explane', 'fighter'])) return true;
+                                if ($targetRole === 'roamer' && in_array($playerRole, ['roamer', 'roam', 'tank', 'support'])) return true;
+                                
+                                return $playerRole === $targetRole;
                             });
                         @endphp
                         
@@ -100,12 +104,20 @@
                                     @php
                                         $isDuoTrio = $duoTrioCounts[$player->wa_number] > 1;
                                         $teamSize = $duoTrioCounts[$player->wa_number];
+                                        
+                                        $normRole = strtolower(trim($player->role));
+                                        if (in_array($normRole, ['jungler', 'jungle', 'core'])) $normRole = 'Jungler';
+                                        elseif (in_array($normRole, ['mid lane', 'mid', 'midlane', 'mage'])) $normRole = 'Mid Lane';
+                                        elseif (in_array($normRole, ['gold lane', 'gold', 'goldlane', 'mm', 'marksman'])) $normRole = 'Gold Lane';
+                                        elseif (in_array($normRole, ['exp lane', 'exp', 'explane', 'fighter'])) $normRole = 'Exp Lane';
+                                        elseif (in_array($normRole, ['roamer', 'roam', 'tank', 'support'])) $normRole = 'Roamer';
+                                        else $normRole = ucwords($player->role);
                                     @endphp
                                     <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex flex-column justify-content-between cursor-grab" 
                                          draggable="true" 
                                          data-id="{{ $player->id }}"
                                          data-wa="{{ $player->wa_number }}"
-                                         data-role="{{ $player->role }}"
+                                         data-role="{{ $normRole }}"
                                          style="width: 100%; font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#f59e0b' }} !important;">
                                          <div class="d-flex justify-content-between align-items-center mb-1">
                                              <span class="fw-bold text-dark text-truncate d-flex align-items-center gap-1" style="max-width: 150px;">
@@ -203,12 +215,20 @@
                                         @forelse($team->players as $player)
                                             @php
                                                 $isDuoTrio = $team->players->where('wa_number', $player->wa_number)->count() > 1;
+                                                
+                                                $normRoleAssigned = strtolower(trim($player->role));
+                                                if (in_array($normRoleAssigned, ['jungler', 'jungle', 'core'])) $normRoleAssigned = 'Jungler';
+                                                elseif (in_array($normRoleAssigned, ['mid lane', 'mid', 'midlane', 'mage'])) $normRoleAssigned = 'Mid Lane';
+                                                elseif (in_array($normRoleAssigned, ['gold lane', 'gold', 'goldlane', 'mm', 'marksman'])) $normRoleAssigned = 'Gold Lane';
+                                                elseif (in_array($normRoleAssigned, ['exp lane', 'exp', 'explane', 'fighter'])) $normRoleAssigned = 'Exp Lane';
+                                                elseif (in_array($normRoleAssigned, ['roamer', 'roam', 'tank', 'support'])) $normRoleAssigned = 'Roamer';
+                                                else $normRoleAssigned = ucwords($player->role);
                                             @endphp
                                             <div class="player-card drag-item p-2 border bg-white rounded shadow-sm d-flex flex-column cursor-grab mb-2"
                                                  draggable="true"
                                                  data-id="{{ $player->id }}"
                                                  data-wa="{{ $player->wa_number }}"
-                                                 data-role="{{ $player->role }}"
+                                                 data-role="{{ $normRoleAssigned }}"
                                                  style="font-size: 0.8rem; border-left: 4px solid {{ $isDuoTrio ? '#8b5cf6' : '#10b981' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <div class="d-flex flex-column">
