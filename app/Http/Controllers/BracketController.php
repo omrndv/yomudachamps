@@ -1889,6 +1889,43 @@ class BracketController extends Controller
             $prevMatches = $byRound->get($r - 1, collect());
 
             foreach ($currentMatches as $m) {
+                // Special handling for Bronze Match
+                if ($r == $maxRound && $m->match_number == 2) {
+                    $semiM1 = $prevMatches->firstWhere('match_number', 1);
+                    $semiM2 = $prevMatches->firstWhere('match_number', 2);
+                    
+                    $validT1 = null;
+                    if ($semiM1 && $semiM1->status === 'finished' && $semiM1->winner_id) {
+                        $validT1 = ($semiM1->winner_id == $semiM1->team1_id) ? $semiM1->team2_id : $semiM1->team1_id;
+                    }
+                    
+                    $validT2 = null;
+                    if ($semiM2 && $semiM2->status === 'finished' && $semiM2->winner_id) {
+                        $validT2 = ($semiM2->winner_id == $semiM2->team1_id) ? $semiM2->team2_id : $semiM2->team1_id;
+                    }
+                    
+                    $changed = false;
+                    if ($m->team1_id !== $validT1) {
+                        $m->team1_id = $validT1;
+                        $changed = true;
+                    }
+                    if ($m->team2_id !== $validT2) {
+                        $m->team2_id = $validT2;
+                        $changed = true;
+                    }
+
+                    if ($changed) {
+                        if (!$m->team1_id || !$m->team2_id || $m->team1_id == $m->team2_id) {
+                            $m->winner_id = null;
+                            $m->team1_score = 0;
+                            $m->team2_score = 0;
+                            $m->status = 'upcoming';
+                        }
+                        $m->save();
+                    }
+                    continue;
+                }
+
                 $prevMatch1Num = ($m->match_number * 2) - 1;
                 $prevMatch2Num = $m->match_number * 2;
 
