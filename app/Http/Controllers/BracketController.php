@@ -414,7 +414,6 @@ class BracketController extends Controller
         if (!$season_id) abort(404);
 
         $season = Season::findOrFail($season_id);
-        self::fixOrphanBracketData($season_id);
 
         $brackets = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2', 'winner'])
@@ -851,8 +850,6 @@ class BracketController extends Controller
     {
         $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
         if (!$season_id) return response()->json(['success' => false, 'message' => 'Season not found'], 404);
-
-        self::fixOrphanBracketData($season_id);
 
         $matches = Bracket::where('season_id', $season_id)
             ->with(['team1', 'team2'])

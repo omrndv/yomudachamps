@@ -1536,149 +1536,7 @@
         // ----------------------------------------------------
         let pollingInterval = null;
 
-        function fetchLatestBracketData() {
-            fetch("{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}")
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success && res.matches) {
-                        res.matches.forEach(m => {
-                            const card = document.getElementById(`card_m_${m.round_number}_${m.match_number}`);
-                            if (card) {
-                                // 1. Update time / live badge
-                                const timeSpan = card.querySelector('.match-card-time');
-                                if (timeSpan) {
-                                    if (m.status === 'live') {
-                                        timeSpan.innerHTML = '<span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.5rem;">LIVE</span>';
-                                    } else {
-                                        let timeDisplay = m.match_time || '20:00 WIB';
-                                        if (timeDisplay.includes(',')) {
-                                            const parts = timeDisplay.split(',');
-                                            timeDisplay = parts[parts.length - 1].trim();
-                                        }
-                                        timeSpan.innerHTML = `<i class="bi bi-clock"></i> ${timeDisplay}`;
-                                    }
-                                }
-
-                                // 2. Update border class
-                                if (m.status === 'live') {
-                                    card.classList.add('border-primary');
-                                } else {
-                                    card.classList.remove('border-primary');
-                                }
-
-                                // 3. Update Team Rows
-                                const rows = card.querySelectorAll('.team-row');
-                                if (rows[0]) {
-                                    rows[0].dataset.teamId = m.team1_id || '';
-                                    rows[0].className = `team-row ${m.winner_id && m.winner_id === m.team1_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team1_id ? 'loser' : ''}`;
-                                    
-                                    const nameSpan = rows[0].querySelector('.team-name');
-                                    if (nameSpan) {
-                                        nameSpan.className = m.team1_name ? 'team-name' : 'team-name text-muted italic';
-                                        nameSpan.textContent = m.team1_name || 'TBD';
-                                    }
-                                    const scoreBox = rows[0].querySelector('.team-score-box');
-                                    if (scoreBox) scoreBox.textContent = m.team1_score;
-                                }
-                                if (rows[1]) {
-                                    rows[1].dataset.teamId = m.team2_id || '';
-                                    rows[1].className = `team-row ${m.winner_id && m.winner_id === m.team2_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team2_id ? 'loser' : ''}`;
-                                    
-                                    const nameSpan = rows[1].querySelector('.team-name');
-                                    if (nameSpan) {
-                                        if (m.team2_name) {
-                                            nameSpan.className = 'team-name';
-                                            nameSpan.textContent = m.team2_name;
-                                        } else {
-                                            if (m.round_number === 1) {
-                                                nameSpan.className = 'team-name text-success';
-                                                nameSpan.textContent = 'BYE (Lolos)';
-                                            } else {
-                                                nameSpan.className = 'team-name text-muted italic';
-                                                nameSpan.textContent = 'TBD';
-                                            }
-                                        }
-                                    }
-                                    const scoreBox = rows[1].querySelector('.team-score-box');
-                                    if (scoreBox) scoreBox.textContent = m.team2_score;
-                                }
-                            }
-                        });
-
-                        // Rebuild search engine matchesData index in real-time as an array
-                        matchesData.length = 0;
-                        res.matches.forEach(b => {
-                            const roundName = getRoundName(b.round_number);
-                            const scheduleStr = b.match_time || '20:00 WIB';
-                            if (b.team1_name && b.team2_name) {
-                                const bracketNum = (startNumbers[b.round_number] || 1) + (b.match_number - 1);
-                                matchesData.push({
-                                    teamKey: b.team1_name.toLowerCase(),
-                                    name: b.team1_name,
-                                    opponent: b.team2_name,
-                                    opponentWA: b.team2_wa || '-',
-                                    schedule: scheduleStr,
-                                    bracket: "Bracket " + bracketNum,
-                                    round: roundName,
-                                    status: b.winner_id === b.team1_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
-                                    cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                });
-                                matchesData.push({
-                                    teamKey: b.team2_name.toLowerCase(),
-                                    name: b.team2_name,
-                                    opponent: b.team1_name,
-                                    opponentWA: b.team1_wa || '-',
-                                    schedule: scheduleStr,
-                                    bracket: "Bracket " + bracketNum,
-                                    round: roundName,
-                                    status: b.winner_id === b.team2_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
-                                    cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                });
-                            } else if (b.team1_name && !b.team2_name && b.round_number === 1) {
-                                const bracketNum = (startNumbers[b.round_number] || 1) + (b.match_number - 1);
-                                matchesData.push({
-                                    teamKey: b.team1_name.toLowerCase(),
-                                    name: b.team1_name,
-                                    opponent: "Lolos (BYE)",
-                                    opponentWA: "-",
-                                    schedule: scheduleStr,
-                                    bracket: "Bracket " + bracketNum,
-                                    round: roundName,
-                                    status: "Lolos",
-                                    cardId: "card_m_" + b.round_number + "_" + b.match_number
-                                });
-                            }
-                        });
-                    }
-                })
-                .catch(err => console.log("Realtime sync issue:", err));
-        }
-
-        function startPolling() {
-            if (!pollingInterval) {
-                pollingInterval = setInterval(fetchLatestBracketData, 4000);
-            }
-        }
-
-        function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
-        }
-
-        // Detect Visibility change to stop requests when browser tab is inactive
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                stopPolling();
-            } else {
-                fetchLatestBracketData(); // immediate fetch when coming back active
-                startPolling();
-            }
-        });
-
-        // Start polling initially
-        startPolling();
+        // Removed redundant fetchLatestBracketData polling logic (was causing 503 errors under load)
 
         // ----------------------------------------------------
         // Web Live Chat Widget Implementation
@@ -2516,6 +2374,53 @@
                                 row2.className = `team-row ${m.winner_id && m.winner_id === m.team2_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team2_id ? 'loser' : ''}`;
                             }
                         });
+
+                        // Update search engine matchesData index in real-time
+                        if (typeof matchesData !== 'undefined') {
+                            matchesData.length = 0;
+                            res.matches.forEach(b => {
+                                const roundName = typeof getRoundName !== 'undefined' ? getRoundName(b.round_number) : `Round ${b.round_number}`;
+                                const scheduleStr = b.match_time || '20:00 WIB';
+                                if (b.team1_name && b.team2_name) {
+                                    const bracketNum = (typeof startNumbers !== 'undefined' && startNumbers[b.round_number] ? startNumbers[b.round_number] : 1) + (b.match_number - 1);
+                                    matchesData.push({
+                                        teamKey: b.team1_name.toLowerCase(),
+                                        name: b.team1_name,
+                                        opponent: b.team2_name,
+                                        opponentWA: b.team2_wa || '-',
+                                        schedule: scheduleStr,
+                                        bracket: "Bracket " + bracketNum,
+                                        round: roundName,
+                                        status: b.winner_id === b.team1_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
+                                        cardId: "card_m_" + b.round_number + "_" + b.match_number
+                                    });
+                                    matchesData.push({
+                                        teamKey: b.team2_name.toLowerCase(),
+                                        name: b.team2_name,
+                                        opponent: b.team1_name,
+                                        opponentWA: b.team1_wa || '-',
+                                        schedule: scheduleStr,
+                                        bracket: "Bracket " + bracketNum,
+                                        round: roundName,
+                                        status: b.winner_id === b.team2_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
+                                        cardId: "card_m_" + b.round_number + "_" + b.match_number
+                                    });
+                                } else if (b.team1_name && !b.team2_name && b.round_number === 1) {
+                                    const bracketNum = (typeof startNumbers !== 'undefined' && startNumbers[b.round_number] ? startNumbers[b.round_number] : 1) + (b.match_number - 1);
+                                    matchesData.push({
+                                        teamKey: b.team1_name.toLowerCase(),
+                                        name: b.team1_name,
+                                        opponent: "Lolos (BYE)",
+                                        opponentWA: "-",
+                                        schedule: scheduleStr,
+                                        bracket: "Bracket " + bracketNum,
+                                        round: roundName,
+                                        status: "Lolos",
+                                        cardId: "card_m_" + b.round_number + "_" + b.match_number
+                                    });
+                                }
+                            });
+                        }
                     }
                 })
                 .catch(err => console.debug('Live sync poll error:', err));
