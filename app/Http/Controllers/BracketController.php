@@ -791,8 +791,8 @@ class BracketController extends Controller
         try {
             $updatedCount = 0;
 
-            // Process Round 1 & Round 2 sequentially
-            foreach ([1, 2] as $targetRound) {
+            // Process Round 1 only (Advance to Round 2)
+            foreach ([1] as $targetRound) {
                 $matches = Bracket::where('season_id', $season_id)
                     ->where('round_number', $targetRound)
                     ->with(['team1', 'team2'])
