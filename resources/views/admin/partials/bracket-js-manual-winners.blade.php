@@ -51,13 +51,14 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // Determine scores (1-0 for the winner)
-                const team1Id = document.querySelector(`#card_m_1_${matchId} .team-row[data-slot="1"]`)?.dataset.teamId;
-                let team1Score = 0;
+                const team1Row = document.querySelector(`.team-row[data-match-id="${matchId}"][data-slot="1"]`);
+                const team1Id = team1Row ? team1Row.dataset.teamId : null;
+                
+                let team1Score = 1; // default to team 1 winning
                 let team2Score = 0;
                 
-                if (team1Id == winnerId) {
-                    team1Score = 1;
-                } else {
+                if (team1Id !== null && team1Id != winnerId) {
+                    team1Score = 0;
                     team2Score = 1;
                 }
 
