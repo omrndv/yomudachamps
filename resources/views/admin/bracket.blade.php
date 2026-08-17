@@ -1279,6 +1279,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Show flash message from previous action if exists
+    const flashMsg = sessionStorage.getItem('admin_bracket_flash_msg');
+    if (flashMsg) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: flashMsg,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        sessionStorage.removeItem('admin_bracket_flash_msg');
+    }
+
     // Helper function to save scroll state and reload page
     function saveScrollAndReload() {
         if (container) {
@@ -1380,15 +1395,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(res => {
                         if (res.success) {
                             modal.hide();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: 'Pertandingan berhasil direset.',
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                saveScrollAndReload();
-                            });
+                            sessionStorage.setItem('admin_bracket_flash_msg', 'Pertandingan berhasil direset.');
+                            saveScrollAndReload();
                         } else {
                             Swal.fire('Gagal', res.message || 'Gagal meriset pertandingan.', 'error');
                         }
@@ -1423,15 +1431,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (res.success) {
                 modal.hide();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: res.message,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    saveScrollAndReload(); // Use smooth scroll reload
-                });
+                sessionStorage.setItem('admin_bracket_flash_msg', res.message || 'Pertandingan berhasil disimpan.');
+                saveScrollAndReload();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -3495,75 +3496,58 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
     // ----------------------------------------------------
     // Quick 1-Click Winner JS Action
     // ----------------------------------------------------
-    function quickWinMatch(matchId, winnerTeamId, winnerTeamName) {
+    function quickWinMatch(matchId, winnerId, teamName) {
         Swal.fire({
-            title: 'Loloskan ' + winnerTeamName + '?',
-            text: 'Tim ini akan otomatis dinyatakan MENANG (skor 1-0) dan maju ke babak berikutnya.',
+            title: 'Loloskan Tim ini?',
+            text: `Anda akan memberikan kemenangan otomatis untuk ${teamName}.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#f59e0b',
+            confirmButtonColor: '#10b981',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Ya, Loloskan!',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Memproses...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                // Find match card to determine team1 or team2 score
-                const card = document.getElementById('card_m_' + matchId) || document.querySelector('[data-match-id="' + matchId + '"]')?.closest('.match-card');
-                let t1Score = 1;
-                let t2Score = 0;
-
-                if (card) {
-                    const row2 = card.querySelectorAll('.team-row')[1];
-                    if (row2 && row2.dataset.teamId == winnerTeamId) {
-                        t1Score = 0;
-                        t2Score = 1;
-                    }
+                // Determine scores (1-0 for the winner)
+                const team1Id = document.querySelector(`#card_m_1_${matchId} .team-row[data-slot="1"]`)?.dataset.teamId;
+                let team1Score = 0;
+                let team2Score = 0;
+                
+                if (team1Id == winnerId) {
+                    team1Score = 1;
+                } else {
+                    team2Score = 1;
                 }
 
                 const formData = new FormData();
                 formData.append('match_id', matchId);
-                formData.append('team1_score', t1Score);
-                formData.append('team2_score', t2Score);
+                formData.append('team1_score', team1Score);
+                formData.append('team2_score', team2Score);
                 formData.append('status', 'finished');
                 formData.append('_token', '{{ csrf_token() }}');
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
 
                 fetch("{{ route('admin.season.bracket.update-match', $season->id) }}", {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(res => res.json())
                 .then(res => {
-                    if (res.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: winnerTeamName + ' berhasil diloloskan!',
-                            timer: 1200,
-                            showConfirmButton: false
-                        }).then(() => {
-                            if (typeof container !== 'undefined' && container) {
-                                sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
-                                sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
-                            }
-                            window.location.reload();
-                        });
+                    if(res.success) {
+                        sessionStorage.setItem('admin_bracket_flash_msg', `${teamName} telah diloloskan.`);
+                        saveScrollAndReload();
                     } else {
-                        Swal.fire('Gagal', res.message || 'Gagal meloloskan tim.', 'error');
+                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan sistem.', 'error');
                     }
                 })
                 .catch(err => {
-                    Swal.fire('Error', 'Terjadi kesalahan sistem saat meloloskan tim.', 'error');
+                    Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
                 });
             }
         });
