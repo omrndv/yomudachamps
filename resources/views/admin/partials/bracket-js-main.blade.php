@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Helper function to save scroll state and reload page
-    function saveScrollAndReload() {
+    window.saveScrollAndReload = function() {
         if (container) {
             sessionStorage.setItem('admin_bracket_scroll_left', container.scrollLeft);
             sessionStorage.setItem('admin_bracket_scroll_top', container.scrollTop);
