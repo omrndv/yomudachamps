@@ -84,7 +84,7 @@
                 .then(res => {
                     if(res.success) {
                         sessionStorage.setItem('admin_bracket_flash_msg', `${teamName} telah diloloskan.`);
-                        saveScrollAndReload();
+                        window.saveScrollAndReload();
                     } else {
                         Swal.fire('Gagal', res.message || 'Terjadi kesalahan sistem.', 'error');
                     }

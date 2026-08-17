@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (res.success) {
                             modal.hide();
                             sessionStorage.setItem('admin_bracket_flash_msg', 'Pertandingan berhasil direset.');
-                            saveScrollAndReload();
+                            window.saveScrollAndReload();
                         } else {
                             Swal.fire('Gagal', res.message || 'Gagal meriset pertandingan.', 'error');
                         }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.success) {
                 modal.hide();
                 sessionStorage.setItem('admin_bracket_flash_msg', res.message || 'Pertandingan berhasil disimpan.');
-                saveScrollAndReload();
+                window.saveScrollAndReload();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 timer: 1500,
                                 showConfirmButton: false
                             }).then(() => {
-                                saveScrollAndReload();
+                                window.saveScrollAndReload();
                             });
                         } else {
                             Swal.fire({
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 timer: 1500,
                                 showConfirmButton: false
                             }).then(() => {
-                                saveScrollAndReload(); // Use smooth scroll reload
+                                window.saveScrollAndReload(); // Use smooth scroll reload
                             });
                         } else {
                             Swal.fire({
@@ -870,8 +870,8 @@ function saveRoundTime(roundNum) {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        if (typeof saveScrollAndReload === 'function') {
-                            saveScrollAndReload();
+                        if (typeof window.saveScrollAndReload === 'function') {
+                            window.saveScrollAndReload();
                         } else {
                             const container = document.getElementById('adminBracketContainer');
                             if (container) {
@@ -983,8 +983,8 @@ function saveAllRoundTimes() {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                if (typeof saveScrollAndReload === 'function') {
-                    saveScrollAndReload();
+                if (typeof window.saveScrollAndReload === 'function') {
+                    window.saveScrollAndReload();
                 } else {
                     window.location.reload();
                 }
