@@ -237,13 +237,19 @@ class CertificateController extends Controller
             Session::put('current_cert_season_id', $request->query('season_id'));
         }
 
-        $client = $this->getGoogleClient();
-        // Add profile scope to read email address
-        $client->addScope('email');
-        $client->addScope('profile');
-        
-        $authUrl = $client->createAuthUrl();
-        return redirect()->away($authUrl);
+        try {
+            $client = $this->getGoogleClient();
+            // Add profile scope to read email address
+            $client->addScope('email');
+            $client->addScope('profile');
+            
+            $authUrl = $client->createAuthUrl();
+            return redirect()->away($authUrl);
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->with('error', 'Konfigurasi Google Login (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) belum diatur di file .env server Anda. Silakan hubungi developer.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses Google Login: ' . $e->getMessage());
+        }
     }
 
     /**
