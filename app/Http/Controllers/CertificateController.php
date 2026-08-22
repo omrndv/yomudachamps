@@ -43,8 +43,8 @@ class CertificateController extends Controller
     private function getGoogleClient()
     {
         $client = new GoogleClient();
-        $client->setClientId(env('GOOGLE_CLIENT_ID'));
-        $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
+        $client->setClientId(config('services.google.client_id'));
+        $client->setClientSecret(config('services.google.client_secret'));
         $client->setRedirectUri(route('admin.certificate.google-callback'));
         $client->addScope(GoogleDriveService::DRIVE);
         $client->setAccessType('offline');
