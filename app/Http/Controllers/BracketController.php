@@ -31,6 +31,18 @@ class BracketController extends Controller
     }
 
     /**
+     * Clear all cached bracket data for a season
+     */
+    public static function clearBracketCache($season_id)
+    {
+        Cache::forget("season_public_{$season_id}");
+        Cache::forget("bracket_public_{$season_id}");
+        Cache::forget("bracket_public_models_{$season_id}");
+        Cache::forget("bracket_public_data_{$season_id}");
+        Cache::forget("poll_reports_{$season_id}");
+    }
+
+    /**
      * Tampilkan halaman kelola bracket admin
      */
     public function manageBracket($season_id)
@@ -111,89 +123,94 @@ class BracketController extends Controller
                 }
             }
 
-            // Pool teams for BYE vs Round 1
-            // Priority 1: YMD (Buyslot) teams fill the Round 2 BYE slots if BYEs exist!
-            $byeTeamsPool = [];
-            $r1TeamsPool = [];
+            // Total 4-match blocks in Round 1 (each block = 4 matches = meets at Round 3)
+            $totalBlocks = max(1, (int) ceil($matchesInRound1 / 4));
 
-            if ($numBYEMatches > 0) {
-                while (count($ymdList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
-                    $byeTeamsPool[] = array_shift($ymdList);
+            // How many full 4-match (8-team) YMD blocks can we make?
+            $numYmdBlocks = (int) floor(count($ymdList) / 8);
+
+            // Determine spaced block indices for full YMD blocks (e.g. Block 0, Block 4 for 2 blocks in 8-block tree)
+            $ymdBlockIndices = [];
+            if ($numYmdBlocks > 0) {
+                $step = $totalBlocks / $numYmdBlocks;
+                for ($b = 0; $b < $numYmdBlocks; $b++) {
+                    $targetIdx = min($totalBlocks - 1, (int) floor($b * $step));
+                    while (in_array($targetIdx, $ymdBlockIndices) && $targetIdx < $totalBlocks - 1) {
+                        $targetIdx++;
+                    }
+                    $ymdBlockIndices[] = $targetIdx;
                 }
-                while (count($soloList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
+            }
+
+            // Initialize all match slots (1 to $matchesInRound1)
+            $matchSlots = array_fill(1, $matchesInRound1, ['team1' => null, 'team2' => null]);
+            $assignedMatchIndices = [];
+
+            // 1. Assign Full YMD Blocks DIRECTLY to their exact 4-match tree boundaries (NO BYEs in YMD blocks)
+            foreach ($ymdBlockIndices as $bIdx) {
+                $startM = ($bIdx * 4) + 1;
+                for ($k = 0; $k < 4; $k++) {
+                    $mNum = $startM + $k;
+                    if ($mNum <= $matchesInRound1 && count($ymdList) >= 2) {
+                        $matchSlots[$mNum] = [
+                            'team1' => array_shift($ymdList),
+                            'team2' => array_shift($ymdList)
+                        ];
+                        $assignedMatchIndices[] = $mNum;
+                    }
+                }
+            }
+
+            // 2. Identify remaining unassigned match slots (Non-YMD blocks)
+            $unassignedSlots = [];
+            for ($s = 1; $s <= $matchesInRound1; $s++) {
+                if (!in_array($s, $assignedMatchIndices)) {
+                    $unassignedSlots[] = $s;
+                }
+            }
+
+            // 3. Pool BYE teams from remaining categories (Solo, Regular, leftover YMD)
+            $byeTeamsPool = [];
+            if ($numBYEMatches > 0 && count($unassignedSlots) > 0) {
+                $byeCount = min($numBYEMatches, count($unassignedSlots));
+                while (count($soloList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($soloList);
                 }
-                while (count($regularList) > 0 && count($byeTeamsPool) < $numBYEMatches) {
+                while (count($regularList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($regularList);
                 }
-            }
-
-            // All remaining teams play in Round 1 (shuffled so YMD, SOLO, and regular teams are distributed randomly)
-            $r1TeamsPool = array_merge($ymdList, $soloList, $regularList);
-            shuffle($r1TeamsPool);
-
-            // Determine which slots in Round 1 are BYE slots (evenly distributed across tree)
-            $isByeSlot = array_fill(1, $matchesInRound1, false);
-
-            if ($numBYEMatches > 0 && $numBYEMatches < $matchesInRound1) {
-                for ($i = 0; $i < $numBYEMatches; $i++) {
-                    $idx = (int) round(($i + 0.5) * ($matchesInRound1 / $numBYEMatches));
-                    $idx = max(1, min($matchesInRound1, $idx));
-                    while ($isByeSlot[$idx]) {
-                        $idx = ($idx % $matchesInRound1) + 1;
-                    }
-                    $isByeSlot[$idx] = true;
-                }
-            } else if ($numBYEMatches >= $matchesInRound1) {
-                for ($s = 1; $s <= $matchesInRound1; $s++) {
-                    $isByeSlot[$s] = true;
+                while (count($ymdList) > 0 && count($byeTeamsPool) < $byeCount) {
+                    $byeTeamsPool[] = array_shift($ymdList);
                 }
             }
 
-            // Identify non-BYE match slots in Round 1
-            $nonByeSlots = [];
-            for ($s = 1; $s <= $matchesInRound1; $s++) {
-                if (!$isByeSlot[$s]) {
-                    $nonByeSlots[] = $s;
+            // Place BYEs evenly across unassigned slots
+            $byeSlots = [];
+            if (count($byeTeamsPool) > 0) {
+                $byeCount = count($byeTeamsPool);
+                $step = count($unassignedSlots) / $byeCount;
+                for ($i = 0; $i < $byeCount; $i++) {
+                    $targetPos = min(count($unassignedSlots) - 1, (int) floor($i * $step));
+                    $slotNum = $unassignedSlots[$targetPos];
+                    $matchSlots[$slotNum] = [
+                        'team1' => array_shift($byeTeamsPool),
+                        'team2' => null
+                    ];
+                    $byeSlots[] = $slotNum;
                 }
             }
 
-            // Initialize matchSlots structure
-            $matchSlots = [];
-            for ($s = 1; $s <= $matchesInRound1; $s++) {
-                if ($isByeSlot[$s]) {
-                    $t1 = count($byeTeamsPool) > 0 ? array_shift($byeTeamsPool) : null;
-                    $matchSlots[$s] = ['team1' => $t1, 'team2' => null];
-                } else {
-                    $matchSlots[$s] = ['team1' => null, 'team2' => null];
-                }
-            }
-
-            // --- OFFICIAL YOMUDA PAIRING LOGIC ---
-            // Rule 1: YMD vs YMD pairing in Round 1, grouped in clusters of 4 matches (8 YMD teams per cluster)
-            // Rule 2: SOLO vs SOLO pairing in Round 1
-            // Rule 3: TEAM vs TEAM (regular vs regular) pairing in Round 1
-            // Rule 4: If odd (ganjil), leftover team is paired with another category
-
-            // 1. Build YMD vs YMD pairs
-            $ymdPairs = [];
-            while (count($ymdList) >= 2) {
-                $ymdPairs[] = [array_shift($ymdList), array_shift($ymdList)];
-            }
-
-            // 2. Build SOLO vs SOLO pairs
+            // 4. Pair all remaining active teams (Solo vs Solo, Regular vs Regular, Mixed)
             $soloPairs = [];
             while (count($soloList) >= 2) {
                 $soloPairs[] = [array_shift($soloList), array_shift($soloList)];
             }
 
-            // 3. Build REGULAR vs REGULAR pairs
             $regularPairs = [];
             while (count($regularList) >= 2) {
                 $regularPairs[] = [array_shift($regularList), array_shift($regularList)];
             }
 
-            // 4. Pool odd remaining teams across categories
             $singleSpillover = array_merge($ymdList, $soloList, $regularList);
             shuffle($singleSpillover);
 
@@ -202,37 +219,24 @@ class BracketController extends Controller
                 $mixedPairs[] = [array_shift($singleSpillover), array_shift($singleSpillover)];
             }
 
-            // Group pairs: YMD served in clusters of 4 matches (8 YMD teams per cluster)
-            $allMatchPairs = [];
-
-            while (count($ymdPairs) > 0 || count($soloPairs) > 0 || count($regularPairs) > 0 || count($mixedPairs) > 0) {
-                // Add up to 4 YMD pairs (8 YMD teams = 4 bracket matches)
-                for ($k = 0; $k < 4 && count($ymdPairs) > 0; $k++) {
-                    $allMatchPairs[] = array_shift($ymdPairs);
-                }
-                // Add up to 4 SOLO pairs
-                for ($k = 0; $k < 4 && count($soloPairs) > 0; $k++) {
-                    $allMatchPairs[] = array_shift($soloPairs);
-                }
-                // Add up to 4 REGULAR pairs
-                for ($k = 0; $k < 4 && count($regularPairs) > 0; $k++) {
-                    $allMatchPairs[] = array_shift($regularPairs);
-                }
-                // Add mixed pairs if any
-                while (count($mixedPairs) > 0) {
-                    $allMatchPairs[] = array_shift($mixedPairs);
-                }
+            $remainingActivePairs = [];
+            while (count($soloPairs) > 0 || count($regularPairs) > 0 || count($mixedPairs) > 0) {
+                if (count($soloPairs) > 0) $remainingActivePairs[] = array_shift($soloPairs);
+                if (count($regularPairs) > 0) $remainingActivePairs[] = array_shift($regularPairs);
+                if (count($mixedPairs) > 0) $remainingActivePairs[] = array_shift($mixedPairs);
             }
 
-            // Fill non-BYE match slots
-            foreach ($nonByeSlots as $s) {
-                if (count($allMatchPairs) > 0) {
-                    $pair = array_shift($allMatchPairs);
-                    $matchSlots[$s]['team1'] = $pair[0] ?? null;
-                    $matchSlots[$s]['team2'] = $pair[1] ?? null;
-                } elseif (count($singleSpillover) > 0) {
-                    $matchSlots[$s]['team1'] = array_shift($singleSpillover);
-                    $matchSlots[$s]['team2'] = count($singleSpillover) > 0 ? array_shift($singleSpillover) : null;
+            // Fill the remaining active (non-BYE) slots in unassigned blocks
+            foreach ($unassignedSlots as $s) {
+                if (!in_array($s, $byeSlots)) {
+                    if (count($remainingActivePairs) > 0) {
+                        $pair = array_shift($remainingActivePairs);
+                        $matchSlots[$s] = ['team1' => $pair[0], 'team2' => $pair[1]];
+                    } elseif (count($singleSpillover) > 0) {
+                        $t1 = array_shift($singleSpillover);
+                        $t2 = count($singleSpillover) > 0 ? array_shift($singleSpillover) : null;
+                        $matchSlots[$s] = ['team1' => $t1, 'team2' => $t2];
+                    }
                 }
             }
 
@@ -308,6 +312,7 @@ class BracketController extends Controller
             }
 
             DB::commit();
+            self::clearBracketCache($season_id);
             return redirect()->back()->with('success', 'Bagan tanding berhasil di-generate sesuai aturan pengelompokan untuk ' . $teamCount . ' tim!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -358,6 +363,7 @@ class BracketController extends Controller
             $this->advanceWinner($match);
 
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => 'Pertandingan berhasil diperbarui!'
@@ -395,6 +401,7 @@ class BracketController extends Controller
         $season = Season::findOrFail($season_id);
         $season->is_bracket_visible = !$season->is_bracket_visible;
         $season->save();
+        self::clearBracketCache($season_id);
 
         return response()->json([
             'success' => true,
@@ -413,13 +420,17 @@ class BracketController extends Controller
         $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
         if (!$season_id) abort(404);
 
-        $season = Season::findOrFail($season_id);
+        $season = Cache::remember("season_public_{$season_id}", 10, function() use ($season_id) {
+            return Season::findOrFail($season_id);
+        });
 
-        $brackets = Bracket::where('season_id', $season_id)
-            ->with(['team1', 'team2', 'winner'])
-            ->orderBy('round_number')
-            ->orderBy('match_number')
-            ->get();
+        $brackets = Cache::remember("bracket_public_models_{$season_id}", 10, function() use ($season_id) {
+            return Bracket::where('season_id', $season_id)
+                ->with(['team1', 'team2', 'winner'])
+                ->orderBy('round_number')
+                ->orderBy('match_number')
+                ->get();
+        });
 
         if ($brackets->count() === 0 || !$season->is_bracket_visible) {
             return view('pages.bracket_empty', compact('season'));
@@ -563,6 +574,8 @@ class BracketController extends Controller
             ->where('round_number', $request->round_number)
             ->update(['match_time' => $request->match_time]);
 
+        self::clearBracketCache($season_id);
+
         return response()->json([
             'success' => true,
             'message' => 'Jadwal Babak ' . $request->round_number . ' berhasil diperbarui secara serentak!'
@@ -644,6 +657,7 @@ class BracketController extends Controller
             $this->advanceWinner($m2);
 
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => 'Posisi tim berhasil ditukar!'
@@ -697,6 +711,7 @@ class BracketController extends Controller
                 ]);
             }
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menambahkan ' . $request->count . ' slot YMD baru!'
@@ -766,6 +781,7 @@ class BracketController extends Controller
             }
 
             DB::commit();
+            self::clearBracketCache($season_id);
 
             return response()->json([
                 'success' => true,
@@ -791,8 +807,8 @@ class BracketController extends Controller
         try {
             $updatedCount = 0;
 
-            // Process Round 1 only (Advance to Round 2)
-            foreach ([1] as $targetRound) {
+            // Process Round 1 and Round 2 (Advance all the way into Round 3)
+            foreach ([1, 2] as $targetRound) {
                 $matches = Bracket::where('season_id', $season_id)
                     ->where('round_number', $targetRound)
                     ->with(['team1', 'team2'])
@@ -830,6 +846,7 @@ class BracketController extends Controller
             }
 
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil memenangkan slot YMD di Babak 1 & 2 hingga lolos ke Babak 3!'
@@ -844,34 +861,37 @@ class BracketController extends Controller
     }
 
     /**
-     * Mengembalikan data JSON bagan tanding untuk polling real-time
+     * Mengembalikan data JSON bagan tanding untuk polling real-time (Cached with low TTL for speed)
      */
     public function getBracketData($slug)
     {
         $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
         if (!$season_id) return response()->json(['success' => false, 'message' => 'Season not found'], 404);
 
-        $matches = Bracket::where('season_id', $season_id)
-            ->with(['team1', 'team2'])
-            ->get()
-            ->map(function($m) {
-                return [
-                    'id' => $m->id,
-                    'round_number' => $m->round_number,
-                    'match_number' => $m->match_number,
-                    'team1_id' => $m->team1_id,
-                    'team1_name' => $m->team1 ? $m->team1->name : null,
-                    'team1_wa' => $m->team1 ? $m->team1->wa_number : null,
-                    'team2_id' => $m->team2_id,
-                    'team2_name' => $m->team2 ? $m->team2->name : null,
-                    'team2_wa' => $m->team2 ? $m->team2->wa_number : null,
-                    'team1_score' => $m->team1_score,
-                    'team2_score' => $m->team2_score,
-                    'winner_id' => $m->winner_id,
-                    'status' => $m->status,
-                    'match_time' => $m->match_time
-                ];
-            });
+        $matches = Cache::remember("bracket_public_data_{$season_id}", 8, function() use ($season_id) {
+            return Bracket::where('season_id', $season_id)
+                ->with(['team1', 'team2'])
+                ->get()
+                ->map(function($m) {
+                    return [
+                        'id' => $m->id,
+                        'round_number' => $m->round_number,
+                        'match_number' => $m->match_number,
+                        'team1_id' => $m->team1_id,
+                        'team1_name' => $m->team1 ? $m->team1->name : null,
+                        'team1_wa' => $m->team1 ? $m->team1->wa_number : null,
+                        'team2_id' => $m->team2_id,
+                        'team2_name' => $m->team2 ? $m->team2->name : null,
+                        'team2_wa' => $m->team2 ? $m->team2->wa_number : null,
+                        'team1_score' => $m->team1_score,
+                        'team2_score' => $m->team2_score,
+                        'winner_id' => $m->winner_id,
+                        'status' => $m->status,
+                        'match_time' => $m->match_time
+                    ];
+                });
+        });
+
         return response()->json(['success' => true, 'matches' => $matches]);
     }
 
@@ -903,6 +923,7 @@ class BracketController extends Controller
             }
             
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menghapus ' . $count . ' slot placeholder YMD!'
@@ -974,6 +995,7 @@ class BracketController extends Controller
             }
 
             DB::commit();
+            self::clearBracketCache($season_id);
             return response()->json([
                 'success' => true,
                 'message' => $msg
@@ -1014,6 +1036,7 @@ class BracketController extends Controller
             $season->manual_juara3 = $request->manual_juara3 ? trim($request->manual_juara3) : null;
             $season->manual_juara4 = $request->manual_juara4 ? trim($request->manual_juara4) : null;
             $season->save();
+            self::clearBracketCache($season_id);
 
             return response()->json([
                 'success' => true,
@@ -1399,8 +1422,14 @@ class BracketController extends Controller
             $waClean = '0' . $waClean;
         }
 
+        $last9 = strlen($waClean) >= 9 ? substr($waClean, -9) : $waClean;
+
         $team = Team::where('season_id', $season_id)
-            ->where('wa_number', $waClean)
+            ->where(function($q) use ($waClean, $waRaw, $last9) {
+                $q->where('wa_number', $waClean)
+                  ->orWhere('wa_number', $waRaw)
+                  ->orWhere('wa_number', 'LIKE', "%{$last9}%");
+            })
             ->first();
 
         if (!$team) {
@@ -1649,6 +1678,7 @@ class BracketController extends Controller
                 ->update(['status' => 'REJECTED']);
 
             DB::commit();
+            self::clearBracketCache($match->season_id);
             return back()->with('success', 'Laporan skor disetujui! Bagan otomatis terupdate.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1664,6 +1694,7 @@ class BracketController extends Controller
         $report = \App\Models\MatchReport::findOrFail($id);
         $report->status = 'REJECTED';
         $report->save();
+        self::clearBracketCache($report->season_id);
 
         return back()->with('success', 'Laporan skor berhasil ditolak.');
     }
@@ -1694,6 +1725,7 @@ class BracketController extends Controller
             $report->save();
             
             DB::commit();
+            self::clearBracketCache($match->season_id);
             return back()->with('success', 'Verifikasi berhasil dibatalkan! Bagan dan status laporan ini telah dikembalikan ke PENDING.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1719,6 +1751,8 @@ class BracketController extends Controller
             }
             $report->delete();
         }
+
+        self::clearBracketCache($season_id);
 
         return back()->with('success', 'Semua laporan hasil tanding beserta berkas screenshot di server berhasil dibersihkan!');
     }

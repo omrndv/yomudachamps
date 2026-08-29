@@ -1596,6 +1596,19 @@
         let lastMessageId = 0;
         let chatPollingInterval = null;
 
+        function startChatPolling() {
+            if (!chatPollingInterval && isChatOpen && !document.hidden) {
+                chatPollingInterval = setInterval(fetchChatMessages, 4000);
+            }
+        }
+
+        function stopChatPolling() {
+            if (chatPollingInterval) {
+                clearInterval(chatPollingInterval);
+                chatPollingInterval = null;
+            }
+        }
+
         btnChatToggle.addEventListener('click', () => {
             isChatOpen = !isChatOpen;
             if (isChatOpen) {
@@ -1604,26 +1617,17 @@
                 chatUnreadCount.textContent = '0';
                 scrollChatToBottom();
                 fetchChatMessages();
-                // Start chat polling when open
-                if (!chatPollingInterval) {
-                    chatPollingInterval = setInterval(fetchChatMessages, 3000);
-                }
+                startChatPolling();
             } else {
                 chatBoxContainer.classList.remove('active');
-                if (chatPollingInterval) {
-                    clearInterval(chatPollingInterval);
-                    chatPollingInterval = null;
-                }
+                stopChatPolling();
             }
         });
 
         btnChatClose.addEventListener('click', () => {
             isChatOpen = false;
             chatBoxContainer.classList.remove('active');
-            if (chatPollingInterval) {
-                clearInterval(chatPollingInterval);
-                chatPollingInterval = null;
-            }
+            stopChatPolling();
         });
 
         function scrollChatToBottom() {
@@ -1668,10 +1672,15 @@
         }
 
         function fetchChatMessages() {
+            if (document.hidden && !isInitialLoad) return;
+
             fetch("{{ route('public.season.chat.messages', $slug) }}?session_token=" + sessionToken)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) return null;
+                    return r.json();
+                })
                 .then(res => {
-                    if (res.success && res.messages) {
+                    if (res && res.success && res.messages) {
                         let newMessagesFound = false;
                         let unread = 0;
                         let shouldPlaySound = false;
@@ -1704,7 +1713,7 @@
                         }
                     }
                 })
-                .catch(err => console.log("Chat fetch issue:", err));
+                .catch(err => console.debug("Chat fetch issue:", err));
         }
 
         function renderMessage(msg) {
@@ -1731,7 +1740,7 @@
             
             // Optimistic render
             const tempMsg = {
-                id: 99999999 + Math.random(),
+                id: 'temp-' + Date.now(),
                 message: text,
                 is_admin: false
             };
@@ -1749,14 +1758,19 @@
                     message: text
                 })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (r.status === 419 || r.status === 403) {
+                    alert("Sesi halaman Anda telah berakhir. Silakan muat ulang (refresh) halaman.");
+                    return null;
+                }
+                return r.json();
+            })
             .then(res => {
-                if (res.success) {
-                    // Update last message ID to avoid duplication
+                if (res && res.success) {
                     lastMessageId = Math.max(lastMessageId, res.chat.id);
                 }
             })
-            .catch(err => console.log("Chat send issue:", err));
+            .catch(err => console.debug("Chat send issue:", err));
         }
 
         btnChatSend.addEventListener('click', sendPublicMessage);
@@ -1808,7 +1822,13 @@
                             body: formData
                         });
                     })
-                    .then(r => r.json())
+                    .then(r => {
+                        if (r.status === 419 || r.status === 403) {
+                            alert("Sesi halaman Anda telah berakhir. Silakan muat ulang (refresh) halaman.");
+                            return null;
+                        }
+                        return r.json();
+                    })
                     .then(res => {
                         // Clean up local blob memory
                         URL.revokeObjectURL(localImgUrl);
@@ -1817,14 +1837,16 @@
                         const tempEl = document.getElementById(tempId);
                         if (tempEl) tempEl.remove();
                         
-                        if (res.success) {
-                            fetchChatMessages();
-                        } else {
-                            alert("Gagal mengunggah: " + res.message);
+                        if (res) {
+                            if (res.success) {
+                                fetchChatMessages();
+                            } else {
+                                alert("Gagal mengunggah: " + res.message);
+                            }
                         }
                     })
                     .catch(err => {
-                        console.log("Upload err:", err);
+                        console.debug("Upload err:", err);
                         URL.revokeObjectURL(localImgUrl);
                         const tempEl = document.getElementById(tempId);
                         if (tempEl) tempEl.remove();
@@ -1987,10 +2009,18 @@
                     },
                     body: JSON.stringify({ wa_number: wa })
                 })
-                .then(r => r.json())
+                .then(r => {
+                    if (r.status === 419 || r.status === 403) {
+                        alert("Sesi Anda telah berakhir. Silakan muat ulang (refresh) halaman.");
+                        return null;
+                    }
+                    return r.json();
+                })
                 .then(res => {
                     btnVerifyReportWa.disabled = false;
                     btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
+
+                    if (!res) return;
 
                     if (res.success && res.match) {
                         const match = res.match;
@@ -2004,14 +2034,14 @@
                         reportStepVerification.style.display = 'none';
                         reportStepSubmit.style.display = 'block';
                     } else {
-                        alert(res.message);
+                        alert(res.message || 'Data pertandingan tidak ditemukan.');
                     }
                 })
                 .catch(err => {
                     btnVerifyReportWa.disabled = false;
                     btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
-                    console.error('Error finding match:', err);
-                    alert('Terjadi kesalahan saat mencari pertandingan.');
+                    console.debug('Error finding match:', err);
+                    alert('Terjadi kendala koneksi ke server. Silakan coba lagi beberapa saat.');
                 });
             });
         }
@@ -2103,10 +2133,18 @@
                         body: formData
                     });
                 })
-                .then(r => r.json())
+                .then(r => {
+                    if (r.status === 419 || r.status === 403) {
+                        alert("Sesi Anda telah berakhir. Silakan muat ulang (refresh) halaman sebelum mengirim laporan.");
+                        return null;
+                    }
+                    return r.json();
+                })
                 .then(res => {
                     btnSubmitReportScore.disabled = false;
                     btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
+
+                    if (!res) return;
 
                     if (res.success) {
                         alert(res.message);
@@ -2120,14 +2158,14 @@
                         reportStepVerification.style.display = 'block';
                         reportStepSubmit.style.display = 'none';
                     } else {
-                        alert(res.message);
+                        alert(res.message || 'Gagal mengirim laporan.');
                     }
                 })
                 .catch(err => {
                     btnSubmitReportScore.disabled = false;
                     btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
-                    console.error('Error submitting report:', err);
-                    alert('Terjadi kesalahan saat mengirimkan laporan.');
+                    console.debug('Error submitting report:', err);
+                    alert('Terjadi kendala koneksi saat mengirimkan laporan.');
                 });
             });
         }
@@ -2143,13 +2181,8 @@
             });
         }
 
-        // Check messages initially
+        // Check messages only on initial page load (polling occurs only when chat box is active)
         fetchChatMessages();
-        setInterval(() => {
-            if (!isChatOpen) {
-                fetchChatMessages();
-            }
-        }, 10000);
     });
     </script>
 
@@ -2292,23 +2325,28 @@
 
     // ----------------------------------------------------
     // LIVE Real-Time Auto-Sync (Updates scores & matches without refresh)
-    // Optimized with Page Visibility API to save battery & bandwidth
+    // Optimized with Page Visibility API and Exponential Backoff to save server resources
     // ----------------------------------------------------
     (function initPublicLiveSync() {
         const dataUrl = "{{ route('public.season.bracket.data', \App\Http\Controllers\BracketController::encodeId($season->id)) }}";
 
         let isBackoffActive = false;
+        let errorCount = 0;
 
         function fetchLiveUpdates() {
             if (document.hidden || isBackoffActive) return;
 
             fetch(dataUrl)
                 .then(r => {
-                    if (r.status === 503 || r.status === 429) {
+                    if (r.status === 503 || r.status === 500 || r.status === 429) {
+                        errorCount++;
                         isBackoffActive = true;
-                        setTimeout(() => { isBackoffActive = false; }, 30000); // Pause 30s on server busy
+                        const backoffDelay = Math.min(60000, 15000 * errorCount);
+                        setTimeout(() => { isBackoffActive = false; }, backoffDelay);
                         return null;
                     }
+                    if (!r.ok) return null;
+                    errorCount = 0;
                     return r.json();
                 })
                 .then(res => {
@@ -2423,10 +2461,17 @@
                         }
                     }
                 })
-                .catch(err => console.debug('Live sync poll error:', err));
+                .catch(err => {
+                    errorCount++;
+                    if (errorCount >= 3) {
+                        isBackoffActive = true;
+                        setTimeout(() => { isBackoffActive = false; }, 30000);
+                    }
+                    console.debug('Live sync poll issue:', err);
+                });
         }
 
-        // Start polling every 12 seconds (optimized for Hostinger)
+        // Start polling every 12 seconds
         setInterval(fetchLiveUpdates, 12000);
 
         // Trigger update when returning to tab
