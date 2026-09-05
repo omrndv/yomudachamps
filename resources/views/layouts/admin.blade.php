@@ -600,8 +600,16 @@
             let lastReportId = localStorage.getItem('last_report_id');
             let lastChatId = localStorage.getItem('last_chat_id');
 
+            let isCheckingPayments = false;
+
             function checkForNewPayments() {
-                fetch("{{ route('admin.payments.check-new') }}")
+                if (isCheckingPayments) return; // Cegah request bertumpuk jika request sebelumnya masih berjalan
+                isCheckingPayments = true;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000); // Batasi timeout 6 detik
+
+                fetch("{{ route('admin.payments.check-new') }}", { signal: controller.signal })
                     .then(r => r.json())
                     .then(res => {
                         if (res.success) {
@@ -681,11 +689,22 @@
                             }
                         }
                     })
-                    .catch(err => console.log("New activities check issue:", err));
+                    .catch(err => {
+                        if (err.name !== 'AbortError') {
+                            console.log("New activities check issue:", err);
+                        }
+                    })
+                    .finally(() => {
+                        clearTimeout(timeoutId);
+                        isCheckingPayments = false;
+                    });
             }
 
-            setInterval(checkForNewPayments, 10000);
-            checkForNewPayments();
+            // Delay background checking agar tidak menahan indikator loading awal browser
+            window.addEventListener('load', function() {
+                setTimeout(checkForNewPayments, 2000);
+                setInterval(checkForNewPayments, 15000);
+            });
         });
     </script>
     <script>

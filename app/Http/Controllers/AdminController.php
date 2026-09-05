@@ -176,6 +176,11 @@ class AdminController extends Controller
 
     public function checkNewPayments()
     {
+        // Segera simpan dan lepas session lock PHP agar tidak memblokir request lain dari browser yang sama
+        if (session()->isStarted()) {
+            session()->save();
+        }
+
         $latestPaid = Team::where('status', 'PAID')
             ->where('updated_at', '>=', now()->subMinutes(2))
             ->orderBy('updated_at', 'desc')
@@ -276,15 +281,19 @@ class AdminController extends Controller
         $current_season = Season::findOrFail($season_id);
         $teams = Team::where('season_id', $season_id)->get();
         
-        $filtered_teams = $teams->map(function ($team) use ($season_id) {
-            $history = \App\Models\Team::where('wa_number', $team->wa_number)
-                ->where('season_id', '!=', $season_id) // Kecuali season sekarang
-                ->where('status', 'PAID') // Hanya yang sudah PAID/bayar
-                ->with('season') // Asumsi ada relasi 'season' di Model Team
-                ->get();
-    
-            $team->history = $history;
-            $team->is_loyal = $history->count() > 0;
+        // Optimasi: Ambil semua riwayat WA secara borongan (1 query) daripada N query
+        $wa_numbers = $teams->pluck('wa_number')->filter()->unique();
+        $histories = Team::whereIn('wa_number', $wa_numbers)
+            ->where('season_id', '!=', $season_id)
+            ->where('status', 'PAID')
+            ->with('season:id,name')
+            ->get()
+            ->groupBy('wa_number');
+
+        $filtered_teams = $teams->map(function ($team) use ($histories) {
+            $teamHistory = $histories->get($team->wa_number, collect());
+            $team->history = $teamHistory;
+            $team->is_loyal = $teamHistory->isNotEmpty();
             return $team;
         });
     

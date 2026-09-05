@@ -7,7 +7,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (e) => {
-  // Hanya bypass network
-  e.respondWith(fetch(e.request));
+// Fetch event listener kosong agar memenuhi syarat instalasi PWA tanpa mencegat atau memperlambat network
+self.addEventListener('fetch', () => {
+  // Biarkan browser menghandle request secara native tanpa proxy overhead
 });
