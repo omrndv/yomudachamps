@@ -709,8 +709,11 @@
     </script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/pwa-sw.js')
-                .then(reg => console.log('PWA Service Worker Registered'))
+            navigator.serviceWorker.register('/pwa-sw.js?v=2')
+                .then(reg => {
+                    reg.update();
+                    console.log('PWA Service Worker Registered (v2)');
+                })
                 .catch(err => console.log('PWA Service Worker Failed', err));
         }
     </script>
