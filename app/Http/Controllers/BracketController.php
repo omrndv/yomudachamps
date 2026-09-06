@@ -6,6 +6,7 @@ use App\Models\Bracket;
 use App\Models\Season;
 use App\Models\Team;
 use App\Models\SeasonChat;
+use App\Models\BracketSnapshot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -61,6 +62,7 @@ class BracketController extends Controller
         $rounds = [];
         if ($brackets->count() > 0) {
             $rounds = $brackets->groupBy('round_number');
+            self::ensureBaselineSnapshot($season_id);
         }
 
         return view('admin.bracket', compact('season', 'teams', 'brackets', 'rounds'));
@@ -97,6 +99,9 @@ class BracketController extends Controller
 
         DB::beginTransaction();
         try {
+            // Snapshot state sebelum generate ulang
+            self::recordBracketSnapshot($season_id, 'Sebelum Generate Ulang');
+
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
@@ -313,6 +318,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Generate Bagan (' . $teamCount . ' Tim)');
             return redirect()->back()->with('success', 'Bagan tanding berhasil di-generate sesuai aturan pengelompokan untuk ' . $teamCount . ' tim!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -364,6 +370,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Update Match R' . $match->round_number . ' M' . $match->match_number);
             return response()->json([
                 'success' => true,
                 'message' => 'Pertandingan berhasil diperbarui!'
@@ -575,6 +582,7 @@ class BracketController extends Controller
             ->update(['match_time' => $request->match_time]);
 
         self::clearBracketCache($season_id);
+        self::recordBracketSnapshot($season_id, 'Ubah Jam Babak ' . $request->round_number);
 
         return response()->json([
             'success' => true,
@@ -658,6 +666,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Tukar Posisi Tim');
             return response()->json([
                 'success' => true,
                 'message' => 'Posisi tim berhasil ditukar!'
@@ -712,6 +721,7 @@ class BracketController extends Controller
             }
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Tambah ' . $request->count . ' Slot YMD');
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menambahkan ' . $request->count . ' slot YMD baru!'
@@ -782,6 +792,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Ganti Slot ' . $oldName . ' -> ' . $targetTeam->name);
 
             return response()->json([
                 'success' => true,
@@ -847,6 +858,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Menangkan Slot YMD Babak 1 & 2');
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil memenangkan slot YMD di Babak 1 & 2 hingga lolos ke Babak 3!'
@@ -901,6 +913,7 @@ class BracketController extends Controller
     public function deleteAllYmdSlots($season_id)
     {
         try {
+            self::ensureBaselineSnapshot($season_id);
             DB::beginTransaction();
             
             $ymdTeams = Team::where('season_id', $season_id)
@@ -924,6 +937,7 @@ class BracketController extends Controller
             
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Hapus Semua Slot YMD');
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menghapus ' . $count . ' slot placeholder YMD!'
@@ -996,6 +1010,7 @@ class BracketController extends Controller
 
             DB::commit();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, $request->active ? 'Aktifkan Match Juara 3' : 'Nonaktifkan Match Juara 3');
             return response()->json([
                 'success' => true,
                 'message' => $msg
@@ -1037,6 +1052,7 @@ class BracketController extends Controller
             $season->manual_juara4 = $request->manual_juara4 ? trim($request->manual_juara4) : null;
             $season->save();
             self::clearBracketCache($season_id);
+            self::recordBracketSnapshot($season_id, 'Update Juara Manual');
 
             return response()->json([
                 'success' => true,
@@ -2000,5 +2016,318 @@ class BracketController extends Controller
                 }
             }
         }
+    }
+
+    // =========================================================================
+    // SNAPSHOT TIME MACHINE (UNDO & REDO)
+    // =========================================================================
+
+    /**
+     * Ensure there is a baseline snapshot if brackets exist
+     */
+    public static function ensureBaselineSnapshot($seasonId)
+    {
+        try {
+            $hasSnapshot = BracketSnapshot::where('season_id', $seasonId)->exists();
+            if (!$hasSnapshot) {
+                $bracketCount = Bracket::where('season_id', $seasonId)->count();
+                if ($bracketCount > 0) {
+                    self::createSnapshotRecord($seasonId, 'Kondisi Awal');
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to ensure baseline snapshot: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Record a snapshot of the current state of bracket and teams
+     */
+    public static function recordBracketSnapshot($seasonId, $actionName = 'Update Bagan')
+    {
+        try {
+            self::ensureBaselineSnapshot($seasonId);
+            return self::createSnapshotRecord($seasonId, $actionName);
+        } catch (\Exception $e) {
+            \Log::error("Failed to record bracket snapshot: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Internal helper to persist snapshot record
+     */
+    protected static function createSnapshotRecord($seasonId, $actionName)
+    {
+        $brackets = Bracket::where('season_id', $seasonId)->get()->toArray();
+        $teams = Team::where('season_id', $seasonId)->get()->toArray();
+        $season = Season::find($seasonId);
+
+        $seasonMeta = $season ? [
+            'manual_juara1' => $season->manual_juara1,
+            'manual_juara2' => $season->manual_juara2,
+            'manual_juara3' => $season->manual_juara3,
+            'manual_juara4' => $season->manual_juara4,
+            'is_bracket_visible' => (bool) $season->is_bracket_visible,
+            'is_bronze_match' => (bool) $season->is_bronze_match,
+        ] : [];
+
+        $current = BracketSnapshot::where('season_id', $seasonId)
+            ->where('is_current', true)
+            ->first();
+
+        $currentStep = $current ? $current->step_number : 0;
+
+        // Truncate redo history forward of current step
+        if ($current) {
+            BracketSnapshot::where('season_id', $seasonId)
+                ->where('step_number', '>', $currentStep)
+                ->delete();
+        }
+
+        // De-flag previous current
+        BracketSnapshot::where('season_id', $seasonId)->update(['is_current' => false]);
+
+        $newSnapshot = BracketSnapshot::create([
+            'season_id' => $seasonId,
+            'step_number' => $currentStep + 1,
+            'is_current' => true,
+            'action_name' => $actionName,
+            'bracket_data' => $brackets,
+            'team_data' => $teams,
+            'season_meta' => $seasonMeta,
+        ]);
+
+        // Keep maximum 20 snapshots per season
+        $snapshots = BracketSnapshot::where('season_id', $seasonId)
+            ->orderBy('step_number', 'desc')
+            ->get();
+
+        if ($snapshots->count() > 20) {
+            $toDelete = $snapshots->slice(20)->pluck('id');
+            BracketSnapshot::whereIn('id', $toDelete)->delete();
+        }
+
+        return $newSnapshot;
+    }
+
+    /**
+     * Restore bracket, team, and season state from a snapshot
+     */
+    public static function restoreBracketSnapshot(BracketSnapshot $snapshot)
+    {
+        $seasonId = $snapshot->season_id;
+
+        DB::beginTransaction();
+        try {
+            // 1. Restore Teams
+            $targetTeams = $snapshot->team_data ?? [];
+            $targetTeamIds = collect($targetTeams)->pluck('id')->filter()->all();
+
+            Team::where('season_id', $seasonId)
+                ->whereNotIn('id', $targetTeamIds)
+                ->delete();
+
+            foreach ($targetTeams as $tData) {
+                $tId = $tData['id'] ?? null;
+                unset($tData['created_at'], $tData['updated_at']);
+                if ($tId) {
+                    Team::updateOrCreate(['id' => $tId], $tData);
+                } else {
+                    Team::create($tData);
+                }
+            }
+
+            // 2. Restore Brackets
+            $targetBrackets = $snapshot->bracket_data ?? [];
+            $targetBracketIds = collect($targetBrackets)->pluck('id')->filter()->all();
+
+            Bracket::where('season_id', $seasonId)
+                ->whereNotIn('id', $targetBracketIds)
+                ->delete();
+
+            foreach ($targetBrackets as $bData) {
+                $bId = $bData['id'] ?? null;
+                unset($bData['created_at'], $bData['updated_at']);
+                if ($bId) {
+                    Bracket::updateOrCreate(['id' => $bId], $bData);
+                } else {
+                    Bracket::create($bData);
+                }
+            }
+
+            // 3. Restore Season Meta
+            $meta = $snapshot->season_meta ?? [];
+            if (!empty($meta)) {
+                Season::where('id', $seasonId)->update([
+                    'manual_juara1' => $meta['manual_juara1'] ?? null,
+                    'manual_juara2' => $meta['manual_juara2'] ?? null,
+                    'manual_juara3' => $meta['manual_juara3'] ?? null,
+                    'manual_juara4' => $meta['manual_juara4'] ?? null,
+                    'is_bracket_visible' => $meta['is_bracket_visible'] ?? true,
+                    'is_bronze_match' => $meta['is_bronze_match'] ?? false,
+                ]);
+            }
+
+            // 4. Clear Cache
+            self::clearBracketCache($seasonId);
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("Failed to restore snapshot: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Undo to previous bracket snapshot
+     */
+    public function undoBracket($season_id)
+    {
+        $current = BracketSnapshot::where('season_id', $season_id)
+            ->where('is_current', true)
+            ->first();
+
+        if (!$current) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada riwayat untuk di-undo.'
+            ], 400);
+        }
+
+        $prev = BracketSnapshot::where('season_id', $season_id)
+            ->where('step_number', '<', $current->step_number)
+            ->orderBy('step_number', 'desc')
+            ->first();
+
+        if (!$prev) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sudah berada di kondisi paling awal.'
+            ], 400);
+        }
+
+        $restored = self::restoreBracketSnapshot($prev);
+        if (!$restored) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memulihkan kondisi bagan.'
+            ], 500);
+        }
+
+        // Move pointer
+        $current->update(['is_current' => false]);
+        $prev->update(['is_current' => true]);
+
+        $status = $this->calculateHistoryStatus($season_id, $prev);
+
+        return response()->json(array_merge([
+            'success' => true,
+            'message' => 'Berhasil membatalkan: ' . $current->action_name,
+            'undone_action' => $current->action_name,
+        ], $status));
+    }
+
+    /**
+     * Redo to next bracket snapshot
+     */
+    public function redoBracket($season_id)
+    {
+        $current = BracketSnapshot::where('season_id', $season_id)
+            ->where('is_current', true)
+            ->first();
+
+        if (!$current) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada riwayat untuk di-redo.'
+            ], 400);
+        }
+
+        $next = BracketSnapshot::where('season_id', $season_id)
+            ->where('step_number', '>', $current->step_number)
+            ->orderBy('step_number', 'asc')
+            ->first();
+
+        if (!$next) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sudah berada di langkah paling akhir.'
+            ], 400);
+        }
+
+        $restored = self::restoreBracketSnapshot($next);
+        if (!$restored) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menerapkan ulang kondisi bagan.'
+            ], 500);
+        }
+
+        // Move pointer
+        $current->update(['is_current' => false]);
+        $next->update(['is_current' => true]);
+
+        $status = $this->calculateHistoryStatus($season_id, $next);
+
+        return response()->json(array_merge([
+            'success' => true,
+            'message' => 'Berhasil menerapkan ulang: ' . $next->action_name,
+            'redone_action' => $next->action_name,
+        ], $status));
+    }
+
+    /**
+     * Get Undo & Redo status for toolbar buttons
+     */
+    public function getBracketHistoryStatus($season_id)
+    {
+        $current = BracketSnapshot::where('season_id', $season_id)
+            ->where('is_current', true)
+            ->first();
+
+        $status = $this->calculateHistoryStatus($season_id, $current);
+
+        return response()->json(array_merge(['success' => true], $status));
+    }
+
+    /**
+     * Helper to compute can_undo / can_redo
+     */
+    protected function calculateHistoryStatus($seasonId, $current = null)
+    {
+        if (!$current) {
+            $current = BracketSnapshot::where('season_id', $seasonId)
+                ->where('is_current', true)
+                ->first();
+        }
+
+        if (!$current) {
+            return [
+                'can_undo' => false,
+                'undo_label' => 'Tidak ada riwayat',
+                'can_redo' => false,
+                'redo_label' => 'Tidak ada riwayat',
+            ];
+        }
+
+        $prev = BracketSnapshot::where('season_id', $seasonId)
+            ->where('step_number', '<', $current->step_number)
+            ->orderBy('step_number', 'desc')
+            ->first();
+
+        $next = BracketSnapshot::where('season_id', $seasonId)
+            ->where('step_number', '>', $current->step_number)
+            ->orderBy('step_number', 'asc')
+            ->first();
+
+        return [
+            'can_undo' => !is_null($prev),
+            'undo_label' => $current ? 'Kembalikan: ' . $current->action_name : 'Tidak ada riwayat',
+            'can_redo' => !is_null($next),
+            'redo_label' => $next ? 'Terapkan Ulang: ' . $next->action_name : 'Tidak ada riwayat',
+        ];
     }
 }

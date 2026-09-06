@@ -175,6 +175,9 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/bracket/toggle-bronze-match', [\App\Http\Controllers\BracketController::class, 'toggleBronzeMatch'])->name('admin.season.bracket.toggle-bronze-match');
             Route::post('/dashboard/{season_id}/bracket/toggle-visibility', [\App\Http\Controllers\BracketController::class, 'toggleBracketVisibility'])->name('admin.season.bracket.toggle-visibility');
             Route::post('/dashboard/{season_id}/bracket/update-manual-winners', [\App\Http\Controllers\BracketController::class, 'updateManualWinners'])->name('admin.season.bracket.update-manual-winners');
+            Route::post('/dashboard/{season_id}/bracket/undo', [\App\Http\Controllers\BracketController::class, 'undoBracket'])->name('admin.season.bracket.undo');
+            Route::post('/dashboard/{season_id}/bracket/redo', [\App\Http\Controllers\BracketController::class, 'redoBracket'])->name('admin.season.bracket.redo');
+            Route::get('/dashboard/{season_id}/bracket/history-status', [\App\Http\Controllers\BracketController::class, 'getBracketHistoryStatus'])->name('admin.season.bracket.history-status');
 
             // Match Reports Admin routes
             Route::get('/dashboard/{season_id}/match-reports', [\App\Http\Controllers\BracketController::class, 'adminMatchReports'])->name('admin.season.match-reports');

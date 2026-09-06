@@ -66,6 +66,16 @@
                     </div>
                 </div>
                 <div class="d-flex flex-wrap gap-2 justify-content-md-start align-items-center">
+                    {{-- Undo / Redo History Controls --}}
+                    <div class="btn-group shadow-sm rounded-pill" role="group" aria-label="Riwayat Undo Redo Bagan">
+                        <button type="button" class="btn btn-outline-dark btn-sm px-3 fw-bold rounded-start-pill opacity-50" id="btnBracketUndo" onclick="triggerBracketUndo()" disabled title="Tidak ada aksi untuk di-undo">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Undo
+                        </button>
+                        <button type="button" class="btn btn-outline-dark btn-sm px-3 fw-bold rounded-end-pill opacity-50" id="btnBracketRedo" onclick="triggerBracketRedo()" disabled title="Tidak ada aksi untuk di-redo">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Redo
+                        </button>
+                    </div>
+
                     <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
                     </button>

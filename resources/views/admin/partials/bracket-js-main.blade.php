@@ -33,6 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.removeItem('admin_bracket_flash_msg');
     }
 
+    // Check Undo/Redo history stack state
+    if (typeof checkBracketHistoryStatus === 'function') {
+        checkBracketHistoryStatus();
+    }
+
     // Helper function to save scroll state and reload page
     window.saveScrollAndReload = function() {
         if (container) {
@@ -1935,4 +1940,143 @@ document.getElementById('modalAdminLiveChat').addEventListener('hide.bs.modal', 
 // Initialize polling for thread badge counts (global badge)
 setInterval(fetchAdminChatThreads, 15000);
 fetchAdminChatThreads();
+
+// =========================================================================
+// Undo / Redo Bracket State Time-Machine
+// =========================================================================
+function updateBracketHistoryButtons(status) {
+    const btnUndo = document.getElementById('btnBracketUndo');
+    const btnRedo = document.getElementById('btnBracketRedo');
+    if (!btnUndo || !btnRedo) return;
+
+    if (status && status.can_undo) {
+        btnUndo.removeAttribute('disabled');
+        btnUndo.classList.remove('opacity-50');
+        btnUndo.setAttribute('title', 'Undo: ' + (status.undo_action || 'Aksi Sebelumnya'));
+    } else {
+        btnUndo.setAttribute('disabled', 'disabled');
+        btnUndo.classList.add('opacity-50');
+        btnUndo.setAttribute('title', 'Tidak ada riwayat undo');
+    }
+
+    if (status && status.can_redo) {
+        btnRedo.removeAttribute('disabled');
+        btnRedo.classList.remove('opacity-50');
+        btnRedo.setAttribute('title', 'Redo: ' + (status.redo_action || 'Aksi Berikutnya'));
+    } else {
+        btnRedo.setAttribute('disabled', 'disabled');
+        btnRedo.classList.add('opacity-50');
+        btnRedo.setAttribute('title', 'Tidak ada riwayat redo');
+    }
+
+    // Reinitialize tooltips if bootstrap is available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        [btnUndo, btnRedo].forEach(el => {
+            const inst = bootstrap.Tooltip.getInstance(el);
+            if (inst) inst.dispose();
+            new bootstrap.Tooltip(el);
+        });
+    }
+}
+
+function checkBracketHistoryStatus() {
+    fetch("{{ route('admin.season.bracket.history-status', $season->id) }}")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateBracketHistoryButtons(data);
+            }
+        })
+        .catch(err => console.error("Gagal memeriksa status history bracket:", err));
+}
+
+function triggerBracketUndo() {
+    const btnUndo = document.getElementById('btnBracketUndo');
+    if (!btnUndo || btnUndo.hasAttribute('disabled')) return;
+
+    btnUndo.setAttribute('disabled', 'disabled');
+    const originalHtml = btnUndo.innerHTML;
+    btnUndo.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Undo...';
+
+    fetch("{{ route('admin.season.bracket.undo', $season->id) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            sessionStorage.setItem('admin_bracket_flash_msg', 'Undo Berhasil: ' + (res.action_restored || 'Kembali ke status sebelumnya'));
+            if (typeof window.saveScrollAndReload === 'function') {
+                window.saveScrollAndReload();
+            } else {
+                window.location.reload();
+            }
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Bisa Undo',
+                text: res.message || 'Tidak ada aksi sebelumnya untuk di-undo.'
+            });
+            btnUndo.innerHTML = originalHtml;
+            checkBracketHistoryStatus();
+        }
+    })
+    .catch(err => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Gagal melakukan undo: ' + err.message
+        });
+        btnUndo.innerHTML = originalHtml;
+        checkBracketHistoryStatus();
+    });
+}
+
+function triggerBracketRedo() {
+    const btnRedo = document.getElementById('btnBracketRedo');
+    if (!btnRedo || btnRedo.hasAttribute('disabled')) return;
+
+    btnRedo.setAttribute('disabled', 'disabled');
+    const originalHtml = btnRedo.innerHTML;
+    btnRedo.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Redo...';
+
+    fetch("{{ route('admin.season.bracket.redo', $season->id) }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            sessionStorage.setItem('admin_bracket_flash_msg', 'Redo Berhasil: ' + (res.action_restored || 'Menerapkan aksi kembali'));
+            if (typeof window.saveScrollAndReload === 'function') {
+                window.saveScrollAndReload();
+            } else {
+                window.location.reload();
+            }
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Bisa Redo',
+                text: res.message || 'Tidak ada aksi berikutnya untuk di-redo.'
+            });
+            btnRedo.innerHTML = originalHtml;
+            checkBracketHistoryStatus();
+        }
+    })
+    .catch(err => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Gagal melakukan redo: ' + err.message
+        });
+        btnRedo.innerHTML = originalHtml;
+        checkBracketHistoryStatus();
+    });
+}
 </script>
