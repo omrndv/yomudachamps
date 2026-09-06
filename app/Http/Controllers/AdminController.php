@@ -33,14 +33,20 @@ class AdminController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
+        $remember = $request->boolean('remember');
+
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password], $remember)) {
             $user = Auth::user();
             
+            if ($remember) {
+                config(['session.lifetime' => 720]);
+            }
+
             if ($user->role === 'admin') {
                 session()->flash('welcome_alert', 'Selamat datang, ' . $user->name);
             }
 
-            AdminActivity::log('Login admin berhasil');
+            AdminActivity::log('Login admin berhasil' . ($remember ? ' (Ingat Saya aktif 12 Jam)' : ''));
             return redirect()->route('admin.dashboard.home');
         }
 

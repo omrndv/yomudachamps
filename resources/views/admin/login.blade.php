@@ -103,9 +103,17 @@
                 <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Username</label>
                 <input type="text" name="username" class="form-control shadow-none" required autocomplete="username">
             </div>
-            <div class="mb-4">
+            <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Password</label>
                 <input type="password" name="password" class="form-control shadow-none" required autocomplete="current-password">
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" value="1" style="cursor: pointer;" checked>
+                    <label class="form-check-label small text-secondary fw-semibold user-select-none" for="rememberMe" style="cursor: pointer; font-size: 0.8rem;">
+                        Ingat Saya (12 Jam)
+                    </label>
+                </div>
             </div>
             <button type="submit" class="btn btn-login w-100 shadow-sm">MASUK SEKARANG</button>
         </form>
