@@ -38,6 +38,16 @@ class AdminController extends Controller
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password], $remember)) {
             $user = Auth::user();
             
+            // Cek jika akun sedang dibekukan
+            if (isset($user->is_active) && !$user->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->with('error', 'Akun Anda sedang dinonaktifkan / dibekukan sementara oleh Superadmin.');
+            }
+
+            session(['login_time' => now()]);
+
             if ($remember) {
                 config(['session.lifetime' => 720]);
             }
@@ -1455,7 +1465,10 @@ class AdminController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $admins = User::where('role', 'admin')->orderBy('name', 'asc')->get();
+        $admins = User::where('role', 'admin')
+            ->with(['latestActivity'])
+            ->orderBy('name', 'asc')
+            ->get();
         return view('admin.manage_admins', compact('admins'));
     }
 
@@ -1584,6 +1597,65 @@ class AdminController extends Controller
             'success' => true, 
             'permissions' => $currentPermissions,
             'message' => 'Izin berhasil diperbarui'
+        ]);
+    }
+
+    public function toggleAdminStatus($id)
+    {
+        if (!Auth::user()->hasPermission('manage')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        if (Auth::id() == $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak dapat membekukan akun Anda sendiri yang sedang login.'
+            ], 400);
+        }
+
+        $admin = User::findOrFail($id);
+        $admin->is_active = !$admin->is_active;
+
+        if (!$admin->is_active) {
+            $admin->force_logout_at = now();
+            $admin->remember_token = \Illuminate\Support\Str::random(60);
+        }
+
+        $admin->save();
+
+        $action = $admin->is_active ? 'diaktifkan kembali' : 'dibekukan sementara';
+        AdminActivity::log('Mengubah status akun ' . $admin->username . ' menjadi: ' . $action);
+
+        return response()->json([
+            'success' => true,
+            'is_active' => (bool) $admin->is_active,
+            'message' => 'Akun ' . $admin->name . ' berhasil ' . $action . '!'
+        ]);
+    }
+
+    public function forceLogoutAdmin($id)
+    {
+        if (!Auth::user()->hasPermission('manage')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        if (Auth::id() == $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak dapat memutus sesi akun Anda sendiri dari sini. Silakan gunakan tombol Logout.'
+            ], 400);
+        }
+
+        $admin = User::findOrFail($id);
+        $admin->force_logout_at = now();
+        $admin->remember_token = \Illuminate\Support\Str::random(60);
+        $admin->save();
+
+        AdminActivity::log('Memutus sesi (Force Logout) akun admin: ' . $admin->username);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sesi login ' . $admin->name . ' berhasil diputus seketika di semua perangkat!'
         ]);
     }
 

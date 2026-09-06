@@ -162,11 +162,23 @@
     @endif
 
     {{-- Stats Summary Bar --}}
-    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    @php
+        $onlineAdminsCount = $admins->filter(fn($a) => method_exists($a, 'isOnline') ? $a->isOnline() : false)->count();
+        $frozenAdminsCount = $admins->filter(fn($a) => isset($a->is_active) && !$a->is_active)->count();
+    @endphp
+    <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
         <div class="stat-pill">
             <i class="bi bi-people-fill"></i> {{ count($admins) }} Total Admin
         </div>
         <div class="stat-pill" style="background: #f0fdf4; color: #166534;">
+            <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i> {{ $onlineAdminsCount }} Online Sekarang
+        </div>
+        @if($frozenAdminsCount > 0)
+        <div class="stat-pill" style="background: #fef2f2; color: #b91c1c;">
+            <i class="bi bi-snow"></i> {{ $frozenAdminsCount }} Dibekukan
+        </div>
+        @endif
+        <div class="stat-pill" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;">
             <i class="bi bi-shield-check"></i> 15 Modul Izin Tersedia
         </div>
     </div>
@@ -181,37 +193,91 @@
                 }
                 $activeCount = count($userPerms);
                 $permPercent = round(($activeCount / 15) * 100);
+                $isOnline = method_exists($admin, 'isOnline') ? $admin->isOnline() : false;
+                $isActive = isset($admin->is_active) ? (bool)$admin->is_active : true;
+                $isCurrentUser = ($admin->id === Auth::id());
             @endphp
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="admin-card h-100">
+                <div class="admin-card h-100 {{ !$isActive ? 'border-danger-subtle bg-light-subtle' : '' }}">
                     <div class="admin-card-body p-4">
                         {{-- Top row: Avatar + Info + Actions --}}
                         <div class="d-flex align-items-start justify-content-between mb-3">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle">
-                                    {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                <div class="position-relative">
+                                    <div class="avatar-circle {{ !$isActive ? 'opacity-50' : '' }}">
+                                        {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                    </div>
+                                    @if($isOnline && $isActive)
+                                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" style="width: 13px; height: 13px;" title="Sedang Online"></span>
+                                    @endif
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ $admin->name }}</h6>
-                                    <span class="text-secondary" style="font-size: 0.78rem;">@{{ $admin->username }}</span>
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ $admin->name }}</h6>
+                                        @if(!$isActive)
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                                                <i class="bi bi-snow me-0.5"></i> Dibekukan
+                                            </span>
+                                        @elseif($isOnline)
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                                                <i class="bi bi-circle-fill me-1" style="font-size: 0.45rem;"></i> Online
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                                                Offline
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <span class="text-secondary" style="font-size: 0.78rem;">{{ '@' . $admin->username }}</span>
                                 </div>
                             </div>
-                            <div class="d-flex gap-1">
-                                <button class="admin-action-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
+                            <div class="d-flex gap-1 align-items-center">
+                                @if(!$isCurrentUser)
+                                    {{-- Force Logout Button --}}
+                                    <button type="button" class="admin-action-btn" title="Putus Sesi Login (Force Logout)" onclick="forceLogoutAdmin({{ $admin->id }}, '{{ addslashes($admin->name) }}')">
+                                        <i class="bi bi-box-arrow-right text-warning"></i>
+                                    </button>
+
+                                    {{-- Freeze / Unfreeze Toggle Button --}}
+                                    <button type="button" class="admin-action-btn {{ !$isActive ? 'btn-del bg-danger-subtle text-danger' : '' }}" 
+                                            title="{{ $isActive ? 'Bekukan Akun Sementara' : 'Aktifkan Kembali Akun' }}" 
+                                            onclick="toggleAdminStatus({{ $admin->id }}, '{{ addslashes($admin->name) }}', {{ $isActive ? 'true' : 'false' }})">
+                                        <i class="bi {{ $isActive ? 'bi-snow text-info' : 'bi-sun-fill text-warning' }}"></i>
+                                    </button>
+                                @endif
+                                <button class="admin-action-btn" title="Edit Data" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <a href="{{ route('admin.manage.delete', $admin->id) }}" 
-                                   class="admin-action-btn btn-del" title="Hapus"
-                                   onclick="return confirm('Apakah Anda yakin ingin menghapus akun admin {{ $admin->username }}? Hapus akun tidak dapat dibatalkan.');">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                @if(!$isCurrentUser)
+                                    <a href="{{ route('admin.manage.delete', $admin->id) }}" 
+                                       class="admin-action-btn btn-del" title="Hapus Akun Permanen"
+                                       onclick="return confirm('Apakah Anda yakin ingin menghapus akun admin {{ $admin->username }}? Hapus akun tidak dapat dibatalkan.');">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                @endif
                             </div>
                         </div>
 
                         {{-- Email --}}
-                        <div class="d-flex align-items-center gap-2 mb-3 text-secondary" style="font-size: 0.8rem;">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-secondary" style="font-size: 0.8rem;">
                             <i class="bi bi-envelope text-muted"></i>
                             <span class="text-truncate">{{ $admin->email }}</span>
+                        </div>
+
+                        {{-- Last Seen & Latest Activity Snippet --}}
+                        <div class="p-2.5 rounded-3 mb-3 bg-light border border-light-subtle">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-secondary fw-semibold" style="font-size: 0.72rem;">
+                                    <i class="bi bi-clock-history me-1 text-warning"></i>Terakhir Aktif:
+                                </span>
+                                <span class="text-dark fw-bold" style="font-size: 0.72rem;">
+                                    {{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah online' }}
+                                </span>
+                            </div>
+                            <div class="text-secondary text-truncate" style="font-size: 0.72rem;" title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}">
+                                <i class="bi bi-activity me-1 text-primary"></i>
+                                <span class="fw-semibold text-dark">Aksi:</span> {{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}
+                            </div>
                         </div>
 
                         {{-- Permission Progress --}}
@@ -587,6 +653,113 @@ function showToast(title, message, type) {
     
     const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
     toast.show();
+}
+
+function toggleAdminStatus(adminId, adminName, isCurrentlyActive) {
+    const actionText = isCurrentlyActive ? 'Bekukan' : 'Aktifkan';
+    const alertTitle = isCurrentlyActive ? `Bekukan Akun ${adminName}?` : `Aktifkan Kembali Akun ${adminName}?`;
+    const alertDesc = isCurrentlyActive 
+        ? `Akun ${adminName} akan dinonaktifkan sementara dan sesinya langsung diputus saat ini juga.` 
+        : `Akun ${adminName} akan diizinkan kembali untuk login dan mengelola sistem turnamen.`;
+    const btnColor = isCurrentlyActive ? '#dc3545' : '#16a34a';
+
+    Swal.fire({
+        title: alertTitle,
+        text: alertDesc,
+        icon: isCurrentlyActive ? 'warning' : 'question',
+        showCancelButton: true,
+        confirmButtonColor: btnColor,
+        cancelButtonColor: '#64748b',
+        confirmButtonText: `Ya, ${actionText}!`,
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            fetch(`/admin/manage-admins/toggle-status/${adminId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: data.message || 'Terjadi kesalahan'
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal menghubungi server'
+                });
+            });
+        }
+    });
+}
+
+function forceLogoutAdmin(adminId, adminName) {
+    Swal.fire({
+        title: `Putus Sesi ${adminName}?`,
+        text: `Sesi login ${adminName} akan dihentikan seketika di seluruh perangkat (komputer/HP). Admin tersebut harus login kembali jika ingin masuk.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Putus Sesi!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            fetch(`/admin/manage-admins/force-logout/${adminId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sesi Diputus!',
+                        text: data.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: data.message || 'Terjadi kesalahan'
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal menghubungi server'
+                });
+            });
+        }
+    });
 }
 </script>
 @endsection

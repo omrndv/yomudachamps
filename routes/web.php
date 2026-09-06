@@ -292,6 +292,8 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.manage.update');
             Route::get('/manage-admins/delete/{id}', [AdminController::class, 'deleteAdmin'])->name('admin.manage.delete');
             Route::post('/manage-admins/toggle-permission', [AdminController::class, 'togglePermission'])->name('admin.manage.toggle-permission');
+            Route::post('/manage-admins/toggle-status/{id}', [AdminController::class, 'toggleAdminStatus'])->name('admin.manage.toggle-status');
+            Route::post('/manage-admins/force-logout/{id}', [AdminController::class, 'forceLogoutAdmin'])->name('admin.manage.force-logout');
         });
 
         // Storage Manager

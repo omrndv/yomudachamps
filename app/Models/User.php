@@ -24,6 +24,9 @@ class User extends Authenticatable
         'username',
         'role',
         'permissions',
+        'is_active',
+        'last_seen_at',
+        'force_logout_at',
     ];
 
     /**
@@ -47,7 +50,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'permissions' => 'array',
+            'is_active' => 'boolean',
+            'last_seen_at' => 'datetime',
+            'force_logout_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Relasi ke aktivitas terakhir admin
+     */
+    public function latestActivity()
+    {
+        return $this->hasOne(AdminActivity::class)->latestOfMany();
+    }
+
+    /**
+     * Periksa apakah admin sedang online (aktif dalam 5 menit terakhir)
+     */
+    public function isOnline(): bool
+    {
+        if (!$this->last_seen_at) {
+            return false;
+        }
+        return $this->last_seen_at->gt(now()->subMinutes(5));
     }
 
     /**
