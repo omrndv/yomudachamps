@@ -1088,13 +1088,13 @@ function renameYmdSlot(teamId, oldName) {
 // ----------------------------------------------------
 function deleteAllYmdSlots() {
     Swal.fire({
-        title: 'Hapus Semua Slot YMD?',
-        text: "Semua tim placeholder berawalan YMD- di season ini akan dihapus dari database dan bagan.",
+        title: 'Bersihkan Semua Slot YMD?',
+        text: "Slot placeholder YMD akan dibersihkan dari daftar slot pendaftaran. Bagan pertandingan, skor, dan juara turnamen akan TETAP UTUH dan aman!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Ya, Hapus Semua!',
+        confirmButtonText: 'Ya, Bersihkan!',
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -1118,7 +1118,11 @@ function deleteAllYmdSlots() {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.reload();
+                        if (typeof window.saveScrollAndReload === 'function') {
+                            window.saveScrollAndReload();
+                        } else {
+                            window.location.reload();
+                        }
                     });
                 } else {
                     Swal.fire({

@@ -105,9 +105,13 @@ class BracketController extends Controller
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
-            // Clean up CANCELLED YMD teams from previous deletion requests
+            // Clean up CANCELLED/ARCHIVED YMD teams from previous deletion requests
             Team::where('season_id', $season_id)
-                ->where('name', 'LIKE', '[CANCELLED]%')
+                ->where(function($q) {
+                    $q->where('status', 'ARCHIVED')
+                      ->orWhere('status', 'CANCELLED')
+                      ->orWhere('name', 'LIKE', '[CANCELLED]%');
+                })
                 ->delete();
 
             $matchesInRound1 = $bracketSize / 2;
@@ -924,23 +928,34 @@ class BracketController extends Controller
             $count = $ymdTeams->count();
             
             foreach ($ymdTeams as $team) {
-                Bracket::where('season_id', $season_id)
-                    ->where('team1_id', $team->id)
-                    ->update(['team1_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
-                    
-                Bracket::where('season_id', $season_id)
-                    ->where('team2_id', $team->id)
-                    ->update(['team2_id' => null, 'winner_id' => null, 'status' => 'upcoming']);
+                // Periksa apakah tim ini sudah terpasang di bagan pertandingan
+                $inBracket = Bracket::where('season_id', $season_id)
+                    ->where(function($q) use ($team) {
+                        $q->where('team1_id', $team->id)
+                          ->orWhere('team2_id', $team->id)
+                          ->orWhere('winner_id', $team->id);
+                    })
+                    ->exists();
 
-                $team->delete();
+                if ($inBracket) {
+                    // Jika tim sudah berada di dalam bagan:
+                    // JANGAN kosongkan match dan JANGAN putuskan jalur juara di bagan!
+                    // Cukup ubah status tim menjadi ARCHIVED agar hilang dari daftar pendaftaran & modal slot,
+                    // sementara struktur bagan, skor, dan juara turnamen tetap 100% utuh dan aman.
+                    $team->status = 'ARCHIVED';
+                    $team->save();
+                } else {
+                    // Jika belum pernah masuk ke bagan sama sekali, aman dihapus permanen
+                    $team->delete();
+                }
             }
             
             DB::commit();
             self::clearBracketCache($season_id);
-            self::recordBracketSnapshot($season_id, 'Hapus Semua Slot YMD');
+            self::recordBracketSnapshot($season_id, 'Hapus/Arsipkan Semua Slot YMD');
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil menghapus ' . $count . ' slot placeholder YMD!'
+                'message' => 'Berhasil membersihkan ' . $count . ' slot YMD! Bagan pertandingan dan juara tetap aman dipertahankan.'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
