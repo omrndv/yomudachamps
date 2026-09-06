@@ -44,8 +44,12 @@ class SecurityHeadersMiddleware
         $response->headers->set('Content-Security-Policy', $csp);
 
         // Anti-Cache for Admin & Auth Routes (Prevents proxy/browser credential caching)
-        if ($request->is('admin*') || $request->is('login*') || $request->is('logout*')) {
-            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        if ($request->is('admin*') || $request->is('*login*') || $request->is('*logout*')) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0');
+            $response->headers->addCacheControlDirective('no-store', true);
+            $response->headers->addCacheControlDirective('no-cache', true);
+            $response->headers->addCacheControlDirective('must-revalidate', true);
+            $response->headers->addCacheControlDirective('max-age', 0);
             $response->headers->set('Pragma', 'no-cache');
             $response->headers->set('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
         }

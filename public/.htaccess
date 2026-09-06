@@ -41,7 +41,7 @@
 </IfModule>
 
 # ----------------------------------------------------------------------
-# 2. Apache Security Headers Fallback
+# 2. Apache Security Headers & Anti-Cache
 # ----------------------------------------------------------------------
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
@@ -49,4 +49,10 @@
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" env=HTTPS
+
+    # Force anti-cache on admin and login routes to satisfy penetration scanners
+    SetEnvIf Request_URI "(admin|login)" NO_CACHE=1
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0" env=NO_CACHE
+    Header always set Pragma "no-cache" env=NO_CACHE
+    Header always set Expires "0" env=NO_CACHE
 </IfModule>
