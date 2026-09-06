@@ -105,7 +105,12 @@
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Password</label>
-                <input type="password" name="password" class="form-control shadow-none" required autocomplete="current-password">
+                <div class="position-relative">
+                    <input type="password" name="password" id="passwordInput" class="form-control shadow-none pe-5" required autocomplete="current-password">
+                    <button type="button" id="togglePasswordBtn" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-secondary text-decoration-none border-0 pe-3" style="cursor: pointer; z-index: 5;" onclick="togglePasswordVisibility()" aria-label="Lihat Password">
+                        <i class="bi bi-eye" id="togglePasswordIcon" style="font-size: 1.15rem;"></i>
+                    </button>
+                </div>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="form-check">
@@ -125,6 +130,21 @@
         </div>
     </div>
 
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+            if (!passwordInput || !toggleIcon) return;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'bi bi-eye-slash text-warning';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'bi bi-eye text-secondary';
+            }
+        }
+    </script>
 </body>
 
 </html>
