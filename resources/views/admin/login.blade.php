@@ -111,7 +111,7 @@
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" value="1" style="cursor: pointer;" checked>
                     <label class="form-check-label small text-secondary fw-semibold user-select-none" for="rememberMe" style="cursor: pointer; font-size: 0.8rem;">
-                        Ingat Saya (12 Jam)
+                        Ingat Saya
                     </label>
                 </div>
             </div>
