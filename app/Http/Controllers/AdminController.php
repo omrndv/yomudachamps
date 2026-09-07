@@ -1600,6 +1600,46 @@ class AdminController extends Controller
         ]);
     }
 
+    public function syncPermissions(Request $request)
+    {
+        if (!Auth::user()->hasPermission('manage')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'admin_id' => 'required|exists:users,id',
+            'permissions' => 'present|array',
+            'permissions.*' => 'string',
+            'preset_name' => 'nullable|string'
+        ]);
+
+        $admin = User::findOrFail($request->admin_id);
+
+        if ($admin->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Hanya akun admin yang bisa diubah izinnya.'], 400);
+        }
+
+        $validKeys = [
+            'dashboard', 'seasons', 'teams', 'payments', 'notes', 
+            'settings', 'gateway_notifications', 'faqs', 'activity_log', 
+            'manage', 'laravel_logs', 'storage', 'backup', 'finance', 'solo_matchmaker'
+        ];
+
+        $sanitizedPermissions = array_values(array_intersect($request->permissions, $validKeys));
+
+        $admin->permissions = $sanitizedPermissions;
+        $admin->save();
+
+        $presetLabel = $request->preset_name ? " (Preset: {$request->preset_name})" : "";
+        AdminActivity::log('Memperbarui kumpulan izin untuk admin ' . $admin->username . $presetLabel . ' (' . count($sanitizedPermissions) . ' modul aktif)');
+
+        return response()->json([
+            'success' => true,
+            'permissions' => $sanitizedPermissions,
+            'message' => 'Hak akses berhasil diperbarui' . ($request->preset_name ? " ke preset {$request->preset_name}" : '')
+        ]);
+    }
+
     public function toggleAdminStatus($id)
     {
         if (!Auth::user()->hasPermission('manage')) {
