@@ -821,6 +821,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             fetchLatestBracketData();
             startPolling();
+            if (typeof pollAdminMatchReports === 'function') pollAdminMatchReports();
+            if (typeof fetchAdminChatThreads === 'function') fetchAdminChatThreads();
         }
     });
 
@@ -1767,6 +1769,7 @@ function playNotificationSound() {
 let previousPendingReportsCount = -1;
 
 function pollAdminMatchReports() {
+    if (document.hidden) return;
     fetch("{{ route('admin.season.match-reports.poll', $season->id) }}")
         .then(r => r.json())
         .then(res => {
@@ -1801,6 +1804,10 @@ setInterval(pollAdminMatchReports, 10000);
 pollAdminMatchReports();
 
 function fetchAdminChatThreads() {
+    const chatModal = document.getElementById('modalAdminLiveChat');
+    const isModalOpen = chatModal && chatModal.classList.contains('show');
+    if (document.hidden && !isModalOpen) return;
+
     fetch("{{ route('admin.season.chat.threads', $season->id) }}?status=" + adminChatTab)
         .then(r => r.json())
         .then(res => {

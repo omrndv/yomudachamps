@@ -117,9 +117,22 @@ class BracketController extends Controller
             $matchesInRound1 = $bracketSize / 2;
             $numBYEMatches = $bracketSize - $teamCount;
 
-            // Categorize teams: YMD (Buyslot), Solo, Regular
+            // Identify loyal WhatsApp numbers from past paid seasons
+            $waNumbers = $teams->pluck('wa_number')->filter(function($wa) {
+                return !empty($wa) && $wa !== '-';
+            })->unique();
+
+            $loyalWaList = Team::whereIn('wa_number', $waNumbers)
+                ->where('season_id', '!=', $season_id)
+                ->where('status', 'PAID')
+                ->pluck('wa_number')
+                ->unique()
+                ->toArray();
+
+            // Categorize teams: YMD (Buyslot), Solo, Loyalty, Regular (Member Baru)
             $ymdList = [];
             $soloList = [];
+            $loyaltyList = [];
             $regularList = [];
 
             foreach ($teams->shuffle() as $team) {
@@ -127,6 +140,8 @@ class BracketController extends Controller
                     $ymdList[] = $team;
                 } elseif ($team->is_solo_team) {
                     $soloList[] = $team;
+                } elseif (in_array($team->wa_number, $loyalWaList)) {
+                    $loyaltyList[] = $team;
                 } else {
                     $regularList[] = $team;
                 }
@@ -178,7 +193,7 @@ class BracketController extends Controller
                 }
             }
 
-            // 3. Pool BYE teams from remaining categories (Solo, Regular, leftover YMD)
+            // 3. Pool BYE teams from remaining categories if any slot is vacant
             $byeTeamsPool = [];
             if ($numBYEMatches > 0 && count($unassignedSlots) > 0) {
                 $byeCount = min($numBYEMatches, count($unassignedSlots));
@@ -187,6 +202,9 @@ class BracketController extends Controller
                 }
                 while (count($regularList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($regularList);
+                }
+                while (count($loyaltyList) > 0 && count($byeTeamsPool) < $byeCount) {
+                    $byeTeamsPool[] = array_shift($loyaltyList);
                 }
                 while (count($ymdList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($ymdList);
@@ -209,30 +227,59 @@ class BracketController extends Controller
                 }
             }
 
-            // 4. Pair all remaining active teams (Solo vs Solo, Regular vs Regular, Mixed)
+            // 4. Pair all fellow teams within their category first
+            // - Sisa YMD vs YMD (kelipatan 2)
+            $ymdPairs = [];
+            while (count($ymdList) >= 2) {
+                $ymdPairs[] = [array_shift($ymdList), array_shift($ymdList)];
+            }
+
+            // - Solo vs Solo
             $soloPairs = [];
             while (count($soloList) >= 2) {
                 $soloPairs[] = [array_shift($soloList), array_shift($soloList)];
             }
 
+            // - Loyalty vs Loyalty
+            $loyaltyPairs = [];
+            while (count($loyaltyList) >= 2) {
+                $loyaltyPairs[] = [array_shift($loyaltyList), array_shift($loyaltyList)];
+            }
+
+            // - Reguler Baru vs Reguler Baru
             $regularPairs = [];
             while (count($regularList) >= 2) {
                 $regularPairs[] = [array_shift($regularList), array_shift($regularList)];
             }
 
-            $singleSpillover = array_merge($ymdList, $soloList, $regularList);
-            shuffle($singleSpillover);
+            // 5. Cross-match sisa ganjil (Spillover)
+            $crossPairs = [];
 
-            $mixedPairs = [];
-            while (count($singleSpillover) >= 2) {
-                $mixedPairs[] = [array_shift($singleSpillover), array_shift($singleSpillover)];
+            // Jika ada sisa 1 Solo & sisa 1 Reguler -> Solo vs Reguler
+            if (count($soloList) > 0 && count($regularList) > 0) {
+                $crossPairs[] = [array_shift($soloList), array_shift($regularList)];
             }
 
+            // Jika ada sisa 1 Loyalty & sisa 1 Reguler -> Loyalty vs Reguler
+            if (count($loyaltyList) > 0 && count($regularList) > 0) {
+                $crossPairs[] = [array_shift($loyaltyList), array_shift($regularList)];
+            }
+
+            // Pasangkan sisa yang masih belum punya lawan (misal Solo vs Loyalty, sisa YMD, dll)
+            $remainingSpillover = array_merge($ymdList, $soloList, $loyaltyList, $regularList);
+            shuffle($remainingSpillover);
+            while (count($remainingSpillover) >= 2) {
+                $crossPairs[] = [array_shift($remainingSpillover), array_shift($remainingSpillover)];
+            }
+
+            // Interleave semua pasangan agar tersebar acak merata di bagan
             $remainingActivePairs = [];
-            while (count($soloPairs) > 0 || count($regularPairs) > 0 || count($mixedPairs) > 0) {
+            while (count($ymdPairs) > 0 || count($soloPairs) > 0 || count($loyaltyPairs) > 0 || count($regularPairs) > 0 || count($crossPairs) > 0) {
+                if (count($ymdPairs) > 0) $remainingActivePairs[] = array_shift($ymdPairs);
                 if (count($soloPairs) > 0) $remainingActivePairs[] = array_shift($soloPairs);
+                if (count($loyaltyPairs) > 0) $remainingActivePairs[] = array_shift($loyaltyPairs);
                 if (count($regularPairs) > 0) $remainingActivePairs[] = array_shift($regularPairs);
-                if (count($mixedPairs) > 0) $remainingActivePairs[] = array_shift($mixedPairs);
+                if (count($crossPairs) > 0) $remainingActivePairs[] = array_shift($crossPairs);
             }
 
             // Fill the remaining active (non-BYE) slots in unassigned blocks
@@ -241,9 +288,9 @@ class BracketController extends Controller
                     if (count($remainingActivePairs) > 0) {
                         $pair = array_shift($remainingActivePairs);
                         $matchSlots[$s] = ['team1' => $pair[0], 'team2' => $pair[1]];
-                    } elseif (count($singleSpillover) > 0) {
-                        $t1 = array_shift($singleSpillover);
-                        $t2 = count($singleSpillover) > 0 ? array_shift($singleSpillover) : null;
+                    } elseif (count($remainingSpillover) > 0) {
+                        $t1 = array_shift($remainingSpillover);
+                        $t2 = count($remainingSpillover) > 0 ? array_shift($remainingSpillover) : null;
                         $matchSlots[$s] = ['team1' => $t1, 'team2' => $t2];
                     }
                 }
@@ -345,7 +392,7 @@ class BracketController extends Controller
 
         DB::beginTransaction();
         try {
-            $match = Bracket::findOrFail($request->match_id);
+            $match = Bracket::where('season_id', $season_id)->findOrFail($request->match_id);
             $match->team1_score = $request->team1_score;
             $match->team2_score = $request->team2_score;
             $match->match_time = $request->match_time;
@@ -608,8 +655,8 @@ class BracketController extends Controller
 
         DB::beginTransaction();
         try {
-            $m1 = Bracket::findOrFail($request->match1_id);
-            $m2 = Bracket::findOrFail($request->match2_id);
+            $m1 = Bracket::where('season_id', $season_id)->findOrFail($request->match1_id);
+            $m2 = Bracket::where('season_id', $season_id)->findOrFail($request->match2_id);
 
             if ($m1->round_number !== 1 || $m2->round_number !== 1) {
                 return response()->json(['success' => false, 'message' => 'Hanya dapat menukar posisi tim di Babak 1.'], 400);
@@ -2084,7 +2131,6 @@ class BracketController extends Controller
             'manual_juara3' => $season->manual_juara3,
             'manual_juara4' => $season->manual_juara4,
             'is_bracket_visible' => (bool) $season->is_bracket_visible,
-            'is_bronze_match' => (bool) $season->is_bronze_match,
         ] : [];
 
         $current = BracketSnapshot::where('season_id', $seasonId)
@@ -2180,7 +2226,6 @@ class BracketController extends Controller
                     'manual_juara3' => $meta['manual_juara3'] ?? null,
                     'manual_juara4' => $meta['manual_juara4'] ?? null,
                     'is_bracket_visible' => $meta['is_bracket_visible'] ?? true,
-                    'is_bronze_match' => $meta['is_bronze_match'] ?? false,
                 ]);
             }
 
