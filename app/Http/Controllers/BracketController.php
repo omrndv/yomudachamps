@@ -117,31 +117,49 @@ class BracketController extends Controller
             $matchesInRound1 = $bracketSize / 2;
             $numBYEMatches = $bracketSize - $teamCount;
 
-            // Identify loyal WhatsApp numbers from past paid seasons
+            // Identify loyal WhatsApp numbers and their loyalty counts from past paid seasons
             $waNumbers = $teams->pluck('wa_number')->filter(function($wa) {
                 return !empty($wa) && $wa !== '-';
             })->unique();
 
-            $loyalWaList = Team::whereIn('wa_number', $waNumbers)
+            $loyalWaCounts = Team::whereIn('wa_number', $waNumbers)
                 ->where('season_id', '!=', $season_id)
                 ->where('status', 'PAID')
-                ->pluck('wa_number')
-                ->unique()
+                ->select('wa_number', DB::raw('count(*) as total'))
+                ->groupBy('wa_number')
+                ->pluck('total', 'wa_number')
                 ->toArray();
 
-            // Categorize teams: YMD (Buyslot), Solo, Loyalty, Regular (Member Baru)
+            // Categorize teams: YMD (Buyslot), Solo, Loyalty (Tiered: >=11, 9-10, 6-8, 3-5, 1-2), Regular (Member Baru)
             $ymdList = [];
             $soloList = [];
-            $loyaltyList = [];
             $regularList = [];
+            $loyaltyTiers = [
+                5 => [], // >= 11
+                4 => [], // 9 - 10
+                3 => [], // 6 - 8
+                2 => [], // 3 - 5
+                1 => [], // 1 - 2
+            ];
 
             foreach ($teams->shuffle() as $team) {
                 if (preg_match('/^ymd-/i', trim($team->name))) {
                     $ymdList[] = $team;
                 } elseif ($team->is_solo_team) {
                     $soloList[] = $team;
-                } elseif (in_array($team->wa_number, $loyalWaList)) {
-                    $loyaltyList[] = $team;
+                } elseif (isset($loyalWaCounts[$team->wa_number]) && $loyalWaCounts[$team->wa_number] > 0) {
+                    $cnt = $loyalWaCounts[$team->wa_number];
+                    if ($cnt >= 11) {
+                        $loyaltyTiers[5][] = $team;
+                    } elseif ($cnt >= 9) {
+                        $loyaltyTiers[4][] = $team;
+                    } elseif ($cnt >= 6) {
+                        $loyaltyTiers[3][] = $team;
+                    } elseif ($cnt >= 3) {
+                        $loyaltyTiers[2][] = $team;
+                    } else {
+                        $loyaltyTiers[1][] = $team;
+                    }
                 } else {
                     $regularList[] = $team;
                 }
@@ -203,8 +221,10 @@ class BracketController extends Controller
                 while (count($regularList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($regularList);
                 }
-                while (count($loyaltyList) > 0 && count($byeTeamsPool) < $byeCount) {
-                    $byeTeamsPool[] = array_shift($loyaltyList);
+                foreach ([1, 2, 3, 4, 5] as $t) {
+                    while (count($loyaltyTiers[$t]) > 0 && count($byeTeamsPool) < $byeCount) {
+                        $byeTeamsPool[] = array_shift($loyaltyTiers[$t]);
+                    }
                 }
                 while (count($ymdList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($ymdList);
@@ -240,11 +260,27 @@ class BracketController extends Controller
                 $soloPairs[] = [array_shift($soloList), array_shift($soloList)];
             }
 
-            // - Loyalty vs Loyalty
+            // - Loyalty vs Loyalty (Diutamakan sesama tier, sisa ganjil dipasangkan antar-tier terdekat)
             $loyaltyPairs = [];
-            while (count($loyaltyList) >= 2) {
-                $loyaltyPairs[] = [array_shift($loyaltyList), array_shift($loyaltyList)];
+            $loyaltyLeftovers = [];
+
+            foreach ([5, 4, 3, 2, 1] as $tier) {
+                shuffle($loyaltyTiers[$tier]);
+                while (count($loyaltyTiers[$tier]) >= 2) {
+                    $loyaltyPairs[] = [array_shift($loyaltyTiers[$tier]), array_shift($loyaltyTiers[$tier])];
+                }
+                if (count($loyaltyTiers[$tier]) === 1) {
+                    $loyaltyLeftovers[] = array_shift($loyaltyTiers[$tier]);
+                }
             }
+
+            // Pasangkan sisa-sisa tim antar-tier loyalty yang terdekat (misal sisa Tier 5 vs sisa Tier 4)
+            while (count($loyaltyLeftovers) >= 2) {
+                $loyaltyPairs[] = [array_shift($loyaltyLeftovers), array_shift($loyaltyLeftovers)];
+            }
+
+            // Jika total tim loyalty ganjil, maka hanya ada 1 tim loyalty paling akhir yang tersisa
+            $loyaltyList = $loyaltyLeftovers; // Maksimal 1 tim (atau 0 jika total tim loyalty genap)
 
             // - Reguler Baru vs Reguler Baru
             $regularPairs = [];
