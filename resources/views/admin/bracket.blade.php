@@ -61,6 +61,11 @@
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5" style="font-size: 0.58rem; font-weight: 700;">
                             <span class="pulse-dot-admin"></span> LIVE SYNC ACTIVE
                         </span>
+                        @if($season->is_bracket_locked)
+                            <span class="badge bg-dark text-warning border border-warning border-opacity-50 rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1" style="font-size: 0.62rem; font-weight: 700;">
+                                <i class="bi bi-lock-fill"></i> TERKUNCI
+                            </span>
+                        @endif
                     </p>
                     <div class="mt-2 d-flex align-items-center gap-2">
                         <div class="form-check form-switch m-0 p-0 d-flex align-items-center gap-2">
@@ -115,13 +120,21 @@
                         </button>
                     @endif
 
-                    {{-- Priority 3: Menu Alat & Aksi Lainnya (Dropdown agar tidak sumpek) --}}
+                    {{-- Priority 3: Menu Alat & Aksi Lainnya (Dropdown) --}}
                     <div class="dropdown">
                         <button class="btn btn-light border btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-gear-fill me-1 text-secondary"></i> Opsi & Alat
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2" style="font-size: 0.82rem; min-width: 220px;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2" style="font-size: 0.82rem; min-width: 230px;">
                             @if($brackets->count() > 0)
+                                {{-- Kunci / Buka Kunci Bagan didalam dropdown --}}
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 fw-bold {{ $season->is_bracket_locked ? 'text-warning' : 'text-success' }}" id="btnToggleBracketLock" onclick="toggleBracketLockAction()">
+                                        <i class="bi {{ $season->is_bracket_locked ? 'bi-unlock-fill' : 'bi-lock-fill' }} me-2"></i>
+                                        <span id="btnBracketLockText">{{ $season->is_bracket_locked ? 'Buka Kunci Bagan' : 'Kunci Bagan (Selesai)' }}</span>
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
                                 <li>
                                     <button class="dropdown-item rounded-2 py-2 fw-semibold" type="button" data-bs-toggle="modal" data-bs-target="#modalShareTemplates">
                                         <i class="bi bi-share-fill text-success me-2"></i> Teks Share WhatsApp
@@ -151,14 +164,6 @@
                             @endif
                         </ul>
                     </div>
-
-                    {{-- Tombol Kunci / Buka Bagan (Status Utama Turnamen) --}}
-                    @if($brackets->count() > 0)
-                        <button type="button" class="btn {{ $season->is_bracket_locked ? 'btn-dark border border-warning text-warning' : 'btn-success text-white' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" id="btnToggleBracketLock" onclick="toggleBracketLockAction()">
-                            <i class="bi {{ $season->is_bracket_locked ? 'bi-lock-fill text-warning' : 'bi-check2-circle' }} me-1"></i>
-                            <span id="btnBracketLockText">{{ $season->is_bracket_locked ? '🔒 Terkunci' : '✅ Selesai & Kunci' }}</span>
-                        </button>
-                    @endif
                 </div>
             </div>
         </div>
@@ -189,20 +194,8 @@
             </div>
         </div>
     @else
-        {{-- Banner Status Bagan Terkunci (Dibuat Ramping & Tidak Memakan Tempat) --}}
-        <div id="bracketLockedBanner" class="alert alert-dark border border-warning border-opacity-40 rounded-4 shadow-sm py-2 px-3 mb-3 {{ $season->is_bracket_locked ? '' : 'd-none' }}" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-white">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-warning text-dark rounded-pill fw-bold" style="font-size: 0.65rem;">
-                        <i class="bi bi-lock-fill me-1"></i> TERKUNCI (READ-ONLY)
-                    </span>
-                    <span class="small text-white-50" style="font-size: 0.78rem;">Data nama tim & bagan telah dibekukan secara permanen.</span>
-                </div>
-                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 py-1" style="font-size: 0.72rem;" onclick="toggleBracketLockAction()">
-                    <i class="bi bi-unlock-fill me-1"></i> Buka Kunci
-                </button>
-            </div>
-        </div>
+        {{-- Hidden anchor for backward compatibility if any script looks for bracketLockedBanner --}}
+        <div id="bracketLockedBanner" class="d-none"></div>
 
         {{-- Controls Panel --}}
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
