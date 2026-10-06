@@ -391,4 +391,33 @@
     #bracketCardContainer.theme-dark .bronze-match-title {
         color: #ff7a00 !important;
     }
+
+    /* Admin Live Chat Offcanvas Styles */
+    #offcanvasAdminLiveChat {
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #adminChatThreadsList > div:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    #adminQuickRepliesBar::-webkit-scrollbar {
+        height: 4px;
+    }
+    #adminQuickRepliesBar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+    #adminQuickRepliesBar button:hover {
+        background-color: rgba(255, 122, 0, 0.2) !important;
+        color: #ff7a00 !important;
+        border-color: rgba(255, 122, 0, 0.4) !important;
+    }
+    #adminChatMessagesBody::-webkit-scrollbar,
+    #adminChatThreadsList::-webkit-scrollbar {
+        width: 5px;
+    }
+    #adminChatMessagesBody::-webkit-scrollbar-thumb,
+    #adminChatThreadsList::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+    }
 </style>

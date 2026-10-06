@@ -162,7 +162,7 @@
                     </div>
 
                     {{-- Priority 1: Yang Paling Sering Dipencet (Live Chat, Laporan Laga, Laga Belum Selesai) --}}
-                    <button type="button" class="btn btn-primary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap position-relative" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
+                    <button type="button" class="btn btn-primary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAdminLiveChat" aria-controls="offcanvasAdminLiveChat">
                         <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat 
                         <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.6rem; padding: 3px 6px;">0</span>
                     </button>
@@ -952,74 +952,106 @@
     </div>
 </div>
 
-{{-- Admin Live Chat Dashboard Modal --}}
-<div class="modal fade" id="modalAdminLiveChat" tabindex="-1" aria-labelledby="modalAdminLiveChatLabel" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden bg-dark text-white">
-            <div class="modal-header bg-black text-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="modal-title fw-bold" id="modalAdminLiveChatLabel">
-                    <i class="bi bi-chat-left-heart-fill text-warning me-2"></i> Live Chat Konsol Admin
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+{{-- Admin Live Chat Dashboard Offcanvas Drawer --}}
+<div class="offcanvas offcanvas-end text-bg-dark border-start border-secondary border-opacity-25" 
+     tabindex="-1" 
+     id="offcanvasAdminLiveChat" 
+     aria-labelledby="offcanvasAdminLiveChatLabel"
+     data-bs-scroll="true"
+     data-bs-backdrop="false"
+     style="width: 530px; max-width: 95vw; z-index: 1060; background-color: #121316 !important; box-shadow: -10px 0 35px rgba(0,0,0,0.65) !important;">
+    
+    {{-- Offcanvas Header --}}
+    <div class="offcanvas-header bg-black py-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-inline-block rounded-circle bg-success" style="width: 8px; height: 8px; box-shadow: 0 0 8px #10b981;"></span>
+            <h6 class="offcanvas-title fw-bold mb-0 text-white" id="offcanvasAdminLiveChatLabel" style="font-size: 0.92rem;">
+                <i class="bi bi-chat-left-dots-fill text-warning me-1.5"></i> Live Chat Konsol Admin
+            </h6>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button id="adminBtnClearAllChats" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.65rem;" title="Reset semua chat season ini">
+                <i class="bi bi-trash3 me-1"></i> Reset All
+            </button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+    </div>
+
+    {{-- Offcanvas Body (Two columns: Threads List & Active Thread) --}}
+    <div class="offcanvas-body p-0 d-flex flex-row overflow-hidden" style="height: calc(100% - 49px);">
+        
+        <!-- Left panel: Threads list -->
+        <div class="border-end border-secondary border-opacity-25 d-flex flex-column" style="width: 195px; flex-shrink: 0; background-color: rgba(0,0,0,0.25);">
+            <!-- Tab Pills for Active vs Archived -->
+            <div class="p-2 border-bottom border-secondary border-opacity-15 d-flex gap-1" style="background-color: rgba(0,0,0,0.2);">
+                <button id="adminTabActive" class="btn btn-warning btn-sm py-0.5 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.65rem;">
+                    Aktif
+                </button>
+                <button id="adminTabArchived" class="btn btn-outline-secondary text-white btn-sm py-0.5 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.65rem;">
+                    Arsip
+                </button>
             </div>
-            <div class="modal-body p-0 d-flex" style="height: 500px;">
-                <!-- Left panel: Threads list -->
-                <div class="border-end border-secondary border-opacity-25" style="width: 260px; flex-shrink: 0; background-color: rgba(0,0,0,0.15); display: flex; flex-direction: column;">
-                    <div class="p-3 border-bottom border-secondary border-opacity-25 text-secondary small fw-bold text-uppercase d-flex justify-content-between align-items-center">
-                        <span>Pesan Masuk</span>
-                        <button id="adminBtnClearAllChats" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.6rem;">
-                            Reset All
-                        </button>
-                    </div>
-                    <!-- Tab Pills for Active vs Archived -->
-                    <div class="p-2 border-bottom border-secondary border-opacity-10 d-flex gap-1.5" style="background-color: rgba(0,0,0,0.1);">
-                        <button id="adminTabActive" class="btn btn-warning btn-sm py-0.5 px-2.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
-                            Aktif
-                        </button>
-                        <button id="adminTabArchived" class="btn btn-outline-secondary text-white btn-sm py-0.5 px-2.5 rounded-pill fw-bold" style="font-size: 0.65rem;">
-                            Diarsipkan
-                        </button>
-                    </div>
-                    <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
-                        <div class="text-center text-secondary py-5 small">Belum ada chat masuk.</div>
-                    </div>
+            
+            <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
+                <div class="text-center text-secondary py-5 small px-2">Belum ada chat masuk.</div>
+            </div>
+        </div>
+
+        <!-- Right panel: Active Chat Thread -->
+        <div class="flex-grow-1 d-flex flex-column" style="background-color: #16171b; min-width: 0;">
+            <!-- Thread Header -->
+            <div class="p-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.2);">
+                <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                    <div id="adminActiveThreadTitle" class="fw-bold text-warning small text-truncate">Pilih percakapan</div>
+                    <span id="adminThreadSessionToken" style="display:none;"></span>
                 </div>
-                <!-- Right panel: Active Chat Thread -->
-                <div class="flex-grow-1 d-flex flex-column" style="background-color: rgba(255,255,255,0.01);">
-                    <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.1);">
-                        <div id="adminActiveThreadTitle" class="fw-bold text-warning small">Pilih percakapan untuk memulai</div>
-                        <span id="adminThreadSessionToken" style="display:none;"></span>
-                        <div class="d-flex gap-2 align-items-center">
-                            <button id="adminBtnArchiveThread" class="btn btn-outline-warning btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
-                                <i class="bi bi-archive-fill me-1"></i> Arsipkan
-                            </button>
-                            <button id="adminBtnUnarchiveThread" class="btn btn-outline-success btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
-                                <i class="bi bi-arrow-up-right-square-fill me-1"></i> Buka Arsip
-                            </button>
-                            <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;">
-                                <i class="bi bi-trash3-fill me-1"></i> Hapus Chat
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2">
-                        <div class="text-center text-secondary my-auto py-5 small">
-                            <i class="bi bi-chat-dots" style="font-size: 2.5rem;"></i>
-                            <p class="mt-2">Silakan pilih salah satu user anonim di samping untuk membalas pertanyaan.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="p-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center" style="background-color: rgba(0,0,0,0.2);">
-                        <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" disabled>
-                            <i class="bi bi-camera-fill"></i>
-                        </button>
-                        <input type="file" id="adminFileInput" accept="image/*" style="display: none;">
-                        <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
-                        <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" disabled>
-                            <i class="bi bi-send-fill text-dark"></i>
-                        </button>
-                    </div>
+                <div class="d-flex gap-1.5 align-items-center flex-shrink-0">
+                    <button id="adminBtnArchiveThread" class="btn btn-outline-warning btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.65rem; display: none;" title="Arsipkan percakapan">
+                        <i class="bi bi-archive-fill me-0.5"></i> Arsipkan
+                    </button>
+                    <button id="adminBtnUnarchiveThread" class="btn btn-outline-success btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.65rem; display: none;" title="Kembalikan ke aktif">
+                        <i class="bi bi-arrow-up-right-square-fill me-0.5"></i> Buka
+                    </button>
+                    <button id="adminBtnDeleteThread" class="btn btn-outline-danger btn-sm py-0.5 px-2 rounded-pill fw-bold" style="font-size: 0.65rem; display: none;" title="Hapus seluruh pesan">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
                 </div>
+            </div>
+            
+            <!-- Messages Container -->
+            <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2" style="background: radial-gradient(circle at center, rgba(30, 41, 59, 0.15) 0%, transparent 70%);">
+                <div class="text-center text-secondary my-auto py-5 small px-3">
+                    <i class="bi bi-chat-dots" style="font-size: 2.2rem; opacity: 0.6;"></i>
+                    <p class="mt-2 text-white-50">Pilih salah satu user di panel kiri untuk membalas pertanyaan peserta.</p>
+                </div>
+            </div>
+
+            <!-- Quick Reply Chips Bar -->
+            <div id="adminQuickRepliesBar" class="px-2.5 py-1.5 border-top border-secondary border-opacity-15 d-flex gap-1.5 overflow-x-auto" style="background-color: rgba(0,0,0,0.3); white-space: nowrap; display: none;">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
+                    Tanya Tim
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Nomor WA kapten lawan ada di card bracket ya kak.')">
+                    Cek WA Lawan
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Silakan kirimkan bukti screenshot skor pertandingannya di sini ya.')">
+                    Minta Screenshot
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Baik kak, laporan sedang kami verifikasi. Mohon ditunggu ya!')">
+                    Sedang Diproses
+                </button>
+            </div>
+            
+            <!-- Bottom Input Bar -->
+            <div class="p-2.5 px-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center" style="background-color: rgba(0,0,0,0.35);">
+                <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
+                    <i class="bi bi-camera-fill"></i>
+                </button>
+                <input type="file" id="adminFileInput" accept="image/*" style="display: none;">
+                <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none py-1.5 px-3" style="font-size: 0.82rem;" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
+                <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;" disabled title="Kirim">
+                    <i class="bi bi-send-fill text-dark" style="font-size: 0.85rem;"></i>
+                </button>
             </div>
         </div>
     </div>

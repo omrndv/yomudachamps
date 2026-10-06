@@ -1603,10 +1603,17 @@ let adminThreadsInterval = null;
 let adminMessagesInterval = null;
 let adminChatTab = 'active';
 
+// Quick Reply Helper
+window.insertAdminQuickReply = function(text) {
+    if (!adminReplyInput || adminReplyInput.disabled) return;
+    adminReplyInput.value = text;
+    adminReplyInput.focus();
+};
+
 // Thread List Styling helpers
 function renderThreadListHTML(threads) {
     if (!threads || threads.length === 0) {
-        threadsList.innerHTML = `<div class="text-center text-secondary py-5 small">Tidak ada percakapan ${adminChatTab === 'archived' ? 'diarsip' : 'aktif'}.</div>`;
+        threadsList.innerHTML = `<div class="text-center text-secondary py-5 small px-2">Tidak ada percakapan ${adminChatTab === 'archived' ? 'diarsip' : 'aktif'}.</div>`;
         return;
     }
 
@@ -1618,17 +1625,35 @@ function renderThreadListHTML(threads) {
         
         // Truncate message
         let textTruncated = t.last_message || '';
-        if (textTruncated.length > 22) {
-            textTruncated = textTruncated.substring(0, 20) + '...';
+        if (textTruncated.length > 20) {
+            textTruncated = textTruncated.substring(0, 18) + '...';
         }
         
+        let timeStr = '';
+        if (t.last_chat_time) {
+            try {
+                const d = new Date(t.last_chat_time);
+                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch(e) {}
+        }
+
+        const initial = (t.sender_name || 'U').charAt(0).toUpperCase();
+
         listHTML += `
-            <div class="p-3 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass}" style="cursor: pointer;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold small text-white">${t.sender_name}</span>
+            <div class="p-2.5 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass}" style="cursor: pointer;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 20px; height: 20px; font-size: 0.62rem;">
+                            ${initial}
+                        </div>
+                        <span class="fw-bold text-white text-truncate" style="font-size: 0.78rem;">${t.sender_name}</span>
+                    </div>
                     ${unreadBadge}
                 </div>
-                <div class="small text-secondary mt-1 text-truncate">${t.last_message_is_admin ? 'Anda: ' : ''}${textTruncated}</div>
+                <div class="d-flex justify-content-between align-items-center small text-secondary" style="font-size: 0.7rem;">
+                    <span class="text-truncate" style="max-width: 120px;">${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}</span>
+                    <span class="flex-shrink-0" style="font-size: 0.62rem; opacity: 0.7;">${timeStr}</span>
+                </div>
             </div>
         `;
     });
@@ -1638,7 +1663,7 @@ function renderThreadListHTML(threads) {
 window.selectChatThread = function(token, name) {
     activeThreadToken = token;
     activeThreadName = name;
-    activeThreadTitle.textContent = `Percakapan dengan ${name}`;
+    activeThreadTitle.textContent = `${name}`;
     threadSessionTokenInput.textContent = token;
     adminReplyInput.disabled = false;
     adminBtnReplySend.disabled = false;
@@ -1646,6 +1671,10 @@ window.selectChatThread = function(token, name) {
     // Enable attachment buttons
     const adminBtnAttach = document.getElementById('adminBtnAttach');
     if (adminBtnAttach) adminBtnAttach.disabled = false;
+
+    // Show quick reply chips bar
+    const adminQuickRepliesBar = document.getElementById('adminQuickRepliesBar');
+    if (adminQuickRepliesBar) adminQuickRepliesBar.style.display = 'flex';
 
     // Show delete button
     const adminBtnDeleteThread = document.getElementById('adminBtnDeleteThread');
@@ -1732,6 +1761,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (adminBtnAttach) adminBtnAttach.disabled = true;
                     adminReplyInput.disabled = true;
                     adminBtnReplySend.disabled = true;
+                    const qBar = document.getElementById('adminQuickRepliesBar');
+                    if (qBar) qBar.style.display = 'none';
                     adminChatMessagesBody.innerHTML = `
                         <div class="text-center text-secondary my-auto py-5 small">
                             <i class="bi bi-chat-dots" style="font-size: 2.5rem;"></i>
@@ -1956,9 +1987,9 @@ setInterval(pollAdminMatchReports, 10000);
 pollAdminMatchReports();
 
 function fetchAdminChatThreads() {
-    const chatModal = document.getElementById('modalAdminLiveChat');
-    const isModalOpen = chatModal && chatModal.classList.contains('show');
-    if (document.hidden && !isModalOpen) return;
+    const chatDrawer = document.getElementById('offcanvasAdminLiveChat');
+    const isDrawerOpen = chatDrawer && chatDrawer.classList.contains('show');
+    if (document.hidden && !isDrawerOpen) return;
 
     fetch("{{ route('admin.season.chat.threads', $season->id) }}?status=" + adminChatTab)
         .then(r => r.json())
@@ -2023,19 +2054,34 @@ function fetchThreadMessages() {
                             playNotificationSound();
                         }
 
+                        let timeStr = '';
+                        if (msg.created_at) {
+                            try {
+                                const d = new Date(msg.created_at);
+                                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+                            } catch(e) {}
+                        }
+
                         const bubble = document.createElement('div');
-                        bubble.className = `p-2 rounded-3 text-white small ${msg.is_admin ? 'bg-secondary bg-opacity-50 align-self-end text-end' : 'bg-dark border border-secondary border-opacity-25 align-self-start'}`;
-                        bubble.style.maxWidth = '80%';
+                        bubble.className = `p-2.5 rounded-3 text-white small shadow-sm ${msg.is_admin ? 'align-self-end text-end' : 'align-self-start'}`;
+                        bubble.style.maxWidth = '85%';
+                        bubble.style.backgroundColor = msg.is_admin ? '#1e293b' : '#22252a';
+                        bubble.style.border = msg.is_admin ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)';
                         
                         let displayContent = msg.message;
                         if (msg.message.startsWith('[IMAGE]:')) {
                             const imgUrl = msg.message.substring(8);
-                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 150px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="this.closest('.modal-body').querySelector('.d-flex.flex-column').scrollTop = this.closest('.modal-body').querySelector('.d-flex.flex-column').scrollHeight">`;
+                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 180px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="const c = document.getElementById('adminChatMessagesBody'); if (c) c.scrollTop = c.scrollHeight;">`;
                         }
 
                         bubble.innerHTML = `
-                            <div class="fw-bold" style="font-size: 0.65rem; color: ${msg.is_admin ? '#cbd5e1' : '#f59e0b'};">${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</div>
-                            <div class="mt-1">${displayContent}</div>
+                            <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.65rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
+                                <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
+                            </div>
+                            <div class="mt-1" style="word-break: break-word; line-height: 1.45; font-size: 0.8rem;">${displayContent}</div>
+                            <div class="mt-1 text-white-50" style="font-size: 0.58rem; text-align: right; opacity: 0.7;">
+                                ${timeStr}
+                            </div>
                         `;
                         adminChatMessagesBody.appendChild(bubble);
                         adminLastMessageId = msg.id;
@@ -2088,17 +2134,20 @@ adminReplyInput.addEventListener('keydown', (e) => {
     }
 });
 
-// Setup admin listeners
-document.getElementById('modalAdminLiveChat').addEventListener('show.bs.modal', () => {
-    fetchAdminChatThreads();
-    adminThreadsInterval = setInterval(fetchAdminChatThreads, 4000);
-    adminMessagesInterval = setInterval(fetchThreadMessages, 3000);
-});
+// Setup admin offcanvas listeners
+const offcanvasChatEl = document.getElementById('offcanvasAdminLiveChat');
+if (offcanvasChatEl) {
+    offcanvasChatEl.addEventListener('show.bs.offcanvas', () => {
+        fetchAdminChatThreads();
+        adminThreadsInterval = setInterval(fetchAdminChatThreads, 4000);
+        adminMessagesInterval = setInterval(fetchThreadMessages, 3000);
+    });
 
-document.getElementById('modalAdminLiveChat').addEventListener('hide.bs.modal', () => {
-    if (adminThreadsInterval) clearInterval(adminThreadsInterval);
-    if (adminMessagesInterval) clearInterval(adminMessagesInterval);
-});
+    offcanvasChatEl.addEventListener('hide.bs.offcanvas', () => {
+        if (adminThreadsInterval) clearInterval(adminThreadsInterval);
+        if (adminMessagesInterval) clearInterval(adminMessagesInterval);
+    });
+}
 
 // Initialize polling for thread badge counts (global badge)
 setInterval(fetchAdminChatThreads, 15000);
