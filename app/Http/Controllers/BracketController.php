@@ -1117,13 +1117,6 @@ class BracketController extends Controller
     public function deleteAllYmdSlots($season_id)
     {
         $season = Season::findOrFail($season_id);
-        if ($season->is_bracket_locked) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
-            ], 423);
-        }
-
         try {
             self::ensureBaselineSnapshot($season_id);
             DB::beginTransaction();
@@ -1136,6 +1129,11 @@ class BracketController extends Controller
             $count = $ymdTeams->count();
             
             foreach ($ymdTeams as $team) {
+                // Pastikan snapshot nama tim tersimpan di semua bracket sebelum status diubah atau dihapus
+                Bracket::where('team1_id', $team->id)->whereNull('team1_name_snapshot')->update(['team1_name_snapshot' => $team->name]);
+                Bracket::where('team2_id', $team->id)->whereNull('team2_name_snapshot')->update(['team2_name_snapshot' => $team->name]);
+                Bracket::where('winner_id', $team->id)->whereNull('winner_name_snapshot')->update(['winner_name_snapshot' => $team->name]);
+
                 // Periksa apakah tim ini sudah terpasang di bagan pertandingan
                 $inBracket = Bracket::where('season_id', $season_id)
                     ->where(function($q) use ($team) {
@@ -2156,6 +2154,11 @@ class BracketController extends Controller
      */
     public static function fixOrphanBracketData($seasonId)
     {
+        $season = Season::find($seasonId);
+        if ($season && $season->is_bracket_locked) {
+            return;
+        }
+
         $brackets = Bracket::where('season_id', $seasonId)->get();
         if ($brackets->isEmpty()) return;
 
@@ -2184,16 +2187,22 @@ class BracketController extends Controller
                     
                     $changed = false;
                     if ($m->team1_id !== $validT1) {
-                        $m->team1_id = $validT1;
-                        $changed = true;
+                        if (!($validT1 === null && !empty($m->team1_name_snapshot))) {
+                            $m->team1_id = $validT1;
+                            $changed = true;
+                        }
                     }
                     if ($m->team2_id !== $validT2) {
-                        $m->team2_id = $validT2;
-                        $changed = true;
+                        if (!($validT2 === null && !empty($m->team2_name_snapshot))) {
+                            $m->team2_id = $validT2;
+                            $changed = true;
+                        }
                     }
 
                     if ($changed) {
-                        if (!$m->team1_id || !$m->team2_id || $m->team1_id == $m->team2_id) {
+                        $hasAnyT1 = !empty($m->team1_id) || !empty($m->team1_name_snapshot);
+                        $hasAnyT2 = !empty($m->team2_id) || !empty($m->team2_name_snapshot);
+                        if (!$hasAnyT1 || !$hasAnyT2 || ($m->team1_id && $m->team1_id == $m->team2_id)) {
                             $m->winner_id = null;
                             $m->team1_score = 0;
                             $m->team2_score = 0;
@@ -2228,16 +2237,22 @@ class BracketController extends Controller
 
                 $changed = false;
                 if ($m->team1_id !== $validT1) {
-                    $m->team1_id = $validT1;
-                    $changed = true;
+                    if (!($validT1 === null && !empty($m->team1_name_snapshot))) {
+                        $m->team1_id = $validT1;
+                        $changed = true;
+                    }
                 }
                 if ($m->team2_id !== $validT2) {
-                    $m->team2_id = $validT2;
-                    $changed = true;
+                    if (!($validT2 === null && !empty($m->team2_name_snapshot))) {
+                        $m->team2_id = $validT2;
+                        $changed = true;
+                    }
                 }
 
                 if ($changed) {
-                    if (!$m->team1_id || !$m->team2_id || $m->team1_id == $m->team2_id) {
+                    $hasAnyT1 = !empty($m->team1_id) || !empty($m->team1_name_snapshot);
+                    $hasAnyT2 = !empty($m->team2_id) || !empty($m->team2_name_snapshot);
+                    if (!$hasAnyT1 || !$hasAnyT2 || ($m->team1_id && $m->team1_id == $m->team2_id)) {
                         $m->winner_id = null;
                         $m->team1_score = 0;
                         $m->team2_score = 0;

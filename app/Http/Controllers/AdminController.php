@@ -741,6 +741,12 @@ class AdminController extends Controller
         if (!Auth::check()) return redirect()->route('admin.login');
         $team = Team::findOrFail($id);
         $teamName = $team->name;
+
+        // Freeze team name snapshots into brackets before deleting from database
+        \App\Models\Bracket::where('team1_id', $team->id)->whereNull('team1_name_snapshot')->update(['team1_name_snapshot' => $teamName]);
+        \App\Models\Bracket::where('team2_id', $team->id)->whereNull('team2_name_snapshot')->update(['team2_name_snapshot' => $teamName]);
+        \App\Models\Bracket::where('winner_id', $team->id)->whereNull('winner_name_snapshot')->update(['winner_name_snapshot' => $teamName]);
+
         $team->delete();
         AdminActivity::log('Menghapus tim: ' . $teamName);
         return back()->with('success', 'Tim berhasil dihapus!');
@@ -750,6 +756,14 @@ class AdminController extends Controller
     {
         if (!Auth::check()) return redirect()->route('admin.login');
         $season = Season::findOrFail($season_id);
+
+        $teams = Team::where('season_id', $season_id)->get();
+        foreach ($teams as $t) {
+            \App\Models\Bracket::where('team1_id', $t->id)->whereNull('team1_name_snapshot')->update(['team1_name_snapshot' => $t->name]);
+            \App\Models\Bracket::where('team2_id', $t->id)->whereNull('team2_name_snapshot')->update(['team2_name_snapshot' => $t->name]);
+            \App\Models\Bracket::where('winner_id', $t->id)->whereNull('winner_name_snapshot')->update(['winner_name_snapshot' => $t->name]);
+        }
+
         Team::where('season_id', $season_id)->delete();
         AdminActivity::log('Menghapus semua tim di season: ' . $season->name);
         return back()->with('success', 'Semua tim berhasil dihapus!');
@@ -983,6 +997,12 @@ class AdminController extends Controller
     {
         $ids = json_decode($request->team_ids);
         if ($ids) {
+            $teams = Team::whereIn('id', $ids)->get();
+            foreach ($teams as $t) {
+                \App\Models\Bracket::where('team1_id', $t->id)->whereNull('team1_name_snapshot')->update(['team1_name_snapshot' => $t->name]);
+                \App\Models\Bracket::where('team2_id', $t->id)->whereNull('team2_name_snapshot')->update(['team2_name_snapshot' => $t->name]);
+                \App\Models\Bracket::where('winner_id', $t->id)->whereNull('winner_name_snapshot')->update(['winner_name_snapshot' => $t->name]);
+            }
             Team::whereIn('id', $ids)->delete();
             AdminActivity::log('Menghapus massal ' . count($ids) . ' tim');
             return back()->with('success', count($ids) . ' tim berhasil dihapus.');

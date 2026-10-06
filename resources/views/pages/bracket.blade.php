@@ -926,7 +926,7 @@
         foreach ($rounds as $rNum => $rMatches) {
             $startNumbers[$rNum] = $currentStart;
             if ($rNum === 1) {
-                $realR1Matches = $rMatches->filter(fn($m) => $m->team1_id && $m->team2_id);
+                $realR1Matches = $rMatches->filter(fn($m) => ($m->team1_id || $m->team1_name_snapshot) && ($m->team2_id || $m->team2_name_snapshot));
                 $currentStart += $realR1Matches->count();
             } else {
                 $currentStart += $rMatches->count();
@@ -954,8 +954,13 @@
             <div class="bracket-round">
                 @foreach($columnMatches as $match)
                     @php
-                        // Skip render di Babak 1 jika match tidak memiliki 2 tim bertanding (BYE atau slot kosong)
-                        $isByeMatch = ($roundNum === 1 && (!$match->team1_id || !$match->team2_id));
+                        $pubT1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
+                        $pubT2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
+
+                        // Match di Babak 1 hanya di-skip jika BENAR-BENAR kosong
+                        $hasTeam1 = !empty($match->team1_id) || !empty($pubT1Name);
+                        $hasTeam2 = !empty($match->team2_id) || !empty($pubT2Name);
+                        $isByeMatch = ($roundNum === 1 && (!$hasTeam1 || !$hasTeam2));
                         
                         $totalPosInCol = ($roundNum === 1) ? $treeSlotsR1 : $matchesCount;
                         $slotHeight = $roundHeight / $totalPosInCol;
@@ -993,8 +998,11 @@
                             @php
                                 $t1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
                                 $t2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
+                                $isT1Winner = ($match->winner_id && $match->winner_id === $match->team1_id) || (!empty($match->winner_name_snapshot) && $t1Name && $match->winner_name_snapshot === $t1Name);
+                                $isT2Winner = ($match->winner_id && $match->winner_id === $match->team2_id) || (!empty($match->winner_name_snapshot) && $t2Name && $match->winner_name_snapshot === $t2Name);
+                                $hasWinner = !empty($match->winner_id) || !empty($match->winner_name_snapshot);
                             @endphp
-                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
+                            <div class="team-row {{ $isT1Winner ? 'winner' : ($hasWinner && $isT2Winner ? 'loser' : '') }}" data-team-id="{{ $match->team1_id ?? '' }}">
                                 <div class="team-info">
                                     @if($t1Name)
                                         <span class="team-name">{{ $t1Name }}</span>
@@ -1005,7 +1013,7 @@
                                 <span class="team-score-box">{{ $match->team1_score }}</span>
                             </div>
 
-                            <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
+                            <div class="team-row {{ $isT2Winner ? 'winner' : ($hasWinner && $isT1Winner ? 'loser' : '') }}" data-team-id="{{ $match->team2_id ?? '' }}">
                                 <div class="team-info">
                                     @if($t2Name)
                                         <span class="team-name">{{ $t2Name }}</span>
@@ -1030,7 +1038,9 @@
                             @php
                                 // Skip connector untuk posisi BYE/kosong di Babak 1
                                 $matchAtConnPos = ($roundNum === 1) ? $columnMatches->firstWhere('match_number', $m) : null;
-                                $isByeConnPos = ($roundNum === 1 && (!$matchAtConnPos || !$matchAtConnPos->team1_id || !$matchAtConnPos->team2_id));
+                                $hasConnT1 = $matchAtConnPos && (!empty($matchAtConnPos->team1_id) || !empty($matchAtConnPos->team1_name_snapshot));
+                                $hasConnT2 = $matchAtConnPos && (!empty($matchAtConnPos->team2_id) || !empty($matchAtConnPos->team2_name_snapshot));
+                                $isByeConnPos = ($roundNum === 1 && (!$hasConnT1 || !$hasConnT2));
                                 $nextMatchIndex = ceil($m / 2);
                                 $startY = ($roundHeight / $connSlotsCount) * ($m - 0.5);
                                 $endY = ($roundHeight / $nextColSlotsCount) * ($nextMatchIndex - 0.5);
@@ -1051,8 +1061,11 @@
                             @php
                                 $bt1Name = $bronzeMatch->team1_name_snapshot ?? ($bronzeMatch->team1 ? $bronzeMatch->team1->name : null);
                                 $bt2Name = $bronzeMatch->team2_name_snapshot ?? ($bronzeMatch->team2 ? $bronzeMatch->team2->name : null);
+                                $isBt1Winner = ($bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id) || (!empty($bronzeMatch->winner_name_snapshot) && $bt1Name && $bronzeMatch->winner_name_snapshot === $bt1Name);
+                                $isBt2Winner = ($bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id) || (!empty($bronzeMatch->winner_name_snapshot) && $bt2Name && $bronzeMatch->winner_name_snapshot === $bt2Name);
+                                $hasBtWinner = !empty($bronzeMatch->winner_id) || !empty($bronzeMatch->winner_name_snapshot);
                             @endphp
-                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
+                            <div class="team-row {{ $isBt1Winner ? 'winner' : ($hasBtWinner && $isBt2Winner ? 'loser' : '') }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
                                 <div class="team-info">
                                     @if($bt1Name)
                                         <span class="team-name">{{ $bt1Name }}</span>
@@ -1063,7 +1076,7 @@
                                 <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
                             </div>
 
-                            <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
+                            <div class="team-row {{ $isBt2Winner ? 'winner' : ($hasBtWinner && $isBt1Winner ? 'loser' : '') }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
                                 <div class="team-info">
                                     @if($bt2Name)
                                         <span class="team-name">{{ $bt2Name }}</span>
@@ -1249,8 +1262,11 @@
                     if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
                     elseif ($b->round_number == $tr2 - 1 && $tr2 > 1) { $rLabel = 'Semifinal'; }
                     else { $rLabel = 'Babak ' . $b->round_number; }
-                    $status1 = $b->winner_id === $b->team1_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
-                    $status2 = $b->winner_id === $b->team2_id ? 'Lolos' : ($b->winner_id ? 'Kalah' : 'Belum Main');
+                    $isT1Winner = ($b->winner_id && $b->winner_id === $b->team1_id) || (!empty($b->winner_name_snapshot) && $t1n && $b->winner_name_snapshot === $t1n);
+                    $isT2Winner = ($b->winner_id && $b->winner_id === $b->team2_id) || (!empty($b->winner_name_snapshot) && $t2n && $b->winner_name_snapshot === $t2n);
+                    $hasWinner = !empty($b->winner_id) || !empty($b->winner_name_snapshot);
+                    $status1 = $isT1Winner ? 'Lolos' : ($hasWinner && $isT2Winner ? 'Kalah' : 'Belum Main');
+                    $status2 = $isT2Winner ? 'Lolos' : ($hasWinner && $isT1Winner ? 'Kalah' : 'Belum Main');
                     $scheduleStr = $b->match_time ?? '20:00 WIB';
                 @endphp
                 {
@@ -2399,7 +2415,11 @@
                                 const scoreSpan1 = row1.querySelector('.team-score-box');
                                 if (scoreSpan1) scoreSpan1.textContent = m.team1_score ?? 0;
 
-                                row1.className = `team-row ${m.winner_id && m.winner_id === m.team1_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team1_id ? 'loser' : ''}`;
+                                const isT1Win = (m.winner_id && m.winner_id === m.team1_id) || (m.winner_name && m.team1_name && m.winner_name === m.team1_name);
+                                const isT2Win = (m.winner_id && m.winner_id === m.team2_id) || (m.winner_name && m.team2_name && m.winner_name === m.team2_name);
+                                const hasWin = m.winner_id || m.winner_name;
+
+                                row1.className = `team-row ${isT1Win ? 'winner' : (hasWin && isT2Win ? 'loser' : '')}`;
                             }
 
                             // 3. Update Team 2 row (name, score, winner/loser class)
@@ -2419,7 +2439,11 @@
                                 const scoreSpan2 = row2.querySelector('.team-score-box');
                                 if (scoreSpan2) scoreSpan2.textContent = m.team2_score ?? 0;
 
-                                row2.className = `team-row ${m.winner_id && m.winner_id === m.team2_id ? 'winner' : ''} ${m.winner_id && m.winner_id !== m.team2_id ? 'loser' : ''}`;
+                                const isT1Win = (m.winner_id && m.winner_id === m.team1_id) || (m.winner_name && m.team1_name && m.winner_name === m.team1_name);
+                                const isT2Win = (m.winner_id && m.winner_id === m.team2_id) || (m.winner_name && m.team2_name && m.winner_name === m.team2_name);
+                                const hasWin = m.winner_id || m.winner_name;
+
+                                row2.className = `team-row ${isT2Win ? 'winner' : (hasWin && isT1Win ? 'loser' : '')}`;
                             }
                         });
 
@@ -2431,6 +2455,12 @@
                                 const scheduleStr = b.match_time || '20:00 WIB';
                                 if (b.team1_name && b.team2_name) {
                                     const bracketNum = (typeof startNumbers !== 'undefined' && startNumbers[b.round_number] ? startNumbers[b.round_number] : 1) + (b.match_number - 1);
+                                    const isT1Win = (b.winner_id && b.winner_id === b.team1_id) || (b.winner_name && b.team1_name && b.winner_name === b.team1_name);
+                                    const isT2Win = (b.winner_id && b.winner_id === b.team2_id) || (b.winner_name && b.team2_name && b.winner_name === b.team2_name);
+                                    const hasWin = b.winner_id || b.winner_name;
+                                    const status1 = isT1Win ? 'Lolos' : (hasWin && isT2Win ? 'Kalah' : 'Belum Main');
+                                    const status2 = isT2Win ? 'Lolos' : (hasWin && isT1Win ? 'Kalah' : 'Belum Main');
+
                                     matchesData.push({
                                         teamKey: b.team1_name.toLowerCase(),
                                         name: b.team1_name,
@@ -2439,7 +2469,7 @@
                                         schedule: scheduleStr,
                                         bracket: "Bracket " + bracketNum,
                                         round: roundName,
-                                        status: b.winner_id === b.team1_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
+                                        status: status1,
                                         cardId: "card_m_" + b.round_number + "_" + b.match_number
                                     });
                                     matchesData.push({
@@ -2450,7 +2480,7 @@
                                         schedule: scheduleStr,
                                         bracket: "Bracket " + bracketNum,
                                         round: roundName,
-                                        status: b.winner_id === b.team2_id ? 'Lolos' : (b.winner_id ? 'Kalah' : 'Belum Main'),
+                                        status: status2,
                                         cardId: "card_m_" + b.round_number + "_" + b.match_number
                                     });
                                 } else if (b.team1_name && !b.team2_name && b.round_number === 1) {

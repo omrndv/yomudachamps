@@ -376,7 +376,7 @@
                 foreach ($rounds as $rNum => $rMatches) {
                     $startNumbers[$rNum] = $currentStart;
                     if ($rNum === 1) {
-                        $realR1Matches = $rMatches->filter(fn($m) => $m->team1_id && $m->team2_id);
+                        $realR1Matches = $rMatches->filter(fn($m) => ($m->team1_id || $m->team1_name_snapshot) && ($m->team2_id || $m->team2_name_snapshot));
                         $currentStart += $realR1Matches->count();
                     } else {
                         $currentStart += $rMatches->count();
@@ -397,8 +397,13 @@
                     <div class="bracket-round" data-round-col="{{ $roundNum }}">
                         @foreach($columnMatches as $match)
                             @php
-                                // Skip render di Babak 1 jika match tidak memiliki 2 tim bertanding (BYE atau slot kosong)
-                                $isByeMatch = ($roundNum === 1 && (!$match->team1_id || !$match->team2_id));
+                                $admT1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
+                                $admT2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
+
+                                // Match di Babak 1 hanya di-skip jika BENAR-BENAR kosong (bukan match asli yang timnya dihapus)
+                                $hasTeam1 = !empty($match->team1_id) || !empty($admT1Name);
+                                $hasTeam2 = !empty($match->team2_id) || !empty($admT2Name);
+                                $isByeMatch = ($roundNum === 1 && (!$hasTeam1 || !$hasTeam2));
                                 
                                 $totalPosInCol = ($roundNum === 1) ? $treeSlotsR1 : $matchesCount;
                                 $slotHeight = $roundHeight / $totalPosInCol;
@@ -410,11 +415,6 @@
                                 } else {
                                     $badgeNumber = $startNumbers[$roundNum] + ($match->match_number - 1);
                                 }
-                            @endphp
-
-                            @php
-                                $admT1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
-                                $admT2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
                             @endphp
 
                             @if(!$isByeMatch)
@@ -444,8 +444,14 @@
                                         </span>
                                     </div>
 
+                                    @php
+                                        $isT1Winner = ($match->winner_id && $match->winner_id === $match->team1_id) || (!empty($match->winner_name_snapshot) && $admT1Name && $match->winner_name_snapshot === $admT1Name);
+                                        $isT2Winner = ($match->winner_id && $match->winner_id === $match->team2_id) || (!empty($match->winner_name_snapshot) && $admT2Name && $match->winner_name_snapshot === $admT2Name);
+                                        $hasWinner = !empty($match->winner_id) || !empty($match->winner_name_snapshot);
+                                    @endphp
+
                                     {{-- Team 1 Row --}}
-                                    <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
+                                    <div class="team-row {{ $isT1Winner ? 'winner' : ($hasWinner && $isT2Winner ? 'loser' : '') }}"
                                          data-team-id="{{ $match->team1_id ?? '' }}"
                                          data-team-name="{{ strtolower($admT1Name ?? '') }}"
                                          data-team-wa="{{ $match->team1 ? strtolower($match->team1->wa_number) : '' }}"
@@ -467,7 +473,7 @@
                                     </div>
 
                                     {{-- Team 2 Row --}}
-                                    <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
+                                    <div class="team-row {{ $isT2Winner ? 'winner' : ($hasWinner && $isT1Winner ? 'loser' : '') }}"
                                          data-team-id="{{ $match->team2_id ?? '' }}"
                                          data-team-name="{{ strtolower($admT2Name ?? '') }}"
                                          data-team-wa="{{ $match->team2 ? strtolower($match->team2->wa_number) : '' }}"
@@ -502,7 +508,9 @@
                                     @php
                                         // Skip connector untuk posisi BYE/kosong di Babak 1
                                         $matchAtConnPos = ($roundNum === 1) ? $columnMatches->firstWhere('match_number', $m) : null;
-                                        $isByeConnPos = ($roundNum === 1 && (!$matchAtConnPos || !$matchAtConnPos->team1_id || !$matchAtConnPos->team2_id));
+                                        $hasConnT1 = $matchAtConnPos && (!empty($matchAtConnPos->team1_id) || !empty($matchAtConnPos->team1_name_snapshot));
+                                        $hasConnT2 = $matchAtConnPos && (!empty($matchAtConnPos->team2_id) || !empty($matchAtConnPos->team2_name_snapshot));
+                                        $isByeConnPos = ($roundNum === 1 && (!$hasConnT1 || !$hasConnT2));
                                         $nextMatchIndex = ceil($m / 2);
                                         $startY = ($roundHeight / $connSlotsCount) * ($m - 0.5);
                                         $endY = ($roundHeight / $nextColSlotsCount) * ($nextMatchIndex - 0.5);
@@ -538,8 +546,14 @@
                                          'team2_exists' => (bool)$bronzeMatch->team2_id
                                      ]) . ')' }}">
                                     
+                                    @php
+                                        $isBt1Winner = ($bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id) || (!empty($bronzeMatch->winner_name_snapshot) && $admBt1Name && $bronzeMatch->winner_name_snapshot === $admBt1Name);
+                                        $isBt2Winner = ($bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id) || (!empty($bronzeMatch->winner_name_snapshot) && $admBt2Name && $bronzeMatch->winner_name_snapshot === $admBt2Name);
+                                        $hasBtWinner = !empty($bronzeMatch->winner_id) || !empty($bronzeMatch->winner_name_snapshot);
+                                    @endphp
+
                                     {{-- Team 1 Row --}}
-                                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
+                                    <div class="team-row {{ $isBt1Winner ? 'winner' : ($hasBtWinner && $isBt2Winner ? 'loser' : '') }}"
                                          data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
                                          data-team-name="{{ strtolower($admBt1Name ?? '') }}"
                                          data-team-wa="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->wa_number) : '' }}"
@@ -557,7 +571,7 @@
                                     </div>
 
                                     {{-- Team 2 Row --}}
-                                    <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
+                                    <div class="team-row {{ $isBt2Winner ? 'winner' : ($hasBtWinner && $isBt1Winner ? 'loser' : '') }}"
                                          data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
                                          data-team-name="{{ strtolower($admBt2Name ?? '') }}"
                                          data-team-wa="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->wa_number) : '' }}"
