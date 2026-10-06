@@ -2100,21 +2100,35 @@ function fetchThreadMessages() {
                         const bubble = document.createElement('div');
                         bubble.className = `text-white small admin-chat-bubble ${msg.is_admin ? 'bubble-admin text-end' : 'bubble-user'}`;
                         
-                        let displayContent = msg.message;
-                        if (msg.message.startsWith('[IMAGE]:')) {
+                        const isImage = msg.message.startsWith('[IMAGE]:');
+                        let contentHtml = '';
+
+                        if (isImage) {
                             const imgUrl = msg.message.substring(8);
-                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1 chat-img-thumb" style="display: block;" onclick="openChatImageModal('${imgUrl}')" onload="const c = document.getElementById('adminChatMessagesBody'); if (c) c.scrollTop = c.scrollHeight;">`;
+                            contentHtml = `
+                                <div class="p-1">
+                                    <div class="fw-bold mb-1.5 d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.68rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
+                                        <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
+                                    </div>
+                                    <img src="${imgUrl}" class="img-fluid rounded-3 chat-img-thumb w-100" style="display: block;" onclick="openChatImageModal('${imgUrl}')" onload="const c = document.getElementById('adminChatMessagesBody'); if (c) c.scrollTop = c.scrollHeight;">
+                                    <div class="mt-1.5 pe-1 text-white-50" style="font-size: 0.62rem; text-align: right; opacity: 0.8;">
+                                        ${timeStr}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            contentHtml = `
+                                <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.68rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
+                                    <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
+                                </div>
+                                <div class="mt-1" style="word-break: break-word; line-height: 1.5; font-size: 0.83rem; text-align: left;">${msg.message}</div>
+                                <div class="mt-1 text-white-50" style="font-size: 0.62rem; text-align: right; opacity: 0.75;">
+                                    ${timeStr}
+                                </div>
+                            `;
                         }
 
-                        bubble.innerHTML = `
-                            <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.68rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
-                                <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
-                            </div>
-                            <div class="mt-1" style="word-break: break-word; line-height: 1.5; font-size: 0.83rem; text-align: left;">${displayContent}</div>
-                            <div class="mt-1 text-white-50" style="font-size: 0.62rem; text-align: right; opacity: 0.75;">
-                                ${timeStr}
-                            </div>
-                        `;
+                        bubble.innerHTML = contentHtml;
                         adminChatMessagesBody.appendChild(bubble);
                         adminLastMessageId = msg.id;
                         renderList = true;

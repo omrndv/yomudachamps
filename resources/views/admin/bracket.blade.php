@@ -1000,12 +1000,15 @@
         <!-- Right panel: Active Chat Thread -->
         <div class="flex-grow-1 d-flex flex-column h-100" style="background-color: #15161a; min-width: 0; min-height: 0;">
             <!-- Thread Header -->
-            <div class="p-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-shrink-0" style="background-color: #121316; min-height: 48px;">
+            <div class="px-3.5 py-2.5 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-shrink-0" style="background-color: #111215; min-height: 54px;">
                 <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
-                    <div id="adminActiveThreadTitle" class="fw-bold text-warning small text-truncate" style="font-size: 0.85rem;">Pilih percakapan</div>
+                    <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 26px; height: 26px; font-size: 0.72rem;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div id="adminActiveThreadTitle" class="fw-bold text-white small text-truncate" style="font-size: 0.88rem; letter-spacing: 0.2px;">Pilih percakapan</div>
                     <span id="adminThreadSessionToken" style="display:none;"></span>
                 </div>
-                <div class="d-flex gap-1.5 align-items-center flex-shrink-0">
+                <div class="d-flex gap-2 align-items-center flex-shrink-0">
                     <button id="adminBtnArchiveThread" class="btn btn-outline-warning btn-sm py-1 px-2.5 rounded-pill fw-bold" style="font-size: 0.68rem; display: none;" title="Arsipkan percakapan">
                         <i class="bi bi-archive-fill me-1"></i> Arsipkan
                     </button>
@@ -1019,7 +1022,7 @@
             </div>
             
             <!-- Messages Container -->
-            <div id="adminChatMessagesBody" class="flex-grow-1 px-3.5 py-3 overflow-y-auto d-flex flex-column" style="min-height: 0; gap: 10px; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.12) 0%, transparent 75%);">
+            <div id="adminChatMessagesBody" class="flex-grow-1 px-3.5 py-3.5 overflow-y-auto d-flex flex-column" style="min-height: 0; gap: 12px; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.12) 0%, transparent 75%);">
                 <div class="text-center text-secondary my-auto py-5 small px-3">
                     <i class="bi bi-chat-dots" style="font-size: 2.2rem; opacity: 0.6;"></i>
                     <p class="mt-2 text-white-50">Pilih salah satu user di panel kiri untuk membalas pertanyaan peserta.</p>
@@ -1027,28 +1030,28 @@
             </div>
 
             <!-- Quick Reply Chips Bar -->
-            <div id="adminQuickRepliesBar" class="px-3 py-2 border-top border-secondary border-opacity-15 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #101114; white-space: nowrap; display: none;">
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-2.5 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
+            <div id="adminQuickRepliesBar" class="px-3.5 py-2.5 border-top border-secondary border-opacity-15 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #0f1013; white-space: nowrap; display: none;">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
                     Tanya Tim
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-2.5 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Nomor WA kapten lawan ada di card bracket ya kak.')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Nomor WA kapten lawan ada di card bracket ya kak.')">
                     Cek WA Lawan
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-2.5 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Silakan kirimkan bukti screenshot skor pertandingannya di sini ya.')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Silakan kirimkan bukti screenshot skor pertandingannya di sini ya.')">
                     Minta Screenshot
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-2.5 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Baik kak, laporan sedang kami verifikasi. Mohon ditunggu ya!')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.72rem;" onclick="insertAdminQuickReply('Baik kak, laporan sedang kami verifikasi. Mohon ditunggu ya!')">
                     Sedang Diproses
                 </button>
             </div>
             
             <!-- Bottom Input Bar -->
-            <div class="p-2.5 px-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center flex-shrink-0" style="background-color: #0b0c0e;">
+            <div class="p-3 px-3.5 border-top border-secondary border-opacity-25 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #090a0c;">
                 <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
                     <i class="bi bi-camera-fill" style="font-size: 1.05rem;"></i>
                 </button>
                 <input type="file" id="adminFileInput" accept="image/*" style="display: none;">
-                <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none py-2 px-3" style="font-size: 0.85rem;" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
+                <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none py-2 px-3.5" style="font-size: 0.85rem;" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
                 <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;" disabled title="Kirim">
                     <i class="bi bi-send-fill text-dark" style="font-size: 0.95rem;"></i>
                 </button>
