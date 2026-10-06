@@ -20,10 +20,16 @@ class Season extends Model
         'rules_link',
         'schedule_info',
         'is_bracket_visible',
+        'is_bracket_locked',
         'manual_juara1',
         'manual_juara2',
         'manual_juara3',
         'manual_juara4'
+    ];
+
+    protected $casts = [
+        'is_bracket_visible' => 'boolean',
+        'is_bracket_locked' => 'boolean',
     ];
 
     public function teams(): HasMany

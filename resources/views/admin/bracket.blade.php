@@ -31,6 +31,14 @@
     .search-box-season i {
         color: #94a3b8;
     }
+    .bracket-locked-card {
+        cursor: default !important;
+        opacity: 0.95;
+    }
+    .bracket-locked-card:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
 </style>
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
@@ -105,11 +113,17 @@
                     <button type="button" class="btn {{ $season->manual_juara1 ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalManualWinners">
                         <i class="bi bi-trophy-fill me-1"></i> {{ $season->manual_juara1 ? '🏆 Juara Manual (Aktif)' : 'Input Juara Manual' }}
                     </button>
-                    
+
                     @if($brackets->count() > 0)
-                        <form action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" onsubmit="return confirm('PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?')" class="d-inline">
+                        {{-- Tombol Selesai & Kunci Bagan --}}
+                        <button type="button" class="btn {{ $season->is_bracket_locked ? 'btn-dark border border-warning text-warning' : 'btn-success text-white' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" id="btnToggleBracketLock" onclick="toggleBracketLockAction()">
+                            <i class="bi {{ $season->is_bracket_locked ? 'bi-lock-fill text-warning' : 'bi-check2-circle' }} me-1"></i>
+                            <span id="btnBracketLockText">{{ $season->is_bracket_locked ? '🔒 Bagan Terkunci (Selesai)' : '✅ Selesai & Kunci Bagan' }}</span>
+                        </button>
+
+                        <form id="formResetBracket" action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
+                            <button type="button" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" onclick="confirmResetBracket({{ $season->is_bracket_locked ? 'true' : 'false' }})">
                                 <i class="bi bi-arrow-clockwise me-1"></i> Reset & Acak Ulang
                             </button>
                         </form>
@@ -144,6 +158,29 @@
             </div>
         </div>
     @else
+        {{-- Banner Status Bagan Terkunci --}}
+        <div id="bracketLockedBanner" class="alert alert-dark border border-warning border-opacity-50 rounded-4 shadow-sm p-3 mb-4 {{ $season->is_bracket_locked ? '' : 'd-none' }}" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-white">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-20 text-warning rounded-circle" style="width: 42px; height: 42px;">
+                        <i class="bi bi-lock-fill fs-5"></i>
+                    </span>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
+                            Bagan Turnamen Telah Dikunci (Selesai & Permanen)
+                            <span class="badge bg-warning text-dark rounded-pill fw-bold" style="font-size: 0.6rem;">READ-ONLY</span>
+                        </h6>
+                        <small class="text-white-50">Data nama tim dan juara telah dibekukan. Nama tim di bagan ini tidak akan berubah meskipun di daftar peserta dihapus atau diedit.</small>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3" onclick="toggleBracketLockAction()">
+                        <i class="bi bi-unlock-fill me-1"></i> Buka Kunci untuk Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {{-- Controls Panel --}}
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
             <div class="row g-3 align-items-center">
@@ -285,21 +322,26 @@
                                 }
                             @endphp
 
+                            @php
+                                $admT1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
+                                $admT2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
+                            @endphp
+
                             @if(!$isByeMatch)
-                                <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }}" 
+                                <div class="match-card {{ $match->status === 'live' ? 'border-primary' : '' }} {{ $season->is_bracket_locked ? 'bracket-locked-card' : '' }}" 
                                      id="card_m_{{ $match->round_number }}_{{ $match->match_number }}"
-                                     style="position: absolute; top: {{ $cardTop }}px;"
-                                     onclick="openEditMatchModal({{ json_encode([
+                                     style="position: absolute; top: {{ $cardTop }}px; {{ $season->is_bracket_locked ? 'cursor: default;' : '' }}"
+                                     onclick="{{ $season->is_bracket_locked ? '' : 'openEditMatchModal(' . json_encode([
                                          'id' => $match->id,
-                                         'team1_name' => $match->team1 ? $match->team1->name : 'TBD',
-                                         'team2_name' => $match->team2 ? $match->team2->name : 'TBD',
+                                         'team1_name' => $admT1Name ?? 'TBD',
+                                         'team2_name' => $admT2Name ?? 'TBD',
                                          'team1_score' => $match->team1_score,
                                          'team2_score' => $match->team2_score,
                                          'match_time' => $match->match_time ?? '20:00 WIB',
                                          'status' => $match->status,
                                          'team1_exists' => (bool)$match->team1_id,
                                          'team2_exists' => (bool)$match->team2_id
-                                     ]) }})">
+                                     ]) . ')' }}">
                                     
                                     <div class="match-card-header">
                                         <span>BRACKET {{ $badgeNumber }}</span>
@@ -315,21 +357,21 @@
                                     {{-- Team 1 Row --}}
                                     <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}"
                                          data-team-id="{{ $match->team1_id ?? '' }}"
-                                         data-team-name="{{ $match->team1 ? strtolower($match->team1->name) : '' }}"
+                                         data-team-name="{{ strtolower($admT1Name ?? '') }}"
                                          data-team-wa="{{ $match->team1 ? strtolower($match->team1->wa_number) : '' }}"
                                          data-match-id="{{ $match->id }}"
                                          data-slot="1"
                                          data-round="{{ $match->round_number }}"
-                                         @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
+                                         @if(!$season->is_bracket_locked && $match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                          <div class="team-info">
-                                            @if($match->team1)
-                                                <span class="team-name fw-semibold">{{ $match->team1->name }}</span>
+                                            @if($admT1Name)
+                                                <span class="team-name fw-semibold">{{ $admT1Name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
                                         </div>
-                                        @if($match->team1_id && $match->status !== 'finished')
-                                            <button type="button" class="btn-quick-win btn-quick-win-t1" title="Loloskan {{ $match->team1->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team1_id }}, '{{ addslashes($match->team1->name) }}')"><i class="bi bi-trophy-fill"></i></button>
+                                        @if(!$season->is_bracket_locked && $match->team1_id && $match->status !== 'finished')
+                                            <button type="button" class="btn-quick-win btn-quick-win-t1" title="Loloskan {{ $admT1Name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team1_id }}, '{{ addslashes($admT1Name) }}')"><i class="bi bi-trophy-fill"></i></button>
                                         @endif
                                         <span class="team-score-box">{{ $match->team1_score }}</span>
                                     </div>
@@ -337,21 +379,21 @@
                                     {{-- Team 2 Row --}}
                                     <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}"
                                          data-team-id="{{ $match->team2_id ?? '' }}"
-                                         data-team-name="{{ $match->team2 ? strtolower($match->team2->name) : '' }}"
+                                         data-team-name="{{ strtolower($admT2Name ?? '') }}"
                                          data-team-wa="{{ $match->team2 ? strtolower($match->team2->wa_number) : '' }}"
                                          data-match-id="{{ $match->id }}"
                                          data-slot="2"
                                          data-round="{{ $match->round_number }}"
-                                         @if($match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
+                                         @if(!$season->is_bracket_locked && $match->round_number === 1 && $match->status !== 'finished') draggable="true" @endif>
                                          <div class="team-info">
-                                            @if($match->team2)
-                                                <span class="team-name fw-semibold">{{ $match->team2->name }}</span>
+                                            @if($admT2Name)
+                                                <span class="team-name fw-semibold">{{ $admT2Name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
                                         </div>
-                                        @if($match->team2_id && $match->status !== 'finished')
-                                            <button type="button" class="btn-quick-win btn-quick-win-t2" title="Loloskan {{ $match->team2->name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team2_id }}, '{{ addslashes($match->team2->name) }}')"><i class="bi bi-trophy-fill"></i></button>
+                                        @if(!$season->is_bracket_locked && $match->team2_id && $match->status !== 'finished')
+                                            <button type="button" class="btn-quick-win btn-quick-win-t2" title="Loloskan {{ $admT2Name }}" onclick="event.stopPropagation(); quickWinMatch({{ $match->id }}, {{ $match->team2_id }}, '{{ addslashes($admT2Name) }}')"><i class="bi bi-trophy-fill"></i></button>
                                         @endif
                                         <span class="team-score-box">{{ $match->team2_score }}</span>
                                     </div>
@@ -385,33 +427,38 @@
 
                         {{-- Render Bronze Match inside the final column --}}
                         @if($isFinalRound && $bronzeMatch)
+                            @php
+                                $admBt1Name = $bronzeMatch->team1_name_snapshot ?? ($bronzeMatch->team1 ? $bronzeMatch->team1->name : null);
+                                $admBt2Name = $bronzeMatch->team2_name_snapshot ?? ($bronzeMatch->team2 ? $bronzeMatch->team2->name : null);
+                            @endphp
                             <div class="bronze-match-wrapper">
                                 <div class="bronze-match-title">3rd Place Match</div>
-                                <div class="match-card {{ $bronzeMatch->status === 'live' ? 'border-primary' : '' }}" 
+                                <div class="match-card {{ $bronzeMatch->status === 'live' ? 'border-primary' : '' }} {{ $season->is_bracket_locked ? 'bracket-locked-card' : '' }}" 
                                      id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}"
-                                     onclick="openEditMatchModal({{ json_encode([
+                                     style="{{ $season->is_bracket_locked ? 'cursor: default;' : '' }}"
+                                     onclick="{{ $season->is_bracket_locked ? '' : 'openEditMatchModal(' . json_encode([
                                          'id' => $bronzeMatch->id,
-                                         'team1_name' => $bronzeMatch->team1 ? $bronzeMatch->team1->name : 'TBD',
-                                         'team2_name' => $bronzeMatch->team2 ? $bronzeMatch->team2->name : 'TBD',
+                                         'team1_name' => $admBt1Name ?? 'TBD',
+                                         'team2_name' => $admBt2Name ?? 'TBD',
                                          'team1_score' => $bronzeMatch->team1_score,
                                          'team2_score' => $bronzeMatch->team2_score,
                                          'match_time' => $bronzeMatch->match_time ?? '',
                                          'status' => $bronzeMatch->status,
                                          'team1_exists' => (bool)$bronzeMatch->team1_id,
                                          'team2_exists' => (bool)$bronzeMatch->team2_id
-                                     ]) }})">
+                                     ]) . ')' }}">
                                     
                                     {{-- Team 1 Row --}}
                                     <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}"
                                          data-team-id="{{ $bronzeMatch->team1_id ?? '' }}"
-                                         data-team-name="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->name) : '' }}"
+                                         data-team-name="{{ strtolower($admBt1Name ?? '') }}"
                                          data-team-wa="{{ $bronzeMatch->team1 ? strtolower($bronzeMatch->team1->wa_number) : '' }}"
                                          data-match-id="{{ $bronzeMatch->id }}"
                                          data-slot="1"
                                          data-round="{{ $bronzeMatch->round_number }}">
                                          <div class="team-info">
-                                            @if($bronzeMatch->team1)
-                                                <span class="team-name fw-semibold">{{ $bronzeMatch->team1->name }}</span>
+                                            @if($admBt1Name)
+                                                <span class="team-name fw-semibold">{{ $admBt1Name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
@@ -422,14 +469,14 @@
                                     {{-- Team 2 Row --}}
                                     <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}"
                                          data-team-id="{{ $bronzeMatch->team2_id ?? '' }}"
-                                         data-team-name="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->name) : '' }}"
+                                         data-team-name="{{ strtolower($admBt2Name ?? '') }}"
                                          data-team-wa="{{ $bronzeMatch->team2 ? strtolower($bronzeMatch->team2->wa_number) : '' }}"
                                          data-match-id="{{ $bronzeMatch->id }}"
                                          data-slot="2"
                                          data-round="{{ $bronzeMatch->round_number }}">
                                          <div class="team-info">
-                                            @if($bronzeMatch->team2)
-                                                <span class="team-name fw-semibold">{{ $bronzeMatch->team2->name }}</span>
+                                            @if($admBt2Name)
+                                                <span class="team-name fw-semibold">{{ $admBt2Name }}</span>
                                             @else
                                                 <span class="team-name text-muted italic">Belum Ada Tim</span>
                                             @endif
@@ -946,15 +993,22 @@ Jadi sebelum bertanya di grup, pastikan cek website terlebih dahulu ya, karena s
                                 $finalMatch = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 1)->first();
                                 $bronzeMatchObj = $brackets->where('round_number', $finalRoundNumber)->where('match_number', 2)->first();
 
-                                if ($finalMatch && $finalMatch->status === 'finished' && $finalMatch->winner) {
-                                    $juara1 = $finalMatch->winner->name;
-                                    $juara2 = ($finalMatch->winner_id == $finalMatch->team1_id) 
-                                        ? ($finalMatch->team2->name ?? '[Belum Ditentukan]') 
-                                        : ($finalMatch->team1->name ?? '[Belum Ditentukan]');
+                                if ($finalMatch && $finalMatch->status === 'finished') {
+                                    $finalWinnerName = $finalMatch->winner_name_snapshot ?: ($finalMatch->winner ? $finalMatch->winner->name : null);
+                                    if ($finalWinnerName) {
+                                        $juara1 = $finalWinnerName;
+                                        $isT1Winner = ($finalMatch->winner_id && $finalMatch->winner_id == $finalMatch->team1_id) || ($finalWinnerName === ($finalMatch->team1_name_snapshot ?? ($finalMatch->team1 ? $finalMatch->team1->name : null)));
+                                        $juara2 = $isT1Winner 
+                                            ? ($finalMatch->team2_name_snapshot ?? ($finalMatch->team2->name ?? '[Belum Ditentukan]'))
+                                            : ($finalMatch->team1_name_snapshot ?? ($finalMatch->team1->name ?? '[Belum Ditentukan]'));
+                                    }
                                 }
 
-                                if ($bronzeMatchObj && $bronzeMatchObj->status === 'finished' && $bronzeMatchObj->winner) {
-                                    $juara3 = $bronzeMatchObj->winner->name;
+                                if ($bronzeMatchObj && $bronzeMatchObj->status === 'finished') {
+                                    $bronzeWinnerName = $bronzeMatchObj->winner_name_snapshot ?: ($bronzeMatchObj->winner ? $bronzeMatchObj->winner->name : null);
+                                    if ($bronzeWinnerName) {
+                                        $juara3 = $bronzeWinnerName;
+                                    }
                                 }
                             }
                         @endphp

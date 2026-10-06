@@ -1,4 +1,5 @@
 <script>
+window.isBracketLocked = {{ $season->is_bracket_locked ? 'true' : 'false' }};
 let container = null;
 document.addEventListener('DOMContentLoaded', function() {
     container = document.getElementById('adminBracketContainer');
@@ -781,18 +782,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (scoreBox) scoreBox.textContent = m.team2_score;
                                 }
 
-                                // 5. Update open modal click handler payload
-                                card.setAttribute('onclick', `openEditMatchModal(${JSON.stringify({
-                                    id: m.id,
-                                    team1_name: m.team1_name || 'TBD',
-                                    team2_name: m.team2_name || 'TBD',
-                                    team1_score: m.team1_score,
-                                    team2_score: m.team2_score,
-                                    match_time: m.match_time || '20:00 WIB',
-                                    status: m.status,
-                                    team1_exists: !!m.team1_id,
-                                    team2_exists: !!m.team2_id
-                                })})`);
+                                // 5. Update open modal click handler payload & locked state
+                                if (window.isBracketLocked) {
+                                    card.removeAttribute('onclick');
+                                    card.style.cursor = 'default';
+                                    card.classList.add('bracket-locked-card');
+                                    card.querySelectorAll('.btn-quick-win').forEach(b => b.remove());
+                                    card.querySelectorAll('.team-row').forEach(tr => tr.removeAttribute('draggable'));
+                                } else {
+                                    card.style.cursor = 'pointer';
+                                    card.classList.remove('bracket-locked-card');
+                                    card.setAttribute('onclick', `openEditMatchModal(${JSON.stringify({
+                                        id: m.id,
+                                        team1_name: m.team1_name || 'TBD',
+                                        team2_name: m.team2_name || 'TBD',
+                                        team1_score: m.team1_score,
+                                        team2_score: m.team2_score,
+                                        match_time: m.match_time || '20:00 WIB',
+                                        status: m.status,
+                                        team1_exists: !!m.team1_id,
+                                        team2_exists: !!m.team2_id
+                                    })})`);
+                                }
                             }
                         });
                     }
@@ -1346,6 +1357,15 @@ function copyTeamsList() {
 // Function to populate and open Edit Modal
 function openEditMatchModal(match) {
     if (window.isDraggingBracket) return;
+    if (window.isBracketLocked) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Bagan Terkunci',
+            text: 'Bagan ini telah diselesaikan dan dikunci (Read-Only). Klik tombol "Buka Kunci" terlebih dahulu untuk mengedit skor atau jadwal.',
+            confirmButtonColor: '#f59e0b'
+        });
+        return;
+    }
     document.getElementById('modalMatchId').value = match.id;
     document.getElementById('modalT1Name').textContent = match.team1_name;
     document.getElementById('modalT2Name').textContent = match.team2_name;
@@ -1433,6 +1453,138 @@ document.getElementById('toggleBracketVisibility')?.addEventListener('change', f
         console.error('Toggle visibility error:', err);
     });
 });
+
+// ----------------------------------------------------
+// Bracket Lock & Finalize Feature (Selesai & Kunci Bagan)
+// ----------------------------------------------------
+function toggleBracketLockAction() {
+    const isCurrentlyLocked = window.isBracketLocked;
+    
+    if (!isCurrentlyLocked) {
+        Swal.fire({
+            title: 'Selesaikan & Kunci Bagan?',
+            html: `
+                <div class="text-start small">
+                    <p class="mb-2">Tindakan ini akan <b>membekukan nama tim & juara</b> di bagan ini secara permanen:</p>
+                    <ul class="ps-3 mb-2">
+                        <li>Bagan beralih ke mode <b>Read-Only</b> (skor, jadwal, dan posisi tim tidak dapat diubah).</li>
+                        <li>Nama tim di bagan dibekukan, sehingga jika ada tim yang dihapus/diedit di daftar peserta, <b>bagan tetap utuh</b>.</li>
+                        <li>Juara turnamen resmi tercatat.</li>
+                    </ul>
+                    <p class="text-warning mb-0"><b>Catatan:</b> Anda tetap dapat membuka kunci kembali sewaktu-waktu jika diperlukan revisi.</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Selesaikan & Kunci!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeToggleLock();
+            }
+        });
+    } else {
+        Swal.fire({
+            title: 'Buka Kunci Bagan?',
+            text: 'Membuka kunci bagan akan mengaktifkan kembali mode edit skor, drag-and-drop posisi tim, dan tombol kelola lainnya.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Buka Kunci',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeToggleLock();
+            }
+        });
+    }
+}
+
+function executeToggleLock() {
+    Swal.fire({
+        title: 'Memproses...',
+        text: 'Sedang memperbarui status bagan...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    fetch(`/admin/dashboard/{{ $season->id }}/bracket/toggle-lock`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            sessionStorage.setItem('admin_bracket_flash_msg', res.message);
+            window.location.reload();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: res.message || 'Terjadi kesalahan sistem.'
+            });
+        }
+    })
+    .catch(err => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Kesalahan Jaringan',
+            text: err.message
+        });
+    });
+}
+
+function confirmResetBracket(isLocked) {
+    if (isLocked) {
+        Swal.fire({
+            title: 'Bagan Sedang Terkunci!',
+            html: `
+                <div class="text-start small">
+                    <p class="mb-2 text-danger fw-bold">PERINGATAN KERAS!</p>
+                    <p class="mb-2">Bagan turnamen saat ini dalam keadaan <b>TERKUNCI & SELESAI</b>.</p>
+                    <p class="mb-2">Jika Anda melanjutkan <b>Reset & Acak Ulang</b>:</p>
+                    <ul class="ps-3 mb-2 text-danger">
+                        <li>Kunci bagan akan <b>DIBUKA otomatis</b>.</li>
+                        <li>Seluruh bagan pertandingan, riwayat skor, dan data juara saat ini akan <b>DIHAPUS BERSIH</b>.</li>
+                        <li>Bagan baru akan di-generate dan diacak dari awal untuk seluruh tim terdaftar.</li>
+                    </ul>
+                    <p class="text-muted mb-0">Apakah Anda benar-benar yakin ingin mereset total bagan ini?</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Buka Kunci & Reset Total!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formResetBracket').submit();
+            }
+        });
+    } else {
+        Swal.fire({
+            title: 'Reset & Acak Ulang Bagan?',
+            text: 'PERINGATAN! Generate ulang bagan akan MENGHAPUS semua skor dan data tanding yang sudah ada. Lanjutkan?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Reset Bagan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formResetBracket').submit();
+            }
+        });
+    }
+}
 
 // Admin Live Chat Dashboard Scripting
 // ----------------------------------------------------

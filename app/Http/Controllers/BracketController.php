@@ -102,6 +102,12 @@ class BracketController extends Controller
             // Snapshot state sebelum generate ulang
             self::recordBracketSnapshot($season_id, 'Sebelum Generate Ulang');
 
+            // Reset status kunci bagan jika sebelumnya terkunci
+            if ($season->is_bracket_locked) {
+                $season->is_bracket_locked = false;
+                $season->save();
+            }
+
             // Clear existing brackets for this season
             Bracket::where('season_id', $season_id)->delete();
 
@@ -426,6 +432,14 @@ class BracketController extends Controller
             'status' => 'required|in:upcoming,live,finished'
         ]);
 
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu untuk mengedit skor atau jadwal.'
+            ], 423);
+        }
+
         DB::beginTransaction();
         try {
             $match = Bracket::where('season_id', $season_id)->findOrFail($request->match_id);
@@ -504,6 +518,66 @@ class BracketController extends Controller
                 ? 'Bracket sekarang TERLIHAT oleh peserta.' 
                 : 'Bracket sekarang TERSEMBUNYI dari peserta.'
         ]);
+    }
+
+    /**
+     * Selesai & Kunci Bagan Turnamen (Freeze snapshots & lock updates)
+     */
+    public function toggleBracketLock($season_id)
+    {
+        $season = Season::findOrFail($season_id);
+        $newLockStatus = !$season->is_bracket_locked;
+
+        DB::beginTransaction();
+        try {
+            if ($newLockStatus) {
+                // Freezing name snapshots across all bracket matches
+                $brackets = Bracket::where('season_id', $season_id)
+                    ->with(['team1', 'team2', 'winner'])
+                    ->get();
+
+                if ($brackets->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bagan turnamen belum dibuat, tidak dapat dikunci.'
+                    ], 400);
+                }
+
+                foreach ($brackets as $b) {
+                    $b->team1_name_snapshot = $b->team1_name_snapshot ?: ($b->team1 ? $b->team1->name : null);
+                    $b->team2_name_snapshot = $b->team2_name_snapshot ?: ($b->team2 ? $b->team2->name : null);
+                    $b->winner_name_snapshot = $b->winner_name_snapshot ?: ($b->winner ? $b->winner->name : null);
+                    $b->save();
+                }
+
+                $season->is_bracket_locked = true;
+                $season->save();
+
+                self::recordBracketSnapshot($season_id, 'Kunci Bagan Turnamen');
+                $message = 'Bagan turnamen BERHASIL DISELESAIKAN & DIKUNCI! Data nama tim telah dibekukan secara permanen.';
+            } else {
+                $season->is_bracket_locked = false;
+                $season->save();
+
+                self::recordBracketSnapshot($season_id, 'Buka Kunci Bagan Turnamen');
+                $message = 'Kunci bagan turnamen DIBUKA. Admin dapat mengedit kembali skor dan pertandingan.';
+            }
+
+            DB::commit();
+            self::clearBracketCache($season_id);
+
+            return response()->json([
+                'success' => true,
+                'is_bracket_locked' => (bool)$season->is_bracket_locked,
+                'message' => $message
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah status kunci bagan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -659,6 +733,14 @@ class BracketController extends Controller
      */
     public function updateRoundTimes(Request $request, $season_id)
     {
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu untuk mengubah jadwal.'
+            ], 423);
+        }
+
         $request->validate([
             'round_number' => 'required|integer',
             'match_time' => 'required|string'
@@ -688,6 +770,14 @@ class BracketController extends Controller
             'match2_id' => 'required|exists:brackets,id',
             'slot2' => 'required|in:1,2'
         ]);
+
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu untuk menukar posisi tim.'
+            ], 423);
+        }
 
         DB::beginTransaction();
         try {
@@ -777,6 +867,12 @@ class BracketController extends Controller
         ]);
 
         $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
+            ], 423);
+        }
         
         $existingYmds = Team::where('season_id', $season_id)
             ->where('name', 'LIKE', 'YMD-%')
@@ -832,6 +928,14 @@ class BracketController extends Controller
             'new_name' => 'required|string|max:100',
             'price' => 'required|integer|min:0'
         ]);
+
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
+            ], 423);
+        }
 
         DB::beginTransaction();
         try {
@@ -900,6 +1004,12 @@ class BracketController extends Controller
     public function winYmdSlots($season_id)
     {
         $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
+            ], 423);
+        }
 
         DB::beginTransaction();
         try {
@@ -967,6 +1077,8 @@ class BracketController extends Controller
         $season_id = is_numeric($slug) ? intval($slug) : self::decodeId($slug);
         if (!$season_id) return response()->json(['success' => false, 'message' => 'Season not found'], 404);
 
+        $season = Season::find($season_id);
+
         $matches = Cache::remember("bracket_public_data_{$season_id}", 8, function() use ($season_id) {
             return Bracket::where('season_id', $season_id)
                 ->with(['team1', 'team2'])
@@ -977,21 +1089,26 @@ class BracketController extends Controller
                         'round_number' => $m->round_number,
                         'match_number' => $m->match_number,
                         'team1_id' => $m->team1_id,
-                        'team1_name' => $m->team1 ? $m->team1->name : null,
+                        'team1_name' => $m->team1_name_snapshot ?: ($m->team1 ? $m->team1->name : null),
                         'team1_wa' => $m->team1 ? $m->team1->wa_number : null,
                         'team2_id' => $m->team2_id,
-                        'team2_name' => $m->team2 ? $m->team2->name : null,
+                        'team2_name' => $m->team2_name_snapshot ?: ($m->team2 ? $m->team2->name : null),
                         'team2_wa' => $m->team2 ? $m->team2->wa_number : null,
                         'team1_score' => $m->team1_score,
                         'team2_score' => $m->team2_score,
                         'winner_id' => $m->winner_id,
+                        'winner_name' => $m->winner_name_snapshot ?: ($m->winner ? $m->winner->name : null),
                         'status' => $m->status,
                         'match_time' => $m->match_time
                     ];
                 });
         });
 
-        return response()->json(['success' => true, 'matches' => $matches]);
+        return response()->json([
+            'success' => true,
+            'is_bracket_locked' => $season ? (bool)$season->is_bracket_locked : false,
+            'matches' => $matches
+        ]);
     }
 
     /**
@@ -999,6 +1116,14 @@ class BracketController extends Controller
      */
     public function deleteAllYmdSlots($season_id)
     {
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
+            ], 423);
+        }
+
         try {
             self::ensureBaselineSnapshot($season_id);
             DB::beginTransaction();
@@ -1057,6 +1182,14 @@ class BracketController extends Controller
         $request->validate([
             'active' => 'required|boolean'
         ]);
+
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu.'
+            ], 423);
+        }
 
         try {
             DB::beginTransaction();
@@ -2167,6 +2300,7 @@ class BracketController extends Controller
             'manual_juara3' => $season->manual_juara3,
             'manual_juara4' => $season->manual_juara4,
             'is_bracket_visible' => (bool) $season->is_bracket_visible,
+            'is_bracket_locked' => (bool) $season->is_bracket_locked,
         ] : [];
 
         $current = BracketSnapshot::where('season_id', $seasonId)
@@ -2262,6 +2396,7 @@ class BracketController extends Controller
                     'manual_juara3' => $meta['manual_juara3'] ?? null,
                     'manual_juara4' => $meta['manual_juara4'] ?? null,
                     'is_bracket_visible' => $meta['is_bracket_visible'] ?? true,
+                    'is_bracket_locked' => $meta['is_bracket_locked'] ?? false,
                 ]);
             }
 
@@ -2282,6 +2417,14 @@ class BracketController extends Controller
      */
     public function undoBracket($season_id)
     {
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu untuk melakukan Undo.'
+            ], 423);
+        }
+
         $current = BracketSnapshot::where('season_id', $season_id)
             ->where('is_current', true)
             ->first();
@@ -2331,6 +2474,14 @@ class BracketController extends Controller
      */
     public function redoBracket($season_id)
     {
+        $season = Season::findOrFail($season_id);
+        if ($season->is_bracket_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bagan turnamen saat ini TERKUNCI. Buka kunci bagan terlebih dahulu untuk melakukan Redo.'
+            ], 423);
+        }
+
         $current = BracketSnapshot::where('season_id', $season_id)
             ->where('is_current', true)
             ->first();

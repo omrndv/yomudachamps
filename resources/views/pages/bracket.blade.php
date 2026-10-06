@@ -990,10 +990,14 @@
                                 </span>
                             </div>
                             
+                            @php
+                                $t1Name = $match->team1_name_snapshot ?? ($match->team1 ? $match->team1->name : null);
+                                $t2Name = $match->team2_name_snapshot ?? ($match->team2 ? $match->team2->name : null);
+                            @endphp
                             <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team1_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team1_id ? 'loser' : '' }}" data-team-id="{{ $match->team1_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($match->team1)
-                                        <span class="team-name">{{ $match->team1->name }}</span>
+                                    @if($t1Name)
+                                        <span class="team-name">{{ $t1Name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
@@ -1003,8 +1007,8 @@
 
                             <div class="team-row {{ $match->winner_id && $match->winner_id === $match->team2_id ? 'winner' : '' }} {{ $match->winner_id && $match->winner_id !== $match->team2_id ? 'loser' : '' }}" data-team-id="{{ $match->team2_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($match->team2)
-                                        <span class="team-name">{{ $match->team2->name }}</span>
+                                    @if($t2Name)
+                                        <span class="team-name">{{ $t2Name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
@@ -1044,11 +1048,14 @@
                     <div class="bronze-match-wrapper">
                         <div class="bronze-match-title">3rd Place Match</div>
                         <div class="match-card" id="card_m_{{ $bronzeMatch->round_number }}_{{ $bronzeMatch->match_number }}">
-                            
+                            @php
+                                $bt1Name = $bronzeMatch->team1_name_snapshot ?? ($bronzeMatch->team1 ? $bronzeMatch->team1->name : null);
+                                $bt2Name = $bronzeMatch->team2_name_snapshot ?? ($bronzeMatch->team2 ? $bronzeMatch->team2->name : null);
+                            @endphp
                             <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team1_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team1_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team1_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($bronzeMatch->team1)
-                                        <span class="team-name">{{ $bronzeMatch->team1->name }}</span>
+                                    @if($bt1Name)
+                                        <span class="team-name">{{ $bt1Name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
@@ -1056,11 +1063,10 @@
                                 <span class="team-score-box">{{ $bronzeMatch->team1_score }}</span>
                             </div>
 
-                            
                             <div class="team-row {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id === $bronzeMatch->team2_id ? 'winner' : '' }} {{ $bronzeMatch->winner_id && $bronzeMatch->winner_id !== $bronzeMatch->team2_id ? 'loser' : '' }}" data-team-id="{{ $bronzeMatch->team2_id ?? '' }}">
                                 <div class="team-info">
-                                    @if($bronzeMatch->team2)
-                                        <span class="team-name">{{ $bronzeMatch->team2->name }}</span>
+                                    @if($bt2Name)
+                                        <span class="team-name">{{ $bt2Name }}</span>
                                     @else
                                         <span class="team-name text-muted italic">TBD</span>
                                     @endif
@@ -1233,7 +1239,11 @@
     // -----------------------------------------------------------------------
     const matchesData = [
         @foreach($brackets as $b)
-            @if($b->team1_id && $b->team2_id)
+            @php
+                $t1n = $b->team1_name_snapshot ?: ($b->team1 ? $b->team1->name : null);
+                $t2n = $b->team2_name_snapshot ?: ($b->team2 ? $b->team2->name : null);
+            @endphp
+            @if($t1n && $t2n)
                 @php
                     $tr2 = count($rounds);
                     if ($b->round_number == $tr2) { $rLabel = 'Grand Final'; }
@@ -1244,9 +1254,9 @@
                     $scheduleStr = $b->match_time ?? '20:00 WIB';
                 @endphp
                 {
-                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
-                    name: {{ Js::from($b->team1->name ?? '') }},
-                    opponent: {{ Js::from($b->team2->name ?? '') }},
+                    teamKey: {{ Js::from(mb_strtolower($t1n)) }},
+                    name: {{ Js::from($t1n) }},
+                    opponent: {{ Js::from($t2n) }},
                     opponentWA: {{ Js::from($b->team2->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
                     bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
@@ -1255,9 +1265,9 @@
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
                 {
-                    teamKey: {{ Js::from(mb_strtolower($b->team2->name ?? '')) }},
-                    name: {{ Js::from($b->team2->name ?? '') }},
-                    opponent: {{ Js::from($b->team1->name ?? '') }},
+                    teamKey: {{ Js::from(mb_strtolower($t2n)) }},
+                    name: {{ Js::from($t2n) }},
+                    opponent: {{ Js::from($t1n) }},
                     opponentWA: {{ Js::from($b->team1->wa_number ?? '-') }},
                     schedule: {{ Js::from($scheduleStr) }},
                     bracket: {{ Js::from('Bracket ' . ($startNumbers[$b->round_number] + ($b->match_number - 1))) }},
@@ -1265,13 +1275,13 @@
                     status: {{ Js::from($status2) }},
                     cardId: {{ Js::from('card_m_' . $b->round_number . '_' . $b->match_number) }}
                 },
-            @elseif($b->team1_id && !$b->team2_id && $b->round_number === 1)
+            @elseif($t1n && !$t2n && $b->round_number === 1)
                 @php
                     $scheduleStr = $b->match_time ?? '20:00 WIB';
                 @endphp
                 {
-                    teamKey: {{ Js::from(mb_strtolower($b->team1->name ?? '')) }},
-                    name: {{ Js::from($b->team1->name ?? '') }},
+                    teamKey: {{ Js::from(mb_strtolower($t1n)) }},
+                    name: {{ Js::from($t1n) }},
                     opponent: "Lolos (BYE)",
                     opponentWA: "-",
                     schedule: {{ Js::from($scheduleStr) }},

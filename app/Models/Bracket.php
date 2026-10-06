@@ -11,10 +11,13 @@ class Bracket extends Model
         'round_number',
         'match_number',
         'team1_id',
+        'team1_name_snapshot',
         'team2_id',
+        'team2_name_snapshot',
         'team1_score',
         'team2_score',
         'winner_id',
+        'winner_name_snapshot',
         'match_time',
         'status'
     ];
