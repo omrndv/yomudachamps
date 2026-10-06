@@ -1664,33 +1664,33 @@ function renderThreadListHTML(threads) {
     let listHTML = '';
     threads.forEach(t => {
         const isSelected = activeThreadToken === t.sender_session_token;
-        const activeClass = isSelected ? 'bg-secondary bg-opacity-25 border-start border-3 border-warning' : '';
-        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-1.5 py-0.5 ms-1" style="font-size: 0.6rem;">${t.unread_count}</span>` : '';
+        const activeClass = isSelected ? 'active' : '';
+        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 0.62rem;">${t.unread_count}</span>` : '';
         
         // Truncate message
         let textTruncated = t.last_message || 'Belum ada pesan';
         if (textTruncated.startsWith('[IMAGE]:')) {
-            textTruncated = '📷 Foto';
-        } else if (textTruncated.length > 20) {
-            textTruncated = textTruncated.substring(0, 18) + '...';
+            textTruncated = '📷 Foto Bukti';
+        } else if (textTruncated.length > 24) {
+            textTruncated = textTruncated.substring(0, 22) + '...';
         }
         
         const timeStr = formatThreadListTime(t.last_chat_time);
         const initial = (t.sender_name || 'U').charAt(0).toUpperCase();
 
         listHTML += `
-            <div class="px-3 py-2.5 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass} transition-all" style="cursor: pointer; min-height: 58px;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
+            <div class="chat-thread-card px-3 py-2.5 cursor-pointer ${activeClass}" style="cursor: pointer; min-height: 60px;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <div class="d-flex align-items-center gap-2 overflow-hidden me-1">
-                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 24px; height: 24px; font-size: 0.68rem;">
+                    <div class="d-flex align-items-center gap-2.5 overflow-hidden me-1">
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 26px; height: 26px; font-size: 0.72rem;">
                             ${initial}
                         </div>
-                        <span class="fw-bold text-white text-truncate" style="font-size: 0.8rem;">${t.sender_name}</span>
+                        <span class="fw-bold text-white text-truncate" style="font-size: 0.84rem;">${t.sender_name}</span>
                     </div>
-                    <span class="flex-shrink-0 text-white-50" style="font-size: 0.65rem;">${timeStr}</span>
+                    <span class="flex-shrink-0 text-white-50" style="font-size: 0.68rem;">${timeStr}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center ps-4 ms-1">
-                    <span class="text-truncate text-secondary small" style="font-size: 0.72rem; max-width: 130px;">
+                <div class="d-flex justify-content-between align-items-center ps-4 ms-2">
+                    <span class="text-truncate text-secondary small" style="font-size: 0.74rem; max-width: 160px;">
                         ${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}
                     </span>
                     ${unreadBadge}
