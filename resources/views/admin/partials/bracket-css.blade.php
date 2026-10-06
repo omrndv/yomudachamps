@@ -392,21 +392,24 @@
         color: #ff7a00 !important;
     }
 
-    /* Admin Live Chat Offcanvas Styles (Modern Discord/Slack Style) */
+    /* Admin Live Chat Offcanvas Styles (Enterprise Telegram/WhatsApp Web Style) */
     #offcanvasAdminLiveChat {
         transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     .chat-thread-card {
-        border-radius: 8px;
-        margin: 2px 8px;
+        border-radius: 10px;
+        margin: 4px 10px;
+        padding: 10px 12px !important;
         transition: all 0.15s ease-in-out;
+        border: 1px solid transparent;
     }
     .chat-thread-card:hover {
-        background-color: rgba(255, 255, 255, 0.06) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
     }
     .chat-thread-card.active {
-        background-color: rgba(255, 122, 0, 0.12) !important;
-        border-left: 3px solid #ff7a00 !important;
+        background-color: #1e2027 !important;
+        border-color: rgba(255, 122, 0, 0.25) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     #adminQuickRepliesBar::-webkit-scrollbar {
         height: 4px;
@@ -430,27 +433,27 @@
         border-radius: 4px;
     }
     .admin-chat-bubble {
-        max-width: 76%;
+        max-width: 72%;
         padding: 10px 16px !important;
-        border-radius: 16px !important;
+        border-radius: 14px !important;
         word-break: break-word;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
         transition: transform 0.15s ease;
     }
     .admin-chat-bubble.bubble-admin {
         align-self: flex-end;
-        background: linear-gradient(135deg, #1e293b 0%, #172033 100%);
+        background: #1e293b;
         border: 1px solid rgba(59, 130, 246, 0.35);
-        border-bottom-right-radius: 4px !important;
+        border-bottom-right-radius: 2px !important;
     }
     .admin-chat-bubble.bubble-user {
         align-self: flex-start;
-        background: #23262d;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-bottom-left-radius: 4px !important;
+        background: #252830;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom-left-radius: 2px !important;
     }
     .chat-img-thumb {
-        max-height: 260px;
+        max-height: 280px;
         max-width: 100%;
         cursor: pointer;
         transition: transform 0.2s ease, filter 0.2s ease;

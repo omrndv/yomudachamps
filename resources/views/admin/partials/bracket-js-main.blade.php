@@ -1665,35 +1665,35 @@ function renderThreadListHTML(threads) {
     threads.forEach(t => {
         const isSelected = activeThreadToken === t.sender_session_token;
         const activeClass = isSelected ? 'active' : '';
-        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 0.62rem;">${t.unread_count}</span>` : '';
+        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-2 py-0.5 ms-2 flex-shrink-0" style="font-size: 0.65rem;">${t.unread_count}</span>` : '';
         
         // Truncate message
         let textTruncated = t.last_message || 'Belum ada pesan';
         if (textTruncated.startsWith('[IMAGE]:')) {
             textTruncated = '📷 Foto Bukti';
-        } else if (textTruncated.length > 24) {
-            textTruncated = textTruncated.substring(0, 22) + '...';
+        } else if (textTruncated.length > 25) {
+            textTruncated = textTruncated.substring(0, 23) + '...';
         }
         
         const timeStr = formatThreadListTime(t.last_chat_time);
         const initial = (t.sender_name || 'U').charAt(0).toUpperCase();
 
         listHTML += `
-            <div class="chat-thread-card px-3 py-2.5 cursor-pointer ${activeClass}" style="cursor: pointer; min-height: 60px;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <div class="d-flex align-items-center gap-2.5 overflow-hidden me-1">
-                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 26px; height: 26px; font-size: 0.72rem;">
-                            ${initial}
-                        </div>
-                        <span class="fw-bold text-white text-truncate" style="font-size: 0.84rem;">${t.sender_name}</span>
-                    </div>
-                    <span class="flex-shrink-0 text-white-50" style="font-size: 0.68rem;">${timeStr}</span>
+            <div class="chat-thread-card cursor-pointer ${activeClass} d-flex align-items-center gap-3" style="cursor: pointer; min-height: 64px;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
+                <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 38px; height: 38px; font-size: 0.88rem;">
+                    ${initial}
                 </div>
-                <div class="d-flex justify-content-between align-items-center ps-4 ms-2">
-                    <span class="text-truncate text-secondary small" style="font-size: 0.74rem; max-width: 160px;">
-                        ${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}
-                    </span>
-                    ${unreadBadge}
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="fw-bold text-white text-truncate" style="font-size: 0.88rem;">${t.sender_name}</span>
+                        <span class="flex-shrink-0 text-white-50 ps-1" style="font-size: 0.68rem;">${timeStr}</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-secondary" style="font-size: 0.76rem;">
+                        <span class="text-truncate" style="max-width: 170px;">
+                            ${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}
+                        </span>
+                        ${unreadBadge}
+                    </div>
                 </div>
             </div>
         `;
@@ -1706,6 +1706,12 @@ window.selectChatThread = function(token, name) {
     activeThreadName = name;
     activeThreadTitle.textContent = `${name}`;
     threadSessionTokenInput.textContent = token;
+
+    const activeAvatar = document.getElementById('adminActiveAvatarCircle');
+    if (activeAvatar) {
+        activeAvatar.textContent = (name || 'U').charAt(0).toUpperCase();
+    }
+
     adminReplyInput.disabled = false;
     adminBtnReplySend.disabled = false;
     
