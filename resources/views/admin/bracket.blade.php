@@ -39,6 +39,77 @@
         transform: none !important;
         box-shadow: none !important;
     }
+
+    /* Polished, Consistent Button Hover States */
+    .btn-outline-danger {
+        color: #dc2626 !important;
+        border-color: #fca5a5 !important;
+        background-color: #fff1f2 !important;
+    }
+    .btn-outline-danger:hover, .btn-outline-danger:active {
+        color: #ffffff !important;
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+    .btn-outline-danger:hover .badge, .btn-outline-danger:active .badge {
+        background-color: #ffffff !important;
+        color: #dc2626 !important;
+    }
+
+    .btn-outline-primary {
+        color: #2563eb !important;
+        border-color: #bfdbfe !important;
+        background-color: #eff6ff !important;
+    }
+    .btn-outline-primary:hover, .btn-outline-primary:active {
+        color: #ffffff !important;
+        background-color: #2563eb !important;
+        border-color: #2563eb !important;
+    }
+
+    .btn-outline-warning {
+        color: #b45309 !important;
+        border-color: #fde68a !important;
+        background-color: #fffbeb !important;
+    }
+    .btn-outline-warning:hover, .btn-outline-warning:active {
+        color: #1e293b !important;
+        background-color: #f59e0b !important;
+        border-color: #f59e0b !important;
+    }
+
+    .btn-outline-secondary {
+        color: #475569 !important;
+        border-color: #e2e8f0 !important;
+        background-color: #ffffff !important;
+    }
+    .btn-outline-secondary:hover, .btn-outline-secondary:active {
+        color: #0f172a !important;
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    /* Dropdown item hover states */
+    .dropdown-item {
+        color: #334155;
+        transition: all 0.15s ease;
+    }
+    .dropdown-item:hover, .dropdown-item:focus {
+        background-color: #f8fafc;
+        color: #0f172a;
+    }
+    .dropdown-item.text-danger:hover {
+        background-color: #fef2f2 !important;
+        color: #dc2626 !important;
+    }
+    .dropdown-item.text-warning:hover {
+        background-color: #fffbeb !important;
+        color: #b45309 !important;
+    }
+    .dropdown-item.text-success:hover {
+        background-color: #f0fdf4 !important;
+        color: #16a34a !important;
+    }
 </style>
 <div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
     {{-- Breadcrumb & Header --}}
@@ -104,9 +175,9 @@
                         @php
                             $unfinishedCount = $brackets->filter(fn($b) => $b->status !== 'finished' && $b->team1_id && $b->team2_id)->count();
                         @endphp
-                        <button type="button" class="btn {{ $unfinishedCount > 0 ? 'btn-outline-danger' : 'btn-outline-secondary text-muted' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
+                        <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Laga Belum Selesai 
-                            <span class="badge {{ $unfinishedCount > 0 ? 'bg-danger text-white' : 'bg-secondary text-white' }} ms-1 rounded-pill">{{ $unfinishedCount }}</span>
+                            <span class="badge bg-danger text-white ms-1 rounded-pill">{{ $unfinishedCount }}</span>
                         </button>
                     @endif
 
