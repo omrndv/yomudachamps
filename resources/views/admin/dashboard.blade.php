@@ -269,13 +269,15 @@
                         
                         if ($team->is_solo_team) {
                             $payType = 'solo';
-                        } elseif (!empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && !$isIpaymu) {
+                        } elseif (str_starts_with(strtolower($team->name), 'ymd')) {
+                            $payType = 'ymd_slot';
+                        } elseif (!empty($team->tripay_reference) && ($team->payment_method ?? '') !== 'GOPAY_QRIS' && !$isIpaymu) {
                             $payType = 'tripay';
                         } elseif ($isIpaymu) {
                             $payType = 'ipaymu';
-                        } elseif ($team->payment_method === 'GOPAY_QRIS') {
+                        } elseif (($team->payment_method ?? '') === 'GOPAY_QRIS') {
                             $payType = 'manual';
-                        } elseif (str_starts_with($team->trx_id, 'YMD' . $current_season->id) && empty($team->tripay_reference) && $team->payment_method !== 'GOPAY_QRIS' && !$isIpaymu) {
+                        } elseif (empty($team->tripay_reference) && ($team->payment_method ?? '') !== 'GOPAY_QRIS' && !$isIpaymu) {
                             $payType = 'admin';
                         }
                     @endphp

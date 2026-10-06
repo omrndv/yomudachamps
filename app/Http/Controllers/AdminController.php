@@ -385,8 +385,11 @@ class AdminController extends Controller
         // 1. TriPay Income
         $tripay_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                $isIpaymu = str_contains($t->payment_method ?? '', 'qrserver') || str_contains($t->payment_method ?? '', 'ipaymu') || $t->payment_method === 'IPAYMU_QRIS';
-                return !empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS' && !$isIpaymu;
+                $isIpaymu = str_contains($t->payment_method ?? '', 'qrserver') || str_contains($t->payment_method ?? '', 'ipaymu') || ($t->payment_method ?? '') === 'IPAYMU_QRIS';
+                return !empty($t->tripay_reference) 
+                    && ($t->payment_method ?? '') !== 'GOPAY_QRIS' 
+                    && !$isIpaymu
+                    && !str_starts_with(strtolower($t->name), 'ymd');
             });
         $tripay_income = $tripay_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
@@ -395,7 +398,8 @@ class AdminController extends Controller
         // 2. iPaymu Income
         $ipaymu_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return str_contains($t->payment_method ?? '', 'qrserver') || str_contains($t->payment_method ?? '', 'ipaymu') || $t->payment_method === 'IPAYMU_QRIS';
+                $isIpaymu = str_contains($t->payment_method ?? '', 'qrserver') || str_contains($t->payment_method ?? '', 'ipaymu') || ($t->payment_method ?? '') === 'IPAYMU_QRIS';
+                return $isIpaymu && !str_starts_with(strtolower($t->name), 'ymd');
             });
         $ipaymu_income = $ipaymu_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
@@ -404,16 +408,20 @@ class AdminController extends Controller
         // 3. Manual QRIS Income
         $manual_qris_teams = $paid_teams->where('is_solo_team', false)
             ->filter(function($t) {
-                return $t->payment_method === 'GOPAY_QRIS';
+                return ($t->payment_method ?? '') === 'GOPAY_QRIS' && !str_starts_with(strtolower($t->name), 'ymd');
             });
         $manual_qris_income = $manual_qris_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
         });
 
-        // 4. Manual/Bulk Add oleh Admin
+        // 4. Manual/Bulk Add oleh Admin (Kecualikan tim placeholder YMD)
         $manual_teams = $paid_teams->where('is_solo_team', false)
-            ->filter(function($t) use ($season_id) {
-                return str_starts_with($t->trx_id, 'YMD' . $season_id) && empty($t->tripay_reference) && $t->payment_method !== 'GOPAY_QRIS' && $t->payment_method !== 'IPAYMU_QRIS';
+            ->filter(function($t) {
+                $isIpaymu = str_contains($t->payment_method ?? '', 'qrserver') || str_contains($t->payment_method ?? '', 'ipaymu') || ($t->payment_method ?? '') === 'IPAYMU_QRIS';
+                return empty($t->tripay_reference) 
+                    && ($t->payment_method ?? '') !== 'GOPAY_QRIS' 
+                    && !$isIpaymu
+                    && !str_starts_with(strtolower($t->name), 'ymd');
             });
         $manual_income = $manual_teams->sum(function($t) use ($current_season) {
             return $t->amount && $t->amount > 0 ? $t->amount : $current_season->price;
