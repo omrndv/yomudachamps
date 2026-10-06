@@ -945,6 +945,22 @@
         </div>
     </div>
 
+    <!-- Modal Image Preview In-Page for Public Season Landing -->
+    <div id="publicChatImageModal" style="display: none; position: fixed; inset: 0; z-index: 100050; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px;">
+        <div style="position: relative; max-width: 90vw; max-height: 90vh; background: #18181b; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: #09090b;">
+                <span style="font-size: 0.8rem; font-weight: 600; color: #a1a1aa;"><i class="bi bi-image me-1"></i> Preview Gambar</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <a id="btnPublicDownloadImage" href="#" target="_blank" download style="font-size: 0.72rem; color: #ff7a00; text-decoration: none; border: 1px solid rgba(255,122,0,0.4); padding: 3px 10px; border-radius: 20px;">Buka Asli</a>
+                    <button id="btnPublicCloseImageModal" style="background: none; border: none; color: #ffffff; font-size: 1.1rem; cursor: pointer; line-height: 1;"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            <div style="padding: 12px; display: flex; justify-content: center; align-items: center; overflow: auto;">
+                <img id="publicChatImageModalTarget" src="" style="max-height: 75vh; max-width: 85vw; object-fit: contain; border-radius: 6px;">
+            </div>
+        </div>
+    </div>
+
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1072,6 +1088,34 @@
                     .catch(err => console.log("Chat fetch issue:", err));
             }
 
+            // Public Image Modal Handler
+            window.openPublicChatImage = function(url) {
+                const modal = document.getElementById('publicChatImageModal');
+                const target = document.getElementById('publicChatImageModalTarget');
+                const download = document.getElementById('btnPublicDownloadImage');
+                if (target) target.src = url;
+                if (download) {
+                    download.href = url;
+                    download.setAttribute('download', url.split('/').pop() || 'chat-screenshot.jpg');
+                }
+                if (modal) modal.style.display = 'flex';
+            };
+
+            const btnPublicCloseImageModal = document.getElementById('btnPublicCloseImageModal');
+            const publicChatImageModal = document.getElementById('publicChatImageModal');
+            if (btnPublicCloseImageModal) {
+                btnPublicCloseImageModal.addEventListener('click', () => {
+                    if (publicChatImageModal) publicChatImageModal.style.display = 'none';
+                });
+            }
+            if (publicChatImageModal) {
+                publicChatImageModal.addEventListener('click', (e) => {
+                    if (e.target === publicChatImageModal) {
+                        publicChatImageModal.style.display = 'none';
+                    }
+                });
+            }
+
             function renderMessage(msg) {
                 const bubble = document.createElement('div');
                 bubble.className = `chat-msg-bubble ${msg.is_admin ? 'admin' : 'user'}`;
@@ -1081,7 +1125,7 @@
                 }
                 if (msg.message.startsWith('[IMAGE]:')) {
                     const imgUrl = msg.message.substring(8);
-                    bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 120px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="scrollChatToBottom()">`;
+                    bubble.innerHTML = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 140px; cursor: pointer; display: block; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);" onclick="openPublicChatImage('${imgUrl}')" onload="scrollChatToBottom()">`;
                 } else {
                     bubble.textContent = msg.message;
                 }

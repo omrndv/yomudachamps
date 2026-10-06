@@ -1637,6 +1637,23 @@ window.insertAdminQuickReply = function(text) {
     adminReplyInput.focus();
 };
 
+// In-Page Image Preview Modal Helper
+window.openChatImageModal = function(url) {
+    if (!url) return;
+    const modalEl = document.getElementById('modalChatImagePreview');
+    const imgEl = document.getElementById('chatImagePreviewTarget');
+    const downloadBtn = document.getElementById('btnDownloadChatImage');
+    if (imgEl) imgEl.src = url;
+    if (downloadBtn) {
+        downloadBtn.href = url;
+        downloadBtn.setAttribute('download', url.split('/').pop() || 'chat-image.jpg');
+    }
+    if (modalEl && window.bootstrap) {
+        const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        bsModal.show();
+    }
+};
+
 // Thread List Styling helpers
 function renderThreadListHTML(threads) {
     if (!threads || threads.length === 0) {
@@ -2081,19 +2098,16 @@ function fetchThreadMessages() {
                         const timeStr = formatChatTime(msg.created_at);
 
                         const bubble = document.createElement('div');
-                        bubble.className = `p-2.5 rounded-3 text-white small shadow-sm ${msg.is_admin ? 'align-self-end text-end' : 'align-self-start'}`;
-                        bubble.style.maxWidth = '85%';
-                        bubble.style.backgroundColor = msg.is_admin ? '#1e293b' : '#22252a';
-                        bubble.style.border = msg.is_admin ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)';
+                        bubble.className = `p-2.5 rounded-3 text-white small admin-chat-bubble ${msg.is_admin ? 'bubble-admin text-end' : 'bubble-user'}`;
                         
                         let displayContent = msg.message;
                         if (msg.message.startsWith('[IMAGE]:')) {
                             const imgUrl = msg.message.substring(8);
-                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1" style="max-height: 180px; cursor: pointer; display: block;" onclick="window.open('${imgUrl}', '_blank')" onload="const c = document.getElementById('adminChatMessagesBody'); if (c) c.scrollTop = c.scrollHeight;">`;
+                            displayContent = `<img src="${imgUrl}" class="img-fluid rounded-3 my-1 chat-img-thumb" style="display: block;" onclick="openChatImageModal('${imgUrl}')" onload="const c = document.getElementById('adminChatMessagesBody'); if (c) c.scrollTop = c.scrollHeight;">`;
                         }
 
                         bubble.innerHTML = `
-                            <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.65rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
+                            <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.68rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
                                 <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
                             </div>
                             <div class="mt-1" style="word-break: break-word; line-height: 1.45; font-size: 0.82rem; text-align: left;">${displayContent}</div>
