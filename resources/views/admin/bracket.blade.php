@@ -1019,7 +1019,7 @@
             </div>
             
             <!-- Messages Container -->
-            <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column" style="min-height: 0; gap: 10px; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.12) 0%, transparent 75%);">
+            <div id="adminChatMessagesBody" class="flex-grow-1 px-3.5 py-3 overflow-y-auto d-flex flex-column" style="min-height: 0; gap: 10px; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.12) 0%, transparent 75%);">
                 <div class="text-center text-secondary my-auto py-5 small px-3">
                     <i class="bi bi-chat-dots" style="font-size: 2.2rem; opacity: 0.6;"></i>
                     <p class="mt-2 text-white-50">Pilih salah satu user di panel kiri untuk membalas pertanyaan peserta.</p>

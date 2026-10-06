@@ -421,22 +421,24 @@
         border-radius: 4px;
     }
     .admin-chat-bubble {
-        max-width: 82%;
+        max-width: 80%;
+        padding: 9px 14px !important;
+        border-radius: 14px !important;
         word-break: break-word;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
         transition: transform 0.15s ease;
     }
     .admin-chat-bubble.bubble-admin {
         align-self: flex-end;
         background: linear-gradient(135deg, #1e293b 0%, #172033 100%);
         border: 1px solid rgba(59, 130, 246, 0.35);
-        border-bottom-right-radius: 4px !important;
+        border-bottom-right-radius: 3px !important;
     }
     .admin-chat-bubble.bubble-user {
         align-self: flex-start;
         background: #23262d;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-bottom-left-radius: 4px !important;
+        border-bottom-left-radius: 3px !important;
     }
     .chat-img-thumb {
         max-height: 220px;

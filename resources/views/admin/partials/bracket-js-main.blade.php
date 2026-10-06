@@ -2098,7 +2098,7 @@ function fetchThreadMessages() {
                         const timeStr = formatChatTime(msg.created_at);
 
                         const bubble = document.createElement('div');
-                        bubble.className = `p-2.5 rounded-3 text-white small admin-chat-bubble ${msg.is_admin ? 'bubble-admin text-end' : 'bubble-user'}`;
+                        bubble.className = `text-white small admin-chat-bubble ${msg.is_admin ? 'bubble-admin text-end' : 'bubble-user'}`;
                         
                         let displayContent = msg.message;
                         if (msg.message.startsWith('[IMAGE]:')) {
@@ -2110,8 +2110,8 @@ function fetchThreadMessages() {
                             <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.68rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
                                 <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
                             </div>
-                            <div class="mt-1" style="word-break: break-word; line-height: 1.45; font-size: 0.82rem; text-align: left;">${displayContent}</div>
-                            <div class="mt-1 text-white-50" style="font-size: 0.6rem; text-align: right; opacity: 0.75;">
+                            <div class="mt-1" style="word-break: break-word; line-height: 1.5; font-size: 0.83rem; text-align: left;">${displayContent}</div>
+                            <div class="mt-1 text-white-50" style="font-size: 0.62rem; text-align: right; opacity: 0.75;">
                                 ${timeStr}
                             </div>
                         `;
