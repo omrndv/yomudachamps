@@ -1440,10 +1440,10 @@ document.getElementById('toggleBracketVisibility')?.addEventListener('change', f
         if (res.success) {
             if (res.is_bracket_visible) {
                 label.className = 'text-success';
-                label.textContent = '🟢 Bracket Terlihat oleh Peserta';
+                label.innerHTML = '<i class="bi bi-eye-fill text-success me-1"></i> Bracket Terlihat oleh Peserta';
             } else {
                 label.className = 'text-danger';
-                label.textContent = '🔴 Bracket Tersembunyi dari Peserta';
+                label.innerHTML = '<i class="bi bi-eye-slash-fill text-danger me-1"></i> Bracket Tersembunyi dari Peserta';
             }
         }
     })

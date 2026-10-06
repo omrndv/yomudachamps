@@ -70,9 +70,10 @@
                     <div class="mt-2 d-flex align-items-center gap-2">
                         <div class="form-check form-switch m-0 p-0 d-flex align-items-center gap-2">
                             <input class="form-check-input m-0" type="checkbox" role="switch" id="toggleBracketVisibility" {{ $season->is_bracket_visible ? 'checked' : '' }} style="width: 2.8em; height: 1.4em; cursor: pointer;">
-                            <label class="form-check-label fw-bold m-0" for="toggleBracketVisibility" style="font-size: 0.72rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold m-0 d-inline-flex align-items-center gap-1.5" for="toggleBracketVisibility" style="font-size: 0.72rem; cursor: pointer;">
                                 <span id="bracketVisibilityLabel" class="{{ $season->is_bracket_visible ? 'text-success' : 'text-danger' }}">
-                                    {{ $season->is_bracket_visible ? '🟢 Bracket Terlihat oleh Peserta' : '🔴 Bracket Tersembunyi dari Peserta' }}
+                                    <i class="bi {{ $season->is_bracket_visible ? 'bi-eye-fill text-success' : 'bi-eye-slash-fill text-danger' }} me-1"></i>
+                                    {{ $season->is_bracket_visible ? 'Bracket Terlihat oleh Peserta' : 'Bracket Tersembunyi dari Peserta' }}
                                 </span>
                             </label>
                         </div>
@@ -148,7 +149,7 @@
                             </li>
                             <li>
                                 <button class="dropdown-item rounded-2 py-2 fw-semibold" type="button" data-bs-toggle="modal" data-bs-target="#modalManualWinners">
-                                    <i class="bi bi-trophy text-warning me-2"></i> {{ $season->manual_juara1 ? '🏆 Juara Manual (Aktif)' : 'Input Juara Manual' }}
+                                    <i class="bi bi-trophy text-warning me-2"></i> {{ $season->manual_juara1 ? 'Juara Manual (Aktif)' : 'Input Juara Manual' }}
                                 </button>
                             </li>
                             @if($brackets->count() > 0)
@@ -1116,19 +1117,19 @@ Sampai ketemu di *Yomuda Championship/Fast Tour Season Berikutnya* !</textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">🥇 Juara 1</label>
+                        <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1.5"><i class="bi bi-trophy-fill text-warning"></i> Juara 1</label>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara1" name="manual_juara1" value="{{ $season->manual_juara1 }}" placeholder="Contoh: TEAM OPM">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">🥈 Juara 2</label>
+                        <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1.5"><i class="bi bi-award-fill text-secondary"></i> Juara 2</label>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara2" name="manual_juara2" value="{{ $season->manual_juara2 }}" placeholder="Contoh: TEAM EVOS">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">🥉 Juara 3 (Opsional)</label>
+                        <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1.5"><i class="bi bi-award text-warning"></i> Juara 3 (Opsional)</label>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara3" name="manual_juara3" value="{{ $season->manual_juara3 }}" placeholder="Contoh: TEAM RRQ">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">🏅 Juara 4 (Opsional)</label>
+                        <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1.5"><i class="bi bi-award text-muted"></i> Juara 4 (Opsional)</label>
                         <input type="text" list="teamsList" class="form-control form-control-sm rounded-3" id="inputManualJuara4" name="manual_juara4" value="{{ $season->manual_juara4 }}" placeholder="Contoh: TEAM ONIC">
                     </div>
 
