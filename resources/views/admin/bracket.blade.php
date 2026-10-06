@@ -73,60 +73,91 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap gap-2 justify-content-md-start align-items-center">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
                     {{-- Undo / Redo History Controls --}}
                     <div class="btn-group shadow-sm rounded-pill" role="group" aria-label="Riwayat Undo Redo Bagan">
-                        <button type="button" class="btn btn-outline-dark btn-sm px-3 fw-bold rounded-start-pill opacity-50" id="btnBracketUndo" onclick="triggerBracketUndo()" disabled title="Tidak ada aksi untuk di-undo">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Undo
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-2.5 fw-bold rounded-start-pill opacity-50" id="btnBracketUndo" onclick="triggerBracketUndo()" disabled title="Undo aksi terakhir">
+                            <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-dark btn-sm px-3 fw-bold rounded-end-pill opacity-50" id="btnBracketRedo" onclick="triggerBracketRedo()" disabled title="Tidak ada aksi untuk di-redo">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Redo
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-2.5 fw-bold rounded-end-pill opacity-50" id="btnBracketRedo" onclick="triggerBracketRedo()" disabled title="Redo aksi">
+                            <i class="bi bi-arrow-clockwise"></i>
                         </button>
                     </div>
 
-                    <button type="button" class="btn btn-outline-info text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
-                        <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.55rem; padding: 3px 6px;">0</span>
+                    {{-- Priority 1: Yang Paling Sering Dipencet (Live Chat, Laporan Laga, Laga Belum Selesai) --}}
+                    <button type="button" class="btn btn-primary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap position-relative" data-bs-toggle="modal" data-bs-target="#modalAdminLiveChat">
+                        <i class="bi bi-chat-left-dots-fill me-1"></i> Live Chat 
+                        <span class="badge bg-danger ms-1" id="adminGlobalUnreadBadge" style="display: none; font-size: 0.6rem; padding: 3px 6px;">0</span>
                     </button>
+
                     <a href="{{ route('admin.season.match-reports', $season->id) }}" class="btn btn-outline-primary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
-                        <i class="bi bi-trophy-fill me-1"></i> Laporan Laga
+                        <i class="bi bi-file-earmark-medical-fill me-1"></i> Laporan Laga
                     </a>
-                    <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap">
-                        <i class="bi bi-eye me-1"></i> Lihat Halaman User
-                    </a>
-                    
+
                     @if($brackets->count() > 0)
-                        <button type="button" class="btn btn-outline-danger text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Laga Belum Selesai ({{ $brackets->filter(fn($b) => $b->status !== 'finished' && $b->team1_id && $b->team2_id)->count() }})
-                        </button>
-                        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
-                            <i class="bi bi-tag-fill me-1"></i> Detail Slot YMD
-                        </button>
-                        <button type="button" class="btn btn-success text-white btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalShareTemplates">
-                            <i class="bi bi-share-fill me-1"></i> Teks Share WA
+                        @php
+                            $unfinishedCount = $brackets->filter(fn($b) => $b->status !== 'finished' && $b->team1_id && $b->team2_id)->count();
+                        @endphp
+                        <button type="button" class="btn {{ $unfinishedCount > 0 ? 'btn-outline-danger' : 'btn-outline-secondary text-muted' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalUnfinishedMatches">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Laga Belum Selesai 
+                            <span class="badge {{ $unfinishedCount > 0 ? 'bg-danger text-white' : 'bg-secondary text-white' }} ms-1 rounded-pill">{{ $unfinishedCount }}</span>
                         </button>
                     @endif
 
-                    <button type="button" class="btn btn-outline-success btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
-                        <i class="bi bi-clipboard me-1"></i> Copy Daftar Tim (Backup)
-                    </button>
-                    
-                    <button type="button" class="btn {{ $season->manual_juara1 ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalManualWinners">
-                        <i class="bi bi-trophy-fill me-1"></i> {{ $season->manual_juara1 ? '🏆 Juara Manual (Aktif)' : 'Input Juara Manual' }}
-                    </button>
+                    {{-- Priority 2: Sering Dilihat Berikutnya (Lihat Halaman User, Detail Slot YMD) --}}
+                    <a href="{{ route('public.season.landing', \App\Http\Controllers\BracketController::encodeId($season->id)) }}" target="_blank" class="btn btn-outline-secondary btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" title="Buka bagan yang dilihat peserta">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Halaman Peserta
+                    </a>
 
                     @if($brackets->count() > 0)
-                        {{-- Tombol Selesai & Kunci Bagan --}}
+                        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalYmdSlots">
+                            <i class="bi bi-tag-fill text-warning me-1"></i> Slot YMD
+                        </button>
+                    @endif
+
+                    {{-- Priority 3: Menu Alat & Aksi Lainnya (Dropdown agar tidak sumpek) --}}
+                    <div class="dropdown">
+                        <button class="btn btn-light border btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear-fill me-1 text-secondary"></i> Opsi & Alat
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2" style="font-size: 0.82rem; min-width: 220px;">
+                            @if($brackets->count() > 0)
+                                <li>
+                                    <button class="dropdown-item rounded-2 py-2 fw-semibold" type="button" data-bs-toggle="modal" data-bs-target="#modalShareTemplates">
+                                        <i class="bi bi-share-fill text-success me-2"></i> Teks Share WhatsApp
+                                    </button>
+                                </li>
+                            @endif
+                            <li>
+                                <button class="dropdown-item rounded-2 py-2 fw-semibold" type="button" data-bs-toggle="modal" data-bs-target="#modalCopyTeams">
+                                    <i class="bi bi-clipboard-check text-primary me-2"></i> Copy Daftar Tim (Backup)
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item rounded-2 py-2 fw-semibold" type="button" data-bs-toggle="modal" data-bs-target="#modalManualWinners">
+                                    <i class="bi bi-trophy text-warning me-2"></i> {{ $season->manual_juara1 ? '🏆 Juara Manual (Aktif)' : 'Input Juara Manual' }}
+                                </button>
+                            </li>
+                            @if($brackets->count() > 0)
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <form id="formResetBracket" action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST">
+                                        @csrf
+                                        <button type="button" class="dropdown-item rounded-2 py-2 fw-bold text-danger" onclick="confirmResetBracket({{ $season->is_bracket_locked ? 'true' : 'false' }})">
+                                            <i class="bi bi-arrow-clockwise text-danger me-2"></i> Reset & Acak Ulang
+                                        </button>
+                                    </form>
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+
+                    {{-- Tombol Kunci / Buka Bagan (Status Utama Turnamen) --}}
+                    @if($brackets->count() > 0)
                         <button type="button" class="btn {{ $season->is_bracket_locked ? 'btn-dark border border-warning text-warning' : 'btn-success text-white' }} btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" id="btnToggleBracketLock" onclick="toggleBracketLockAction()">
                             <i class="bi {{ $season->is_bracket_locked ? 'bi-lock-fill text-warning' : 'bi-check2-circle' }} me-1"></i>
-                            <span id="btnBracketLockText">{{ $season->is_bracket_locked ? '🔒 Bagan Terkunci (Selesai)' : '✅ Selesai & Kunci Bagan' }}</span>
+                            <span id="btnBracketLockText">{{ $season->is_bracket_locked ? '🔒 Terkunci' : '✅ Selesai & Kunci' }}</span>
                         </button>
-
-                        <form id="formResetBracket" action="{{ route('admin.season.bracket.generate', $season->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="button" class="btn btn-danger btn-sm px-3 fw-bold rounded-pill shadow-sm text-nowrap" onclick="confirmResetBracket({{ $season->is_bracket_locked ? 'true' : 'false' }})">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Reset & Acak Ulang
-                            </button>
-                        </form>
                     @endif
                 </div>
             </div>
@@ -158,51 +189,45 @@
             </div>
         </div>
     @else
-        {{-- Banner Status Bagan Terkunci --}}
-        <div id="bracketLockedBanner" class="alert alert-dark border border-warning border-opacity-50 rounded-4 shadow-sm p-3 mb-4 {{ $season->is_bracket_locked ? '' : 'd-none' }}" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        {{-- Banner Status Bagan Terkunci (Dibuat Ramping & Tidak Memakan Tempat) --}}
+        <div id="bracketLockedBanner" class="alert alert-dark border border-warning border-opacity-40 rounded-4 shadow-sm py-2 px-3 mb-3 {{ $season->is_bracket_locked ? '' : 'd-none' }}" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-white">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-20 text-warning rounded-circle" style="width: 42px; height: 42px;">
-                        <i class="bi bi-lock-fill fs-5"></i>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark rounded-pill fw-bold" style="font-size: 0.65rem;">
+                        <i class="bi bi-lock-fill me-1"></i> TERKUNCI (READ-ONLY)
                     </span>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
-                            Bagan Turnamen Telah Dikunci (Selesai & Permanen)
-                            <span class="badge bg-warning text-dark rounded-pill fw-bold" style="font-size: 0.6rem;">READ-ONLY</span>
-                        </h6>
-                        <small class="text-white-50">Data nama tim dan juara telah dibekukan. Nama tim di bagan ini tidak akan berubah meskipun di daftar peserta dihapus atau diedit.</small>
-                    </div>
+                    <span class="small text-white-50" style="font-size: 0.78rem;">Data nama tim & bagan telah dibekukan secara permanen.</span>
                 </div>
-                <div>
-                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3" onclick="toggleBracketLockAction()">
-                        <i class="bi bi-unlock-fill me-1"></i> Buka Kunci untuk Edit
-                    </button>
-                </div>
+                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 py-1" style="font-size: 0.72rem;" onclick="toggleBracketLockAction()">
+                    <i class="bi bi-unlock-fill me-1"></i> Buka Kunci
+                </button>
             </div>
         </div>
 
         {{-- Controls Panel --}}
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4" style="border: 1px solid rgba(0, 0, 0, 0.06) !important;">
-            <div class="row g-3 align-items-center">
-                {{-- Search Box --}}
-                <div class="col-md-4">
-                    <div class="search-box-season" style="padding-right: 2px;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                {{-- Search Box & Quick Filter --}}
+                <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 380px;">
+                    <div class="search-box-season w-100" style="padding-right: 2px;">
                         <i class="bi bi-search"></i>
-                        <input type="text" id="adminTeamSearch" placeholder="Cari nama tim...">
-                        <button class="btn btn-warning text-dark btn-sm d-flex align-items-center gap-1 px-3 fw-bold rounded-3" type="button" id="toggleSearchModeBtn" style="font-size: 0.72rem; margin: 2px; height: 32px; white-space: nowrap;">
+                        <input type="text" id="adminTeamSearch" placeholder="Cari nama tim di bagan...">
+                        <button class="btn btn-warning text-dark btn-sm d-flex align-items-center gap-1 px-2.5 fw-bold rounded-3" type="button" id="toggleSearchModeBtn" style="font-size: 0.72rem; margin: 2px; height: 30px; white-space: nowrap;">
                             <i class="bi bi-person-fill"></i> Nama
                         </button>
                     </div>
                 </div>
-                {{-- Dark/Light Theme Switch --}}
-                <div class="col-md-3 text-start">
-                    <div class="form-check form-switch ps-5">
-                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBracketThemeSwitch" checked style="cursor: pointer;">
-                        <label class="form-check-label small fw-bold text-dark" for="toggleBracketThemeSwitch" style="cursor: pointer;">Tema Bagan Gelap (Dark)</label>
-                    </div>
-                </div>
-                {{-- Bronze Match Toggle Switch --}}
-                <div class="col-md-3 text-start">
+
+                {{-- Quick Actions: Tukar Posisi, Jam Babak, Setting Tampilan --}}
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 py-1.5 fw-bold text-nowrap" id="toggleSwapModeBtn" style="font-size: 0.75rem;">
+                        <i class="bi bi-arrow-down-up me-1"></i> <span id="swapModeText">Tukar Posisi</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-bold text-nowrap" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
+                        <i class="bi bi-clock-fill text-warning me-1"></i> Jam Babak
+                    </button>
+
+                    {{-- Dropdown Setting Tampilan Bagan --}}
                     @php
                         $hasBronze = false;
                         $finalRoundKey = $brackets->max('round_number');
@@ -210,47 +235,47 @@
                             $hasBronze = $brackets->where('round_number', $finalRoundKey)->where('match_number', 2)->isNotEmpty();
                         }
                     @endphp
-                    <div class="form-check form-switch ps-5">
-                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)" style="cursor: pointer;">
-                        <label class="form-check-label small fw-bold text-dark" for="toggleBronzeMatchSwitch" style="cursor: pointer;">Bronze Match (Juara 3/4)</label>
+                    <div class="dropdown">
+                        <button class="btn btn-light border btn-sm px-3 py-1.5 fw-bold rounded-pill text-nowrap dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.75rem;">
+                            <i class="bi bi-sliders me-1 text-secondary"></i> Tampilan
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-3" style="min-width: 260px; font-size: 0.8rem;">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleBracketThemeSwitch" checked style="cursor: pointer;">
+                                <label class="form-check-label fw-bold text-dark" for="toggleBracketThemeSwitch" style="cursor: pointer;">Tema Gelap (Dark)</label>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleBronzeMatchSwitch" {{ $hasBronze ? 'checked' : '' }} onchange="toggleBronzeMatchSetting(this)" style="cursor: pointer;">
+                                <label class="form-check-label fw-bold text-dark" for="toggleBronzeMatchSwitch" style="cursor: pointer;">Bronze Match (Juara 3/4)</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                {{-- Info text & Mode Swap Toggle --}}
-                <div class="col-md-2 text-end d-flex align-items-center justify-content-end gap-1.5">
-                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2.5 fw-bold text-nowrap" id="toggleSwapModeBtn" style="font-size: 0.68rem;">
-                        <i class="bi bi-arrow-down-up me-1"></i> <span id="swapModeText">Tukar Posisi</span>
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-bold text-nowrap" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#modalRoundTimes">
-                        <i class="bi bi-clock-fill text-warning me-1"></i> Jam Babak
-                    </button>
                 </div>
             </div>
 
             {{-- Filter Babak / Round Tab Focus --}}
-            <div class="row pt-3 border-top mt-3 align-items-center">
-                <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
-                    <span class="small fw-bold text-secondary me-1" style="font-size: 0.75rem;"><i class="bi bi-funnel-fill text-warning me-1"></i>Fokus Babak:</span>
-                    <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold round-filter-btn active" data-round="all" style="font-size: 0.72rem;">
-                        Semua Babak
-                    </button>
+            <div class="d-flex align-items-center gap-2 flex-wrap pt-2.5 border-top mt-3">
+                <span class="small fw-bold text-secondary me-1" style="font-size: 0.75rem;"><i class="bi bi-funnel-fill text-warning me-1"></i>Fokus Babak:</span>
+                <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold round-filter-btn active" data-round="all" style="font-size: 0.72rem;">
+                    Semua Babak
+                </button>
+                @php
+                    $totalRoundsCount = count($rounds);
+                @endphp
+                @foreach($rounds as $rNum => $rMatches)
                     @php
-                        $totalRoundsCount = count($rounds);
+                        if ($rNum == $totalRoundsCount) {
+                            $rLabel = "Grand Final";
+                        } elseif ($rNum == $totalRoundsCount - 1 && $totalRoundsCount > 1) {
+                            $rLabel = "Semifinal";
+                        } else {
+                            $rLabel = "Babak " . $rNum;
+                        }
                     @endphp
-                    @foreach($rounds as $rNum => $rMatches)
-                        @php
-                            if ($rNum == $totalRoundsCount) {
-                                $rLabel = "Grand Final";
-                            } elseif ($rNum == $totalRoundsCount - 1 && $totalRoundsCount > 1) {
-                                $rLabel = "Semifinal";
-                            } else {
-                                $rLabel = "Babak " . $rNum;
-                            }
-                        @endphp
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold round-filter-btn" data-round="{{ $rNum }}" style="font-size: 0.72rem;">
-                            {{ $rLabel }}
-                        </button>
-                    @endforeach
-                </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold round-filter-btn" data-round="{{ $rNum }}" style="font-size: 0.72rem;">
+                        {{ $rLabel }}
+                    </button>
+                @endforeach
             </div>
         </div>
 
