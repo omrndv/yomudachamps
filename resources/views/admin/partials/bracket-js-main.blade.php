@@ -1603,6 +1603,33 @@ let adminThreadsInterval = null;
 let adminMessagesInterval = null;
 let adminChatTab = 'active';
 
+// Time formatting helpers (Strict 24-Hour Format WIB)
+function formatChatTime(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return '';
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes} WIB`;
+    } catch(e) {
+        return '';
+    }
+}
+
+function formatThreadListTime(dateString) {
+    if (!dateString) return '';
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return '';
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    } catch(e) {
+        return '';
+    }
+}
+
 // Quick Reply Helper
 window.insertAdminQuickReply = function(text) {
     if (!adminReplyInput || adminReplyInput.disabled) return;
@@ -1613,7 +1640,7 @@ window.insertAdminQuickReply = function(text) {
 // Thread List Styling helpers
 function renderThreadListHTML(threads) {
     if (!threads || threads.length === 0) {
-        threadsList.innerHTML = `<div class="text-center text-secondary py-5 small px-2">Tidak ada percakapan ${adminChatTab === 'archived' ? 'diarsip' : 'aktif'}.</div>`;
+        threadsList.innerHTML = `<div class="text-center text-secondary py-5 small px-3">Tidak ada percakapan ${adminChatTab === 'archived' ? 'diarsip' : 'aktif'}.</div>`;
         return;
     }
 
@@ -1621,38 +1648,35 @@ function renderThreadListHTML(threads) {
     threads.forEach(t => {
         const isSelected = activeThreadToken === t.sender_session_token;
         const activeClass = isSelected ? 'bg-secondary bg-opacity-25 border-start border-3 border-warning' : '';
-        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-1.5 py-0.5" style="font-size: 0.55rem;">${t.unread_count}</span>` : '';
+        const unreadBadge = t.unread_count > 0 ? `<span class="badge bg-danger rounded-pill px-1.5 py-0.5 ms-1" style="font-size: 0.6rem;">${t.unread_count}</span>` : '';
         
         // Truncate message
-        let textTruncated = t.last_message || '';
-        if (textTruncated.length > 20) {
+        let textTruncated = t.last_message || 'Belum ada pesan';
+        if (textTruncated.startsWith('[IMAGE]:')) {
+            textTruncated = '📷 Foto';
+        } else if (textTruncated.length > 20) {
             textTruncated = textTruncated.substring(0, 18) + '...';
         }
         
-        let timeStr = '';
-        if (t.last_chat_time) {
-            try {
-                const d = new Date(t.last_chat_time);
-                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } catch(e) {}
-        }
-
+        const timeStr = formatThreadListTime(t.last_chat_time);
         const initial = (t.sender_name || 'U').charAt(0).toUpperCase();
 
         listHTML += `
-            <div class="p-2.5 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass}" style="cursor: pointer;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
+            <div class="px-3 py-2.5 border-bottom border-secondary border-opacity-10 cursor-pointer ${activeClass} transition-all" style="cursor: pointer; min-height: 58px;" onclick="selectChatThread('${t.sender_session_token}', '${t.sender_name}')">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <div class="d-flex align-items-center gap-1.5 overflow-hidden">
-                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 20px; height: 20px; font-size: 0.62rem;">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden me-1">
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 24px; height: 24px; font-size: 0.68rem;">
                             ${initial}
                         </div>
-                        <span class="fw-bold text-white text-truncate" style="font-size: 0.78rem;">${t.sender_name}</span>
+                        <span class="fw-bold text-white text-truncate" style="font-size: 0.8rem;">${t.sender_name}</span>
                     </div>
-                    ${unreadBadge}
+                    <span class="flex-shrink-0 text-white-50" style="font-size: 0.65rem;">${timeStr}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center small text-secondary" style="font-size: 0.7rem;">
-                    <span class="text-truncate" style="max-width: 120px;">${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}</span>
-                    <span class="flex-shrink-0" style="font-size: 0.62rem; opacity: 0.7;">${timeStr}</span>
+                <div class="d-flex justify-content-between align-items-center ps-4 ms-1">
+                    <span class="text-truncate text-secondary small" style="font-size: 0.72rem; max-width: 130px;">
+                        ${t.last_message_is_admin ? '<span class="text-white-50">Anda: </span>' : ''}${textTruncated}
+                    </span>
+                    ${unreadBadge}
                 </div>
             </div>
         `;
@@ -2054,13 +2078,7 @@ function fetchThreadMessages() {
                             playNotificationSound();
                         }
 
-                        let timeStr = '';
-                        if (msg.created_at) {
-                            try {
-                                const d = new Date(msg.created_at);
-                                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' WIB';
-                            } catch(e) {}
-                        }
+                        const timeStr = formatChatTime(msg.created_at);
 
                         const bubble = document.createElement('div');
                         bubble.className = `p-2.5 rounded-3 text-white small shadow-sm ${msg.is_admin ? 'align-self-end text-end' : 'align-self-start'}`;
@@ -2078,8 +2096,8 @@ function fetchThreadMessages() {
                             <div class="fw-bold d-flex align-items-center ${msg.is_admin ? 'justify-content-end' : 'justify-content-between'} gap-2" style="font-size: 0.65rem; color: ${msg.is_admin ? '#93c5fd' : '#f59e0b'};">
                                 <span>${msg.is_admin ? 'Anda (Admin)' : msg.sender_name}</span>
                             </div>
-                            <div class="mt-1" style="word-break: break-word; line-height: 1.45; font-size: 0.8rem;">${displayContent}</div>
-                            <div class="mt-1 text-white-50" style="font-size: 0.58rem; text-align: right; opacity: 0.7;">
+                            <div class="mt-1" style="word-break: break-word; line-height: 1.45; font-size: 0.82rem; text-align: left;">${displayContent}</div>
+                            <div class="mt-1 text-white-50" style="font-size: 0.6rem; text-align: right; opacity: 0.75;">
                                 ${timeStr}
                             </div>
                         `;

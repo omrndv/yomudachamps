@@ -1373,20 +1373,41 @@ class BracketController extends Controller
     {
         $isArchived = $request->query('status') === 'archived';
 
-        $threads = SeasonChat::where('season_id', $season_id)
+        $tokens = SeasonChat::where('season_id', $season_id)
             ->where('is_archived', $isArchived)
-            ->select('sender_session_token', 'sender_name', DB::raw('MAX(created_at) as last_chat_time'), DB::raw('SUM(CASE WHEN is_admin = 0 AND is_read = 0 THEN 1 ELSE 0 END) as unread_count'))
-            ->groupBy('sender_session_token', 'sender_name')
+            ->select(
+                'sender_session_token',
+                DB::raw('MAX(created_at) as last_chat_time'),
+                DB::raw('SUM(CASE WHEN is_admin = 0 AND is_read = 0 THEN 1 ELSE 0 END) as unread_count')
+            )
+            ->groupBy('sender_session_token')
             ->orderBy('last_chat_time', 'desc')
             ->get();
 
-        foreach ($threads as $t) {
+        $threads = [];
+        foreach ($tokens as $t) {
+            // Dapatkan nama asli peserta (bukan 'Admin') dari percakapan ini
+            $participantMsg = SeasonChat::where('season_id', $season_id)
+                ->where('sender_session_token', $t->sender_session_token)
+                ->where('is_admin', false)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            $senderName = $participantMsg ? $participantMsg->sender_name : 'Peserta';
+
             $lastMsg = SeasonChat::where('season_id', $season_id)
                 ->where('sender_session_token', $t->sender_session_token)
                 ->orderBy('created_at', 'desc')
                 ->first();
-            $t->last_message = $lastMsg ? $lastMsg->message : '';
-            $t->last_message_is_admin = $lastMsg ? $lastMsg->is_admin : false;
+
+            $threads[] = [
+                'sender_session_token' => $t->sender_session_token,
+                'sender_name' => $senderName,
+                'unread_count' => (int) $t->unread_count,
+                'last_chat_time' => $t->last_chat_time,
+                'last_message' => $lastMsg ? $lastMsg->message : '',
+                'last_message_is_admin' => $lastMsg ? (bool) $lastMsg->is_admin : false,
+            ];
         }
 
         return response()->json([

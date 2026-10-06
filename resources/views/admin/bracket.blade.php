@@ -959,10 +959,10 @@
      aria-labelledby="offcanvasAdminLiveChatLabel"
      data-bs-scroll="true"
      data-bs-backdrop="false"
-     style="width: 530px; max-width: 95vw; z-index: 1060; background-color: #121316 !important; box-shadow: -10px 0 35px rgba(0,0,0,0.65) !important;">
+     style="width: 560px; max-width: 96vw; z-index: 1060; background-color: #121316 !important; box-shadow: -10px 0 35px rgba(0,0,0,0.65) !important;">
     
     {{-- Offcanvas Header --}}
-    <div class="offcanvas-header bg-black py-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+    <div class="offcanvas-header bg-black py-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
             <span class="d-inline-block rounded-circle bg-success" style="width: 8px; height: 8px; box-shadow: 0 0 8px #10b981;"></span>
             <h6 class="offcanvas-title fw-bold mb-0 text-white" id="offcanvasAdminLiveChatLabel" style="font-size: 0.92rem;">
@@ -978,29 +978,29 @@
     </div>
 
     {{-- Offcanvas Body (Two columns: Threads List & Active Thread) --}}
-    <div class="offcanvas-body p-0 d-flex flex-row overflow-hidden" style="height: calc(100% - 49px);">
+    <div class="offcanvas-body p-0 d-flex flex-row overflow-hidden flex-grow-1" style="min-height: 0;">
         
         <!-- Left panel: Threads list -->
-        <div class="border-end border-secondary border-opacity-25 d-flex flex-column" style="width: 195px; flex-shrink: 0; background-color: rgba(0,0,0,0.25);">
+        <div class="border-end border-secondary border-opacity-25 d-flex flex-column h-100" style="width: 215px; min-width: 215px; flex-shrink: 0; background-color: rgba(0,0,0,0.25); min-height: 0;">
             <!-- Tab Pills for Active vs Archived -->
-            <div class="p-2 border-bottom border-secondary border-opacity-15 d-flex gap-1" style="background-color: rgba(0,0,0,0.2);">
-                <button id="adminTabActive" class="btn btn-warning btn-sm py-0.5 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.65rem;">
+            <div class="p-2 border-bottom border-secondary border-opacity-15 d-flex gap-1 flex-shrink-0" style="background-color: rgba(0,0,0,0.2);">
+                <button id="adminTabActive" class="btn btn-warning btn-sm py-1 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.68rem;">
                     Aktif
                 </button>
-                <button id="adminTabArchived" class="btn btn-outline-secondary text-white btn-sm py-0.5 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.65rem;">
+                <button id="adminTabArchived" class="btn btn-outline-secondary text-white btn-sm py-1 px-2 rounded-pill fw-bold flex-grow-1" style="font-size: 0.68rem;">
                     Arsip
                 </button>
             </div>
             
-            <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0;">
+            <div id="adminChatThreadsList" class="flex-grow-1 overflow-y-auto" style="list-style: none; padding: 0; margin: 0; min-height: 0;">
                 <div class="text-center text-secondary py-5 small px-2">Belum ada chat masuk.</div>
             </div>
         </div>
 
         <!-- Right panel: Active Chat Thread -->
-        <div class="flex-grow-1 d-flex flex-column" style="background-color: #16171b; min-width: 0;">
+        <div class="flex-grow-1 d-flex flex-column h-100" style="background-color: #16171b; min-width: 0; min-height: 0;">
             <!-- Thread Header -->
-            <div class="p-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between" style="background-color: rgba(0,0,0,0.2);">
+            <div class="p-2.5 px-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-shrink-0" style="background-color: rgba(0,0,0,0.2);">
                 <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
                     <div id="adminActiveThreadTitle" class="fw-bold text-warning small text-truncate">Pilih percakapan</div>
                     <span id="adminThreadSessionToken" style="display:none;"></span>
@@ -1019,7 +1019,7 @@
             </div>
             
             <!-- Messages Container -->
-            <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2" style="background: radial-gradient(circle at center, rgba(30, 41, 59, 0.15) 0%, transparent 70%);">
+            <div id="adminChatMessagesBody" class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-2" style="min-height: 0; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.15) 0%, transparent 70%);">
                 <div class="text-center text-secondary my-auto py-5 small px-3">
                     <i class="bi bi-chat-dots" style="font-size: 2.2rem; opacity: 0.6;"></i>
                     <p class="mt-2 text-white-50">Pilih salah satu user di panel kiri untuk membalas pertanyaan peserta.</p>
@@ -1027,30 +1027,30 @@
             </div>
 
             <!-- Quick Reply Chips Bar -->
-            <div id="adminQuickRepliesBar" class="px-2.5 py-1.5 border-top border-secondary border-opacity-15 d-flex gap-1.5 overflow-x-auto" style="background-color: rgba(0,0,0,0.3); white-space: nowrap; display: none;">
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
+            <div id="adminQuickRepliesBar" class="px-2.5 py-1.5 border-top border-secondary border-opacity-15 d-flex gap-1.5 overflow-x-auto flex-shrink-0" style="background-color: rgba(0,0,0,0.3); white-space: nowrap; display: none;">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2.5 rounded-pill small" style="font-size: 0.68rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
                     Tanya Tim
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Nomor WA kapten lawan ada di card bracket ya kak.')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2.5 rounded-pill small" style="font-size: 0.68rem;" onclick="insertAdminQuickReply('Nomor WA kapten lawan ada di card bracket ya kak.')">
                     Cek WA Lawan
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Silakan kirimkan bukti screenshot skor pertandingannya di sini ya.')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2.5 rounded-pill small" style="font-size: 0.68rem;" onclick="insertAdminQuickReply('Silakan kirimkan bukti screenshot skor pertandingannya di sini ya.')">
                     Minta Screenshot
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2 rounded-pill small" style="font-size: 0.65rem;" onclick="insertAdminQuickReply('Baik kak, laporan sedang kami verifikasi. Mohon ditunggu ya!')">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-0.5 px-2.5 rounded-pill small" style="font-size: 0.68rem;" onclick="insertAdminQuickReply('Baik kak, laporan sedang kami verifikasi. Mohon ditunggu ya!')">
                     Sedang Diproses
                 </button>
             </div>
             
             <!-- Bottom Input Bar -->
-            <div class="p-2.5 px-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center" style="background-color: rgba(0,0,0,0.35);">
-                <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
-                    <i class="bi bi-camera-fill"></i>
+            <div class="p-2.5 px-3 border-top border-secondary border-opacity-25 d-flex gap-2 align-items-center flex-shrink-0" style="background-color: #0e0f12;">
+                <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
+                    <i class="bi bi-camera-fill" style="font-size: 1rem;"></i>
                 </button>
                 <input type="file" id="adminFileInput" accept="image/*" style="display: none;">
-                <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none py-1.5 px-3" style="font-size: 0.82rem;" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
-                <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;" disabled title="Kirim">
-                    <i class="bi bi-send-fill text-dark" style="font-size: 0.85rem;"></i>
+                <input type="text" id="adminReplyInput" class="form-control bg-dark border-secondary text-white rounded-pill shadow-none py-2 px-3" style="font-size: 0.85rem;" placeholder="Ketik balasan admin..." autocomplete="off" disabled>
+                <button id="adminBtnReplySend" class="btn btn-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;" disabled title="Kirim">
+                    <i class="bi bi-send-fill text-dark" style="font-size: 0.9rem;"></i>
                 </button>
             </div>
         </div>
