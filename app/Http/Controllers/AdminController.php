@@ -134,54 +134,68 @@ class AdminController extends Controller
             // Sesuai instruksi:
             // - Akun 'superadmin' TIDAK BOLEH pakai email umarnadiv@gmail.com (superadmin login pakai username + pw, email dummy super@gmail.com).
             // - umarnadiv@gmail.com ditautkan KHUSUS ke akun username 'nadiv'.
+            // - Akun 'nadiv' WAJIB role 'admin' (bukan superadmin) agar tampil di Kelola Admin Staff dan tidak berbadge SA.
             if ($googleEmail === 'umarnadiv@gmail.com') {
-                // Pastikan akun 'superadmin' memakai email dummy 'super@gmail.com'
+                // Pastikan akun 'superadmin' memakai email dummy 'super@gmail.com' dan bukan google_id
                 $superadminUser = User::where('username', 'superadmin')->first();
-                if ($superadminUser && $superadminUser->email === 'umarnadiv@gmail.com') {
-                    $superadminUser->email = 'super@gmail.com';
+                if ($superadminUser) {
+                    if ($superadminUser->email === 'umarnadiv@gmail.com') {
+                        $superadminUser->email = 'super@gmail.com';
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
+                        $superadminUser->google_id = null;
+                    }
+                    $superadminUser->role = 'superadmin';
                     $superadminUser->save();
                 }
 
                 // Cari akun 'nadiv'
                 $user = User::where('username', 'nadiv')->first();
                 if (!$user) {
-                    $user = User::where('email', 'umarnadiv@gmail.com')->first();
+                    // Cari record id 4 (id asli akun nadiv) jika bukan superadmin
+                    $possibleNadiv = User::find(4);
+                    if ($possibleNadiv && $possibleNadiv->username !== 'superadmin') {
+                        $user = $possibleNadiv;
+                    }
+                }
+                if (!$user) {
+                    // Cari berdasarkan email jika bukan superadmin
+                    $user = User::where('email', 'umarnadiv@gmail.com')->where('username', '!=', 'superadmin')->first();
                 }
                 if (!$user) {
                     $user = new User();
-                    $user->username = 'nadiv';
                     $user->password = Hash::make(Str::random(32));
-                    $user->role = 'admin';
                 }
 
-                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com, pindahkan ke email archive
+                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com, ubah emailnya agar tidak duplicate
                 if ($user->exists) {
                     $otherUsers = User::where('email', 'umarnadiv@gmail.com')
                         ->where('id', '!=', $user->id)
                         ->get();
 
                     foreach ($otherUsers as $otherUser) {
-                        $otherUser->email = 'super@gmail.com';
-                        // Jika super@gmail.com sudah ada atau bentrok:
-                        if (User::where('email', 'super@gmail.com')->where('id', '!=', $otherUser->id)->exists()) {
+                        if ($otherUser->username === 'superadmin') {
+                            $otherUser->email = 'super@gmail.com';
+                        } else {
                             $otherUser->email = 'archived_' . $otherUser->id . '_' . time() . '@yomuda.local';
                         }
                         $otherUser->save();
                     }
                 }
 
-                $user->name = $googleName ?: 'Nadiv';
+                // Konfigurasi akun nadiv: role WAJIB admin (bukan superadmin)
+                $user->username = 'nadiv';
+                $user->name = $googleName ?: 'Muhammad Omar Nadiv';
                 $user->email = 'umarnadiv@gmail.com';
+                $user->role = 'admin'; // WAJIB ADMIN
                 $user->is_active = true;
                 
-                // Pastikan user nadiv memiliki semua permissions admin jika role admin
-                if (empty($user->permissions) || !is_array($user->permissions)) {
-                    $user->permissions = [
-                        "dashboard", "seasons", "teams", "payments", "notes",
-                        "settings", "gateway_notifications", "faqs", "activity_log",
-                        "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
-                    ];
-                }
+                // Pastikan user nadiv memiliki semua permissions admin aktif
+                $user->permissions = [
+                    "dashboard", "seasons", "teams", "payments", "notes",
+                    "settings", "gateway_notifications", "faqs", "activity_log",
+                    "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                ];
 
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
                     $user->google_id = $googleId;
@@ -193,8 +207,8 @@ class AdminController extends Controller
 
                 Auth::login($user, true);
                 session(['login_time' => now()]);
-                AdminActivity::log('Admin Nadiv login via Google: ' . $googleEmail . ' (Username: ' . $user->username . ')');
-                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang ' . $user->name . '! Akun Google (' . $googleEmail . ') berhasil terhubung.');
+                AdminActivity::log('Admin Nadiv login via Google: ' . $googleEmail . ' (Username: ' . $user->username . ', Role: admin)');
+                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang ' . $user->name . '! Anda berhasil masuk sebagai Admin.');
             }
 
             // 2. CEK USER LAIN
@@ -229,7 +243,7 @@ class AdminController extends Controller
 
                 AdminActivity::log('Permintaan pendaftaran admin Google baru: ' . $googleEmail . ' (' . $googleName . ')');
 
-                return redirect()->route('admin.login')->with('info', 'Permintaan akses untuk akun Google (' . $googleEmail . ') berhasil diajukan! Akun Anda sedang menunggu persetujuan Superadmin (umarnadiv@gmail.com). Silakan hubungi Superadmin.');
+                return redirect()->route('admin.login')->with('info', 'Permintaan akses untuk akun Google (' . $googleEmail . ') berhasil diajukan! Akun Anda sedang menunggu persetujuan Superadmin. Silakan hubungi Superadmin.');
             }
 
             // Update data Google pengguna
@@ -243,7 +257,7 @@ class AdminController extends Controller
 
             // Cek status keaktifan akun
             if (!$user->is_active) {
-                return redirect()->route('admin.login')->with('warning', 'Akun Google Anda (' . $googleEmail . ') berstatus PENDING / Dinonaktifkan. Silakan hubungi Superadmin (umarnadiv@gmail.com) untuk aktivasi.');
+                return redirect()->route('admin.login')->with('warning', 'Akun Google Anda (' . $googleEmail . ') berstatus PENDING / Dinonaktifkan. Silakan hubungi Superadmin untuk aktivasi.');
             }
 
             // Login berhasil
@@ -1675,6 +1689,42 @@ class AdminController extends Controller
     {
         if (!Auth::user()->hasPermission('manage')) {
             abort(403, 'Unauthorized');
+        }
+
+        // Auto-heal: Pastikan akun nadiv selalu role admin & aktif jika ada
+        $nadivUser = User::where('username', 'nadiv')->orWhere('email', 'umarnadiv@gmail.com')->first();
+        if ($nadivUser && $nadivUser->username !== 'superadmin') {
+            $updated = false;
+            if ($nadivUser->role !== 'admin') {
+                $nadivUser->role = 'admin';
+                $updated = true;
+            }
+            if ($nadivUser->username !== 'nadiv') {
+                $nadivUser->username = 'nadiv';
+                $updated = true;
+            }
+            if (!$nadivUser->is_active) {
+                $nadivUser->is_active = true;
+                $updated = true;
+            }
+            if (empty($nadivUser->permissions)) {
+                $nadivUser->permissions = [
+                    "dashboard", "seasons", "teams", "payments", "notes",
+                    "settings", "gateway_notifications", "faqs", "activity_log",
+                    "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                ];
+                $updated = true;
+            }
+            if ($updated) {
+                $nadivUser->save();
+            }
+        }
+
+        // Auto-heal: Pastikan superadmin tidak memegang email umarnadiv@gmail.com
+        $superadmin = User::where('username', 'superadmin')->first();
+        if ($superadmin && $superadmin->email === 'umarnadiv@gmail.com') {
+            $superadmin->email = 'super@gmail.com';
+            $superadmin->save();
         }
 
         $admins = User::where('role', 'admin')

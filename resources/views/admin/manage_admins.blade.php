@@ -320,7 +320,7 @@
                                 <span class="badge bg-danger rounded-pill">{{ count($pendingAdmins) }} Menunggu</span>
                             </h5>
                             <p class="text-secondary small mb-0 mt-0.5">
-                                Akun berikut baru mencoba login via Google dan memerlukan verifikasi &amp; hak akses dari Superadmin (umarnadiv@gmail.com).
+                                Akun berikut baru mencoba login via Google dan memerlukan verifikasi &amp; hak akses dari Superadmin.
                             </p>
                         </div>
                     </div>
