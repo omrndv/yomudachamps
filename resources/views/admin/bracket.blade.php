@@ -319,7 +319,7 @@
             </div>
 
             {{-- Filter Babak / Round Tab Focus --}}
-            <div class="d-flex align-items-center gap-2 flex-wrap pt-2.5 border-top mt-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap border-top mt-3" style="padding-top: 22px !important;">
                 <span class="small fw-bold text-secondary me-1" style="font-size: 0.75rem;"><i class="bi bi-funnel-fill text-warning me-1"></i>Fokus Babak:</span>
                 <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold round-filter-btn active" data-round="all" style="font-size: 0.72rem;">
                     Semua Babak
