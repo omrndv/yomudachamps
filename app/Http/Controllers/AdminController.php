@@ -145,6 +145,14 @@ class AdminController extends Controller
                     $user->username = 'nadiv';
                     $user->password = Hash::make(Str::random(32));
                 }
+
+                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com (misal akun duplikat lama yang bukan user id target), bersihkan / hapus duplikatnya
+                if ($user->exists) {
+                    User::where('email', 'umarnadiv@gmail.com')
+                        ->where('id', '!=', $user->id)
+                        ->update(['email' => null]);
+                }
+
                 $user->name = $googleName ?: 'Superadmin Nadiv';
                 $user->email = 'umarnadiv@gmail.com';
                 $user->role = 'superadmin';
