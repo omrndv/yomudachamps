@@ -59,7 +59,7 @@ class AdminController extends Controller
             }
 
             AdminActivity::log('Login admin berhasil' . ($remember ? ' (Ingat Saya aktif 12 Jam)' : ''));
-            return redirect()->route('admin.dashboard.home');
+            return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang kembali, ' . $user->name . '! Anda berhasil masuk.');
         }
 
         AdminActivity::log('Gagal login admin: Percobaan masuk dengan username "' . $request->username . '"');
@@ -131,14 +131,18 @@ class AdminController extends Controller
             }
 
             // 1. CEK KHUSUS: SUPERADMIN (umarnadiv@gmail.com)
+            // Sesuai preferensi sistem: Superadmin login manual pakai username 'nadiv', dan umarnadiv@gmail.com di-link langsung ke user 'nadiv'.
             if ($googleEmail === 'umarnadiv@gmail.com') {
-                $user = User::where('email', 'umarnadiv@gmail.com')->first();
+                $user = User::where('username', 'nadiv')->first();
+                if (!$user) {
+                    $user = User::where('email', 'umarnadiv@gmail.com')->first();
+                }
                 if (!$user) {
                     $user = User::where('username', 'umarnadiv')->first();
                 }
                 if (!$user) {
                     $user = new User();
-                    $user->username = 'umarnadiv';
+                    $user->username = 'nadiv';
                     $user->password = Hash::make(Str::random(32));
                 }
                 $user->name = $googleName ?: 'Superadmin Nadiv';
@@ -155,8 +159,8 @@ class AdminController extends Controller
 
                 Auth::login($user, true);
                 session(['login_time' => now()]);
-                AdminActivity::log('Superadmin login via Google: ' . $googleEmail);
-                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang Superadmin, ' . $user->name . '!');
+                AdminActivity::log('Superadmin login via Google: ' . $googleEmail . ' (Linked to user: ' . $user->username . ')');
+                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang Superadmin, ' . $user->name . '! Akun Google berhasil terhubung.');
             }
 
             // 2. CEK USER LAIN

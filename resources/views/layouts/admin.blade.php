@@ -86,17 +86,15 @@
             overflow-y: auto;
             overflow-x: hidden;
             min-height: 0;
-            padding-bottom: 76px; /* Memberi ruang agar item menu terbawah tidak tertutup tombol logout fixed */
+            padding-bottom: 12px;
             scrollbar-width: thin;
             scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
         }
 
         .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, #020617 100%);
+            flex-shrink: 0;
+            margin-top: auto;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, #020617 100%);
             padding: 12px 14px 14px 14px;
             z-index: 10;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -247,6 +245,9 @@
             }
             body.sidebar-collapsed .sidebar-footer {
                 padding: 12px 8px 14px 8px !important;
+            }
+            body.sidebar-collapsed .sidebar-user-card {
+                display: none !important;
             }
             body.sidebar-collapsed .sidebar-footer .nav-link-logout {
                 padding: 12px 0 !important;
@@ -466,6 +467,36 @@
         </div>
 
         <div class="sidebar-footer">
+            @if(Auth::check())
+            <div class="sidebar-user-card d-flex align-items-center gap-2 mb-2 px-1 py-1 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div class="position-relative flex-shrink-0">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="rounded-circle border border-warning" style="width: 34px; height: 34px; object-fit: cover;">
+                    @else
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 0.85rem;">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                        </div>
+                    @endif
+                    @if(Auth::user()->google_id)
+                        <span class="position-absolute bottom-0 end-0 bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 14px; height: 14px; transform: translate(2px, 2px);" title="Terhubung dengan Google">
+                            <i class="bi bi-google text-danger" style="font-size: 9px;"></i>
+                        </span>
+                    @endif
+                </div>
+                <div class="min-w-0 flex-grow-1 text-truncate">
+                    <div class="fw-bold text-white small text-truncate d-flex align-items-center gap-1" style="font-size: 0.8rem;" title="{{ Auth::user()->name }}">
+                        <span class="text-truncate">{{ Auth::user()->name }}</span>
+                        @if(Auth::user()->role === 'superadmin')
+                            <span class="badge bg-warning text-dark px-1 py-0" style="font-size: 0.6rem;">SA</span>
+                        @endif
+                    </div>
+                    <div class="text-secondary text-truncate" style="font-size: 0.68rem;" title="{{ Auth::user()->email ?? ('@' . Auth::user()->username) }}">
+                        {{ Auth::user()->email ?? ('@' . Auth::user()->username) }}
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <a href="{{ route('admin.logout') }}" class="nav-link-logout">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
             </a>
@@ -567,17 +598,31 @@
             <div class="mt-auto pt-4 w-100 bg-transparent shrink-0">
                 <hr class="border-secondary opacity-25 mb-3">
                 @if(Auth::check())
-                <div class="d-flex align-items-center gap-2 mb-3 px-1">
-                    @if(Auth::user()->avatar)
-                        <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="rounded-circle border border-warning" style="width: 38px; height: 38px; object-fit: cover; flex-shrink: 0;">
-                    @else
-                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.9rem;">
-                            {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
-                        </div>
-                    @endif
+                <div class="d-flex align-items-center gap-2 mb-3 px-2 py-2 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06);">
+                    <div class="position-relative flex-shrink-0">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="rounded-circle border border-warning" style="width: 38px; height: 38px; object-fit: cover;">
+                        @else
+                            <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                            </div>
+                        @endif
+                        @if(Auth::user()->google_id)
+                            <span class="position-absolute bottom-0 end-0 bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 15px; height: 15px; transform: translate(2px, 2px);" title="Terhubung dengan Google">
+                                <i class="bi bi-google text-danger" style="font-size: 10px;"></i>
+                            </span>
+                        @endif
+                    </div>
                     <div class="min-w-0 flex-grow-1 text-truncate">
-                        <div class="fw-bold text-white small text-truncate" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
-                        <div class="text-secondary text-truncate" style="font-size: 0.68rem;">{{ Auth::user()->email ?? ('@' . Auth::user()->username) }}</div>
+                        <div class="fw-bold text-white small text-truncate d-flex align-items-center gap-1" title="{{ Auth::user()->name }}">
+                            <span class="text-truncate">{{ Auth::user()->name }}</span>
+                            @if(Auth::user()->role === 'superadmin')
+                                <span class="badge bg-warning text-dark px-1 py-0" style="font-size: 0.6rem;">SA</span>
+                            @endif
+                        </div>
+                        <div class="text-secondary text-truncate" style="font-size: 0.68rem;" title="{{ Auth::user()->email ?? ('@' . Auth::user()->username) }}">
+                            {{ Auth::user()->email ?? ('@' . Auth::user()->username) }}
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -599,6 +644,73 @@
     {{-- Sidebar Toggle JS Logic --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // ----------------------------------------------------
+            // Global Session Notifications (SweetAlert2)
+            // ----------------------------------------------------
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4500,
+                    timerProgressBar: true,
+                    background: '#18181b',
+                    color: '#ffffff',
+                    iconColor: '#22c55e'
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Perhatian!',
+                    text: "{{ session('error') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5500,
+                    timerProgressBar: true,
+                    background: '#18181b',
+                    color: '#ffffff',
+                    iconColor: '#ef4444'
+                });
+            @endif
+
+            @if(session('warning'))
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan!',
+                    text: "{{ session('warning') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: '#18181b',
+                    color: '#ffffff',
+                    iconColor: '#f59e0b'
+                });
+            @endif
+
+            @if(session('info'))
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Informasi',
+                    text: "{{ session('info') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: '#18181b',
+                    color: '#ffffff',
+                    iconColor: '#3b82f6'
+                });
+            @endif
+
             const toggleBtn = document.getElementById('toggleSidebar');
             const toggleIcon = document.getElementById('toggleIcon');
             
