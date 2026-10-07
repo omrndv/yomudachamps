@@ -253,7 +253,7 @@
                         <div class="row g-2 mb-3" id="propFontContainer">
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Ukuran Font</label>
-                                <input type="number" id="propFontSize" class="form-control-custom" min="10" max="250">
+                                <input type="number" id="propFontSize" class="form-control-custom" min="10" max="500">
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Warna Teks</label>
@@ -275,6 +275,9 @@
  
                                 <input type="radio" class="btn-check" name="propAlign" id="propAlignCenter" value="center" autocomplete="off">
                                 <label class="btn btn-outline-secondary btn-sm" for="propAlignCenter"><i class="bi bi-text-center"></i> Rata Tengah</label>
+
+                                <input type="radio" class="btn-check" name="propAlign" id="propAlignRight" value="right" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="propAlignRight"><i class="bi bi-text-right"></i> Rata Kanan</label>
                             </div>
                         </div>
 
@@ -310,6 +313,7 @@
                     <input type="hidden" name="font_size" id="inputFontSize" value="{{ $layout->font_size }}">
                     <input type="hidden" name="font_color" id="inputFontColor" value="{{ $layout->font_color }}">
                     <input type="hidden" name="layout_data" id="layoutDataField">
+                    <input type="hidden" name="is_released" id="layoutFormIsReleased" value="{{ $layout->is_released ? '1' : '0' }}">
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Upload Background Template (PDF/JPG/PNG)</label>
@@ -361,6 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const propFontBold = document.getElementById('propFontBold');
     const propAlignLeft = document.getElementById('propAlignLeft');
     const propAlignCenter = document.getElementById('propAlignCenter');
+    const propAlignRight = document.getElementById('propAlignRight');
     const propDimensionContainer = document.getElementById('propDimensionContainer');
     const propImageWidth = document.getElementById('propImageWidth');
     const propImageHeight = document.getElementById('propImageHeight');
@@ -633,6 +638,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (el.align === 'left') {
                 propAlignLeft.checked = true;
+            } else if (el.align === 'right') {
+                propAlignRight.checked = true;
             } else {
                 propAlignCenter.checked = true;
             }
@@ -789,6 +796,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    if (propAlignRight) {
+        propAlignRight.addEventListener('change', function() {
+            if (selectedElementId && this.checked) {
+                const el = elements.find(item => item.id === selectedElementId);
+                if (el) el.align = 'right';
+                renderWorkspace();
+            }
+        });
+    }
+
     if (propImageWidth) {
         propImageWidth.addEventListener('input', function() {
             if (selectedElementId) {
@@ -938,6 +955,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const isReleasedEl = document.getElementById('certIsReleased');
             if (isReleasedEl) {
                 formData.set('is_released', isReleasedEl.checked ? '1' : '0');
+                const layoutFormIsReleased = document.getElementById('layoutFormIsReleased');
+                if (layoutFormIsReleased) layoutFormIsReleased.value = isReleasedEl.checked ? '1' : '0';
             }
 
             btnSaveConfig.disabled = true;
@@ -1195,6 +1214,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (certIsReleasedToggle) {
         certIsReleasedToggle.addEventListener('change', function () {
             const isChecked = this.checked ? '1' : '0';
+            const layoutFormIsReleased = document.getElementById('layoutFormIsReleased');
+            if (layoutFormIsReleased) {
+                layoutFormIsReleased.value = isChecked;
+            }
             
             Swal.fire({
                 title: 'Memproses...',
@@ -1205,15 +1228,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Gather layoutForm fields to satisfy validator requirements
             const formData = new FormData();
             formData.append('is_released', isChecked);
-            formData.append('font_size', document.getElementById('inputFontSize')?.value || '48');
-            formData.append('font_color', document.getElementById('inputFontColor')?.value || '#ffc107');
-            formData.append('pos_x', document.getElementById('inputPosX')?.value || '50');
-            formData.append('pos_y', document.getElementById('inputPosY')?.value || '50');
 
-            fetch("{{ route('admin.season.certificate.layout', $season->id) }}", {
+            fetch("{{ route('admin.season.certificate.toggle-release', $season->id) }}", {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -1232,14 +1250,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         showConfirmButton: false
                     });
                 } else {
-                    Swal.fire('Gagal', 'Gagal mengubah status: ' + res.message, 'error');
+                    Swal.fire('Gagal', 'Gagal mengubah status: ' + (res.message || 'Terjadi kesalahan.'), 'error');
                     this.checked = !this.checked; // Revert checkbox state
+                    if (layoutFormIsReleased) layoutFormIsReleased.value = this.checked ? '1' : '0';
                 }
             })
             .catch(err => {
                 console.error("AJAX Error:", err);
                 Swal.fire('Error', 'Terjadi kesalahan jaringan atau server.', 'error');
                 this.checked = !this.checked; // Revert checkbox state
+                if (layoutFormIsReleased) layoutFormIsReleased.value = this.checked ? '1' : '0';
             });
         });
     }

@@ -114,7 +114,7 @@ class CertificateController extends Controller
         $request->validate([
             'template' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:30720',
             'font' => 'nullable|file|max:5120', // TTF font file
-            'font_size' => 'required|integer|min:10|max:200',
+            'font_size' => 'required|integer|min:10|max:500',
             'font_color' => 'required|string|regex:/^#[a-fA-F0-9]{6}$/',
             'pos_x' => 'required|numeric|min:0|max:100',
             'pos_y' => 'required|numeric|min:0|max:100',
@@ -128,7 +128,10 @@ class CertificateController extends Controller
         $layout->font_color = $request->font_color;
         $layout->pos_x = $request->pos_x;
         $layout->pos_y = $request->pos_y;
-        $layout->is_released = $request->boolean('is_released');
+
+        if ($request->has('is_released')) {
+            $layout->is_released = $request->boolean('is_released');
+        }
 
         if ($request->has('layout_data')) {
             $layout->layout_data = is_string($request->layout_data) ? json_decode($request->layout_data, true) : $request->layout_data;
@@ -201,6 +204,26 @@ class CertificateController extends Controller
         }
 
         return redirect()->back()->with('success', 'Konfigurasi layout sertifikat berhasil disimpan!');
+    }
+
+    /**
+     * Toggle status rilis sertifikat ke publik secara mandiri
+     */
+    public function toggleRelease(Request $request, $season_id)
+    {
+        $request->validate([
+            'is_released' => 'required|in:0,1,true,false',
+        ]);
+
+        $layout = CertificateLayout::where('season_id', $season_id)->firstOrFail();
+        $layout->is_released = $request->boolean('is_released');
+        $layout->save();
+
+        return response()->json([
+            'success' => true,
+            'is_released' => (bool) $layout->is_released,
+            'message' => $layout->is_released ? 'Status sertifikat berhasil dirilis ke publik.' : 'Rilis sertifikat publik berhasil ditutup.',
+        ]);
     }
 
     /**
@@ -293,6 +316,9 @@ class CertificateController extends Controller
      */
     public function generateToDrive(Request $request, $season_id)
     {
+        @set_time_limit(0);
+        ignore_user_abort(true);
+
         try {
             $season = Season::findOrFail($season_id);
             $layout = CertificateLayout::where('season_id', $season_id)->first();
@@ -685,6 +711,8 @@ class CertificateController extends Controller
 
         if ($align === 'center') {
             $currentX = $x - ($totalWidth / 2);
+        } elseif ($align === 'right') {
+            $currentX = $x - $totalWidth;
         } else {
             $currentX = $x;
         }

@@ -203,6 +203,7 @@ Route::middleware('admin.auth')->group(function () {
             // Certificate Generator routes
             Route::get('/dashboard/{season_id}/certificate', [\App\Http\Controllers\CertificateController::class, 'index'])->name('admin.season.certificate');
             Route::post('/dashboard/{season_id}/certificate/layout', [\App\Http\Controllers\CertificateController::class, 'saveLayout'])->name('admin.season.certificate.layout');
+            Route::post('/dashboard/{season_id}/certificate/toggle-release', [\App\Http\Controllers\CertificateController::class, 'toggleRelease'])->name('admin.season.certificate.toggle-release');
             Route::post('/dashboard/{season_id}/certificate/upload-element', [\App\Http\Controllers\CertificateController::class, 'uploadElement'])->name('admin.season.certificate.upload-element');
             Route::get('/certificate/google-login', [\App\Http\Controllers\CertificateController::class, 'googleLogin'])->name('admin.certificate.google-login');
             Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
