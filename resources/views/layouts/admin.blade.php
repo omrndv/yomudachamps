@@ -39,24 +39,28 @@
         .sidebar {
             width: 260px;
             height: 100vh;
+            max-height: 100vh;
             position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
             background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
             color: #ffffff;
             z-index: 1000;
-            padding: 24px 14px 16px 14px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             flex-direction: column;
-            overflow: visible; /* Penting: visible agar tombol toggle bulat tidak terpotong separuh */
+            overflow: visible; /* Penting: visible agar tombol toggle bulat tidak terpotong */
         }
 
         .sidebar-header {
-            padding: 10px 8px 30px 8px;
+            padding: 20px 14px 16px 14px;
             text-align: center;
             transition: all 0.3s ease;
             flex-shrink: 0;
-            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .sidebar-brand {
@@ -82,11 +86,11 @@
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            flex: 1 1 auto;
+            flex: 1 1 0;
+            min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            min-height: 0;
-            padding-bottom: 12px;
+            padding: 16px 14px 16px 14px;
             scrollbar-width: thin;
             scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
         }
@@ -94,12 +98,10 @@
         .sidebar-footer {
             flex-shrink: 0;
             margin-top: auto;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, #020617 100%);
-            padding: 12px 14px 14px 14px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, #020617 100%);
+            padding: 14px 14px 16px 14px;
             z-index: 10;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -269,7 +271,6 @@
         @media (min-width: 992px) and (max-width: 1199.98px) {
             .sidebar {
                 width: 240px;
-                padding: 20px 12px;
             }
             .main-content {
                 margin-left: 240px;

@@ -130,40 +130,59 @@ class AdminController extends Controller
                 return redirect()->route('admin.login')->with('error', 'Tidak dapat mengambil email dari akun Google Anda.');
             }
 
-            // 1. CEK KHUSUS: SUPERADMIN (umarnadiv@gmail.com)
-            // Sesuai preferensi sistem: Superadmin login manual pakai username 'nadiv', dan umarnadiv@gmail.com di-link langsung ke user 'nadiv'.
+            // 1. CEK KHUSUS: AKUN NADIV (umarnadiv@gmail.com)
+            // Sesuai instruksi:
+            // - Akun 'superadmin' TIDAK BOLEH pakai email umarnadiv@gmail.com (superadmin login pakai username + pw, email dummy super@gmail.com).
+            // - umarnadiv@gmail.com ditautkan KHUSUS ke akun username 'nadiv'.
             if ($googleEmail === 'umarnadiv@gmail.com') {
+                // Pastikan akun 'superadmin' memakai email dummy 'super@gmail.com'
+                $superadminUser = User::where('username', 'superadmin')->first();
+                if ($superadminUser && $superadminUser->email === 'umarnadiv@gmail.com') {
+                    $superadminUser->email = 'super@gmail.com';
+                    $superadminUser->save();
+                }
+
+                // Cari akun 'nadiv'
                 $user = User::where('username', 'nadiv')->first();
                 if (!$user) {
                     $user = User::where('email', 'umarnadiv@gmail.com')->first();
                 }
                 if (!$user) {
-                    $user = User::where('username', 'umarnadiv')->first();
-                }
-                if (!$user) {
                     $user = new User();
                     $user->username = 'nadiv';
                     $user->password = Hash::make(Str::random(32));
+                    $user->role = 'admin';
                 }
 
-                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com (misal akun percobaan sebelumnya yang dibuat terpisah),
-                // alihkan email user duplikat tersebut agar tidak menabrak constraint NOT NULL & UNIQUE
+                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com, pindahkan ke email archive
                 if ($user->exists) {
                     $otherUsers = User::where('email', 'umarnadiv@gmail.com')
                         ->where('id', '!=', $user->id)
                         ->get();
 
                     foreach ($otherUsers as $otherUser) {
-                        // Jika akun tersebut adalah akun admin dummy/pending tanpa data penting, kita bisa ubah emailnya agar tidak bentrok
-                        $otherUser->email = 'archived_' . $otherUser->id . '_' . time() . '@yomuda.local';
+                        $otherUser->email = 'super@gmail.com';
+                        // Jika super@gmail.com sudah ada atau bentrok:
+                        if (User::where('email', 'super@gmail.com')->where('id', '!=', $otherUser->id)->exists()) {
+                            $otherUser->email = 'archived_' . $otherUser->id . '_' . time() . '@yomuda.local';
+                        }
                         $otherUser->save();
                     }
                 }
 
-                $user->name = $googleName ?: 'Superadmin Nadiv';
+                $user->name = $googleName ?: 'Nadiv';
                 $user->email = 'umarnadiv@gmail.com';
-                $user->role = 'superadmin';
                 $user->is_active = true;
+                
+                // Pastikan user nadiv memiliki semua permissions admin jika role admin
+                if (empty($user->permissions) || !is_array($user->permissions)) {
+                    $user->permissions = [
+                        "dashboard", "seasons", "teams", "payments", "notes",
+                        "settings", "gateway_notifications", "faqs", "activity_log",
+                        "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                    ];
+                }
+
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
                     $user->google_id = $googleId;
                 }
@@ -174,8 +193,8 @@ class AdminController extends Controller
 
                 Auth::login($user, true);
                 session(['login_time' => now()]);
-                AdminActivity::log('Superadmin login via Google: ' . $googleEmail . ' (Linked to user: ' . $user->username . ')');
-                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang Superadmin, ' . $user->name . '! Akun Google berhasil terhubung.');
+                AdminActivity::log('Admin Nadiv login via Google: ' . $googleEmail . ' (Username: ' . $user->username . ')');
+                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang ' . $user->name . '! Akun Google (' . $googleEmail . ') berhasil terhubung.');
             }
 
             // 2. CEK USER LAIN
