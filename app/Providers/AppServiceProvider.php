@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production') || str_contains(request()->getHost(), 'yomudachamps.com') || request()->header('X-Forwarded-Proto') === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         try {
             // Pastikan tabel settings ada sebelum query (mencegah error saat migrate/seed)
             if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {

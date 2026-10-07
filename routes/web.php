@@ -125,7 +125,8 @@ Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
 Route::get('/admin/auth/google', [AdminController::class, 'redirectToGoogle'])->name('admin.login.google');
 Route::get('/admin/auth/google/callback', [AdminController::class, 'handleGoogleCallback'])->name('admin.login.google.callback');
-Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
+Route::get('/admin/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
+Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback']);
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
 Route::middleware('admin.auth')->group(function () {
