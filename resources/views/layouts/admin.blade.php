@@ -38,29 +38,35 @@
         /* Desktop Sidebar Stylings */
         .sidebar {
             width: 260px;
-            height: 100vh;
-            max-height: 100vh;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-height: 100vh !important;
+            max-height: 100dvh !important;
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
             background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
             color: #ffffff;
             z-index: 1000;
-            padding: 0;
+            padding: 0 !important;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            flex-direction: column;
-            overflow: visible; /* Penting: visible agar tombol toggle bulat tidak terpotong */
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            overflow: visible; /* Tetap visible untuk tombol toggle bulat */
+            box-sizing: border-box !important;
         }
 
         .sidebar-header {
             padding: 20px 14px 16px 14px;
             text-align: center;
             transition: all 0.3s ease;
-            flex-shrink: 0;
+            flex: 0 0 auto !important;
+            flex-shrink: 0 !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-sizing: border-box !important;
         }
 
         .sidebar-brand {
@@ -84,25 +90,30 @@
         }
 
         .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 0;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 16px 14px 16px 14px;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-wrap: nowrap !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 0 !important; /* Force flex child to compute overflow properly */
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            padding: 14px 12px 14px 12px !important;
+            box-sizing: border-box !important;
             scrollbar-width: thin;
             scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
         }
 
         .sidebar-footer {
-            flex-shrink: 0;
-            margin-top: auto;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, #020617 100%);
-            padding: 14px 14px 16px 14px;
+            flex: 0 0 auto !important;
+            flex-shrink: 0 !important;
+            margin-top: auto !important;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, #020617 100%);
+            padding: 12px 12px 14px 12px !important;
             z-index: 10;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box !important;
         }
 
         .sidebar-nav::-webkit-scrollbar {
@@ -218,7 +229,7 @@
         @media (min-width: 992px) {
             body.sidebar-collapsed .sidebar {
                 width: 72px;
-                padding: 24px 8px 16px 8px;
+                padding: 0 !important;
             }
             body.sidebar-collapsed .sidebar-header {
                 padding-bottom: 20px;
@@ -372,7 +383,7 @@
     </nav>
 
     {{-- Desktop Sidebar --}}
-    <aside class="sidebar d-none d-lg-block">
+    <aside class="sidebar d-none d-lg-flex">
         {{-- Floating Toggle Button --}}
         <button type="button" id="toggleSidebar" title="Ciutkan / Lebarkan Sidebar" aria-label="Toggle Sidebar">
             <i class="bi bi-chevron-left" id="toggleIcon" style="font-size: 0.75rem;"></i>

@@ -1691,16 +1691,50 @@ class AdminController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Auto-heal: Pastikan akun nadiv selalu role admin & aktif jika ada
-        $nadivUser = User::where('username', 'nadiv')->orWhere('email', 'umarnadiv@gmail.com')->first();
-        if ($nadivUser && $nadivUser->username !== 'superadmin') {
+        // Auto-heal superadmin: pastikan email dummy dan bukan google_id
+        $superadmin = User::where('username', 'superadmin')->first();
+        if ($superadmin) {
+            $sUpdated = false;
+            if ($superadmin->email === 'umarnadiv@gmail.com' || empty($superadmin->email)) {
+                $superadmin->email = 'super@gmail.com';
+                $sUpdated = true;
+            }
+            if ($superadmin->role !== 'superadmin') {
+                $superadmin->role = 'superadmin';
+                $sUpdated = true;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id') && $superadmin->google_id !== null) {
+                $superadmin->google_id = null;
+                $sUpdated = true;
+            }
+            if ($sUpdated) {
+                $superadmin->save();
+            }
+        }
+
+        // Auto-heal akun nadiv: pastikan username 'nadiv', role 'admin', is_active true
+        $nadivUser = User::where('username', 'nadiv')->first();
+        if (!$nadivUser) {
+            $nadivUser = User::where('email', 'umarnadiv@gmail.com')->where('username', '!=', 'superadmin')->first();
+        }
+        if (!$nadivUser) {
+            $user4 = User::find(4);
+            if ($user4 && $user4->username !== 'superadmin') {
+                $nadivUser = $user4;
+            }
+        }
+        if ($nadivUser) {
             $updated = false;
+            if ($nadivUser->username !== 'nadiv') {
+                $nadivUser->username = 'nadiv';
+                $updated = true;
+            }
             if ($nadivUser->role !== 'admin') {
                 $nadivUser->role = 'admin';
                 $updated = true;
             }
-            if ($nadivUser->username !== 'nadiv') {
-                $nadivUser->username = 'nadiv';
+            if ($nadivUser->email !== 'umarnadiv@gmail.com') {
+                $nadivUser->email = 'umarnadiv@gmail.com';
                 $updated = true;
             }
             if (!$nadivUser->is_active) {
@@ -1718,13 +1752,6 @@ class AdminController extends Controller
             if ($updated) {
                 $nadivUser->save();
             }
-        }
-
-        // Auto-heal: Pastikan superadmin tidak memegang email umarnadiv@gmail.com
-        $superadmin = User::where('username', 'superadmin')->first();
-        if ($superadmin && $superadmin->email === 'umarnadiv@gmail.com') {
-            $superadmin->email = 'super@gmail.com';
-            $superadmin->save();
         }
 
         $admins = User::where('role', 'admin')
