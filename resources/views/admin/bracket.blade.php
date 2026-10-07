@@ -1032,8 +1032,8 @@
                 </div>
             </div>
 
-            <!-- Quick Reply Chips Bar -->
-            <div id="adminQuickRepliesBar" class="px-4 py-2.5 border-top border-secondary border-opacity-15 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #121317; white-space: nowrap; display: none;">
+            <!-- Quick Reply Chips Bar (Retain border-top, seamless to input bar) -->
+            <div id="adminQuickRepliesBar" class="px-4 pt-2.5 pb-1 border-top border-secondary border-opacity-20 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #0f1013; white-space: nowrap; display: none;">
                 <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.73rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
                     Tanya Tim
                 </button>
@@ -1048,8 +1048,8 @@
                 </button>
             </div>
             
-            <!-- Bottom Input Bar -->
-            <div class="p-3 px-4 border-top border-secondary border-opacity-20 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #0f1013;">
+            <!-- Bottom Input Bar (Seamless continuation without separating line) -->
+            <div class="px-4 pt-1.5 pb-3 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #0f1013;">
                 <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
                     <i class="bi bi-camera-fill" style="font-size: 1.1rem;"></i>
                 </button>
