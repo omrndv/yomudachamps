@@ -301,6 +301,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/toggle-status/{id}', [AdminController::class, 'toggleAdminStatus'])->name('admin.manage.toggle-status');
             Route::post('/manage-admins/approve/{id}', [AdminController::class, 'approveAdmin'])->name('admin.manage.approve');
             Route::post('/manage-admins/force-logout/{id}', [AdminController::class, 'forceLogoutAdmin'])->name('admin.manage.force-logout');
+            Route::post('/manage-admins/force-logout-all', [AdminController::class, 'forceLogoutAll'])->name('admin.manage.force-logout-all');
         });
 
         // Storage Manager

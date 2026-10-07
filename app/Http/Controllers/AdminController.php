@@ -1897,6 +1897,49 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Putus seluruh sesi login (Force Logout Semua User & Device)
+     */
+    public function forceLogoutAll()
+    {
+        if (!Auth::user()->hasPermission('manage')) {
+            abort(403, 'Unauthorized');
+        }
+
+        // 1. Update force_logout_at dan acak remember_token untuk seluruh user
+        User::query()->update([
+            'force_logout_at' => now(),
+            'remember_token' => \Illuminate\Support\Str::random(60),
+        ]);
+
+        // 2. Jika menggunakan session database, kosongkan tabel sessions
+        if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+            try {
+                \Illuminate\Support\Facades\DB::table('sessions')->truncate();
+            } catch (\Exception $e) {
+                // Abaikan jika driver bukan database
+            }
+        }
+
+        // 3. Jika menggunakan session file, bersihkan seluruh berkas session
+        $sessionFiles = glob(storage_path('framework/sessions/*'));
+        if (is_array($sessionFiles)) {
+            foreach ($sessionFiles as $file) {
+                if (is_file($file) && basename($file) !== '.gitignore') {
+                    @unlink($file);
+                }
+            }
+        }
+
+        AdminActivity::log('Superadmin memutus seluruh sesi login (Force Logout All) untuk semua akun & perangkat.');
+
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return redirect()->route('admin.login')->with('success', 'Seluruh akun dan perangkat yang sedang login berhasil dikeluarkan dari sistem!');
+    }
+
     public function soloMatchmaker($season_id)
     {
         if (!Auth::check()) {

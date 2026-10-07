@@ -274,10 +274,19 @@
                 Monitor status sesi realtime, pembagian hak akses 15 modul, bekukan akun, atau putus sesi login instan.
             </p>
         </div>
-        <button class="btn btn-warning fw-bold px-4 py-2.5 rounded-pill shadow-sm text-dark hover-gold flex-shrink-0 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="font-size: 0.88rem;">
-            <i class="bi bi-person-plus-fill fs-6"></i>
-            <span>Tambah Staf Admin</span>
-        </button>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <form action="{{ route('admin.manage.force-logout-all') }}" method="POST" class="d-inline m-0" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin MELOGOUT SEMUA USER & PERANGKAT sekarang?\n\nSemua admin (termasuk Anda) yang sedang aktif akan langsung dikeluarkan dari sistem.');">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger fw-bold px-3.5 py-2.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-1.5" style="font-size: 0.88rem;">
+                    <i class="bi bi-power fs-6"></i>
+                    <span>Logout Semua Perangkat</span>
+                </button>
+            </form>
+            <button class="btn btn-warning fw-bold px-4 py-2.5 rounded-pill shadow-sm text-dark hover-gold flex-shrink-0 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="font-size: 0.88rem;">
+                <i class="bi bi-person-plus-fill fs-6"></i>
+                <span>Tambah Staf Admin</span>
+            </button>
+        </div>
     </div>
 
     {{-- Validation and Feedback Alerts --}}
