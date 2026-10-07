@@ -239,6 +239,17 @@
                                                 <span class="small text-secondary fw-bold" style="font-size: 0.72rem;">LIHAT BUKTI</span>
                                             </div>
                                         </a>
+                                        @if($report->ai_status)
+                                            <div class="mt-1" style="font-size: 0.65rem;">
+                                                @if($report->ai_status === 'AUTO_APPROVED_OCR')
+                                                    <span class="text-success fw-bold"><i class="bi bi-shield-check"></i> OCR: VICTORY Valid</span>
+                                                @elseif($report->ai_status === 'FLAGGED_ANOMALY')
+                                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> OCR: DEFEAT (Anomali)</span>
+                                                @else
+                                                    <span class="text-muted"><i class="bi bi-info-circle"></i> {{ $report->ai_status }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     @else
                                         <span class="text-muted italic small">Tidak ada gambar</span>
                                     @endif
@@ -249,9 +260,22 @@
                                             PENDING
                                         </span>
                                     @elseif($report->status === 'APPROVED')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5" style="font-size: 0.68rem; font-weight: 700;">
-                                            APPROVED
-                                        </span>
+                                        @if($report->is_auto_approved && !$report->admin_reviewed_at)
+                                            <span class="badge bg-warning text-dark border border-warning rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 0.65rem; font-weight: 800;" title="Sistem otomatis memajukan bagan berdasarkan OCR bukti VICTORY. Menunggu verifikasi lolos oleh admin.">
+                                                <i class="bi bi-robot"></i> Disetujui Otomatis
+                                            </span>
+                                            <div class="text-danger fw-bold mt-1" style="font-size: 0.65rem; letter-spacing: 0.2px;">
+                                                *Belum direview oleh admin
+                                            </div>
+                                        @elseif($report->is_auto_approved && $report->admin_reviewed_at)
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1" style="font-size: 0.68rem; font-weight: 700;">
+                                                <i class="bi bi-patch-check-fill text-success"></i> Terverifikasi Lolos
+                                            </span>
+                                        @else
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5" style="font-size: 0.68rem; font-weight: 700;">
+                                                APPROVED
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1.5" style="font-size: 0.68rem; font-weight: 700;">
                                             REJECTED
@@ -277,10 +301,17 @@
                                         </div>
                                     @else
                                         <div class="d-inline-flex gap-1.5 align-items-center">
-                                            <span class="text-secondary small me-1">Selesai</span>
+                                            @if($report->status === 'APPROVED' && $report->is_auto_approved && !$report->admin_reviewed_at)
+                                                <form action="{{ route('admin.match-report.verify-pass', $report->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-sm px-2.5 py-1 fw-bold rounded-pill shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.7rem;" title="Konfirmasi bukti valid & lolos verifikasi">
+                                                        <i class="bi bi-shield-check"></i> Verifikasi Lolos
+                                                    </button>
+                                                </form>
+                                            @endif
                                             <form action="{{ route('admin.match-report.rollback', $report->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan verifikasi laporan ini? Bagan pertandingan akan di-reset kembali!')">
                                                 @csrf
-                                                <button type="submit" class="btn btn-outline-warning btn-sm px-2.5 py-1 fw-bold rounded-pill shadow-sm" style="font-size: 0.68rem;">
+                                                <button type="submit" class="btn btn-outline-warning btn-sm px-2.5 py-1 fw-bold rounded-pill shadow-sm" style="font-size: 0.68rem;" title="Batalkan status laporan & kembalikan ke Pending">
                                                     <i class="bi bi-arrow-counterclockwise"></i> Reset
                                                 </button>
                                             </form>

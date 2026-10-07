@@ -1785,22 +1785,116 @@ class BracketController extends Controller
             mkdir($uploadPath, 0755, true);
         }
 
+        // Simpan file hasil kompresi
         $this->compressAndSaveImage($file, $uploadPath, $filename);
         $imageUrl = '/match_results/' . $filename;
+        $savedFileFullPath = $uploadPath . '/' . $filename;
 
-        $report = \App\Models\MatchReport::create([
-            'bracket_id' => $request->match_id,
-            'season_id' => $season_id,
-            'reporter_team_id' => $request->reporter_team_id,
-            'score_team1' => $request->score_team1,
-            'score_team2' => $request->score_team2,
-            'image_proof' => $imageUrl,
-            'status' => 'PENDING'
-        ]);
+        // ------------------------------------------------------------------
+        // Otomasi AI/OCR: Deteksi Screenshot VICTORY / DEFEAT
+        // ------------------------------------------------------------------
+        $ocrResult = $this->scanMatchScreenshotOCR($savedFileFullPath);
+        $detectedStatus = $ocrResult['status'] ?? 'UNCLEAR';
+        $ocrRawText = $ocrResult['raw'] ?? '';
+
+        $reporterTeamId = (int)$request->reporter_team_id;
+        $score1 = (int)$request->score_team1;
+        $score2 = (int)$request->score_team2;
+
+        $reporterWins = false;
+        if ($match) {
+            if ($reporterTeamId === (int)$match->team1_id && $score1 > $score2) {
+                $reporterWins = true;
+            } elseif ($reporterTeamId === (int)$match->team2_id && $score2 > $score1) {
+                $reporterWins = true;
+            }
+        }
+
+        $isAutoApproved = false;
+        $noticeType = 'pending';
+        $noticeTitle = '⏱️ Laporan Diterima';
+        $noticeMessage = 'Laporan skor Anda telah diterima. Admin turnamen akan segera memeriksa bukti pertandingan Anda.';
+
+        // Jika pelapor klaim Menang (BO1) dan gambar terbukti jelas ada teks VICTORY
+        if ($reporterWins && $detectedStatus === 'VICTORY' && $match && $match->status !== 'finished' && $match->team1_id && $match->team2_id) {
+            DB::beginTransaction();
+            try {
+                // Set skor match & selesaikan match di bagan
+                $match->team1_score = $score1;
+                $match->team2_score = $score2;
+                $match->status = 'finished';
+                $match->winner_id = ($score1 > $score2) ? $match->team1_id : $match->team2_id;
+                $match->save();
+
+                // Majukan tim pemenang ke babak berikutnya di bagan secara otomatis
+                $this->advanceWinner($match);
+
+                // Buat record MatchReport dengan status APPROVED otomatis
+                $report = \App\Models\MatchReport::create([
+                    'bracket_id' => $request->match_id,
+                    'season_id' => $season_id,
+                    'reporter_team_id' => $reporterTeamId,
+                    'score_team1' => $score1,
+                    'score_team2' => $score2,
+                    'image_proof' => $imageUrl,
+                    'status' => 'APPROVED',
+                    'is_auto_approved' => true,
+                    'admin_reviewed_at' => null, // Belum direview admin
+                    'ai_status' => 'AUTO_APPROVED_OCR',
+                    'ai_notes' => 'Otomatis disetujui sistem: Terdeteksi VICTORY pada screenshot. OCR: ' . substr($ocrRawText, 0, 150)
+                ]);
+
+                // Tolak laporan pending lain untuk match ini jika ada
+                \App\Models\MatchReport::where('bracket_id', $match->id)
+                    ->where('id', '!=', $report->id)
+                    ->where('status', 'PENDING')
+                    ->update(['status' => 'REJECTED']);
+
+                DB::commit();
+                self::clearBracketCache($season_id);
+
+                $isAutoApproved = true;
+                $noticeType = 'auto_approved';
+                $noticeTitle = '🏆 Pertandingan Terverifikasi Otomatis!';
+                $noticeMessage = 'Bukti kemenangan (VICTORY) berhasil diverifikasi oleh sistem! Tim Anda resmi melaju ke babak berikutnya di bagan pertandingan.';
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Illuminate\Support\Facades\Log::error('Auto-approval error: ' . $e->getMessage());
+                $isAutoApproved = false;
+            }
+        }
+
+        // Jika tidak auto-approved, simpan sebagai PENDING normal
+        if (!$isAutoApproved) {
+            $aiNotes = 'Status OCR: ' . $detectedStatus . '. Teks: ' . substr($ocrRawText, 0, 100);
+            if ($reporterWins && $detectedStatus === 'DEFEAT') {
+                $aiNotes = '⚠️ Anomali: Pelapor klaim menang namun gambar terdeteksi DEFEAT. OCR: ' . substr($ocrRawText, 0, 100);
+                $noticeType = 'anomaly';
+                $noticeTitle = '⚠️ Menunggu Pemeriksaan Admin';
+                $noticeMessage = 'Laporan Anda telah disimpan. Karena sistem mendeteksi ketidaksesuaian gambar, admin akan meninjau screenshot secara manual.';
+            }
+
+            $report = \App\Models\MatchReport::create([
+                'bracket_id' => $request->match_id,
+                'season_id' => $season_id,
+                'reporter_team_id' => $reporterTeamId,
+                'score_team1' => $score1,
+                'score_team2' => $score2,
+                'image_proof' => $imageUrl,
+                'status' => 'PENDING',
+                'is_auto_approved' => false,
+                'admin_reviewed_at' => null,
+                'ai_status' => ($detectedStatus === 'DEFEAT' ? 'FLAGGED_ANOMALY' : 'MANUAL_REVIEW'),
+                'ai_notes' => $aiNotes
+            ]);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Laporan skor berhasil dikirim! Admin akan segera memeriksa bukti pertandingan Anda.'
+            'is_auto_approved' => $isAutoApproved,
+            'notice_type' => $noticeType,
+            'title' => $noticeTitle,
+            'message' => $noticeMessage
         ]);
     }
 
@@ -1996,6 +2090,113 @@ class BracketController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membatalkan verifikasi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tandai Laporan Lolos / Terverifikasi Resmi oleh Admin (Admin Only)
+     */
+    public function verifyPassMatchReport($id)
+    {
+        $report = \App\Models\MatchReport::findOrFail($id);
+        $report->admin_reviewed_at = now();
+        $report->save();
+
+        return back()->with('success', 'Laporan berhasil diverifikasi oleh admin! Tanda review kini telah bersih.');
+    }
+
+    /**
+     * Helper OCR cerdas berbasis Tesseract lokal (Gratis 100%) untuk mendeteksi VICTORY / DEFEAT pada screenshot MLBB
+     */
+    private function scanMatchScreenshotOCR($imageFullPath)
+    {
+        if (!file_exists($imageFullPath)) {
+            return ['status' => 'UNKNOWN', 'raw' => ''];
+        }
+
+        try {
+            // Cek path binary tesseract
+            $tesseractBin = null;
+            if (file_exists('/opt/homebrew/bin/tesseract')) {
+                $tesseractBin = '/opt/homebrew/bin/tesseract';
+            } elseif (file_exists('/usr/local/bin/tesseract')) {
+                $tesseractBin = '/usr/local/bin/tesseract';
+            } elseif (file_exists('/usr/bin/tesseract')) {
+                $tesseractBin = '/usr/bin/tesseract';
+            } else {
+                $check = trim((string) shell_exec('which tesseract 2>/dev/null'));
+                if (!empty($check)) {
+                    $tesseractBin = $check;
+                }
+            }
+
+            if (!$tesseractBin) {
+                return ['status' => 'UNKNOWN', 'raw' => 'Tesseract binary not found'];
+            }
+
+            // Baca gambar asli
+            $imgInfo = @getimagesize($imageFullPath);
+            if (!$imgInfo) {
+                return ['status' => 'UNKNOWN', 'raw' => 'Invalid image info'];
+            }
+
+            $mime = $imgInfo['mime'] ?? '';
+            $src = null;
+            if ($mime === 'image/jpeg' && function_exists('imagecreatefromjpeg')) {
+                $src = @imagecreatefromjpeg($imageFullPath);
+            } elseif ($mime === 'image/png' && function_exists('imagecreatefrompng')) {
+                $src = @imagecreatefrompng($imageFullPath);
+            } elseif ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+                $src = @imagecreatefromwebp($imageFullPath);
+            }
+
+            if (!$src) {
+                return ['status' => 'UNKNOWN', 'raw' => 'Could not load GD image'];
+            }
+
+            $w = imagesx($src);
+            $h = imagesy($src);
+
+            // Fokus crop banner tengah atas MLBB: X (28% s/d 72%), Y (2% s/d 20%)
+            $cropX = (int)($w * 0.28);
+            $cropY = (int)($h * 0.02);
+            $cropW = (int)($w * 0.44);
+            $cropH = (int)($h * 0.18);
+
+            $thumb = imagecreatetruecolor($cropW, $cropH);
+            imagecopy($thumb, $src, 0, 0, $cropX, $cropY, $cropW, $cropH);
+
+            // Preprocessing: ubah grayscale & naikkan kontras agar teks VICTORY / DEFEAT terpisah tegas
+            if (function_exists('imagefilter')) {
+                imagefilter($thumb, IMG_FILTER_GRAYSCALE);
+                imagefilter($thumb, IMG_FILTER_CONTRAST, -35);
+            }
+
+            $tempCropPath = sys_get_temp_dir() . '/ocr_' . uniqid() . '.png';
+            imagepng($thumb, $tempCropPath);
+
+            imagedestroy($thumb);
+            imagedestroy($src);
+
+            // Jalankan tesseract OCR dengan mode Single Block (PSM 6)
+            $cmd = escapeshellcmd($tesseractBin) . ' ' . escapeshellarg($tempCropPath) . ' stdout --psm 6 2>/dev/null';
+            $rawOutput = (string) shell_exec($cmd);
+
+            if (file_exists($tempCropPath)) {
+                @unlink($tempCropPath);
+            }
+
+            $upper = strtoupper(trim($rawOutput));
+
+            if (str_contains($upper, 'VICTORY') || str_contains($upper, 'VICTOR') || str_contains($upper, 'MENANG')) {
+                return ['status' => 'VICTORY', 'raw' => trim($rawOutput)];
+            } elseif (str_contains($upper, 'DEFEAT') || str_contains($upper, 'DEFEA') || str_contains($upper, 'KALAH')) {
+                return ['status' => 'DEFEAT', 'raw' => trim($rawOutput)];
+            }
+
+            return ['status' => 'UNCLEAR', 'raw' => trim($rawOutput)];
+        } catch (\Throwable $e) {
+            return ['status' => 'ERROR', 'raw' => $e->getMessage()];
         }
     }
 

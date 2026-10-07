@@ -868,23 +868,42 @@
                         <input type="hidden" id="reportReporterTeamId" name="reporter_team_id">
 
                         
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam1">Skor Tim 1</label>
-                                <select id="scoreTeam1Input" name="score_team1" class="form-select bg-dark border-secondary text-white rounded-4 p-2.5 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                </select>
+                        <!-- Pilihan Hasil Pertandingan (BO1 Friendly) -->
+                        <div class="mb-4 text-start">
+                            <label class="small fw-bold text-secondary text-uppercase mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
+                                Hasil Laga Tim Anda (Best of 1)
+                            </label>
+                            <div class="d-flex flex-column gap-2" id="bo1ResultOptions">
+                                <label class="p-3 rounded-4 border d-flex align-items-center justify-content-between cursor-pointer bo1-choice-card" style="background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.35) !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="match_result_choice" value="win" class="form-check-input mt-0" checked style="cursor: pointer; width: 1.25rem; height: 1.25rem;">
+                                        <div>
+                                            <div class="fw-bold text-white" style="font-size: 0.9rem;">
+                                                <i class="bi bi-trophy-fill text-warning me-1"></i> Tim Kami Menang (VICTORY)
+                                            </div>
+                                            <div class="small text-secondary" style="font-size: 0.72rem;">Skor akhir game 1 - 0</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success fw-bold px-2.5 py-1.5 rounded-pill" style="font-size: 0.72rem;">Skor 1 - 0</span>
+                                </label>
+
+                                <label class="p-3 rounded-4 border d-flex align-items-center justify-content-between cursor-pointer bo1-choice-card" style="background-color: rgba(239, 68, 68, 0.05); border-color: rgba(255, 255, 255, 0.1) !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="match_result_choice" value="lose" class="form-check-input mt-0" style="cursor: pointer; width: 1.25rem; height: 1.25rem;">
+                                        <div>
+                                            <div class="fw-bold text-white" style="font-size: 0.9rem;">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i> Tim Kami Kalah (DEFEAT)
+                                            </div>
+                                            <div class="small text-secondary" style="font-size: 0.72rem;">Skor akhir game 0 - 1</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary fw-bold px-2.5 py-1.5 rounded-pill" style="font-size: 0.72rem;">Skor 0 - 1</span>
+                                </label>
                             </div>
-                            <div class="col-6">
-                                <label class="small fw-bold text-secondary text-uppercase mb-2 d-block text-start" style="font-size: 0.6rem;" id="labelScoreTeam2">Skor Tim 2</label>
-                                <select id="scoreTeam2Input" name="score_team2" class="form-select bg-dark border-secondary text-white rounded-4 p-2.5 shadow-none" required style="border: 1px solid rgba(255,255,255,0.1);">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                </select>
-                            </div>
+
+                            <!-- Hidden calculated scores to maintain API compatibility -->
+                            <input type="hidden" id="scoreTeam1Input" name="score_team1" value="1">
+                            <input type="hidden" id="scoreTeam2Input" name="score_team2" value="0">
                         </div>
 
                         
@@ -1304,20 +1323,63 @@
                             reportReporterTeamId.value = res.reporter_team_id;
                             reportMatchTitle.textContent = `${match.team1_name} vs ${match.team2_name}`;
                             reportMatchRound.textContent = `Round ${match.round_number} (Bracket Match ${match.match_number})`;
-                            labelScoreTeam1.textContent = `Skor ${match.team1_name}`;
-                            labelScoreTeam2.textContent = `Skor ${match.team2_name}`;
                             
+                            // Setup BO1 score calculation helper
+                            const isReporterTeam1 = (parseInt(res.reporter_team_id) === parseInt(match.team1_id));
+                            
+                            function updateLandingBO1Scores() {
+                                const selectedChoice = document.querySelector('#bo1ResultOptions input[name="match_result_choice"]:checked')?.value || 'win';
+                                if (selectedChoice === 'win') {
+                                    if (isReporterTeam1) {
+                                        document.getElementById('scoreTeam1Input').value = '1';
+                                        document.getElementById('scoreTeam2Input').value = '0';
+                                    } else {
+                                        document.getElementById('scoreTeam1Input').value = '0';
+                                        document.getElementById('scoreTeam2Input').value = '1';
+                                    }
+                                } else {
+                                    if (isReporterTeam1) {
+                                        document.getElementById('scoreTeam1Input').value = '0';
+                                        document.getElementById('scoreTeam2Input').value = '1';
+                                    } else {
+                                        document.getElementById('scoreTeam1Input').value = '1';
+                                        document.getElementById('scoreTeam2Input').value = '0';
+                                    }
+                                }
+                            }
+
+                            // Attach event listeners to radio choices
+                            document.querySelectorAll('#bo1ResultOptions input[name="match_result_choice"]').forEach(radio => {
+                                radio.removeEventListener('change', updateLandingBO1Scores);
+                                radio.addEventListener('change', updateLandingBO1Scores);
+                            });
+
+                            // Set default
+                            const firstRadio = document.querySelector('#bo1ResultOptions input[name="match_result_choice"][value="win"]');
+                            if (firstRadio) firstRadio.checked = true;
+                            updateLandingBO1Scores();
+
                             reportStepVerification.style.display = 'none';
                             reportStepSubmit.style.display = 'block';
                         } else {
-                            Swal.fire("Gagal", res.message, "error");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Tidak Ditemukan',
+                                text: res.message || 'Data pertandingan tidak ditemukan.',
+                                confirmButtonColor: '#ff7a00'
+                            });
                         }
                     })
                     .catch(err => {
                         btnVerifyReportWa.disabled = false;
                         btnVerifyReportWa.innerHTML = 'CARI PERTANDINGAN SAYA <i class="bi bi-arrow-right-short ms-1 fs-5"></i>';
                         console.error('Error finding match:', err);
-                        Swal.fire("Error", "Terjadi kesalahan saat mencari pertandingan.", "error");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kendala Koneksi',
+                            text: 'Terjadi kendala saat mencari pertandingan.',
+                            confirmButtonColor: '#ff7a00'
+                        });
                     });
                 });
             }
@@ -1367,22 +1429,37 @@
                 formSubmitReport.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
-                    const score1 = parseInt(document.getElementById('scoreTeam1Input').value) || 0;
-                    const score2 = parseInt(document.getElementById('scoreTeam2Input').value) || 0;
+                    const score1 = parseInt(document.getElementById('scoreTeam1Input').value);
+                    const score2 = parseInt(document.getElementById('scoreTeam2Input').value);
 
-                    if (score1 === 0 && score2 === 0) {
-                        Swal.fire("Peringatan", "Skor tidak boleh 0-0. Masukkan hasil pertandingan yang valid.", "warning");
+                    if (isNaN(score1) || isNaN(score2) || (score1 === 0 && score2 === 0)) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Hasil Tidak Valid',
+                            text: 'Silakan tentukan apakah tim Anda Menang (1-0) atau Kalah (0-1).',
+                            confirmButtonColor: '#ff7a00'
+                        });
                         return;
                     }
 
                     if (score1 === score2) {
-                        Swal.fire("Peringatan", "Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan.", "warning");
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak Boleh Seri',
+                            text: 'Skor tidak boleh seri (imbang) untuk menentukan pemenang pertandingan BO1.',
+                            confirmButtonColor: '#ff7a00'
+                        });
                         return;
                     }
                     
                     const fileInput = document.getElementById('reportImageInput');
                     if (!fileInput.files || fileInput.files.length === 0) {
-                        Swal.fire("Peringatan", "Silakan pilih berkas bukti screenshot.", "warning");
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Bukti Wajib Diunggah',
+                            text: 'Silakan pilih berkas bukti screenshot hasil pertandingan.',
+                            confirmButtonColor: '#ff7a00'
+                        });
                         return;
                     }
 
@@ -1409,13 +1486,25 @@
                             body: formData
                         });
                     })
-                    .then(r => r.json())
+                    .then(r => {
+                        if (r.status === 419 || r.status === 403) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sesi Berakhir',
+                                text: 'Sesi Anda telah berakhir. Silakan muat ulang (refresh) halaman sebelum mengirim laporan.',
+                                confirmButtonColor: '#ff7a00'
+                            });
+                            return null;
+                        }
+                        return r.json();
+                    })
                     .then(res => {
                         btnSubmitReportScore.disabled = false;
                         btnSubmitReportScore.innerHTML = 'KIRIM LAPORAN SEKARANG';
 
+                        if (!res) return;
+
                         if (res.success) {
-                            Swal.fire("Berhasil", res.message, "success");
                             // Close modal
                             const modal = bootstrap.Modal.getInstance(document.getElementById('modalReportScore'));
                             if (modal) modal.hide();
@@ -1425,15 +1514,45 @@
                             reportWaInput.value = '';
                             reportStepVerification.style.display = 'block';
                             reportStepSubmit.style.display = 'none';
+
+                            if (res.is_auto_approved) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: res.title || '🏆 Pertandingan Terverifikasi Otomatis!',
+                                    html: `<p style="font-size:0.92rem; color:#d4d4d8;">${res.message}</p><p class="text-warning small mb-0"><i class="bi bi-info-circle"></i> Bagan turnamen otomatis ter-update.</p>`,
+                                    confirmButtonColor: '#10b981',
+                                    confirmButtonText: 'Keren, Lihat Bagan!'
+                                }).then(() => {
+                                    window.location.href = "{{ route('public.season.bracket', $slug) }}";
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: (res.notice_type === 'anomaly' ? 'info' : 'success'),
+                                    title: res.title || 'Laporan Terkirim',
+                                    text: res.message,
+                                    confirmButtonColor: '#ff7a00',
+                                    confirmButtonText: 'Tutup'
+                                });
+                            }
                         } else {
-                            Swal.fire("Gagal", res.message, "error");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengirim',
+                                text: res.message || 'Gagal mengirim laporan.',
+                                confirmButtonColor: '#ff7a00'
+                            });
                         }
                     })
                     .catch(err => {
                         btnSubmitReportScore.disabled = false;
                         btnSubmitReportScore.textContent = 'KIRIM LAPORAN SEKARANG';
                         console.error('Error submitting report:', err);
-                        Swal.fire("Error", "Terjadi kesalahan saat mengirimkan laporan.", "error");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kendala Koneksi',
+                            text: 'Terjadi kesalahan saat mengirimkan laporan.',
+                            confirmButtonColor: '#ff7a00'
+                        });
                     });
                 });
             }

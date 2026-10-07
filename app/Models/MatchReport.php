@@ -15,6 +15,8 @@ class MatchReport extends Model
         'score_team2',
         'image_proof',
         'status',
+        'is_auto_approved',
+        'admin_reviewed_at',
         'ai_status',
         'ai_notes'
     ];
