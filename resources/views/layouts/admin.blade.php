@@ -96,10 +96,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: #020617;
-            padding: 10px 14px 16px 14px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, #020617 100%);
+            padding: 12px 14px 14px 14px;
             z-index: 10;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -151,9 +153,38 @@
             font-weight: 600;
         }
 
-        .nav-link.text-danger:hover {
-            color: #ef4444 !important;
-            background: rgba(239, 68, 68, 0.1) !important;
+        /* Logout Pill Button Styling */
+        .sidebar-footer .nav-link-logout {
+            color: #f87171 !important;
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .sidebar-footer .nav-link-logout i {
+            font-size: 1.15rem;
+            margin-right: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-footer .nav-link-logout:hover {
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-footer .nav-link-logout:hover i {
+            transform: translateX(3px);
         }
 
         .main-content {
@@ -215,7 +246,18 @@
                 display: none !important;
             }
             body.sidebar-collapsed .sidebar-footer {
-                padding: 10px 8px 16px 8px !important;
+                padding: 12px 8px 14px 8px !important;
+            }
+            body.sidebar-collapsed .sidebar-footer .nav-link-logout {
+                padding: 12px 0 !important;
+                justify-content: center !important;
+            }
+            body.sidebar-collapsed .sidebar-footer .nav-link-logout i {
+                margin-right: 0 !important;
+                font-size: 1.3rem;
+            }
+            body.sidebar-collapsed .sidebar-footer .nav-link-logout span {
+                display: none !important;
             }
             body.sidebar-collapsed .main-content {
                 margin-left: 72px;
@@ -424,7 +466,7 @@
         </div>
 
         <div class="sidebar-footer">
-            <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2">
+            <a href="{{ route('admin.logout') }}" class="nav-link-logout">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
             </a>
         </div>
@@ -524,8 +566,8 @@
 
             <div class="mt-auto pt-4 w-100 bg-transparent shrink-0">
                 <hr class="border-secondary opacity-25 mb-3">
-                <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2">
-                    <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
+                <a href="{{ route('admin.logout') }}" class="nav-link-logout" style="color: #f87171 !important; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.18); padding: 12px 16px; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                    <i class="bi bi-box-arrow-right fs-5"></i> <span>Keluar</span>
                 </a>
             </div>
         </div>
