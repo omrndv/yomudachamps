@@ -281,7 +281,16 @@ class CertificateController extends Controller
     public function googleCallback(Request $request)
     {
         if (!$request->has('code')) {
+            if ($request->state === 'admin_login' || Session::get('google_auth_purpose') === 'admin_login') {
+                return redirect()->route('admin.login')->with('error', 'Autentikasi Google dibatalkan.');
+            }
             return redirect()->route('admin.seasons')->with('error', 'Autentikasi Google dibatalkan.');
+        }
+
+        // Jika callback ini berasal dari Admin Login, teruskan ke AdminController
+        if ($request->state === 'admin_login' || Session::get('google_auth_purpose') === 'admin_login') {
+            Session::forget('google_auth_purpose');
+            return app(\App\Http\Controllers\AdminController::class)->handleGoogleCallback($request);
         }
 
         try {

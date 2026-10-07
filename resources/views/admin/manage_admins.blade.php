@@ -296,6 +296,65 @@
         </div>
     @endif
 
+    {{-- Permintaan Akses Google Menunggu Persetujuan --}}
+    @if(isset($pendingAdmins) && count($pendingAdmins) > 0)
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-left: 5px solid #f59e0b !important; background: #fffbeb;">
+            <div class="p-3.5 p-md-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                            <i class="bi bi-person-check-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <span>Permintaan Akses Google Menunggu Persetujuan</span>
+                                <span class="badge bg-danger rounded-pill">{{ count($pendingAdmins) }} Menunggu</span>
+                            </h5>
+                            <p class="text-secondary small mb-0 mt-0.5">
+                                Akun berikut baru mencoba login via Google dan memerlukan verifikasi &amp; hak akses dari Superadmin (umarnadiv@gmail.com).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    @foreach($pendingAdmins as $pAdmin)
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="bg-white p-3 rounded-4 border d-flex flex-column justify-content-between shadow-xs h-100">
+                                <div class="d-flex align-items-center gap-2.5 mb-2.5">
+                                    @if($pAdmin->avatar)
+                                        <img src="{{ $pAdmin->avatar }}" alt="{{ $pAdmin->name }}" class="rounded-3 border" style="width: 44px; height: 44px; object-fit: cover;">
+                                    @else
+                                        <div class="rounded-3 bg-light text-dark fw-bold border d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.1rem;">
+                                            {{ strtoupper(substr($pAdmin->name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0 flex-grow-1">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;" title="{{ $pAdmin->name }}">{{ $pAdmin->name }}</div>
+                                        <div class="text-secondary text-truncate" style="font-size: 0.74rem;">
+                                            <i class="bi bi-google text-danger me-1"></i>{{ $pAdmin->email }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-auto pt-2 border-top">
+                                    <form action="{{ route('admin.manage.approve', $pAdmin->id) }}" method="POST" class="flex-grow-1 m-0">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill fw-bold py-1.5 shadow-none" style="font-size: 0.75rem;">
+                                            <i class="bi bi-check-lg me-1"></i> Setujui &amp; Aktifkan
+                                        </button>
+                                    </form>
+                                    <a href="{{ route('admin.manage.delete', $pAdmin->id) }}" onclick="return confirm('Tolak dan hapus permohonan akun {{ $pAdmin->name }}?')" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5" style="font-size: 0.75rem;">
+                                        <i class="bi bi-x-lg"></i> Tolak
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Executive Metric Stat Cards --}}
     @php
         $totalAdmins = count($admins);
@@ -461,9 +520,13 @@
                         <div class="d-flex align-items-start justify-content-between mb-3 gap-2">
                             <div class="d-flex align-items-center gap-3 min-w-0">
                                 <div class="avatar-wrapper">
-                                    <div class="avatar-circle {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}">
-                                        {{ strtoupper(substr($admin->name, 0, 1)) }}
-                                    </div>
+                                    @if($admin->avatar)
+                                        <img src="{{ $admin->avatar }}" alt="{{ $admin->name }}" class="rounded-3 border {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}" style="width: 52px; height: 52px; object-fit: cover;">
+                                    @else
+                                        <div class="avatar-circle {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}">
+                                            {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="min-w-0">
                                     <div class="d-flex align-items-center gap-1.5 flex-wrap">
@@ -473,6 +536,11 @@
                                         @if($isCurrentUser)
                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
                                                 <i class="bi bi-person-check-fill me-0.5"></i> Anda
+                                            </span>
+                                        @endif
+                                        @if($admin->google_id)
+                                            <span class="badge bg-light text-dark border rounded-pill px-1.5 py-0.5" style="font-size: 0.62rem;" title="Terhubung Google: {{ $admin->email }}">
+                                                <i class="bi bi-google text-danger"></i> Google
                                             </span>
                                         @endif
                                     </div>

@@ -566,6 +566,21 @@
 
             <div class="mt-auto pt-4 w-100 bg-transparent shrink-0">
                 <hr class="border-secondary opacity-25 mb-3">
+                @if(Auth::check())
+                <div class="d-flex align-items-center gap-2 mb-3 px-1">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="rounded-circle border border-warning" style="width: 38px; height: 38px; object-fit: cover; flex-shrink: 0;">
+                    @else
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                        </div>
+                    @endif
+                    <div class="min-w-0 flex-grow-1 text-truncate">
+                        <div class="fw-bold text-white small text-truncate" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
+                        <div class="text-secondary text-truncate" style="font-size: 0.68rem;">{{ Auth::user()->email ?? ('@' . Auth::user()->username) }}</div>
+                    </div>
+                </div>
+                @endif
                 <a href="{{ route('admin.logout') }}" class="nav-link-logout" style="color: #f87171 !important; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.18); padding: 12px 16px; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none;">
                     <i class="bi bi-box-arrow-right fs-5"></i> <span>Keluar</span>
                 </a>

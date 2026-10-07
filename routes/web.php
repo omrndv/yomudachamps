@@ -123,6 +123,8 @@ Route::post('/ai-chat', [HomeController::class, 'aiChat'])->name('ai.chat');
 
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
+Route::get('/admin/auth/google', [AdminController::class, 'redirectToGoogle'])->name('admin.login.google');
+Route::get('/admin/auth/google/callback', [AdminController::class, 'handleGoogleCallback'])->name('admin.login.google.callback');
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
 Route::middleware('admin.auth')->group(function () {
@@ -297,6 +299,7 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/manage-admins/toggle-permission', [AdminController::class, 'togglePermission'])->name('admin.manage.toggle-permission');
             Route::post('/manage-admins/sync-permissions', [AdminController::class, 'syncPermissions'])->name('admin.manage.sync-permissions');
             Route::post('/manage-admins/toggle-status/{id}', [AdminController::class, 'toggleAdminStatus'])->name('admin.manage.toggle-status');
+            Route::post('/manage-admins/approve/{id}', [AdminController::class, 'approveAdmin'])->name('admin.manage.approve');
             Route::post('/manage-admins/force-logout/{id}', [AdminController::class, 'forceLogoutAdmin'])->name('admin.manage.force-logout');
         });
 

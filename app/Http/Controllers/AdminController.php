@@ -11,6 +11,8 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Google\Client as GoogleClient;
 
 class AdminController extends Controller
 {
@@ -71,6 +73,140 @@ class AdminController extends Controller
         session()->invalidate();
         session()->regenerateToken();
         return redirect()->route('admin.login');
+    }
+
+    /**
+     * Redirect to Google OAuth for Admin Login
+     */
+    public function redirectToGoogle()
+    {
+        try {
+            $client = new GoogleClient();
+            $client->setClientId(config('services.google.client_id'));
+            $client->setClientSecret(config('services.google.client_secret'));
+            $client->setRedirectUri(route('admin.certificate.google-callback'));
+            $client->addScope('email');
+            $client->addScope('profile');
+            $client->setState('admin_login');
+            $client->setPrompt('select_account');
+
+            Session::put('google_auth_purpose', 'admin_login');
+            return redirect()->away($client->createAuthUrl());
+        } catch (\Exception $e) {
+            return redirect()->route('admin.login')->with('error', 'Gagal memproses Google Login: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle Google OAuth Callback for Admin Login
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        if (!$request->has('code')) {
+            return redirect()->route('admin.login')->with('error', 'Autentikasi Google dibatalkan.');
+        }
+
+        try {
+            $client = new GoogleClient();
+            $client->setClientId(config('services.google.client_id'));
+            $client->setClientSecret(config('services.google.client_secret'));
+            $client->setRedirectUri(route('admin.certificate.google-callback'));
+
+            $token = $client->fetchAccessTokenWithAuthCode($request->code);
+            if (isset($token['error'])) {
+                return redirect()->route('admin.login')->with('error', 'Gagal terhubung dengan Google: ' . ($token['error_description'] ?? $token['error']));
+            }
+
+            $client->setAccessToken($token);
+            $oauth2 = new \Google\Service\Oauth2($client);
+            $userInfo = $oauth2->userinfo->get();
+
+            $googleEmail = strtolower(trim($userInfo->getEmail()));
+            $googleId = $userInfo->getId();
+            $googleName = $userInfo->getName() ?: 'User';
+            $googleAvatar = $userInfo->getPicture() ?: null;
+
+            if (empty($googleEmail)) {
+                return redirect()->route('admin.login')->with('error', 'Tidak dapat mengambil email dari akun Google Anda.');
+            }
+
+            // 1. CEK KHUSUS: SUPERADMIN (umarnadiv@gmail.com)
+            if ($googleEmail === 'umarnadiv@gmail.com') {
+                $user = User::where('email', 'umarnadiv@gmail.com')->first();
+                if (!$user) {
+                    $user = User::where('username', 'umarnadiv')->first();
+                }
+                if (!$user) {
+                    $user = new User();
+                    $user->username = 'umarnadiv';
+                    $user->password = Hash::make(Str::random(32));
+                }
+                $user->name = $googleName ?: 'Superadmin Nadiv';
+                $user->email = 'umarnadiv@gmail.com';
+                $user->role = 'superadmin';
+                $user->is_active = true;
+                $user->google_id = $googleId;
+                if ($googleAvatar) {
+                    $user->avatar = $googleAvatar;
+                }
+                $user->save();
+
+                Auth::login($user, true);
+                session(['login_time' => now()]);
+                AdminActivity::log('Superadmin login via Google: ' . $googleEmail);
+                return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang Superadmin, ' . $user->name . '!');
+            }
+
+            // 2. CEK USER LAIN
+            $user = User::where('email', $googleEmail)->first();
+
+            // Jika belum ada di sistem -> Otomatis daftar sebagai PENDING APPROVAL
+            if (!$user) {
+                $baseUsername = Str::slug(explode('@', $googleEmail)[0], '_') ?: 'admin';
+                $username = $baseUsername;
+                $counter = 1;
+                while (User::where('username', $username)->exists()) {
+                    $username = $baseUsername . '_' . $counter++;
+                }
+
+                $user = User::create([
+                    'name' => $googleName,
+                    'username' => $username,
+                    'email' => $googleEmail,
+                    'password' => Hash::make(Str::random(32)),
+                    'role' => 'admin',
+                    'is_active' => false, // PENDING APPROVAL
+                    'permissions' => [], // Belum ada izin sampai disetujui Superadmin
+                    'google_id' => $googleId,
+                    'avatar' => $googleAvatar,
+                ]);
+
+                AdminActivity::log('Permintaan pendaftaran admin Google baru: ' . $googleEmail . ' (' . $googleName . ')');
+
+                return redirect()->route('admin.login')->with('info', 'Permintaan akses untuk akun Google (' . $googleEmail . ') berhasil diajukan! Akun Anda sedang menunggu persetujuan Superadmin (umarnadiv@gmail.com). Silakan hubungi Superadmin.');
+            }
+
+            // Update data Google pengguna
+            $user->google_id = $googleId;
+            if ($googleAvatar) {
+                $user->avatar = $googleAvatar;
+            }
+            $user->save();
+
+            // Cek status keaktifan akun
+            if (!$user->is_active) {
+                return redirect()->route('admin.login')->with('warning', 'Akun Google Anda (' . $googleEmail . ') berstatus PENDING / Dinonaktifkan. Silakan hubungi Superadmin (umarnadiv@gmail.com) untuk aktivasi.');
+            }
+
+            // Login berhasil
+            Auth::login($user, true);
+            session(['login_time' => now()]);
+            AdminActivity::log('Admin login via Google: ' . $googleEmail);
+            return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang, ' . $user->name . '!');
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.login')->with('error', 'Terjadi kesalahan saat login dengan Google: ' . $e->getMessage());
+        }
     }
 
     public function dashboardHome(Request $request)
@@ -1497,7 +1633,14 @@ class AdminController extends Controller
             ->with(['latestActivity'])
             ->orderBy('name', 'asc')
             ->get();
-        return view('admin.manage_admins', compact('admins'));
+
+        $pendingAdmins = User::where('role', 'admin')
+            ->where('is_active', false)
+            ->whereNull('last_seen_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.manage_admins', compact('admins', 'pendingAdmins'));
     }
 
     public function storeAdmin(Request $request)
@@ -1699,6 +1842,33 @@ class AdminController extends Controller
             'is_active' => (bool) $admin->is_active,
             'message' => 'Akun ' . $admin->name . ' berhasil ' . $action . '!'
         ]);
+    }
+
+    public function approveAdmin(Request $request, $id)
+    {
+        if (!Auth::user()->hasPermission('manage')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $admin = User::findOrFail($id);
+        $admin->is_active = true;
+
+        if ($request->has('permissions') && is_array($request->permissions)) {
+            $admin->permissions = $request->permissions;
+        } elseif (empty($admin->permissions)) {
+            $admin->permissions = [
+                "dashboard",
+                "seasons",
+                "teams",
+                "notes",
+                "activity_log",
+                "faqs",
+            ];
+        }
+        $admin->save();
+
+        AdminActivity::log('Menyetujui & mengaktifkan akun admin Google: ' . $admin->email . ' (' . $admin->name . ')');
+        return back()->with('success', 'Akun ' . $admin->name . ' (' . $admin->email . ') berhasil disetujui dan diaktifkan!');
     }
 
     public function forceLogoutAdmin($id)

@@ -27,6 +27,8 @@ class User extends Authenticatable
         'is_active',
         'last_seen_at',
         'force_logout_at',
+        'google_id',
+        'avatar',
     ];
 
     /**
