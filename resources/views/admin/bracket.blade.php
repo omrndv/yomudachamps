@@ -1049,7 +1049,7 @@
             </div>
             
             <!-- Bottom Input Bar (Seamless continuation without separating line) -->
-            <div class="px-4 pt-1.5 pb-3 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #0f1013;">
+            <div class="px-4 pt-1.5 pb-4 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #0f1013; padding-bottom: 24px !important;">
                 <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
                     <i class="bi bi-camera-fill" style="font-size: 1.1rem;"></i>
                 </button>
