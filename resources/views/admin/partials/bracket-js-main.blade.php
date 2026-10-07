@@ -1926,35 +1926,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. Admin upload file attachments
+    // 5. Admin upload file attachments & clipboard paste screenshot
+    function uploadAdminChatImage(file) {
+        if (!file || !activeThreadToken) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Ukuran berkas maksimal 2MB!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch(`/admin/dashboard/{{ $season->id }}/chat/upload/${activeThreadToken}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                fetchThreadMessages();
+                fetchAdminChatThreads();
+            } else {
+                alert("Gagal mengunggah: " + res.message);
+            }
+        })
+        .catch(err => console.log("Upload error:", err));
+    }
+
     if (adminBtnAttach && adminFileInput) {
         adminBtnAttach.addEventListener('click', () => adminFileInput.click());
         adminFileInput.addEventListener('change', function() {
-            if (this.files && this.files[0] && activeThreadToken) {
-                const file = this.files[0];
-                if (file.size > 2 * 1024 * 1024) {
-                    alert("Ukuran berkas maksimal 2MB!");
-                    return;
-                }
+            if (this.files && this.files[0]) {
+                uploadAdminChatImage(this.files[0]);
+                this.value = '';
+            }
+        });
+    }
 
-                const formData = new FormData();
-                formData.append('image', file);
+    // Support paste screenshot directly in chat input box
+    if (adminReplyInput) {
+        adminReplyInput.addEventListener('paste', function(e) {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData || !clipboardData.items) return;
 
-                fetch(`/admin/dashboard/{{ $season->id }}/chat/upload/${activeThreadToken}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success) {
-                        fetchThreadMessages();
-                        fetchAdminChatThreads();
-                    } else {
-                        alert("Gagal mengunggah: " + res.message);
+            for (let i = 0; i < clipboardData.items.length; i++) {
+                const item = clipboardData.items[i];
+                if (item.type.indexOf('image') !== -1) {
+                    const blob = item.getAsFile();
+                    if (blob && activeThreadToken) {
+                        e.preventDefault();
+                        uploadAdminChatImage(blob);
+                        break;
                     }
-                })
-                .catch(err => console.log("Upload error:", err));
+                }
             }
         });
     }

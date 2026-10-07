@@ -963,10 +963,9 @@
     
     {{-- Offcanvas Top Main Header --}}
     <div class="offcanvas-header bg-black px-4 border-bottom border-secondary border-opacity-20 d-flex justify-content-between align-items-center flex-shrink-0" style="height: 56px;">
-        <div class="d-flex align-items-center gap-2.5">
-            <span class="d-inline-block rounded-circle bg-success shadow-sm" style="width: 9px; height: 9px; box-shadow: 0 0 10px #10b981;"></span>
+        <div class="d-flex align-items-center gap-2">
             <h6 class="offcanvas-title fw-bold mb-0 text-white d-flex align-items-center gap-2" id="offcanvasAdminLiveChatLabel" style="font-size: 0.95rem; letter-spacing: 0.3px;">
-                <i class="bi bi-chat-left-dots-fill text-warning"></i> Konsol Pesan Panitia
+                <i class="bi bi-chat-left-dots-fill text-warning"></i> Live Chat
             </h6>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -1032,8 +1031,8 @@
                 </div>
             </div>
 
-            <!-- Quick Reply Chips Bar (Retain border-top, seamless to input bar) -->
-            <div id="adminQuickRepliesBar" class="px-4 pt-2.5 pb-1 border-top border-secondary border-opacity-20 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #0f1013; white-space: nowrap; display: none;">
+            <!-- Quick Reply Chips Bar (padding-top 24px, padding-bottom 18px) -->
+            <div id="adminQuickRepliesBar" class="px-4 border-top border-secondary border-opacity-20 d-flex gap-2 overflow-x-auto flex-shrink-0" style="background-color: #0f1013; white-space: nowrap; display: none; padding-top: 24px !important; padding-bottom: 18px !important;">
                 <button type="button" class="btn btn-sm btn-outline-secondary text-white-50 py-1 px-3 rounded-pill small" style="font-size: 0.73rem;" onclick="insertAdminQuickReply('Halo, boleh tahu dari nama tim mana ya?')">
                     Tanya Tim
                 </button>
