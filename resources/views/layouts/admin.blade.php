@@ -43,12 +43,12 @@
             background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
             color: #ffffff;
             z-index: 1000;
-            padding: 24px 14px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px 14px 16px 14px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: visible; /* Penting: visible agar tombol toggle bulat tidak terpotong separuh */
         }
 
         .sidebar-header {
@@ -56,6 +56,7 @@
             text-align: center;
             transition: all 0.3s ease;
             flex-shrink: 0;
+            overflow: hidden;
         }
 
         .sidebar-brand {
@@ -173,7 +174,7 @@
         @media (min-width: 992px) {
             body.sidebar-collapsed .sidebar {
                 width: 72px;
-                padding: 24px 10px;
+                padding: 24px 8px 16px 8px;
             }
             body.sidebar-collapsed .sidebar-header {
                 padding-bottom: 20px;
@@ -182,12 +183,13 @@
                 display: none !important;
             }
             body.sidebar-collapsed .sidebar .nav-link {
-                padding: 12px;
-                justify-content: center;
+                padding: 12px 0 !important;
+                justify-content: center !important;
                 margin-bottom: 8px;
             }
             body.sidebar-collapsed .sidebar .nav-link:hover {
-                transform: scale(1.05);
+                transform: none !important;
+                background: rgba(255, 255, 255, 0.08) !important;
             }
             body.sidebar-collapsed .sidebar .nav-link i {
                 margin-right: 0 !important;
@@ -198,6 +200,14 @@
             }
             body.sidebar-collapsed .sidebar small.text-uppercase {
                 display: none !important;
+            }
+            body.sidebar-collapsed .sidebar-footer {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            body.sidebar-collapsed .sidebar-footer hr {
+                margin-left: 8px !important;
+                margin-right: 8px !important;
             }
             body.sidebar-collapsed .main-content {
                 margin-left: 72px;
@@ -253,6 +263,35 @@
             color: #dc2626 !important;
             transform: translateX(4px);
         }
+
+        /* Floating Toggle Button */
+        #toggleSidebar {
+            position: absolute;
+            right: -13px;
+            top: 28px;
+            width: 26px;
+            height: 26px;
+            z-index: 1050;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f59e0b;
+            color: #0f172a;
+            border: 2px solid #0f172a !important;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+        }
+        #toggleSidebar:hover {
+            background: #d97706;
+            color: #ffffff;
+            transform: scale(1.12);
+        }
+        #toggleSidebar:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 
@@ -283,8 +322,7 @@
     {{-- Desktop Sidebar --}}
     <aside class="sidebar d-none d-lg-block">
         {{-- Floating Toggle Button --}}
-        <button class="btn btn-warning btn-sm position-absolute rounded-circle shadow-sm border border-light-subtle d-flex align-items-center justify-content-center" 
-                id="toggleSidebar" style="right: -12px; top: 32px; width: 24px; height: 24px; z-index: 1100; padding: 0; transition: transform 0.2s ease;">
+        <button type="button" id="toggleSidebar" title="Ciutkan / Lebarkan Sidebar" aria-label="Toggle Sidebar">
             <i class="bi bi-chevron-left" id="toggleIcon" style="font-size: 0.75rem;"></i>
         </button>
 
@@ -377,9 +415,9 @@
             @endif
         </div>
 
-        <div class="mt-auto pt-2 w-100 flex-shrink-0" style="background: #020617; padding-bottom: 8px;">
-            <hr class="border-secondary opacity-25 mx-3 mb-3">
-            <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2" style="padding: 12px 16px;">
+        <div class="sidebar-footer mt-auto pt-2 w-100 flex-shrink-0" style="background: transparent; padding-bottom: 8px;">
+            <hr class="border-secondary opacity-25 mx-2 mb-3">
+            <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
             </a>
         </div>
@@ -508,14 +546,6 @@
             }
             
             if (toggleBtn) {
-                // Hover Scale Effect
-                toggleBtn.addEventListener('mouseenter', () => {
-                    toggleBtn.style.transform = 'scale(1.15)';
-                });
-                toggleBtn.addEventListener('mouseleave', () => {
-                    toggleBtn.style.transform = 'scale(1)';
-                });
-
                 toggleBtn.addEventListener('click', function() {
                     const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
                     localStorage.setItem('sidebar-collapsed', isCollapsed);
