@@ -1926,45 +1926,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. Admin upload file attachments & clipboard paste screenshot
-    function uploadAdminChatImage(file) {
+    // 5. Admin upload file attachments & clipboard paste screenshot (Staged before sending)
+    window.stagedAdminFile = null;
+
+    function stageAdminChatImage(file) {
         if (!file || !activeThreadToken) return;
         if (file.size > 2 * 1024 * 1024) {
             alert("Ukuran berkas maksimal 2MB!");
             return;
         }
 
-        const formData = new FormData();
-        formData.append('image', file);
+        window.stagedAdminFile = file;
 
-        fetch(`/admin/dashboard/{{ $season->id }}/chat/upload/${activeThreadToken}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: formData
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                fetchThreadMessages();
-                fetchAdminChatThreads();
-            } else {
-                alert("Gagal mengunggah: " + res.message);
-            }
-        })
-        .catch(err => console.log("Upload error:", err));
+        const stagingContainer = document.getElementById('adminChatImageStaging');
+        const stagingThumb = document.getElementById('adminStagingImageThumb');
+        const stagingName = document.getElementById('adminStagingImageName');
+
+        if (stagingContainer && stagingThumb && stagingName) {
+            stagingName.textContent = file.name || 'screenshot.png';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                stagingThumb.src = e.target.result;
+                stagingContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    window.clearAdminStagedImage = function() {
+        window.stagedAdminFile = null;
+        const stagingContainer = document.getElementById('adminChatImageStaging');
+        const stagingThumb = document.getElementById('adminStagingImageThumb');
+        if (stagingContainer) stagingContainer.style.display = 'none';
+        if (stagingThumb) stagingThumb.src = '';
+        if (adminFileInput) adminFileInput.value = '';
+    };
+
+    const adminBtnCancelStaging = document.getElementById('adminBtnCancelStaging');
+    if (adminBtnCancelStaging) {
+        adminBtnCancelStaging.addEventListener('click', clearAdminStagedImage);
     }
 
     if (adminBtnAttach && adminFileInput) {
         adminBtnAttach.addEventListener('click', () => adminFileInput.click());
         adminFileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
-                uploadAdminChatImage(this.files[0]);
-                this.value = '';
+                stageAdminChatImage(this.files[0]);
             }
         });
     }
 
-    // Support paste screenshot directly in chat input box
+    // Support paste screenshot directly in chat input box with preview staging
     if (adminReplyInput) {
         adminReplyInput.addEventListener('paste', function(e) {
             const clipboardData = e.clipboardData || window.clipboardData;
@@ -1976,7 +1988,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const blob = item.getAsFile();
                     if (blob && activeThreadToken) {
                         e.preventDefault();
-                        uploadAdminChatImage(blob);
+                        stageAdminChatImage(blob);
                         break;
                     }
                 }
@@ -2177,11 +2189,54 @@ function fetchThreadMessages() {
 }
 
 function sendAdminReply() {
+    if (!activeThreadToken) return;
+
     const text = adminReplyInput.value.trim();
-    if (!text || !activeThreadToken) return;
+    const hasImage = window.stagedAdminFile !== null;
 
-    adminReplyInput.value = '';
+    if (!text && !hasImage) return;
 
+    // 1. If an image is staged, upload the image first
+    if (hasImage) {
+        const file = window.stagedAdminFile;
+        const formData = new FormData();
+        formData.append('image', file);
+
+        clearAdminStagedImage();
+
+        fetch(`/admin/dashboard/{{ $season->id }}/chat/upload/${activeThreadToken}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                // If there's accompanying text, send text message right after
+                if (text) {
+                    sendAdminTextMessage(text);
+                } else {
+                    fetchThreadMessages();
+                    fetchAdminChatThreads();
+                }
+            } else {
+                alert("Gagal mengunggah gambar: " + res.message);
+            }
+        })
+        .catch(err => console.log("Upload error:", err));
+
+        adminReplyInput.value = '';
+        return;
+    }
+
+    // 2. If text only
+    if (text) {
+        adminReplyInput.value = '';
+        sendAdminTextMessage(text);
+    }
+}
+
+function sendAdminTextMessage(text) {
     fetch("{{ route('admin.season.chat.reply', $season->id) }}", {
         method: 'POST',
         headers: {

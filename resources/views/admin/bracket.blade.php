@@ -1047,6 +1047,20 @@
                 </button>
             </div>
             
+            <!-- Image Staging Preview (Appears when file is pasted or attached, before sending) -->
+            <div id="adminChatImageStaging" class="px-4 py-2 flex-shrink-0" style="display: none; background-color: #0c0d10; border-top: 1px dashed rgba(255, 122, 0, 0.4);">
+                <div class="d-inline-flex align-items-center gap-2 p-1.5 pe-3 rounded-3" style="background-color: #1a1c23; border: 1px solid rgba(255,255,255,0.15);">
+                    <img id="adminStagingImageThumb" src="" class="rounded-2 shadow-sm" style="width: 50px; height: 50px; object-fit: cover;" alt="Preview Thumbnail">
+                    <div class="d-flex flex-column me-2 overflow-hidden" style="max-width: 220px;">
+                        <span class="text-white small fw-bold text-truncate" style="font-size: 0.78rem;" id="adminStagingImageName">screenshot.png</span>
+                        <span class="text-white-50" style="font-size: 0.65rem;">Siap dikirim bersama pesan</span>
+                    </div>
+                    <button type="button" id="adminBtnCancelStaging" class="btn btn-outline-danger btn-sm p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.75rem;" title="Batal lampirkan gambar">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+
             <!-- Bottom Input Bar (Seamless continuation without separating line) -->
             <div class="px-4 pt-1.5 pb-4 d-flex gap-2.5 align-items-center flex-shrink-0" style="background-color: #0f1013; padding-bottom: 24px !important;">
                 <button id="adminBtnAttach" class="btn btn-outline-secondary btn-sm p-1 rounded-circle" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" disabled title="Kirim gambar">
