@@ -146,11 +146,18 @@ class AdminController extends Controller
                     $user->password = Hash::make(Str::random(32));
                 }
 
-                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com (misal akun duplikat lama yang bukan user id target), bersihkan / hapus duplikatnya
+                // Jika ada user LAIN yang memegang email umarnadiv@gmail.com (misal akun percobaan sebelumnya yang dibuat terpisah),
+                // alihkan email user duplikat tersebut agar tidak menabrak constraint NOT NULL & UNIQUE
                 if ($user->exists) {
-                    User::where('email', 'umarnadiv@gmail.com')
+                    $otherUsers = User::where('email', 'umarnadiv@gmail.com')
                         ->where('id', '!=', $user->id)
-                        ->update(['email' => null]);
+                        ->get();
+
+                    foreach ($otherUsers as $otherUser) {
+                        // Jika akun tersebut adalah akun admin dummy/pending tanpa data penting, kita bisa ubah emailnya agar tidak bentrok
+                        $otherUser->email = 'archived_' . $otherUser->id . '_' . time() . '@yomuda.local';
+                        $otherUser->save();
+                    }
                 }
 
                 $user->name = $googleName ?: 'Superadmin Nadiv';
