@@ -276,18 +276,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f59e0b;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: #0f172a;
             border: 2px solid #0f172a !important;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
         }
         #toggleSidebar:hover {
-            background: #d97706;
             color: #ffffff;
-            transform: scale(1.12);
+            transform: scale(1.15);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
         }
         #toggleSidebar:active {
             transform: scale(0.95);
