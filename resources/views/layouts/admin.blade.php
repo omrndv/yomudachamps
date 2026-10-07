@@ -86,8 +86,21 @@
             overflow-y: auto;
             overflow-x: hidden;
             min-height: 0;
+            padding-bottom: 76px; /* Memberi ruang agar item menu terbawah tidak tertutup tombol logout fixed */
             scrollbar-width: thin;
             scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #020617;
+            padding: 10px 14px 16px 14px;
+            z-index: 10;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-nav::-webkit-scrollbar {
@@ -202,12 +215,7 @@
                 display: none !important;
             }
             body.sidebar-collapsed .sidebar-footer {
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-            body.sidebar-collapsed .sidebar-footer hr {
-                margin-left: 8px !important;
-                margin-right: 8px !important;
+                padding: 10px 8px 16px 8px !important;
             }
             body.sidebar-collapsed .main-content {
                 margin-left: 72px;
@@ -415,8 +423,7 @@
             @endif
         </div>
 
-        <div class="sidebar-footer mt-auto pt-2 w-100 flex-shrink-0" style="background: transparent; padding-bottom: 8px;">
-            <hr class="border-secondary opacity-25 mx-2 mb-3">
+        <div class="sidebar-footer">
             <a href="{{ route('admin.logout') }}" class="nav-link text-danger w-100 d-flex align-items-center gap-2">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
             </a>
