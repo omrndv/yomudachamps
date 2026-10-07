@@ -145,8 +145,10 @@ class AdminController extends Controller
                 $user->email = 'umarnadiv@gmail.com';
                 $user->role = 'superadmin';
                 $user->is_active = true;
-                $user->google_id = $googleId;
-                if ($googleAvatar) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
+                    $user->google_id = $googleId;
+                }
+                if ($googleAvatar && \Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
                     $user->avatar = $googleAvatar;
                 }
                 $user->save();
@@ -169,7 +171,7 @@ class AdminController extends Controller
                     $username = $baseUsername . '_' . $counter++;
                 }
 
-                $user = User::create([
+                $userData = [
                     'name' => $googleName,
                     'username' => $username,
                     'email' => $googleEmail,
@@ -177,9 +179,15 @@ class AdminController extends Controller
                     'role' => 'admin',
                     'is_active' => false, // PENDING APPROVAL
                     'permissions' => [], // Belum ada izin sampai disetujui Superadmin
-                    'google_id' => $googleId,
-                    'avatar' => $googleAvatar,
-                ]);
+                ];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
+                    $userData['google_id'] = $googleId;
+                }
+                if ($googleAvatar && \Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
+                    $userData['avatar'] = $googleAvatar;
+                }
+
+                $user = User::create($userData);
 
                 AdminActivity::log('Permintaan pendaftaran admin Google baru: ' . $googleEmail . ' (' . $googleName . ')');
 
@@ -187,8 +195,10 @@ class AdminController extends Controller
             }
 
             // Update data Google pengguna
-            $user->google_id = $googleId;
-            if ($googleAvatar) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
+                $user->google_id = $googleId;
+            }
+            if ($googleAvatar && \Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
                 $user->avatar = $googleAvatar;
             }
             $user->save();

@@ -125,6 +125,7 @@ Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.post');
 Route::get('/admin/auth/google', [AdminController::class, 'redirectToGoogle'])->name('admin.login.google');
 Route::get('/admin/auth/google/callback', [AdminController::class, 'handleGoogleCallback'])->name('admin.login.google.callback');
+Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
 Route::middleware('admin.auth')->group(function () {
@@ -208,7 +209,6 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/certificate/toggle-release', [\App\Http\Controllers\CertificateController::class, 'toggleRelease'])->name('admin.season.certificate.toggle-release');
             Route::post('/dashboard/{season_id}/certificate/upload-element', [\App\Http\Controllers\CertificateController::class, 'uploadElement'])->name('admin.season.certificate.upload-element');
             Route::get('/certificate/google-login', [\App\Http\Controllers\CertificateController::class, 'googleLogin'])->name('admin.certificate.google-login');
-            Route::get('/certificate/google-callback', [\App\Http\Controllers\CertificateController::class, 'googleCallback'])->name('admin.certificate.google-callback');
             Route::get('/certificate/google-disconnect', [\App\Http\Controllers\CertificateController::class, 'googleDisconnect'])->name('admin.certificate.google-disconnect');
             Route::post('/dashboard/{season_id}/certificate/generate-drive', [\App\Http\Controllers\CertificateController::class, 'generateToDrive'])->name('admin.season.certificate.generate-drive');
             Route::post('/dashboard/{season_id}/certificate/stop-generate', [\App\Http\Controllers\CertificateController::class, 'stopGenerate'])->name('admin.season.certificate.stop-generate');
