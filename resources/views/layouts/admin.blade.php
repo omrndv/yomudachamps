@@ -95,7 +95,6 @@
             flex-wrap: nowrap !important;
             flex: 1 1 auto !important;
             min-height: 0 !important;
-            height: 0 !important; /* Force flex child to compute overflow properly */
             overflow-y: auto !important;
             overflow-x: hidden !important;
             padding: 14px 12px 14px 12px !important;
@@ -108,6 +107,7 @@
             flex: 0 0 auto !important;
             flex-shrink: 0 !important;
             margin-top: auto !important;
+            width: 100% !important;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, #020617 100%);
             padding: 12px 12px 14px 12px !important;
             z-index: 10;
@@ -355,6 +355,13 @@
         #toggleSidebar:active {
             transform: scale(0.95);
         }
+        #toggleIcon {
+            transition: transform 0.25s ease;
+            display: inline-block;
+        }
+        body.sidebar-collapsed #toggleIcon {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 
@@ -401,78 +408,78 @@
         <div class="sidebar-nav nav nav-pills">
             <small class="text-uppercase text-secondary fw-bold mb-3" style="font-size: 0.65rem; letter-spacing: 1.2px; padding-left: 16px;">Menu Utama</small>
             
-            <a href="{{ route('admin.dashboard.home') }}" class="nav-link {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard.home') }}" class="nav-link {{ request()->routeIs('admin.dashboard.home') ? 'active' : '' }}" title="Dashboard">
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
             @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-            <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard*') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}" title="Daftar Season">
                 <i class="bi bi-trophy"></i> <span>Daftar Season</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('teams'))
-            <a href="{{ route('admin.teams') }}" class="nav-link {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
+            <a href="{{ route('admin.teams') }}" class="nav-link {{ request()->routeIs('admin.teams*') ? 'active' : '' }}" title="Daftar Team">
                 <i class="bi bi-people-fill"></i> <span>Daftar Team</span>
             </a>
             @endif
             
             @if(Auth::check() && Auth::user()->hasPermission('payments'))
-            <a href="{{ route('admin.manual-payment') }}" class="nav-link {{ request()->routeIs('admin.manual-payment') ? 'active' : '' }}">
+            <a href="{{ route('admin.manual-payment') }}" class="nav-link {{ request()->routeIs('admin.manual-payment*') ? 'active' : '' }}" title="Pembayaran Manual">
                 <i class="bi bi-qr-code-scan"></i> <span>Pembayaran Manual</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('notes'))
-            <a href="{{ route('admin.notes.index') }}" class="nav-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.notes.index') }}" class="nav-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}" title="Catatan Admin">
                 <i class="bi bi-sticky"></i> <span>Catatan Admin</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('settings'))
-            <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+            <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}" title="Pengaturan">
                 <i class="bi bi-gear"></i> <span>Pengaturan</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('gateway_notifications'))
-            <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}">
+            <a href="{{ route('admin.settings.gateway_notifications') }}" class="nav-link {{ request()->routeIs('admin.settings.gateway_notifications') ? 'active' : '' }}" title="Notifikasi Gateway">
                 <i class="bi bi-bell-fill text-warning"></i> <span>Notifikasi Gateway</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('faqs'))
-            <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.faqs.index') }}" class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}" title="Kelola FAQ">
                 <i class="bi bi-question-circle"></i> <span>Kelola FAQ</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('activity_log'))
-            <a href="{{ route('admin.activity-log') }}" class="nav-link {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}">
+            <a href="{{ route('admin.activity-log') }}" class="nav-link {{ request()->routeIs('admin.activity-log') ? 'active' : '' }}" title="Log Aktivitas">
                 <i class="bi bi-clock-history"></i> <span>Log Aktivitas</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('manage'))
-            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage') ? 'active' : '' }}">
+            <a href="{{ route('admin.manage') }}" class="nav-link {{ request()->routeIs('admin.manage*') ? 'active' : '' }}" title="Kelola Admin">
                 <i class="bi bi-person-gear"></i> <span>Kelola Admin</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('laravel_logs'))
-            <a href="{{ route('admin.system-logs') }}" class="nav-link {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
+            <a href="{{ route('admin.system-logs') }}" class="nav-link {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}" title="Log Laravel">
                 <i class="bi bi-file-earmark-text"></i> <span>Log Laravel</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('storage'))
-            <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage') ? 'active' : '' }}">
+            <a href="{{ route('admin.storage') }}" class="nav-link {{ request()->routeIs('admin.storage*') ? 'active' : '' }}" title="Kelola Penyimpanan">
                 <i class="bi bi-hdd-network"></i> <span>Kelola Penyimpanan</span>
             </a>
             @endif
 
             @if(Auth::check() && Auth::user()->hasPermission('backup'))
-            <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+            <a href="{{ route('admin.backup') }}" class="nav-link backup-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}" title="Backup Database">
                 <i class="bi bi-database-down"></i> <span>Backup Database</span>
             </a>
             @endif
@@ -509,7 +516,7 @@
             </div>
             @endif
 
-            <a href="{{ route('admin.logout') }}" class="nav-link-logout">
+            <a href="{{ route('admin.logout') }}" class="nav-link-logout" title="Keluar / Logout">
                 <i class="bi bi-box-arrow-right"></i> <span>Keluar</span>
             </a>
         </div>
@@ -535,7 +542,7 @@
                 </a>
 
                 @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons') || request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard*') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}">
                     <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
                 @endif

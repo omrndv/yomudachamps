@@ -21,12 +21,15 @@ return new class extends Migration
         // 2. Jika ada akun lain selain nadiv yang masih memegang umarnadiv@gmail.com, ubah emailnya
         $existingNadiv = DB::table('users')->where('username', 'nadiv')->first();
         if ($existingNadiv) {
-            DB::table('users')->where('email', 'umarnadiv@gmail.com')
+            $duplicateUsers = DB::table('users')->where('email', 'umarnadiv@gmail.com')
                 ->where('id', '!=', $existingNadiv->id)
-                ->update([
-                    'email' => DB::raw("CONCAT('archived_', id, '_', UNIX_TIMESTAMP(), '@yomuda.local')"),
+                ->get();
+            foreach ($duplicateUsers as $dup) {
+                DB::table('users')->where('id', $dup->id)->update([
+                    'email' => 'archived_' . $dup->id . '_' . time() . '@yomuda.local',
                     'updated_at' => now(),
                 ]);
+            }
         }
 
         // 3. Pastikan akun nadiv memiliki role 'admin' (bukan superadmin), email umarnadiv@gmail.com, is_active true
