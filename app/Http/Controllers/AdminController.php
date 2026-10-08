@@ -35,9 +35,7 @@ class AdminController extends Controller
             'password' => 'required',
         ]);
 
-        $remember = $request->boolean('remember');
-
-        if (Auth::attempt(['username' => $request->username, 'password' => $request->password], $remember)) {
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password], false)) {
             $user = Auth::user();
             
             // Cek jika akun sedang dibekukan
@@ -50,15 +48,11 @@ class AdminController extends Controller
 
             session(['login_time' => now()]);
 
-            if ($remember) {
-                config(['session.lifetime' => 720]);
-            }
-
             if ($user->role === 'admin') {
                 session()->flash('welcome_alert', 'Selamat datang, ' . $user->name);
             }
 
-            AdminActivity::log('Login admin berhasil' . ($remember ? ' (Ingat Saya aktif 12 Jam)' : ''));
+            AdminActivity::log('Login admin berhasil');
             return redirect()->route('admin.dashboard.home')->with('success', 'Selamat datang kembali, ' . $user->name . '! Anda berhasil masuk.');
         }
 

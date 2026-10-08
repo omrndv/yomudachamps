@@ -156,21 +156,13 @@
                 <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Username</label>
                 <input type="text" name="username" class="form-control shadow-none" required autocomplete="username" placeholder="Masukkan username">
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Password</label>
                 <div class="position-relative">
                     <input type="password" name="password" id="passwordInput" class="form-control shadow-none pe-5" required autocomplete="current-password" placeholder="Masukkan password">
                     <button type="button" id="togglePasswordBtn" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-secondary text-decoration-none border-0 pe-3" style="cursor: pointer; z-index: 5;" onclick="togglePasswordVisibility()" aria-label="Lihat Password">
                         <i class="bi bi-eye" id="togglePasswordIcon" style="font-size: 1.15rem;"></i>
                     </button>
-                </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" value="1" style="cursor: pointer;" checked>
-                    <label class="form-check-label small text-secondary fw-semibold user-select-none" for="rememberMe" style="cursor: pointer; font-size: 0.8rem;">
-                        Ingat Saya (12 Jam)
-                    </label>
                 </div>
             </div>
             <button type="submit" class="btn btn-login w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
