@@ -184,12 +184,14 @@ class AdminController extends Controller
                 $user->role = 'admin'; // WAJIB ADMIN
                 $user->is_active = true;
                 
-                // Pastikan user nadiv memiliki semua permissions admin aktif
-                $user->permissions = [
-                    "dashboard", "seasons", "teams", "payments", "notes",
-                    "settings", "gateway_notifications", "faqs", "activity_log",
-                    "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
-                ];
+                // HANYA inisialisasi default permissions jika belum pernah diset sama sekali
+                if (is_null($user->permissions)) {
+                    $user->permissions = [
+                        "dashboard", "seasons", "teams", "payments", "notes",
+                        "settings", "gateway_notifications", "faqs", "activity_log",
+                        "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                    ];
+                }
 
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
                     $user->google_id = $googleId;
