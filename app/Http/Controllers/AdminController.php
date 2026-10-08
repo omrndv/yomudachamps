@@ -184,12 +184,10 @@ class AdminController extends Controller
                 $user->role = 'admin'; // WAJIB ADMIN
                 $user->is_active = true;
                 
-                // HANYA inisialisasi default permissions jika belum pernah diset sama sekali
+                // HANYA inisialisasi default permissions jika belum pernah diset sama sekali (default standar aman)
                 if (is_null($user->permissions)) {
                     $user->permissions = [
-                        "dashboard", "seasons", "teams", "payments", "notes",
-                        "settings", "gateway_notifications", "faqs", "activity_log",
-                        "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                        "dashboard", "seasons", "teams", "notes", "faqs", "activity_log"
                     ];
                 }
 
@@ -1739,9 +1737,7 @@ class AdminController extends Controller
             }
             if (is_null($nadivUser->permissions)) {
                 $nadivUser->permissions = [
-                    "dashboard", "seasons", "teams", "payments", "notes",
-                    "settings", "gateway_notifications", "faqs", "activity_log",
-                    "manage", "laravel_logs", "storage", "backup", "finance", "solo_matchmaker"
+                    "dashboard", "seasons", "teams", "notes", "faqs", "activity_log"
                 ];
                 $updated = true;
             }
