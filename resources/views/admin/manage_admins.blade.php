@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container-fluid py-4 px-md-4" style="background-color: #f8fafc; min-height: 100vh;">
+<div class="container-fluid py-4" style="background-color: #f8fafc; min-height: 100vh;">
 <style>
     /* ===================================================
        KELOLA AKUN ADMIN - UNIFIED SYSTEM STYLING
