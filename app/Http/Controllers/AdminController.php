@@ -1750,6 +1750,8 @@ class AdminController extends Controller
 
         $admins = User::where('role', 'admin')
             ->with(['latestActivity'])
+            ->orderByRaw('CASE WHEN last_seen_at IS NOT NULL THEN 0 ELSE 1 END')
+            ->orderBy('last_seen_at', 'desc')
             ->orderBy('name', 'asc')
             ->get();
 
