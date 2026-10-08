@@ -1,122 +1,118 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 px-md-4">
 <style>
-    /* Metric stat cards */
-    .metric-card {
+    /* Compact Metric Bar */
+    .metric-bar-card {
         background: #ffffff;
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        border: 1px solid #e2e8f0;
         border-radius: 16px;
-        padding: 1.15rem 1.25rem;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
     }
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
-        border-color: #cbd5e1;
+    .metric-tile {
+        padding: 8px 16px;
     }
-    .metric-icon-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        flex-shrink: 0;
+    .metric-tile:not(:last-child) {
+        border-right: 1px solid #f1f5f9;
+    }
+    @media (max-width: 767.98px) {
+        .metric-tile {
+            padding: 8px 12px;
+            border-right: none !important;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .metric-tile:last-child {
+            border-bottom: none;
+        }
     }
 
-    /* Admin Table Styling */
-    .admin-table-card {
+    /* Modern Table Container */
+    .table-container-card {
         background: #ffffff;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03);
+        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
     }
-    .admin-table thead th {
+    .table-toolbar {
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #ffffff;
+    }
+    .admin-main-table thead th {
         background: #f8fafc;
         color: #475569;
         font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.6px;
-        padding: 14px 18px;
+        padding: 12px 18px;
         border-bottom: 1px solid #e2e8f0;
         white-space: nowrap;
     }
-    .admin-table tbody td {
-        padding: 14px 18px;
+    .admin-main-table tbody td {
+        padding: 13px 18px;
         border-bottom: 1px solid #f1f5f9;
         vertical-align: middle;
         font-size: 0.85rem;
     }
-    .admin-table tbody tr {
+    .admin-main-table tbody tr {
         transition: background-color 0.15s ease;
     }
-    .admin-table tbody tr:hover {
+    .admin-main-table tbody tr:hover {
         background-color: #f8fafc;
     }
-    .admin-table tbody tr.is-frozen {
-        background-color: #fffbfb;
+    .admin-main-table tbody tr.is-frozen {
+        background-color: #fff8f8;
     }
-    .admin-table tbody tr:last-child td {
+    .admin-main-table tbody tr:last-child td {
         border-bottom: none;
     }
 
-    /* Admin Card (Grid View) */
-    .admin-grid-card {
-        border-radius: 16px;
-        border: 1px solid rgba(226, 232, 240, 0.85);
-        background: #ffffff;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
-        position: relative;
-    }
-    .admin-grid-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.08);
-        transform: translateY(-3px);
-    }
-    .admin-grid-card.is-frozen {
-        background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
-        border-color: #fecaca;
-    }
-
-    /* Avatar styling */
-    .avatar-wrapper {
-        position: relative;
-        flex-shrink: 0;
-    }
-    .avatar-img-circle {
-        border-radius: 14px;
-        object-fit: cover;
-    }
-    .avatar-circle {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: #f59e0b;
-        border-radius: 14px;
+    /* Avatars */
+    .avatar-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        border: 2px solid transparent;
+        font-weight: 700;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #f59e0b;
+        border: 1.5px solid transparent;
         transition: all 0.2s ease;
     }
-    .avatar-circle.online-ring, .avatar-img-circle.online-ring {
+    .avatar-box.online-ring {
         border-color: #22c55e;
-        box-shadow: 0 0 0 2.5px rgba(34, 197, 94, 0.25);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
     }
-    .avatar-circle.frozen-ring, .avatar-img-circle.frozen-ring {
+    .avatar-box.frozen-ring {
         border-color: #ef4444;
-        box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.2);
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    .avatar-img {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1.5px solid transparent;
+    }
+    .avatar-img.online-ring {
+        border-color: #22c55e;
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    }
+    .avatar-img.frozen-ring {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
     }
 
-    /* Live pulse animation */
+    /* Live Pulse */
     .live-pulse-dot {
         width: 7px;
         height: 7px;
@@ -128,140 +124,78 @@
     }
     @keyframes livePulse {
         to {
-            box-shadow: 0 0 0 7px rgba(34, 197, 94, 0);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
         }
     }
 
-    /* Action buttons toolbar */
-    .admin-action-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        background: #ffffff;
-        color: #64748b;
-        transition: all 0.15s ease;
-        font-size: 0.82rem;
-        cursor: pointer;
-        padding: 0;
-        text-decoration: none;
-    }
-    .admin-action-btn:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-        color: #0f172a;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        transform: translateY(-1px);
-    }
-    .admin-action-btn.btn-action-danger:hover {
-        background: #fef2f2;
-        border-color: #fca5a5;
-        color: #dc2626;
-    }
-    .admin-action-btn.btn-action-freeze:hover {
-        background: #f0f9ff;
-        border-color: #bae6fd;
-        color: #0284c7;
-    }
-
-    /* Filter pills */
-    .filter-pill {
+    /* Filter Chips */
+    .filter-chip {
         border: 1px solid #e2e8f0;
         background: #ffffff;
         color: #64748b;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         transition: all 0.15s ease;
-        padding: 0.4rem 0.9rem;
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
     }
-    .filter-pill:hover {
+    .filter-chip:hover {
         background: #f8fafc;
         border-color: #cbd5e1;
-        color: #1e293b;
+        color: #0f172a;
     }
-    .filter-pill.active {
+    .filter-chip.active {
         background: #0f172a;
         border-color: #0f172a;
         color: #ffffff;
     }
-    .filter-pill.active .count-badge {
+    .filter-chip.active .count-badge {
         background: rgba(255, 255, 255, 0.2) !important;
         color: #ffffff !important;
     }
 
-    /* View Switcher */
-    .view-switcher-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
+    /* Action Dropdown Menu Button */
+    .btn-action-more {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border: 1px solid #e2e8f0;
         background: #ffffff;
         color: #64748b;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         transition: all 0.15s ease;
+        padding: 0;
     }
-    .view-switcher-btn:hover {
+    .btn-action-more:hover, .btn-action-more:focus {
+        background: #f8fafc;
+        border-color: #cbd5e1;
         color: #0f172a;
-        border-color: #cbd5e1;
     }
-    .view-switcher-btn.active {
-        background: #0f172a;
-        color: #ffffff;
-        border-color: #0f172a;
-    }
-
-    /* Progress bar */
-    .perm-progress {
-        height: 5px;
-        border-radius: 999px;
-        background: #f1f5f9;
-        overflow: hidden;
-    }
-    .perm-progress-bar {
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #f59e0b, #d97706);
-        transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .perm-progress-bar.is-full {
-        background: linear-gradient(90deg, #22c55e, #16a34a);
-    }
-
-    /* Modal Permissions */
-    .icon-square {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.05rem;
-        flex-shrink: 0;
-    }
-    .permission-card {
-        transition: all 0.2s ease;
+    .dropdown-menu-admin {
         border: 1px solid #e2e8f0;
-        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1);
+        padding: 6px;
+        font-size: 0.82rem;
+        min-width: 190px;
     }
-    .permission-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
-        transform: translateY(-1px);
+    .dropdown-menu-admin .dropdown-item {
+        padding: 7px 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        color: #334155;
+        transition: all 0.12s ease;
     }
-    .form-check-input:checked {
-        background-color: #d97706 !important;
-        border-color: #d97706 !important;
+    .dropdown-menu-admin .dropdown-item:hover {
+        background-color: #f8fafc;
+        color: #0f172a;
     }
-    .hover-gold:hover {
-        background-color: #d97706 !important;
-        border-color: #d97706 !important;
-        color: #ffffff !important;
+    .dropdown-menu-admin .dropdown-item.text-danger:hover {
+        background-color: #fef2f2;
+        color: #dc2626 !important;
     }
 
     /* Preset buttons */
@@ -269,22 +203,26 @@
         border: 1px solid #e2e8f0;
         background: #f8fafc;
         color: #334155;
-        font-size: 0.76rem;
+        font-size: 0.75rem;
         font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 999px;
         transition: all 0.15s ease;
     }
     .btn-preset:hover {
         background: #ffffff;
         border-color: #cbd5e1;
         color: #0f172a;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
     }
     .btn-preset-danger {
         border: 1px solid #fee2e2;
         background: #fff5f5;
         color: #dc2626;
-        font-size: 0.76rem;
+        font-size: 0.75rem;
         font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 999px;
         transition: all 0.15s ease;
     }
     .btn-preset-danger:hover {
@@ -292,103 +230,112 @@
         border-color: #fca5a5;
         color: #991b1b;
     }
+
+    /* Modal Permissions */
+    .icon-square {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .permission-card {
+        transition: all 0.15s ease;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        border-radius: 10px;
+    }
+    .permission-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+    .form-check-input:checked {
+        background-color: #d97706 !important;
+        border-color: #d97706 !important;
+    }
 </style>
 
-    {{-- Top Header Section --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    {{-- Page Header --}}
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3 pb-1">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;">
-                    <i class="bi bi-shield-lock-fill me-1"></i> ACCESS CONTROL &amp; SECURITY
-                </span>
-            </div>
-            <h2 class="fw-bold text-dark mb-1" style="font-size: 1.65rem; letter-spacing: -0.5px;">
+            <h2 class="fw-bold text-dark mb-0.5" style="font-size: 1.5rem; letter-spacing: -0.4px;">
                 Kelola Akun Admin
             </h2>
-            <p class="text-secondary mb-0" style="font-size: 0.86rem;">
-                Monitor status sesi realtime, pembagian hak akses 15 modul, bekukan akun, atau putus sesi login instan.
+            <p class="text-secondary mb-0" style="font-size: 0.84rem;">
+                Kelola otorisasi 15 modul, status sesi aktif, dan hak akses staf administrator turnamen.
             </p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <form action="{{ route('admin.manage.force-logout-all') }}" method="POST" class="d-inline m-0" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin MELOGOUT SEMUA USER & PERANGKAT sekarang?\n\nSemua admin (termasuk Anda) yang sedang aktif akan langsung dikeluarkan dari sistem.');">
+            <form action="{{ route('admin.manage.force-logout-all') }}" method="POST" class="d-inline m-0" onsubmit="return confirm('PERINGATAN: Logout semua user & perangkat sekarang?\n\nSemua admin (termasuk Anda) akan langsung dikeluarkan.');">
                 @csrf
-                <button type="submit" class="btn btn-outline-danger fw-semibold px-3 py-2 rounded-pill shadow-sm d-inline-flex align-items-center gap-1.5" style="font-size: 0.84rem;">
+                <button type="submit" class="btn btn-outline-danger fw-semibold px-3 py-1.5 rounded-3 d-inline-flex align-items-center gap-1.5 shadow-none" style="font-size: 0.82rem;">
                     <i class="bi bi-power"></i>
-                    <span>Logout Semua Perangkat</span>
+                    <span>Logout Semua Sesi</span>
                 </button>
             </form>
-            <button class="btn btn-warning fw-bold px-3.5 py-2 rounded-pill shadow-sm text-dark hover-gold flex-shrink-0 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="font-size: 0.84rem;">
+            <button class="btn btn-warning fw-bold px-3.5 py-1.5 rounded-3 shadow-sm text-dark d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="font-size: 0.82rem;">
                 <i class="bi bi-person-plus-fill"></i>
                 <span>Tambah Staf Admin</span>
             </button>
         </div>
     </div>
 
-    {{-- Validation and Feedback Alerts --}}
+    {{-- Feedback Alerts --}}
     @if ($errors->any())
-        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 py-3 small">
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 py-2.5 small">
             @foreach ($errors->all() as $error)
-                <div class="d-flex align-items-center mb-1"><i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>{{ $error }}</div>
+                <div class="d-flex align-items-center mb-0.5"><i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>{{ $error }}</div>
             @endforeach
         </div>
     @endif
 
     @if(session('success'))
-        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center py-3">
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-3 d-flex align-items-center py-2.5 small">
             <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
             <div class="fw-semibold">{{ session('success') }}</div>
         </div>
     @endif
 
-    {{-- Permintaan Akses Google Menunggu Persetujuan --}}
+    {{-- Pending Google Access Notification (if any) --}}
     @if(isset($pendingAdmins) && count($pendingAdmins) > 0)
-        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-left: 4px solid #f59e0b !important; background: #fffbeb;">
-            <div class="p-3 p-md-3.5">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
-                    <div class="d-flex align-items-center gap-2.5">
-                        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; font-size: 1.1rem;">
-                            <i class="bi bi-person-check-fill"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                <span>Permintaan Akses Google Menunggu Persetujuan</span>
-                                <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">{{ count($pendingAdmins) }} Menunggu</span>
-                            </h6>
-                            <p class="text-secondary small mb-0" style="font-size: 0.78rem;">
-                                Akun berikut baru mencoba login via Google dan memerlukan verifikasi Superadmin.
-                            </p>
-                        </div>
+        <div class="card border-0 shadow-sm rounded-3 mb-3 overflow-hidden" style="border-left: 4px solid #f59e0b !important; background: #fffbeb;">
+            <div class="p-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-check-fill text-warning fs-5"></i>
+                        <span class="fw-bold text-dark" style="font-size: 0.86rem;">Permintaan Akses Google Menunggu Persetujuan</span>
+                        <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">{{ count($pendingAdmins) }} Menunggu</span>
                     </div>
                 </div>
-
-                <div class="row g-2.5">
+                <div class="row g-2">
                     @foreach($pendingAdmins as $pAdmin)
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="bg-white p-2.5 rounded-3 border d-flex flex-column justify-content-between shadow-xs h-100">
-                                <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="bg-white p-2.5 rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-xs">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
                                     @if($pAdmin->avatar)
-                                        <img src="{{ $pAdmin->avatar }}" alt="{{ $pAdmin->name }}" class="rounded-3 border" style="width: 38px; height: 38px; object-fit: cover;">
+                                        <img src="{{ $pAdmin->avatar }}" alt="{{ $pAdmin->name }}" class="rounded-2 border" style="width: 32px; height: 32px; object-fit: cover;">
                                     @else
-                                        <div class="rounded-3 bg-light text-dark fw-bold border d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 1rem;">
+                                        <div class="rounded-2 bg-light text-dark fw-bold border d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
                                             {{ strtoupper(substr($pAdmin->name, 0, 1)) }}
                                         </div>
                                     @endif
-                                    <div class="min-w-0 flex-grow-1">
-                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.85rem;" title="{{ $pAdmin->name }}">{{ $pAdmin->name }}</div>
-                                        <div class="text-secondary text-truncate" style="font-size: 0.72rem;">
-                                            <i class="bi bi-google text-danger me-1"></i>{{ $pAdmin->email }}
-                                        </div>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.82rem;">{{ $pAdmin->name }}</div>
+                                        <div class="text-secondary text-truncate" style="font-size: 0.7rem;">{{ $pAdmin->email }}</div>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center gap-1.5 pt-1.5 border-top">
-                                    <form action="{{ route('admin.manage.approve', $pAdmin->id) }}" method="POST" class="flex-grow-1 m-0">
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <form action="{{ route('admin.manage.approve', $pAdmin->id) }}" method="POST" class="m-0">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill fw-bold py-1 shadow-none" style="font-size: 0.72rem;">
-                                            <i class="bi bi-check-lg me-1"></i> Setujui
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill fw-bold py-1 px-2.5 shadow-none" style="font-size: 0.7rem;">
+                                            Setujui
                                         </button>
                                     </form>
-                                    <a href="{{ route('admin.manage.delete', $pAdmin->id) }}" onclick="return confirm('Tolak dan hapus permohonan akun {{ $pAdmin->name }}?')" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
-                                        <i class="bi bi-x-lg"></i> Tolak
+                                    <a href="{{ route('admin.manage.delete', $pAdmin->id) }}" onclick="return confirm('Tolak permohonan {{ $pAdmin->name }}?')" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                        Tolak
                                     </a>
                                 </div>
                             </div>
@@ -399,7 +346,7 @@
         </div>
     @endif
 
-    {{-- Executive Metric Stat Cards --}}
+    {{-- Slim Metric Bar --}}
     @php
         $totalAdmins = count($admins);
         $onlineAdminsCount = $admins->filter(fn($a) => method_exists($a, 'isOnline') ? $a->isOnline() : false)->count();
@@ -409,156 +356,120 @@
             return count($p) >= 15;
         })->count();
     @endphp
-    <div class="row g-3 mb-4">
-        {{-- Stat 1: Total Admins --}}
-        <div class="col-6 col-lg-3">
-            <div class="metric-card h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Admin</span>
-                    <div class="metric-icon-box" style="background: #f1f5f9; color: #0f172a;">
-                        <i class="bi bi-people-fill"></i>
+    <div class="metric-bar-card mb-3">
+        <div class="row g-0 align-items-center">
+            {{-- Metric 1 --}}
+            <div class="col-6 col-md-3 metric-tile">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 bg-light text-secondary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 1.05rem;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 1.15rem; line-height: 1.1;">{{ $totalAdmins }}</div>
+                        <div class="text-secondary small" style="font-size: 0.72rem;">Total Akun</div>
                     </div>
                 </div>
-                <div class="d-flex align-items-baseline gap-2">
-                    <h3 class="fw-bold text-dark mb-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">{{ $totalAdmins }}</h3>
-                    <span class="text-secondary small">Akun</span>
-                </div>
-                <div class="text-muted mt-1" style="font-size: 0.72rem;">
-                    Terdaftar di sistem
-                </div>
             </div>
-        </div>
 
-        {{-- Stat 2: Online Standby --}}
-        <div class="col-6 col-lg-3">
-            <div class="metric-card h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px;">Online Sekarang</span>
-                    <div class="metric-icon-box" style="background: #f0fdf4; color: #16a34a;">
+            {{-- Metric 2 --}}
+            <div class="col-6 col-md-3 metric-tile">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 1.05rem;">
                         <i class="bi bi-broadcast"></i>
                     </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <h3 class="fw-bold text-dark mb-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">{{ $onlineAdminsCount }}</h3>
-                    @if($onlineAdminsCount > 0)
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                            <span class="live-pulse-dot me-1"></span> Live
-                        </span>
-                    @else
-                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                            Idle
-                        </span>
-                    @endif
-                </div>
-                <div class="text-muted mt-1" style="font-size: 0.72rem;">
-                    Aktif 5 menit terakhir
+                    <div>
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="fw-bold text-dark" style="font-size: 1.15rem; line-height: 1.1;">{{ $onlineAdminsCount }}</span>
+                            @if($onlineAdminsCount > 0)
+                                <span class="badge bg-success-subtle text-success rounded-pill px-1.5 py-0.5" style="font-size: 0.62rem;">
+                                    <span class="live-pulse-dot me-0.5"></span> Live
+                                </span>
+                            @endif
+                        </div>
+                        <div class="text-secondary small" style="font-size: 0.72rem;">Online Aktif</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Stat 3: Frozen Admins --}}
-        <div class="col-6 col-lg-3">
-            <div class="metric-card h-100 {{ $frozenAdminsCount > 0 ? 'border-danger-subtle' : '' }}">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px;">Dibekukan</span>
-                    <div class="metric-icon-box" style="background: {{ $frozenAdminsCount > 0 ? '#fef2f2' : '#f8fafc' }}; color: {{ $frozenAdminsCount > 0 ? '#dc2626' : '#64748b' }};">
+            {{-- Metric 3 --}}
+            <div class="col-6 col-md-3 metric-tile">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 {{ $frozenAdminsCount > 0 ? 'bg-danger-subtle text-danger' : 'bg-light text-muted' }} d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 1.05rem;">
                         <i class="bi bi-snow"></i>
                     </div>
-                </div>
-                <div class="d-flex align-items-baseline gap-2">
-                    <h3 class="fw-bold {{ $frozenAdminsCount > 0 ? 'text-danger' : 'text-dark' }} mb-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">{{ $frozenAdminsCount }}</h3>
-                    <span class="text-secondary small">Akun</span>
-                </div>
-                <div class="text-muted mt-1" style="font-size: 0.72rem;">
-                    {{ $frozenAdminsCount > 0 ? 'Akses disuspend' : 'Tidak ada suspend' }}
-                </div>
-            </div>
-        </div>
-
-        {{-- Stat 4: Super Admin / Access Level --}}
-        <div class="col-6 col-lg-3">
-            <div class="metric-card h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px;">Super Admin</span>
-                    <div class="metric-icon-box" style="background: #fef3c7; color: #d97706;">
-                        <i class="bi bi-award-fill"></i>
+                    <div>
+                        <div class="fw-bold {{ $frozenAdminsCount > 0 ? 'text-danger' : 'text-dark' }}" style="font-size: 1.15rem; line-height: 1.1;">{{ $frozenAdminsCount }}</div>
+                        <div class="text-secondary small" style="font-size: 0.72rem;">Akun Dibekukan</div>
                     </div>
                 </div>
-                <div class="d-flex align-items-baseline gap-2">
-                    <h3 class="fw-bold text-dark mb-0" style="font-size: 1.75rem; letter-spacing: -0.5px;">{{ $superAdminsCount }}</h3>
-                    <span class="text-secondary small">Akun</span>
-                </div>
-                <div class="text-muted mt-1" style="font-size: 0.72rem;">
-                    15/15 modul izin penuh
+            </div>
+
+            {{-- Metric 4 --}}
+            <div class="col-6 col-md-3 metric-tile">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 bg-warning-subtle text-warning-emphasis d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 1.05rem;">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 1.15rem; line-height: 1.1;">{{ $superAdminsCount }}</div>
+                        <div class="text-secondary small" style="font-size: 0.72rem;">Super Admin (15/15)</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Search, Filter, & View Mode Controls Bar --}}
-    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-        <div class="card-body p-3">
+    {{-- Table Card Container with Search & Filter Header --}}
+    <div class="table-container-card">
+        {{-- Toolbar inside Card --}}
+        <div class="table-toolbar">
             <div class="row g-2.5 align-items-center justify-content-between">
                 {{-- Search Box --}}
-                <div class="col-12 col-md-5 col-lg-4">
+                <div class="col-12 col-md-4">
                     <div class="position-relative">
-                        <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%); font-size: 0.85rem;"></i>
-                        <input type="text" id="adminSearchInput" class="form-control rounded-pill ps-5 pe-4 py-2 border-light-subtle shadow-none" placeholder="Cari nama, username, email..." style="font-size: 0.82rem;">
-                        <button type="button" id="clearSearchBtn" class="btn btn-sm position-absolute text-muted d-none border-0 p-0" style="top: 50%; right: 14px; transform: translateY(-50%);" title="Hapus pencarian">
+                        <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 12px; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        <input type="text" id="adminSearchInput" class="form-control rounded-pill ps-5 pe-4 py-1.5 border-light-subtle shadow-none bg-light" placeholder="Cari admin..." style="font-size: 0.82rem;">
+                        <button type="button" id="clearSearchBtn" class="btn btn-sm position-absolute text-muted d-none border-0 p-0" style="top: 50%; right: 12px; transform: translateY(-50%);" title="Hapus">
                             <i class="bi bi-x-circle-fill"></i>
                         </button>
                     </div>
                 </div>
 
-                {{-- Filter Chips & View Mode Switcher --}}
-                <div class="col-12 col-md-7 col-lg-8">
-                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-md-end">
-                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                            <button type="button" class="btn btn-sm filter-pill active rounded-pill" data-filter="all">
-                                Semua <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1 count-badge">{{ $totalAdmins }}</span>
-                            </button>
-                            <button type="button" class="btn btn-sm filter-pill rounded-pill" data-filter="online">
-                                <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.45rem;"></i>
-                                Online <span class="badge bg-success-subtle text-success rounded-pill ms-1 count-badge">{{ $onlineAdminsCount }}</span>
-                            </button>
-                            @if($frozenAdminsCount > 0)
-                            <button type="button" class="btn btn-sm filter-pill rounded-pill" data-filter="frozen">
-                                <i class="bi bi-snow text-danger me-1"></i>
-                                Dibekukan <span class="badge bg-danger-subtle text-danger rounded-pill ms-1 count-badge">{{ $frozenAdminsCount }}</span>
-                            </button>
-                            @endif
-                            <button type="button" class="btn btn-sm filter-pill rounded-pill" data-filter="superadmin">
-                                <i class="bi bi-award text-warning me-1"></i>
-                                Super Admin <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill ms-1 count-badge">{{ $superAdminsCount }}</span>
-                            </button>
-                        </div>
-
-                        {{-- View Toggle (Table / Grid) --}}
-                        <div class="d-none d-sm-flex align-items-center border rounded-pill p-0.5 bg-light ms-md-2">
-                            <button type="button" id="btnViewTable" class="btn btn-sm view-switcher-btn rounded-pill active" title="Tampilan Tabel">
-                                <i class="bi bi-list-ul"></i>
-                            </button>
-                            <button type="button" id="btnViewGrid" class="btn btn-sm view-switcher-btn rounded-pill" title="Tampilan Kartu (Grid)">
-                                <i class="bi bi-grid"></i>
-                            </button>
-                        </div>
+                {{-- Filter Chips --}}
+                <div class="col-12 col-md-8">
+                    <div class="d-flex align-items-center gap-1.5 flex-wrap justify-content-md-end">
+                        <button type="button" class="btn btn-sm filter-chip active" data-filter="all">
+                            Semua <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1 count-badge">{{ $totalAdmins }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm filter-chip" data-filter="online">
+                            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.45rem;"></i>
+                            Online <span class="badge bg-success-subtle text-success rounded-pill ms-1 count-badge">{{ $onlineAdminsCount }}</span>
+                        </button>
+                        @if($frozenAdminsCount > 0)
+                        <button type="button" class="btn btn-sm filter-chip" data-filter="frozen">
+                            <i class="bi bi-snow text-danger me-1"></i>
+                            Dibekukan <span class="badge bg-danger-subtle text-danger rounded-pill ms-1 count-badge">{{ $frozenAdminsCount }}</span>
+                        </button>
+                        @endif
+                        <button type="button" class="btn btn-sm filter-chip" data-filter="superadmin">
+                            <i class="bi bi-award text-warning me-1"></i>
+                            Super Admin <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill ms-1 count-badge">{{ $superAdminsCount }}</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- VIEW 1: MODERN ADMIN TABLE VIEW (Default) --}}
-    <div id="adminTableViewContainer" class="admin-table-card mb-4">
+        {{-- Main Table View --}}
         <div class="table-responsive">
-            <table class="table admin-table mb-0 align-middle">
+            <table class="table admin-main-table mb-0 align-middle">
                 <thead>
                     <tr>
-                        <th style="min-width: 260px;">Admin / Pengguna</th>
-                        <th style="min-width: 140px;">Status Sesi</th>
-                        <th style="min-width: 220px;">Hak Akses &amp; Otorisasi</th>
+                        <th style="min-width: 250px;">Admin / Pengguna</th>
+                        <th style="min-width: 130px;">Status</th>
+                        <th style="min-width: 210px;">Hak Akses Modul</th>
                         <th style="min-width: 170px;">Aktivitas Terakhir</th>
-                        <th class="text-end" style="min-width: 150px;">Aksi</th>
+                        <th class="text-end" style="min-width: 140px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
@@ -569,7 +480,6 @@
                                 $userPerms = json_decode($userPerms, true) ?: [];
                             }
                             $activeCount = count($userPerms);
-                            $permPercent = round(($activeCount / 15) * 100);
                             $isOnline = method_exists($admin, 'isOnline') ? $admin->isOnline() : false;
                             $isActive = isset($admin->is_active) ? (bool)$admin->is_active : true;
                             $isCurrentUser = ($admin->id === Auth::id());
@@ -583,44 +493,42 @@
                             data-frozen="{{ !$isActive ? '1' : '0' }}"
                             data-superadmin="{{ $isSuperAdmin ? '1' : '0' }}">
                             
-                            {{-- Col 1: Avatar & User Details --}}
+                            {{-- Col 1: Admin / Pengguna --}}
                             <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="avatar-wrapper">
-                                        @if($admin->avatar)
-                                            <img src="{{ $admin->avatar }}" alt="{{ $admin->name }}" class="avatar-img-circle border {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}" style="width: 42px; height: 42px;">
-                                        @else
-                                            <div class="avatar-circle {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}" style="width: 42px; height: 42px; font-size: 1.05rem;">
-                                                {{ strtoupper(substr($admin->name, 0, 1)) }}
-                                            </div>
-                                        @endif
-                                    </div>
+                                <div class="d-flex align-items-center gap-2.5">
+                                    @if($admin->avatar)
+                                        <img src="{{ $admin->avatar }}" alt="{{ $admin->name }}" class="avatar-img {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}">
+                                    @else
+                                        <div class="avatar-box {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}">
+                                            {{ strtoupper(substr($admin->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div class="min-w-0">
                                         <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                            <span class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;" title="{{ $admin->name }}">
+                                            <span class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem;" title="{{ $admin->name }}">
                                                 {{ $admin->name }}
                                             </span>
                                             @if($isCurrentUser)
-                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.62rem;">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5" style="font-size: 0.6rem;">
                                                     Anda
                                                 </span>
                                             @endif
                                             @if($admin->google_id)
-                                                <span class="badge bg-light text-dark border rounded-pill px-1.5 py-0.5" style="font-size: 0.6rem;" title="Terhubung Google: {{ $admin->email }}">
+                                                <span class="badge bg-light text-dark border rounded-pill px-1.5 py-0.5" style="font-size: 0.58rem;" title="Google: {{ $admin->email }}">
                                                     <i class="bi bi-google text-danger"></i>
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="text-secondary small d-flex align-items-center gap-2 mt-0.5" style="font-size: 0.76rem;">
+                                        <div class="text-secondary small text-truncate" style="font-size: 0.74rem;">
                                             <span>{{ '@' . $admin->username }}</span>
-                                            <span>&bull;</span>
-                                            <span class="text-truncate">{{ $admin->email }}</span>
+                                            <span class="text-muted mx-1">&bull;</span>
+                                            <span>{{ $admin->email }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Col 2: Status Sesi --}}
+                            {{-- Col 2: Status --}}
                             <td>
                                 @if(!$isActive)
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
@@ -628,83 +536,89 @@
                                     </span>
                                 @elseif($isOnline)
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
-                                        <span class="live-pulse-dot me-1.5"></span> Online (Live)
+                                        <span class="live-pulse-dot me-1"></span> Online
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
-                                        <i class="bi bi-circle-fill me-1 text-muted opacity-50" style="font-size: 0.45rem;"></i> Offline
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                        Offline
                                     </span>
                                 @endif
                             </td>
 
-                            {{-- Col 3: Hak Akses / Otorisasi --}}
+                            {{-- Col 3: Hak Akses --}}
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    @if($isSuperAdmin)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.74rem;">
-                                            <i class="bi bi-award-fill me-1"></i> Super Admin (15/15)
-                                        </span>
-                                    @else
-                                        <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-semibold perm-count-badge" style="font-size: 0.74rem;">
-                                            <i class="bi bi-shield-check text-warning me-1"></i> {{ $activeCount }}/15 Modul
-                                        </span>
-                                    @endif
-                                    <button class="btn btn-sm btn-outline-warning border-0 p-1 text-dark hover-gold rounded-circle d-inline-flex align-items-center justify-content-center" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#permissionsModal{{ $admin->id }}" 
-                                            title="Ubah Hak Akses Modul" 
-                                            style="width: 26px; height: 26px; font-size: 0.8rem;">
-                                        <i class="bi bi-sliders2-vertical"></i>
-                                    </button>
-                                </div>
+                                @if($isSuperAdmin)
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.73rem;">
+                                        <i class="bi bi-award-fill me-1"></i> Super Admin (15/15)
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-medium perm-count-badge" style="font-size: 0.73rem;">
+                                        <i class="bi bi-shield-check text-warning me-1"></i> {{ $activeCount }}/15 Modul
+                                    </span>
+                                @endif
                             </td>
 
                             {{-- Col 4: Aktivitas Terakhir --}}
                             <td>
-                                <div class="text-dark fw-semibold small" style="font-size: 0.78rem;">
-                                    <i class="bi bi-clock-history text-warning me-1"></i>
-                                    {{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah online' }}
+                                <div class="text-dark fw-semibold" style="font-size: 0.76rem;">
+                                    {{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah' }}
                                 </div>
-                                <div class="text-secondary text-truncate small mt-0.5" style="max-width: 220px; font-size: 0.72rem;" title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada aktivitas' }}">
-                                    {{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada aktivitas' }}
+                                <div class="text-secondary text-truncate" style="max-width: 200px; font-size: 0.7rem;" title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada aktivitas' }}">
+                                    {{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}
                                 </div>
                             </td>
 
-                            {{-- Col 5: Aksi Toolbar --}}
+                            {{-- Col 5: Aksi (Atur Izin + Dropdown Menu) --}}
                             <td class="text-end">
-                                <div class="d-inline-flex gap-1 align-items-center">
-                                    {{-- Atur Izin --}}
-                                    <button type="button" class="admin-action-btn" title="Atur Izin Modul" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $admin->id }}">
-                                        <i class="bi bi-sliders2-vertical text-warning"></i>
+                                <div class="d-inline-flex align-items-center gap-1.5">
+                                    {{-- Tombol Atur Izin --}}
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-3 py-1" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#permissionsModal{{ $admin->id }}"
+                                            style="font-size: 0.74rem;">
+                                        <i class="bi bi-sliders2-vertical me-1"></i>
+                                        <span>Atur Izin</span>
                                     </button>
 
-                                    @if(!$isCurrentUser)
-                                        {{-- Force Logout --}}
-                                        <button type="button" class="admin-action-btn" title="Putus Sesi Login (Force Logout)" onclick="forceLogoutAdmin({{ $admin->id }}, '{{ addslashes($admin->name) }}')">
-                                            <i class="bi bi-box-arrow-right text-secondary"></i>
+                                    {{-- Dropdown Action Menu (···) --}}
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-action-more" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Aksi">
+                                            <i class="bi bi-three-dots"></i>
                                         </button>
+                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-admin shadow-sm">
+                                            <li>
+                                                <button class="dropdown-item d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
+                                                    <i class="bi bi-pencil text-muted"></i>
+                                                    <span>Edit Data Akun</span>
+                                                </button>
+                                            </li>
 
-                                        {{-- Bekukan / Aktifkan --}}
-                                        <button type="button" class="admin-action-btn {{ !$isActive ? 'btn-action-danger bg-danger-subtle text-danger' : 'btn-action-freeze' }}" 
-                                                title="{{ $isActive ? 'Bekukan Akun Sementara' : 'Aktifkan Kembali Akun' }}" 
-                                                onclick="toggleAdminStatus({{ $admin->id }}, '{{ addslashes($admin->name) }}', {{ $isActive ? 'true' : 'false' }})">
-                                            <i class="bi {{ $isActive ? 'bi-snow text-info' : 'bi-sun-fill text-warning' }}"></i>
-                                        </button>
-                                    @endif
-
-                                    {{-- Edit Data --}}
-                                    <button type="button" class="admin-action-btn" title="Edit Akun" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-
-                                    {{-- Hapus (Bukan Diri Sendiri) --}}
-                                    @if(!$isCurrentUser)
-                                        <a href="{{ route('admin.manage.delete', $admin->id) }}" 
-                                           class="admin-action-btn btn-action-danger" title="Hapus Akun Permanen"
-                                           onclick="return confirm('Apakah Anda yakin ingin menghapus akun admin {{ $admin->username }}? Hapus akun tidak dapat dibatalkan.');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    @endif
+                                            @if(!$isCurrentUser)
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center gap-2" onclick="forceLogoutAdmin({{ $admin->id }}, '{{ addslashes($admin->name) }}')">
+                                                        <i class="bi bi-box-arrow-right text-warning"></i>
+                                                        <span>Putus Sesi (Logout)</span>
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center gap-2 {{ $isActive ? 'text-danger' : 'text-success' }}" 
+                                                            onclick="toggleAdminStatus({{ $admin->id }}, '{{ addslashes($admin->name) }}', {{ $isActive ? 'true' : 'false' }})">
+                                                        <i class="bi {{ $isActive ? 'bi-snow text-info' : 'bi-sun-fill text-warning' }}"></i>
+                                                        <span>{{ $isActive ? 'Bekukan Akun' : 'Aktifkan Akun' }}</span>
+                                                    </button>
+                                                </li>
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger d-flex align-items-center gap-2" 
+                                                       href="{{ route('admin.manage.delete', $admin->id) }}" 
+                                                       onclick="return confirm('Hapus akun admin {{ $admin->username }} permanen?');">
+                                                        <i class="bi bi-trash"></i>
+                                                        <span>Hapus Akun</span>
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -719,161 +633,20 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    {{-- VIEW 2: REDESIGNED CARD GRID (Switchable) --}}
-    <div id="adminGridViewContainer" class="row g-3 d-none mb-4">
-        @forelse($admins as $index => $admin)
-            @php
-                $userPerms = $admin->permissions;
-                if (!is_array($userPerms)) {
-                    $userPerms = json_decode($userPerms, true) ?: [];
-                }
-                $activeCount = count($userPerms);
-                $permPercent = round(($activeCount / 15) * 100);
-                $isOnline = method_exists($admin, 'isOnline') ? $admin->isOnline() : false;
-                $isActive = isset($admin->is_active) ? (bool)$admin->is_active : true;
-                $isCurrentUser = ($admin->id === Auth::id());
-                $isSuperAdmin = ($activeCount >= 15);
-            @endphp
-            <div class="col-12 col-md-6 col-xl-4 admin-item" 
-                 data-name="{{ strtolower($admin->name) }}"
-                 data-username="{{ strtolower($admin->username) }}"
-                 data-email="{{ strtolower($admin->email) }}"
-                 data-online="{{ $isOnline && $isActive ? '1' : '0' }}"
-                 data-frozen="{{ !$isActive ? '1' : '0' }}"
-                 data-superadmin="{{ $isSuperAdmin ? '1' : '0' }}">
-                <div class="admin-grid-card h-100 p-3.5 p-md-4 {{ !$isActive ? 'is-frozen' : '' }}">
-                    {{-- Card Header: Avatar, Name, and Quick Toolbar --}}
-                    <div class="d-flex align-items-start justify-content-between mb-3 gap-2">
-                        <div class="d-flex align-items-center gap-2.5 min-w-0">
-                            <div class="avatar-wrapper">
-                                @if($admin->avatar)
-                                    <img src="{{ $admin->avatar }}" alt="{{ $admin->name }}" class="avatar-img-circle border {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}" style="width: 46px; height: 46px;">
-                                @else
-                                    <div class="avatar-circle {{ !$isActive ? 'frozen-ring opacity-75' : ($isOnline ? 'online-ring' : '') }}" style="width: 46px; height: 46px; font-size: 1.15rem;">
-                                        {{ strtoupper(substr($admin->name, 0, 1)) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="min-w-0">
-                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.92rem;" title="{{ $admin->name }}">
-                                        {{ $admin->name }}
-                                    </h6>
-                                    @if($isCurrentUser)
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.62rem;">
-                                            Anda
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="text-secondary small text-truncate" style="font-size: 0.75rem;">
-                                    {{ '@' . $admin->username }}
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Quick Actions Toolbar --}}
-                        <div class="d-flex gap-1 align-items-center flex-shrink-0">
-                            @if(!$isCurrentUser)
-                                <button type="button" class="admin-action-btn" title="Force Logout" onclick="forceLogoutAdmin({{ $admin->id }}, '{{ addslashes($admin->name) }}')">
-                                    <i class="bi bi-box-arrow-right text-secondary"></i>
-                                </button>
-                                <button type="button" class="admin-action-btn {{ !$isActive ? 'btn-action-danger bg-danger-subtle text-danger' : 'btn-action-freeze' }}" 
-                                        title="{{ $isActive ? 'Bekukan Akun' : 'Aktifkan Akun' }}" 
-                                        onclick="toggleAdminStatus({{ $admin->id }}, '{{ addslashes($admin->name) }}', {{ $isActive ? 'true' : 'false' }})">
-                                    <i class="bi {{ $isActive ? 'bi-snow text-info' : 'bi-sun-fill text-warning' }}"></i>
-                                </button>
-                            @endif
-                            <button type="button" class="admin-action-btn" title="Edit Akun" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            @if(!$isCurrentUser)
-                                <a href="{{ route('admin.manage.delete', $admin->id) }}" 
-                                   class="admin-action-btn btn-action-danger" title="Hapus Akun"
-                                   onclick="return confirm('Hapus akun admin {{ $admin->username }}?');">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Details Info: Email & Status --}}
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pt-2 border-top text-secondary small" style="font-size: 0.78rem;">
-                        <span class="text-truncate"><i class="bi bi-envelope me-1 text-muted"></i>{{ $admin->email }}</span>
-                        @if(!$isActive)
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                                Dibekukan
-                            </span>
-                        @elseif($isOnline)
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                                <span class="live-pulse-dot me-1"></span> Live
-                            </span>
-                        @else
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                                Offline
-                            </span>
-                        @endif
-                    </div>
-
-                    {{-- Activity Snippet --}}
-                    <div class="bg-light rounded-3 p-2 mb-3 border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-0.5">
-                            <span class="text-muted" style="font-size: 0.7rem;">Terakhir Aktif:</span>
-                            <span class="text-dark fw-bold" style="font-size: 0.72rem;">{{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah' }}</span>
-                        </div>
-                        <div class="text-secondary text-truncate" style="font-size: 0.7rem;" title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada aktivitas' }}">
-                            {{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}
-                        </div>
-                    </div>
-
-                    {{-- Otorisasi Progress & Trigger --}}
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <div>
-                            <div class="d-flex align-items-center gap-1.5 mb-1">
-                                <span class="text-secondary fw-semibold" style="font-size: 0.72rem; text-transform: uppercase;">Otorisasi:</span>
-                                <span class="perm-count fw-bold" style="font-size: 0.75rem; color: {{ $isSuperAdmin ? '#16a34a' : ($activeCount >= 8 ? '#d97706' : '#64748b') }};">
-                                    {{ $activeCount }}/15 Modul
-                                </span>
-                            </div>
-                            <div class="perm-progress" style="width: 110px;">
-                                <div class="perm-progress-bar {{ $isSuperAdmin ? 'is-full' : '' }}" style="width: {{ $permPercent }}%;"></div>
-                            </div>
-                        </div>
-                        <button class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3 py-1 text-dark d-inline-flex align-items-center gap-1" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#permissionsModal{{ $admin->id }}"
-                                style="font-size: 0.74rem;">
-                            <i class="bi bi-sliders2-vertical"></i>
-                            <span>Atur Izin</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12">
-                <div class="card border-0 shadow-sm rounded-4 bg-white py-5 text-center text-secondary">
-                    <i class="bi bi-people fs-2 text-muted mb-2 d-block"></i>
-                    Belum ada staf admin yang ditambahkan ke sistem.
-                </div>
-            </div>
-        @endforelse
-    </div>
-
-    {{-- Empty Search Results Feedback --}}
-    <div id="noAdminResults" class="card border-0 shadow-sm rounded-4 bg-white my-4 d-none">
-        <div class="card-body py-5 text-center text-secondary">
-            <i class="bi bi-search fs-2 text-muted mb-3 d-block opacity-50"></i>
-            <h5 class="fw-bold text-dark mb-1">Tidak Ada Admin Ditemukan</h5>
-            <p class="text-secondary small mb-3">Tidak ada akun admin yang cocok dengan kata kunci atau filter yang dipilih.</p>
-            <button type="button" id="resetFiltersBtn" class="btn btn-outline-dark rounded-pill px-4 btn-sm fw-semibold">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Pencarian &amp; Filter
+        {{-- Empty Search Results --}}
+        <div id="noAdminResults" class="p-5 text-center text-secondary d-none border-top">
+            <i class="bi bi-search fs-2 text-muted mb-2 d-block opacity-50"></i>
+            <h6 class="fw-bold text-dark mb-1">Tidak Ada Admin Ditemukan</h6>
+            <p class="text-secondary small mb-3">Tidak ada akun admin yang cocok dengan pencarian atau filter.</p>
+            <button type="button" id="resetFiltersBtn" class="btn btn-outline-dark rounded-pill px-3 py-1 btn-sm fw-semibold">
+                Reset Filter
             </button>
         </div>
     </div>
 </div>
 
-{{-- ALL MODALS (Permissions Modal + Edit Admin Modal) --}}
+{{-- ALL MODALS (Permissions Modal + Edit Admin Modal + Add Admin Modal) --}}
 @foreach($admins as $admin)
     @php
         $userPerms = $admin->permissions;
@@ -883,100 +656,93 @@
         $activeCount = count($userPerms);
     @endphp
 
-    {{-- 1. Permissions Management Modal --}}
+    {{-- Permissions Management Modal --}}
     <div class="modal fade" id="permissionsModal{{ $admin->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 {{-- Modal Header with Dark Gradient --}}
-                <div class="modal-header border-0 text-white px-4 py-3 py-md-3.5" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                <div class="modal-header border-0 text-white px-4 py-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                     <div class="d-flex align-items-center">
-                        <div class="avatar-circle me-3" style="width: 46px; height: 46px; font-size: 1.15rem; background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.2);">
+                        <div class="avatar-box me-3" style="width: 42px; height: 42px; font-size: 1.1rem; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2);">
                             {{ strtoupper(substr($admin->name, 0, 1)) }}
                         </div>
                         <div class="text-start">
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 1.1rem;">{{ $admin->name }}</h5>
-                                <span class="badge bg-warning text-dark fw-bold rounded-pill px-2.5 py-0.5 modal-perm-badge" style="font-size: 0.68rem;">
+                                <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 1.05rem;">{{ $admin->name }}</h5>
+                                <span class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-0.5 modal-perm-badge" style="font-size: 0.68rem;">
                                     {{ $activeCount }}/15 Modul Aktif
                                 </span>
                             </div>
-                            <p class="text-white-50 mb-0 small" style="font-size: 0.78rem;">{{ '@' . $admin->username }} &bull; {{ $admin->email }}</p>
+                            <p class="text-white-50 mb-0 small" style="font-size: 0.76rem;">{{ '@' . $admin->username }} &bull; {{ $admin->email }}</p>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
                 {{-- Modal Body --}}
-                <div class="modal-body p-3 p-md-4 bg-light" style="max-height: 70vh; overflow-y: auto;">
+                <div class="modal-body p-3 p-md-3.5 bg-light" style="max-height: 70vh; overflow-y: auto;">
                     {{-- Quick Role Preset Bar --}}
-                    <div class="bg-white rounded-3 border border-light-subtle p-3 mb-3 shadow-xs">
-                        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-1.5">
-                                <i class="bi bi-lightning-charge-fill text-warning"></i>
-                                <span class="fw-bold text-dark" style="font-size: 0.8rem;">Preset Peran Cepat:</span>
-                                <span class="text-muted" style="font-size: 0.72rem;">Terapkan paket otorisasi modul dalam satu klik</span>
-                            </div>
-                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                                Auto-Sync Instan
+                    <div class="bg-white rounded-3 border border-light-subtle p-2.5 mb-3 shadow-xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5 flex-wrap gap-2">
+                            <span class="fw-bold text-dark small" style="font-size: 0.78rem;">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Preset Peran Cepat (1 Klik):
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.62rem;">
+                                Auto-Sync
                             </span>
                         </div>
                         <div class="d-flex flex-wrap gap-1.5">
-                            <button type="button" class="btn btn-sm btn-preset rounded-pill px-3 py-1" 
+                            <button type="button" class="btn btn-sm btn-preset" 
                                     onclick="applyPreset({{ $admin->id }}, 'wasit', 'Wasit Turnamen')">
-                                <i class="bi bi-trophy text-warning me-1"></i> Wasit Turnamen
+                                <i class="bi bi-trophy text-warning me-1"></i> Wasit
                             </button>
-                            <button type="button" class="btn btn-sm btn-preset rounded-pill px-3 py-1" 
+                            <button type="button" class="btn btn-sm btn-preset" 
                                     onclick="applyPreset({{ $admin->id }}, 'bendahara', 'Bendahara / Keuangan')">
                                 <i class="bi bi-cash-stack text-success me-1"></i> Bendahara
                             </button>
-                            <button type="button" class="btn btn-sm btn-preset rounded-pill px-3 py-1" 
+                            <button type="button" class="btn btn-sm btn-preset" 
                                     onclick="applyPreset({{ $admin->id }}, 'cs', 'Customer Care / LO')">
                                 <i class="bi bi-headset text-info me-1"></i> Customer Care
                             </button>
-                            <button type="button" class="btn btn-sm btn-preset rounded-pill px-3 py-1" 
+                            <button type="button" class="btn btn-sm btn-preset" 
                                     onclick="applyPreset({{ $admin->id }}, 'super', 'Super Admin')">
-                                <i class="bi bi-award-fill text-primary me-1"></i> Pilih Semua (Super Admin)
+                                <i class="bi bi-award-fill text-primary me-1"></i> Super Admin (Semua)
                             </button>
-                            <button type="button" class="btn btn-sm btn-preset-danger rounded-pill px-3 py-1" 
+                            <button type="button" class="btn btn-sm btn-preset-danger" 
                                     onclick="applyPreset({{ $admin->id }}, 'none', 'Kosongkan')">
                                 <i class="bi bi-x-circle text-danger me-1"></i> Kosongkan
                             </button>
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center gap-1.5 text-secondary small mb-3" style="font-size: 0.76rem;">
-                        <i class="bi bi-info-circle text-primary"></i> 
-                        <span>Setiap switch yang diubah langsung disimpan realtime ke server.</span>
-                    </div>
-
                     {{-- 15 Permissions Grid --}}
-                    <div class="row g-2.5">
+                    <div class="row g-2">
                         @php
                             $availablePerms = [
                                 'dashboard' => [
                                     'label' => 'Dashboard Utama',
-                                    'desc' => 'Mengakses beranda dashboard admin, metrik ringkasan sistem, grafik pendaftaran cepat, dan rangkuman data kas.',
+                                    'desc' => 'Mengakses beranda dashboard admin, metrik ringkasan sistem, dan grafik registrasi.',
                                     'icon' => 'bi-grid-1x2',
                                     'color' => '#0f172a',
                                     'bg' => '#e2e8f0'
                                 ],
                                 'seasons' => [
                                     'label' => 'Daftar Season', 
-                                    'desc' => 'Mengakses menu season, membuat season baru, mengubah detail turnamen, dan verifikasi tim pendaftar.',
+                                    'desc' => 'Mengakses menu season, membuat season baru, mengubah detail turnamen & verifikasi tim.',
                                     'icon' => 'bi-trophy', 
                                     'color' => '#d97706',
                                     'bg' => '#fef3c7'
                                 ],
                                 'teams' => [
                                     'label' => 'Daftar Team (Global)',
-                                    'desc' => 'Melihat list global seluruh tim, memfilter status pembayaran, dan melacak roster pemain.',
+                                    'desc' => 'Melihat list global seluruh tim, filter status pembayaran, dan melacak roster pemain.',
                                     'icon' => 'bi-people-fill',
                                     'color' => '#06b6d4',
                                     'bg' => '#ecfeff'
                                 ],
                                 'payments' => [
                                     'label' => 'Riwayat Pembayaran (Gateway & QRIS)',
-                                    'desc' => 'Mengakses mutasi log transaksi gateway, sinkronisasi status, antrean klaim QRIS manual & approval bukti transfer.',
+                                    'desc' => 'Mengakses mutasi log transaksi gateway, sinkronisasi status, klaim QRIS & approval bukti transfer.',
                                     'icon' => 'bi-cash-stack',
                                     'color' => '#10b981',
                                     'bg' => '#d1fae5'
@@ -990,21 +756,21 @@
                                 ],
                                 'settings' => [
                                     'label' => 'Pengaturan Sistem (Super)',
-                                    'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay/iPaymu, template notifikasi pesan, dan setting global.',
+                                    'desc' => 'Mengonfigurasi token API WhatsApp Fonnte, kredensial Tripay/iPaymu, dan setting global.',
                                     'icon' => 'bi-gear',
                                     'color' => '#ea580c',
                                     'bg' => '#ffedd5'
                                 ],
                                 'gateway_notifications' => [
                                     'label' => 'Notifikasi Gateway',
-                                    'desc' => 'Mengakses log rekam jejak notifikasi Webhook/Callback dari payment gateway secara realtime.',
+                                    'desc' => 'Mengakses log rekam jejak notifikasi Webhook/Callback dari payment gateway realtime.',
                                     'icon' => 'bi-bell',
                                     'color' => '#f59e0b',
                                     'bg' => '#fef3c7'
                                 ],
                                 'faqs' => [
                                     'label' => 'Kelola FAQ', 
-                                    'desc' => 'Menambah, mengubah susunan urutan, dan menghapus daftar tanya jawab publik di halaman utama portal.',
+                                    'desc' => 'Menambah, menyusun urutan, dan menghapus daftar tanya jawab publik di portal.',
                                     'icon' => 'bi-question-circle', 
                                     'color' => '#6b7280',
                                     'bg' => '#f3f4f6'
@@ -1018,42 +784,42 @@
                                 ],
                                 'manage' => [
                                     'label' => 'Kelola Admin (Super)',
-                                    'desc' => 'Menambah, mengedit, membekukan akun admin, serta mengatur pembagian hak akses perizinan modul.',
+                                    'desc' => 'Menambah, mengedit, membekukan akun admin, serta mengatur pembagian hak akses modul.',
                                     'icon' => 'bi-person-gear',
                                     'color' => '#3b82f6',
                                     'bg' => '#dbeafe'
                                 ],
                                 'laravel_logs' => [
                                     'label' => 'Log Laravel',
-                                    'desc' => 'Mengakses log error aplikasi Laravel (laravel.log) secara realtime untuk kebutuhan diagnostik sistem.',
+                                    'desc' => 'Mengakses log error aplikasi Laravel (laravel.log) secara realtime untuk diagnostik.',
                                     'icon' => 'bi-file-earmark-text',
                                     'color' => '#64748b',
                                     'bg' => '#f1f5f9'
                                 ],
                                 'storage' => [
                                     'label' => 'Kelola Penyimpanan File',
-                                    'desc' => 'Memantau kapasitas disk space server, membersihkan file sampah massal, serta arsip bukti transfer lama.',
+                                    'desc' => 'Memantau kapasitas disk space server dan membersihkan file sampah massal.',
                                     'icon' => 'bi-hdd-network',
                                     'color' => '#14b8a6',
                                     'bg' => '#ccfbf1'
                                 ],
                                 'backup' => [
                                     'label' => 'Backup Database (Super)',
-                                    'desc' => 'Mengunduh salinan cadangan struktur dan data SQL database platform langsung ke storage komputer.',
+                                    'desc' => 'Mengunduh salinan cadangan struktur dan data SQL database platform langsung.',
                                     'icon' => 'bi-database-down',
                                     'color' => '#ef4444',
                                     'bg' => '#fee2e2'
                                 ],
                                 'finance' => [
                                     'label' => 'Keuangan Ledger (Modul Season)', 
-                                    'desc' => 'Mengakses data finansial season, mencatat pemasukan/pengeluaran kas, serta rekapitulasi cashflow laba/rugi.',
+                                    'desc' => 'Mengakses finansial season, mencatat pemasukan/pengeluaran kas, serta rekapitulasi cashflow.',
                                     'icon' => 'bi-currency-exchange', 
                                     'color' => '#22c55e',
                                     'bg' => '#f0fdf4'
                                 ],
                                 'solo_matchmaker' => [
                                     'label' => 'Solo Matchmaker (Modul Season)', 
-                                    'desc' => 'Menggunakan modul matchmaking otomatis untuk menyusun peserta solo ke dalam komposisi tim yang seimbang.',
+                                    'desc' => 'Menggunakan modul matchmaking otomatis untuk menyusun peserta solo ke dalam komposisi tim.',
                                     'icon' => 'bi-people', 
                                     'color' => '#6366f1',
                                     'bg' => '#e0e7ff'
@@ -1063,17 +829,17 @@
 
                         @foreach($availablePerms as $key => $pInfo)
                             <div class="col-md-6">
-                                <div class="permission-card rounded-3 p-2.5 h-100 d-flex justify-content-between align-items-start">
-                                    <div class="d-flex align-items-start me-2.5">
-                                        <div class="icon-square me-2.5" style="background-color: {{ $pInfo['bg'] }}; color: {{ $pInfo['color'] }};">
+                                <div class="permission-card p-2.5 h-100 d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-start me-2">
+                                        <div class="icon-square me-2" style="background-color: {{ $pInfo['bg'] }}; color: {{ $pInfo['color'] }};">
                                             <i class="bi {{ $pInfo['icon'] }}"></i>
                                         </div>
                                         <div class="text-start">
-                                            <h6 class="fw-bold text-dark mb-0.5" style="font-size: 0.84rem;">{{ $pInfo['label'] }}</h6>
-                                            <p class="text-secondary mb-0" style="font-size: 0.72rem; line-height: 1.35;">{{ $pInfo['desc'] }}</p>
+                                            <div class="fw-bold text-dark mb-0.5" style="font-size: 0.82rem;">{{ $pInfo['label'] }}</div>
+                                            <div class="text-secondary" style="font-size: 0.7rem; line-height: 1.3;">{{ $pInfo['desc'] }}</div>
                                         </div>
                                     </div>
-                                    <div class="form-check form-switch p-0 m-0 pt-1">
+                                    <div class="form-check form-switch p-0 m-0 pt-0.5">
                                         <input class="form-check-input permission-switch shadow-none" 
                                                type="checkbox" 
                                                role="switch" 
@@ -1081,7 +847,7 @@
                                                data-admin-id="{{ $admin->id }}"
                                                data-permission="{{ $key }}"
                                                {{ in_array($key, $userPerms) ? 'checked' : '' }}
-                                               style="width: 2.2em; height: 1.1em; cursor: pointer;">
+                                               style="width: 2.1em; height: 1.05em; cursor: pointer;">
                                     </div>
                                 </div>
                             </div>
@@ -1091,7 +857,7 @@
 
                 {{-- Modal Footer --}}
                 <div class="modal-footer border-0 bg-white px-4 py-2.5 justify-content-between">
-                    <span class="text-muted small" style="font-size: 0.75rem;">
+                    <span class="text-muted small" style="font-size: 0.74rem;">
                         <i class="bi bi-shield-lock me-1 text-warning"></i> Simpan otomatis setiap perubahan switch
                     </span>
                     <button type="button" class="btn btn-sm btn-dark rounded-pill px-4 fw-semibold shadow-sm text-white" data-bs-dismiss="modal">
@@ -1102,14 +868,14 @@
         </div>
     </div>
 
-    {{-- 2. Edit Admin Modal --}}
+    {{-- Edit Admin Modal --}}
     <div class="modal fade" id="editAdminModal{{ $admin->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 <form action="{{ route('admin.manage.update', $admin->id) }}" method="POST">
                     @csrf
                     <div class="modal-header border-bottom border-light px-4 py-3">
-                        <h5 class="modal-title fw-bold text-dark fs-6"><i class="bi bi-pencil-square text-warning me-1.5"></i> Edit Akun Admin</h5>
+                        <h6 class="modal-title fw-bold text-dark mb-0"><i class="bi bi-pencil-square text-warning me-1.5"></i> Edit Akun Admin</h6>
                         <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-4 text-start">
@@ -1134,9 +900,9 @@
                                    placeholder="Minimal 6 karakter...">
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-light px-4 py-3">
-                        <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold btn-sm" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold btn-sm">Simpan Perubahan</button>
+                    <div class="modal-footer border-top border-light px-4 py-2.5">
+                        <button type="button" class="btn btn-light rounded-pill px-3 py-1 fw-semibold btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning rounded-pill px-3.5 py-1 fw-bold text-dark btn-sm">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -1151,7 +917,7 @@
             <form action="{{ route('admin.manage.store') }}" method="POST">
                 @csrf
                 <div class="modal-header border-bottom border-light px-4 py-3">
-                    <h5 class="modal-title fw-bold text-dark fs-6"><i class="bi bi-person-plus-fill text-warning me-1.5"></i> Tambah Akun Admin Baru</h5>
+                    <h6 class="modal-title fw-bold text-dark mb-0"><i class="bi bi-person-plus-fill text-warning me-1.5"></i> Tambah Akun Admin Baru</h6>
                     <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 text-start">
@@ -1176,9 +942,9 @@
                                placeholder="Minimal 6 karakter..." required>
                     </div>
                 </div>
-                <div class="modal-footer border-top border-light px-4 py-3">
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark hover-gold btn-sm">Simpan Akun</button>
+                <div class="modal-footer border-top border-light px-4 py-2.5">
+                    <button type="button" class="btn btn-light rounded-pill px-3 py-1 fw-semibold btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-3.5 py-1 fw-bold text-dark btn-sm">Simpan Akun</button>
                 </div>
             </form>
         </div>
@@ -1189,9 +955,9 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1300;">
     <div id="permissionToast" class="toast align-items-center border-0 text-white rounded-4 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
-            <div class="toast-body d-flex align-items-center py-2.5 px-3">
+            <div class="toast-body d-flex align-items-center py-2 px-3">
                 <i class="bi me-2 fs-5" id="toastIcon"></i>
-                <span id="toastMessage" class="fw-semibold" style="font-size: 0.84rem;"></span>
+                <span id="toastMessage" class="fw-semibold" style="font-size: 0.82rem;"></span>
             </div>
             <button type="button" class="btn-close btn-close-white me-3 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
@@ -1243,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. Real-time Search and Filter Tabs Logic
     const searchInput = document.getElementById('adminSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const filterPills = document.querySelectorAll('.filter-pill');
+    const filterChips = document.querySelectorAll('.filter-chip');
     const adminItems = document.querySelectorAll('.admin-item');
     const noResults = document.getElementById('noAdminResults');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -1317,9 +1083,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    filterPills.forEach(pill => {
-        pill.addEventListener('click', function() {
-            filterPills.forEach(p => p.classList.remove('active'));
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            filterChips.forEach(c => c.classList.remove('active'));
             this.classList.add('active');
             currentFilter = this.dataset.filter || 'all';
             applyFilters();
@@ -1330,89 +1096,39 @@ document.addEventListener('DOMContentLoaded', function() {
         resetFiltersBtn.addEventListener('click', function() {
             if (searchInput) searchInput.value = '';
             currentFilter = 'all';
-            filterPills.forEach(p => {
-                if (p.dataset.filter === 'all') p.classList.add('active');
-                else p.classList.remove('active');
+            filterChips.forEach(c => {
+                if (c.dataset.filter === 'all') c.classList.add('active');
+                else c.classList.remove('active');
             });
             applyFilters();
         });
     }
-
-    // 3. View Switcher Toggle (Table vs Grid)
-    const btnViewTable = document.getElementById('btnViewTable');
-    const btnViewGrid = document.getElementById('btnViewGrid');
-    const tableViewContainer = document.getElementById('adminTableViewContainer');
-    const gridViewContainer = document.getElementById('adminGridViewContainer');
-
-    function setViewMode(mode) {
-        if (mode === 'grid') {
-            if (tableViewContainer) tableViewContainer.classList.add('d-none');
-            if (gridViewContainer) gridViewContainer.classList.remove('d-none');
-            if (btnViewTable) btnViewTable.classList.remove('active');
-            if (btnViewGrid) btnViewGrid.classList.add('active');
-            localStorage.setItem('admin_manage_view_mode', 'grid');
-        } else {
-            if (tableViewContainer) tableViewContainer.classList.remove('d-none');
-            if (gridViewContainer) gridViewContainer.classList.add('d-none');
-            if (btnViewTable) btnViewTable.classList.add('active');
-            if (btnViewGrid) btnViewGrid.classList.remove('active');
-            localStorage.setItem('admin_manage_view_mode', 'table');
-        }
-    }
-
-    const savedViewMode = localStorage.getItem('admin_manage_view_mode') || 'table';
-    setViewMode(savedViewMode);
-
-    if (btnViewTable) {
-        btnViewTable.addEventListener('click', function() {
-            setViewMode('table');
-        });
-    }
-    if (btnViewGrid) {
-        btnViewGrid.addEventListener('click', function() {
-            setViewMode('grid');
-        });
-    }
 });
 
-// Helper to update card & table visual after permission changes
+// Helper to update table visuals after permission changes
 function updateCardPermissionsVisual(adminId, permissions) {
-    const modalTriggers = document.querySelectorAll(`[data-bs-target="#permissionsModal${adminId}"]`);
+    const modalTrigger = document.querySelector(`[data-bs-target="#permissionsModal${adminId}"]`);
     if (!permissions) return;
 
     const count = permissions.length;
-    const percent = Math.round((count / 15) * 100);
+    const isSuper = count >= 15;
 
-    modalTriggers.forEach(modalTrigger => {
+    if (modalTrigger) {
         const adminItem = modalTrigger.closest('.admin-item');
-        if (!adminItem) return;
-
-        // Update progress bar
-        const barEl = adminItem.querySelector('.perm-progress-bar');
-        if (barEl) {
-            barEl.style.width = `${percent}%`;
-            if (count >= 15) {
-                barEl.classList.add('is-full');
-            } else {
-                barEl.classList.remove('is-full');
+        if (adminItem) {
+            const badgeEl = adminItem.querySelector('.perm-count-badge');
+            if (badgeEl) {
+                if (isSuper) {
+                    badgeEl.className = 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
+                    badgeEl.innerHTML = '<i class="bi bi-award-fill me-1"></i> Super Admin (15/15)';
+                } else {
+                    badgeEl.className = 'badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-medium perm-count-badge';
+                    badgeEl.innerHTML = `<i class="bi bi-shield-check text-warning me-1"></i> ${count}/15 Modul`;
+                }
             }
+            adminItem.dataset.superadmin = isSuper ? '1' : '0';
         }
-
-        // Update count label / badge
-        const countEl = adminItem.querySelector('.perm-count');
-        if (countEl) {
-            countEl.textContent = `${count}/15 Modul`;
-            countEl.style.color = count >= 15 ? '#16a34a' : (count >= 8 ? '#d97706' : '#64748b');
-        }
-
-        const countBadge = adminItem.querySelector('.perm-count-badge');
-        if (countBadge) {
-            countBadge.innerHTML = `<i class="bi bi-shield-check text-warning me-1"></i> ${count}/15 Modul`;
-        }
-
-        // Update data-superadmin attribute
-        adminItem.dataset.superadmin = count >= 15 ? '1' : '0';
-    });
+    }
 
     // Update modal badge
     const modal = document.getElementById(`permissionsModal${adminId}`);
@@ -1462,7 +1178,6 @@ function applyPreset(adminId, presetKey, presetName) {
     .then(data => {
         switches.forEach(sw => sw.disabled = false);
         if (data.success) {
-            // Update switch states visually
             switches.forEach(sw => {
                 const perm = sw.dataset.permission;
                 sw.checked = data.permissions.includes(perm);
