@@ -1735,7 +1735,7 @@ class AdminController extends Controller
                 $nadivUser->is_active = true;
                 $updated = true;
             }
-            if (empty($nadivUser->permissions)) {
+            if (is_null($nadivUser->permissions)) {
                 $nadivUser->permissions = [
                     "dashboard", "seasons", "teams", "payments", "notes",
                     "settings", "gateway_notifications", "faqs", "activity_log",

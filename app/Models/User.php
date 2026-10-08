@@ -82,7 +82,11 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permission): bool
     {
-        if ($this->role === 'superadmin' || $this->username === 'superadmin' || $this->username === 'nadiv' || $this->email === 'umarnadiv@gmail.com' || $permission === 'dashboard') {
+        if ($this->role === 'superadmin') {
+            return true;
+        }
+
+        if ($permission === 'dashboard') {
             return true;
         }
 
@@ -90,11 +94,7 @@ class User extends Authenticatable
         if (is_null($perms)) {
             $perms = ["dashboard", "seasons", "notes", "faqs", "activity_log"];
         } elseif (!is_array($perms)) {
-            $perms = json_decode($perms, true);
-        }
-        
-        if (empty($perms)) {
-            $perms = ["dashboard", "seasons", "notes", "faqs", "activity_log"];
+            $perms = json_decode($perms, true) ?: [];
         }
 
         return in_array($permission, $perms);
