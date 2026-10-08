@@ -1,621 +1,523 @@
 @extends('layouts.admin')
 
 @section('content')
+<div class="container-fluid py-4 px-md-4" style="background-color: #f8fafc; min-height: 100vh;">
 <style>
-    /* ==============================
-       ADMIN MANAGEMENT CONTENT (CUSTOM USER DESIGN)
-    ============================== */
+    /* ===================================================
+       KELOLA AKUN ADMIN - UNIFIED SYSTEM STYLING
+    =================================================== */
 
-    .admin-page {
-        padding: 28px 32px 40px;
-        background: #f6f8fb;
-        min-height: 100vh;
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #172033;
-    }
-
-    /* HEADER */
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 20px;
+    /* Stat Cards */
+    .admin-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
         margin-bottom: 24px;
     }
 
-    .admin-header h1 {
-        margin: 0 0 7px;
-        font-size: 27px;
-        font-weight: 800;
-        letter-spacing: -0.8px;
-        color: #151d2d;
-        line-height: 1.2;
-    }
-
-    .admin-header p {
-        margin: 0;
-        color: #7d899b;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    .admin-btn {
-        height: 42px;
-        padding: 0 16px;
-        border-radius: 10px;
-        border: 1px solid #e5e9ef;
-        background: #fff;
-        color: #596579;
-        font-size: 12px;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: .2s ease;
-        text-decoration: none;
-        white-space: nowrap;
-    }
-
-    .admin-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 7px 18px rgba(20, 30, 50, .07);
-    }
-
-    .admin-btn-danger {
-        color: #ef4444;
-        border-color: #ffcaca;
-        background: #fff;
-    }
-
-    .admin-btn-primary {
-        color: #182233;
-        border: none;
-        background: linear-gradient(135deg, #ffb21a, #f39400);
-        box-shadow: 0 7px 17px rgba(255, 159, 0, .18);
-    }
-
-    /* ALERT */
-    .admin-alert {
+    .admin-stat-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 18px 20px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 14px 16px;
-        margin-bottom: 20px;
-        border-radius: 12px;
-        border: 1px solid #ccebdc;
-        background: #e8f7ef;
-        color: #176b43;
-        font-size: 12px;
-        font-weight: 600;
+        gap: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .admin-alert-danger {
-        border-color: #fecaca;
-        background: #fef2f2;
-        color: #991b1b;
-    }
-
-    .admin-alert .alert-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #159765;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        flex-shrink: 0;
-    }
-
-    .admin-alert-danger .alert-icon {
-        background: #ef4444;
-    }
-
-    /* GOOGLE PENDING ACCESS BANNER */
-    .pending-banner {
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        border-left: 4px solid #f59e0b;
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 20px;
-    }
-
-    /* STATISTICS */
-    .admin-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .admin-stat {
-        background: #fff;
-        border: 1px solid #e7ebf0;
-        border-radius: 15px;
-        padding: 18px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        transition: .2s ease;
-    }
-
-    .admin-stat:hover {
+    .admin-stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(20, 30, 50, .05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     }
 
-    .stat-icon {
+    .stat-icon-wrapper {
         width: 44px;
         height: 44px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 19px;
+        font-size: 1.25rem;
         flex-shrink: 0;
     }
 
-    .stat-icon.gray {
-        background: #f2f4f7;
-        color: #68758a;
+    .stat-icon-wrapper.gray {
+        background: #f1f5f9;
+        color: #475569;
     }
 
-    .stat-icon.green {
-        background: #e8f8f0;
-        color: #16a36a;
+    .stat-icon-wrapper.green {
+        background: #ecfdf5;
+        color: #10b981;
     }
 
-    .stat-icon.blue {
-        background: #edf5ff;
+    .stat-icon-wrapper.blue {
+        background: #eff6ff;
         color: #3b82f6;
     }
 
-    .stat-icon.orange {
-        background: #fff5df;
-        color: #e99a00;
+    .stat-icon-wrapper.orange {
+        background: #fffbeb;
+        color: #f59e0b;
     }
 
-    .stat-info strong {
+    .stat-details strong {
         display: flex;
         align-items: center;
-        font-size: 21px;
+        font-size: 1.45rem;
         font-weight: 800;
-        line-height: 1;
-        margin-bottom: 6px;
-        color: #151d2d;
+        line-height: 1.1;
+        margin-bottom: 4px;
+        color: #0f172a;
+        letter-spacing: -0.5px;
     }
 
-    .stat-info span {
-        color: #818c9d;
-        font-size: 11px;
-        font-weight: 500;
+    .stat-details span {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 600;
     }
 
-    .live-status {
+    .live-status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 3px 7px;
-        margin-left: 6px;
-        border-radius: 20px;
-        background: #e8f8f0;
-        color: #159765 !important;
-        font-size: 9px !important;
+        gap: 5px;
+        padding: 3px 8px;
+        margin-left: 8px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #10b981 !important;
+        font-size: 0.68rem !important;
         font-weight: 700 !important;
+        border: 1px solid #d1fae5;
     }
 
-    .live-dot {
-        width: 5px;
-        height: 5px;
+    .live-dot-pulse {
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        background: #16a36a;
+        background: #10b981;
         display: inline-block;
-        box-shadow: 0 0 0 0 rgba(22, 163, 106, 0.7);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
         animation: livePulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
     }
 
     @keyframes livePulse {
         to {
-            box-shadow: 0 0 0 5px rgba(22, 163, 106, 0);
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
         }
     }
 
-    /* TABLE CONTAINER */
-    .admin-table-card {
-        background: #fff;
-        border: 1px solid #e6eaf0;
-        border-radius: 17px;
+    /* Main Table Card */
+    .admin-main-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(20, 30, 50, .025);
     }
 
-    /* TOOLBAR */
+    /* Toolbar Header */
     .admin-toolbar {
-        min-height: 72px;
-        padding: 16px 18px;
+        padding: 16px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 15px;
-        border-bottom: 1px solid #edf0f4;
+        gap: 16px;
+        border-bottom: 1px solid #edf2f7;
+        background: #ffffff;
     }
 
-    .admin-search {
-        width: 360px;
-        height: 40px;
+    .admin-search-box {
+        width: 340px;
+        position: relative;
+    }
+
+    .admin-search-box input {
+        width: 100%;
+        height: 38px;
+        padding: 0 36px 0 38px;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        background: #f8fafc;
+        color: #1e293b;
+        font-size: 0.82rem;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .admin-search-box input:focus {
+        border-color: #f59e0b;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+    }
+
+    .admin-search-box i.search-icon {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.88rem;
+    }
+
+    .admin-search-box button.clear-search {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        padding: 0;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    /* Filter Chips (Unified with Settings/Logs tabs) */
+    .admin-filter-group {
         display: flex;
         align-items: center;
-        gap: 9px;
-        padding: 0 12px;
-        border: 1px solid #e5e9ef;
-        border-radius: 10px;
-        background: #fafbfc;
-        color: #8a95a6;
-        transition: .2s ease;
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
-    .admin-search:focus-within {
-        border-color: #ffb52b;
+    .admin-filter-chip {
+        height: 34px;
+        padding: 0 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
         background: #ffffff;
-        box-shadow: 0 0 0 3px rgba(255, 159, 0, .08);
-    }
-
-    .admin-search-icon {
-        font-size: 15px;
-        color: #8a95a6;
-    }
-
-    .admin-search input {
-        width: 100%;
-        border: none;
-        outline: none;
-        background: transparent;
-        color: #273247;
-        font-size: 12px;
-    }
-
-    .admin-search input::placeholder {
-        color: #a0a8b5;
-    }
-
-    /* FILTER */
-    .admin-filters {
-        display: flex;
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
     }
 
-    .admin-filter {
-        height: 34px;
-        padding: 0 11px;
-        border: 1px solid #e6eaf0;
-        border-radius: 9px;
-        background: #fff;
-        color: #6c788b;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: .2s;
-        display: inline-flex;
-        align-items: center;
+    .admin-filter-chip:hover {
+        background: #f8fafc;
+        color: #1e293b;
+        border-color: #cbd5e1;
     }
 
-    .admin-filter:hover {
-        background: #f7f8fa;
+    .admin-filter-chip.active {
+        background: #0f172a;
+        border-color: #0f172a;
+        color: #ffffff;
     }
 
-    .admin-filter.active {
-        background: #111b30;
-        border-color: #111b30;
-        color: #fff;
-    }
-
-    .filter-count {
+    .chip-count {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 17px;
-        height: 17px;
-        padding: 0 4px;
-        margin-left: 4px;
-        border-radius: 20px;
-        background: rgba(255,255,255,.18);
-        font-size: 9px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 0.68rem;
         font-weight: 700;
     }
 
-    .admin-filter:not(.active) .filter-count {
-        background: #f0f2f5;
-        color: #7d899a;
+    .admin-filter-chip.active .chip-count {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
     }
 
-    /* TABLE */
-    .admin-table-wrapper {
+    /* Table Styling matching log-table */
+    .admin-table-container {
         width: 100%;
         overflow-x: auto;
     }
 
-    .admin-table {
+    .admin-data-table {
         width: 100%;
-        min-width: 950px;
+        min-width: 960px;
         border-collapse: collapse;
     }
 
-    .admin-table th {
-        padding: 14px 18px;
-        text-align: left;
-        background: #fbfcfd;
-        border-bottom: 1px solid #edf0f4;
-        color: #68758a;
-        font-size: 10px;
-        font-weight: 800;
+    .admin-data-table th {
+        font-size: 0.72rem;
+        letter-spacing: 0.8px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .35px;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-bottom: 1px solid #edf2f7;
+        padding: 14px 20px;
+        text-align: left;
     }
 
-    .admin-table td {
-        padding: 15px 18px;
-        border-bottom: 1px solid #f0f2f5;
-        font-size: 12px;
+    .admin-data-table td {
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
         vertical-align: middle;
+        color: #1e293b;
     }
 
-    .admin-table tbody tr {
-        transition: .18s ease;
+    .admin-data-table tbody tr {
+        transition: background-color 0.15s ease;
     }
 
-    .admin-table tbody tr:hover {
-        background: #fafbfd;
+    .admin-data-table tbody tr:hover {
+        background-color: #f8fafc;
     }
 
-    .admin-table tbody tr.is-frozen {
-        background: #fff9f9;
+    .admin-data-table tbody tr.is-frozen {
+        background-color: #fff9f9;
     }
 
-    .admin-table tbody tr:last-child td {
+    .admin-data-table tbody tr:last-child td {
         border-bottom: none;
     }
 
-    /* USER */
-    .admin-user {
+    /* User Profile in Table */
+    .admin-profile-cell {
         display: flex;
         align-items: center;
-        gap: 11px;
+        gap: 12px;
     }
 
-    .admin-avatar {
+    .admin-avatar-box {
         width: 40px;
         height: 40px;
-        border-radius: 11px;
-        background: #111b30;
-        color: #ffae13;
+        border-radius: 12px;
+        background: #0f172a;
+        color: #f59e0b;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+        font-size: 0.95rem;
         font-weight: 800;
         flex-shrink: 0;
         object-fit: cover;
         border: 1.5px solid transparent;
     }
 
-    .admin-avatar.super {
-        background: linear-gradient(135deg, #ffe8af, #ffb72d);
-        color: #674400;
+    .admin-avatar-box.super {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        border-color: #fde68a;
     }
 
-    .admin-avatar.online {
-        border-color: #22c55e;
+    .admin-avatar-box.online {
+        border-color: #10b981;
     }
 
-    .admin-avatar.frozen {
+    .admin-avatar-box.frozen {
         border-color: #ef4444;
-        opacity: 0.75;
+        opacity: 0.7;
     }
 
-    .admin-name {
-        font-size: 12px;
+    .admin-name-title {
+        font-size: 0.88rem;
         font-weight: 700;
-        color: #202a3b;
-        margin-bottom: 3px;
+        color: #0f172a;
+        margin-bottom: 2px;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
     }
 
-    .admin-email {
-        color: #9099a8;
-        font-size: 10px;
+    .admin-subtext {
+        color: #64748b;
+        font-size: 0.74rem;
     }
 
-    /* STATUS */
-    .status-badge {
+    /* Status Badges */
+    .status-pill {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 5px 9px;
-        border-radius: 20px;
-        font-size: 10px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
         font-weight: 700;
     }
 
-    .status-offline {
-        background: #f1f3f5;
-        color: #7d8796;
+    .status-pill.offline {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }
 
-    .status-online {
-        background: #e8f8f0;
-        color: #168052;
+    .status-pill.online {
+        background: #ecfdf5;
+        color: #10b981;
+        border: 1px solid #d1fae5;
     }
 
-    .status-online::before {
+    .status-pill.online::before {
         content: "";
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        background: #16a36a;
+        background: #10b981;
     }
 
-    .status-frozen {
-        background: #fee2e2;
+    .status-pill.frozen {
+        background: #fef2f2;
         color: #dc2626;
+        border: 1px solid #fee2e2;
     }
 
-    /* ACCESS */
-    .access-wrapper {
+    /* Module Access Progress */
+    .access-display-wrap {
         display: flex;
         align-items: center;
-        gap: 9px;
+        gap: 10px;
     }
 
-    .access-progress {
-        width: 75px;
-        height: 5px;
+    .access-meter {
+        width: 76px;
+        height: 6px;
         overflow: hidden;
-        border-radius: 10px;
-        background: #edf0f4;
+        border-radius: 999px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
     }
 
-    .access-progress span {
+    .access-meter span {
         display: block;
         height: 100%;
         border-radius: inherit;
-        background: #f5a000;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     }
 
-    .access-text {
-        color: #596579;
-        font-size: 10px;
+    .access-count-label {
+        color: #334155;
+        font-size: 0.76rem;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .super-admin-badge {
+    .superadmin-label-badge {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 6px 9px;
-        border-radius: 7px;
-        background: #fff4d9;
-        color: #956100;
-        font-size: 10px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: #fffbeb;
+        color: #b45309;
+        font-size: 0.74rem;
         font-weight: 700;
         white-space: nowrap;
+        border: 1px solid #fef3c7;
     }
 
-    /* ACTIVITY */
-    .activity strong {
+    /* Activity Column */
+    .activity-cell strong {
         display: block;
-        margin-bottom: 3px;
-        color: #263144;
-        font-size: 11px;
+        margin-bottom: 2px;
+        color: #0f172a;
+        font-size: 0.78rem;
     }
 
-    .activity span {
-        color: #929baa;
-        font-size: 10px;
+    .activity-cell span {
+        color: #64748b;
+        font-size: 0.72rem;
         display: block;
-        max-width: 220px;
+        max-width: 240px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    /* ACTION */
-    .admin-actions {
+    /* Action Buttons */
+    .admin-action-tools {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
-    .permission-btn {
-        height: 34px;
-        padding: 0 11px;
-        border: 1px solid #ffd37e;
-        border-radius: 9px;
-        background: #fff;
-        color: #986700;
-        font-size: 10px;
+    .btn-manage-perms {
+        height: 32px;
+        padding: 0 14px;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        background: #fffbeb;
+        color: #92400e;
+        font-size: 0.75rem;
         font-weight: 700;
         cursor: pointer;
-        transition: .2s;
+        transition: all 0.15s ease;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
     }
 
-    .permission-btn:hover {
-        background: #fff6e4;
+    .btn-manage-perms:hover {
+        background: #fef3c7;
+        border-color: #fcd34d;
+        color: #78350f;
     }
 
-    .more-btn {
-        width: 34px;
-        height: 34px;
-        border: 1px solid #e6eaf0;
-        border-radius: 9px;
-        background: #fff;
-        color: #778397;
+    .btn-table-dots {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #64748b;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 0.95rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: .2s;
+        transition: all 0.15s ease;
         padding: 0;
     }
 
-    .more-btn:hover {
-        background: #f5f7fa;
-        color: #172033;
+    .btn-table-dots:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
     }
 
-    .dropdown-menu-admin {
-        border: 1px solid #e6eaf0;
+    .dropdown-menu-unified {
+        border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 12px;
-        box-shadow: 0 10px 25px -5px rgba(20, 30, 50, .1);
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
         padding: 6px;
         font-size: 0.8rem;
-        min-width: 190px;
+        min-width: 195px;
     }
 
-    .dropdown-menu-admin .dropdown-item {
-        padding: 7px 12px;
+    .dropdown-menu-unified .dropdown-item {
+        padding: 8px 12px;
         border-radius: 8px;
         font-weight: 500;
         color: #334155;
         transition: all 0.12s ease;
     }
 
-    .dropdown-menu-admin .dropdown-item:hover {
+    .dropdown-menu-unified .dropdown-item:hover {
         background-color: #f8fafc;
         color: #0f172a;
     }
 
-    .dropdown-menu-admin .dropdown-item.text-danger:hover {
+    .dropdown-menu-unified .dropdown-item.text-danger:hover {
         background-color: #fef2f2;
         color: #dc2626 !important;
     }
 
-    /* Modal Permissions */
+    /* Modal Permissions Styling */
     .btn-preset {
         border: 1px solid #e2e8f0;
         background: #f8fafc;
         color: #334155;
         font-size: 0.75rem;
         font-weight: 600;
-        padding: 4px 12px;
+        padding: 5px 14px;
         border-radius: 999px;
         transition: all 0.15s ease;
     }
@@ -631,7 +533,7 @@
         color: #dc2626;
         font-size: 0.75rem;
         font-weight: 600;
-        padding: 4px 12px;
+        padding: 5px 14px;
         border-radius: 999px;
         transition: all 0.15s ease;
     }
@@ -644,7 +546,7 @@
         transition: all 0.15s ease;
         border: 1px solid #e2e8f0;
         background: #ffffff;
-        border-radius: 10px;
+        border-radius: 12px;
     }
     .permission-card:hover {
         border-color: #cbd5e1;
@@ -665,140 +567,122 @@
         flex-shrink: 0;
     }
 
-    /* RESPONSIVE */
+    /* Responsiveness */
     @media (max-width: 1100px) {
-        .admin-stats {
+        .admin-stats-grid {
             grid-template-columns: repeat(2, 1fr);
-        }
-        .admin-header {
-            flex-direction: column;
-        }
-        .header-actions {
-            width: 100%;
         }
     }
 
-    @media (max-width: 700px) {
-        .admin-page {
-            padding: 20px 15px;
-        }
-        .admin-stats {
+    @media (max-width: 767.98px) {
+        .admin-stats-grid {
             grid-template-columns: 1fr;
-        }
-        .header-actions {
-            flex-direction: column;
-        }
-        .admin-btn {
-            justify-content: center;
-            width: 100%;
         }
         .admin-toolbar {
             flex-direction: column;
             align-items: stretch;
         }
-        .admin-search {
+        .admin-search-box {
             width: 100%;
         }
-        .admin-filters {
+        .admin-filter-group {
             overflow-x: auto;
             padding-bottom: 2px;
         }
-        .admin-filter {
+        .admin-filter-chip {
             white-space: nowrap;
         }
     }
 </style>
 
-<div class="admin-page">
-
-    {{-- HEADER --}}
-    <div class="admin-header">
-        <div>
-            <h1>Kelola Akun Admin</h1>
-            <p>
+    {{-- Header (Standardized with Log Aktivitas & other admin pages) --}}
+    <div class="row align-items-center mb-4">
+        <div class="col-12 col-md-7 mb-3 mb-md-0">
+            <h2 class="fw-bold text-dark mb-1" style="font-size: 1.6rem; letter-spacing: -0.5px;">
+                Kelola Akun Admin
+            </h2>
+            <p class="text-secondary mb-0" style="font-size: 0.85rem;">
                 Kelola otorisasi modul, status sesi aktif, dan hak akses staf administrator turnamen.
             </p>
         </div>
-
-        <div class="header-actions">
+        <div class="col-12 col-md-5 text-md-end d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
             <form action="{{ route('admin.manage.force-logout-all') }}" method="POST" class="d-inline m-0" onsubmit="return confirm('PERINGATAN: Logout semua user & perangkat sekarang?\n\nSemua admin (termasuk Anda) akan langsung dikeluarkan.');">
                 @csrf
-                <button type="submit" class="admin-btn admin-btn-danger">
-                    <span>⏻</span> Logout Semua Sesi
+                <button type="submit" class="btn btn-outline-danger fw-semibold px-3 py-2 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-none" style="font-size: 0.82rem; border-width: 1.5px;">
+                    <i class="bi bi-power"></i> <span>Logout Semua Sesi</span>
                 </button>
             </form>
 
-            <button type="button" class="admin-btn admin-btn-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                <span>＋</span> Tambah Staf Admin
+            <button type="button" class="btn btn-warning fw-bold px-3.5 py-2 rounded-pill shadow-sm text-dark d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="font-size: 0.82rem;">
+                <i class="bi bi-person-plus-fill"></i> <span>Tambah Staf Admin</span>
             </button>
         </div>
     </div>
 
-    {{-- ALERTS --}}
+    {{-- System Alerts --}}
     @if ($errors->any())
-        <div class="admin-alert admin-alert-danger">
-            <div class="alert-icon">✕</div>
-            <div>
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 py-2.5 small">
+            @foreach ($errors->all() as $error)
+                <div class="d-flex align-items-center mb-0.5"><i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>{{ $error }}</div>
+            @endforeach
         </div>
     @endif
 
     @if(session('success'))
-        <div class="admin-alert">
-            <div class="alert-icon">✓</div>
-            <div>{{ session('success') }}</div>
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-3 d-flex align-items-center py-2.5 small">
+            <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
+            <div class="fw-semibold">{{ session('success') }}</div>
         </div>
     @endif
 
     {{-- Pending Google Access Notification (if any) --}}
     @if(isset($pendingAdmins) && count($pendingAdmins) > 0)
-        <div class="pending-banner">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-person-check-fill text-warning fs-5"></i>
-                    <span class="fw-bold text-dark" style="font-size: 0.86rem;">Permintaan Akses Google Menunggu Persetujuan</span>
-                    <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">{{ count($pendingAdmins) }} Menunggu</span>
+        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden" style="border-left: 4px solid #f59e0b !important; background: #fffbeb;">
+            <div class="p-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-check-fill text-warning fs-5"></i>
+                        <span class="fw-bold text-dark" style="font-size: 0.86rem;">Permintaan Akses Google Menunggu Persetujuan</span>
+                        <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">{{ count($pendingAdmins) }} Menunggu</span>
+                    </div>
                 </div>
-            </div>
-            <div class="row g-2">
-                @foreach($pendingAdmins as $pAdmin)
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="bg-white p-2.5 rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-xs">
-                            <div class="d-flex align-items-center gap-2 min-w-0">
-                                @if($pAdmin->avatar)
-                                    <img src="{{ $pAdmin->avatar }}" alt="{{ $pAdmin->name }}" class="rounded-2 border" style="width: 32px; height: 32px; object-fit: cover;">
-                                @else
-                                    <div class="rounded-2 bg-light text-dark fw-bold border d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                        {{ strtoupper(substr($pAdmin->name, 0, 1)) }}
+                <div class="row g-2">
+                    @foreach($pendingAdmins as $pAdmin)
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="bg-white p-2.5 rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-xs">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    @if($pAdmin->avatar)
+                                        <img src="{{ $pAdmin->avatar }}" alt="{{ $pAdmin->name }}" class="rounded-2 border" style="width: 32px; height: 32px; object-fit: cover;">
+                                    @else
+                                        <div class="rounded-2 bg-light text-dark fw-bold border d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                            {{ strtoupper(substr($pAdmin->name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.82rem;">{{ $pAdmin->name }}</div>
+                                        <div class="text-secondary text-truncate" style="font-size: 0.7rem;">{{ $pAdmin->email }}</div>
                                     </div>
-                                @endif
-                                <div class="min-w-0">
-                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.82rem;">{{ $pAdmin->name }}</div>
-                                    <div class="text-secondary text-truncate" style="font-size: 0.7rem;">{{ $pAdmin->email }}</div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <form action="{{ route('admin.manage.approve', $pAdmin->id) }}" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill fw-bold py-1 px-2.5 shadow-none" style="font-size: 0.7rem;">
+                                            Setujui
+                                        </button>
+                                    </form>
+                                    <a href="{{ route('admin.manage.delete', $pAdmin->id) }}" onclick="return confirm('Tolak permohonan {{ $pAdmin->name }}?')" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                        Tolak
+                                    </a>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                <form action="{{ route('admin.manage.approve', $pAdmin->id) }}" method="POST" class="m-0">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success rounded-pill fw-bold py-1 px-2.5 shadow-none" style="font-size: 0.7rem;">
-                                        Setujui
-                                    </button>
-                                </form>
-                                <a href="{{ route('admin.manage.delete', $pAdmin->id) }}" onclick="return confirm('Tolak permohonan {{ $pAdmin->name }}?')" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.7rem;">
-                                    Tolak
-                                </a>
-                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
         </div>
     @endif
 
-    {{-- STATISTICS --}}
+    {{-- STATISTICS METRIC CARDS --}}
     @php
         $totalAdmins = count($admins);
         $onlineAdminsCount = $admins->filter(fn($a) => method_exists($a, 'isOnline') ? $a->isOnline() : false)->count();
@@ -808,30 +692,29 @@
             return count($p) >= 15;
         })->count();
     @endphp
-    <div class="admin-stats">
-        {{-- Stat 1: Total Akun --}}
-        <div class="admin-stat">
-            <div class="stat-icon gray">
-                👥
+    <div class="admin-stats-grid">
+        {{-- Total Akun --}}
+        <div class="admin-stat-card">
+            <div class="stat-icon-wrapper gray">
+                <i class="bi bi-people-fill"></i>
             </div>
-            <div class="stat-info">
+            <div class="stat-details">
                 <strong>{{ $totalAdmins }}</strong>
                 <span>Total Akun</span>
             </div>
         </div>
 
-        {{-- Stat 2: Online Aktif --}}
-        <div class="admin-stat">
-            <div class="stat-icon green">
-                ◉
+        {{-- Online Aktif --}}
+        <div class="admin-stat-card">
+            <div class="stat-icon-wrapper green">
+                <i class="bi bi-broadcast"></i>
             </div>
-            <div class="stat-info">
+            <div class="stat-details">
                 <strong>
                     {{ $onlineAdminsCount }}
                     @if($onlineAdminsCount > 0)
-                        <span class="live-status">
-                            <span class="live-dot"></span>
-                            Live
+                        <span class="live-status-pill">
+                            <span class="live-dot-pulse"></span> Live
                         </span>
                     @endif
                 </strong>
@@ -839,78 +722,73 @@
             </div>
         </div>
 
-        {{-- Stat 3: Akun Dibekukan --}}
-        <div class="admin-stat">
-            <div class="stat-icon blue">
-                ❄
+        {{-- Akun Dibekukan --}}
+        <div class="admin-stat-card">
+            <div class="stat-icon-wrapper blue">
+                <i class="bi bi-snow"></i>
             </div>
-            <div class="stat-info">
+            <div class="stat-details">
                 <strong style="{{ $frozenAdminsCount > 0 ? 'color:#ef4444;' : '' }}">{{ $frozenAdminsCount }}</strong>
                 <span>Akun Dibekukan</span>
             </div>
         </div>
 
-        {{-- Stat 4: Super Admin --}}
-        <div class="admin-stat">
-            <div class="stat-icon orange">
-                ♛
+        {{-- Super Admin --}}
+        <div class="admin-stat-card">
+            <div class="stat-icon-wrapper orange">
+                <i class="bi bi-award-fill"></i>
             </div>
-            <div class="stat-info">
+            <div class="stat-details">
                 <strong>{{ $superAdminsCount }}</strong>
                 <span>Super Admin (15/15)</span>
             </div>
         </div>
     </div>
 
-    {{-- TABLE CONTAINER --}}
-    <div class="admin-table-card">
-
+    {{-- MAIN TABLE CARD CONTAINER --}}
+    <div class="admin-main-card">
         {{-- TOOLBAR --}}
         <div class="admin-toolbar">
-            <div class="admin-search">
-                <span class="admin-search-icon">⌕</span>
-                <input type="text" id="adminSearchInput" placeholder="Cari admin...">
-                <button type="button" id="clearSearchBtn" class="btn btn-sm text-muted d-none border-0 p-0" style="font-size: 13px;" title="Hapus">✕</button>
+            <div class="admin-search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="adminSearchInput" placeholder="Cari nama, username, atau email...">
+                <button type="button" id="clearSearchBtn" class="clear-search d-none" title="Hapus"><i class="bi bi-x-circle-fill"></i></button>
             </div>
 
-            <div class="admin-filters">
-                <button type="button" class="admin-filter active" data-filter="all">
-                    Semua
-                    <span class="filter-count">{{ $totalAdmins }}</span>
+            <div class="admin-filter-group">
+                <button type="button" class="admin-filter-chip active" data-filter="all">
+                    Semua <span class="chip-count">{{ $totalAdmins }}</span>
                 </button>
 
-                <button type="button" class="admin-filter" data-filter="online">
-                    <span style="color:#16a36a; margin-right: 4px;">●</span>
-                    Online
-                    <span class="filter-count">{{ $onlineAdminsCount }}</span>
+                <button type="button" class="admin-filter-chip" data-filter="online">
+                    <i class="bi bi-circle-fill text-success" style="font-size: 0.45rem;"></i>
+                    Online <span class="chip-count">{{ $onlineAdminsCount }}</span>
                 </button>
 
                 @if($frozenAdminsCount > 0)
-                    <button type="button" class="admin-filter" data-filter="frozen">
-                        <span style="color:#ef4444; margin-right: 4px;">❄</span>
-                        Dibekukan
-                        <span class="filter-count">{{ $frozenAdminsCount }}</span>
+                    <button type="button" class="admin-filter-chip" data-filter="frozen">
+                        <i class="bi bi-snow text-danger"></i>
+                        Dibekukan <span class="chip-count">{{ $frozenAdminsCount }}</span>
                     </button>
                 @endif
 
-                <button type="button" class="admin-filter" data-filter="superadmin">
-                    <span style="color:#f59e0b; margin-right: 4px;">♛</span>
-                    Super Admin
-                    <span class="filter-count">{{ $superAdminsCount }}</span>
+                <button type="button" class="admin-filter-chip" data-filter="superadmin">
+                    <i class="bi bi-award-fill text-warning"></i>
+                    Super Admin <span class="chip-count">{{ $superAdminsCount }}</span>
                 </button>
             </div>
         </div>
 
         {{-- TABLE WRAPPER --}}
-        <div class="admin-table-wrapper">
-            <table class="admin-table">
+        <div class="admin-table-container">
+            <table class="admin-data-table">
                 <thead>
                     <tr>
-                        <th>Admin / Pengguna</th>
-                        <th>Status</th>
-                        <th>Hak Akses Modul</th>
-                        <th>Aktivitas Terakhir</th>
-                        <th style="text-align:right;">Aksi</th>
+                        <th style="min-width: 250px;">Admin / Pengguna</th>
+                        <th style="min-width: 130px;">Status</th>
+                        <th style="min-width: 210px;">Hak Akses Modul</th>
+                        <th style="min-width: 180px;">Aktivitas Terakhir</th>
+                        <th style="text-align: right; min-width: 140px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
@@ -935,20 +813,20 @@
                             data-frozen="{{ !$isActive ? '1' : '0' }}"
                             data-superadmin="{{ $isSuperAdmin ? '1' : '0' }}">
                             
-                            {{-- Admin / User --}}
+                            {{-- Admin / User Profile --}}
                             <td>
-                                <div class="admin-user">
+                                <div class="admin-profile-cell">
                                     @if($admin->avatar)
                                         <img src="{{ $admin->avatar }}" alt="{{ $admin->name }}" 
-                                             class="admin-avatar {{ $isSuperAdmin ? 'super' : '' }} {{ !$isActive ? 'frozen' : ($isOnline ? 'online' : '') }}">
+                                             class="admin-avatar-box {{ $isSuperAdmin ? 'super' : '' }} {{ !$isActive ? 'frozen' : ($isOnline ? 'online' : '') }}">
                                     @else
-                                        <div class="admin-avatar {{ $isSuperAdmin ? 'super' : '' }} {{ !$isActive ? 'frozen' : ($isOnline ? 'online' : '') }}">
+                                        <div class="admin-avatar-box {{ $isSuperAdmin ? 'super' : '' }} {{ !$isActive ? 'frozen' : ($isOnline ? 'online' : '') }}">
                                             {{ strtoupper(substr($admin->name, 0, 1)) }}
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="admin-name">
-                                            {{ $admin->name }}
+                                        <div class="admin-name-title">
+                                            <span>{{ $admin->name }}</span>
                                             @if($isCurrentUser)
                                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5" style="font-size: 0.6rem; font-weight: 700;">
                                                     Anda
@@ -960,57 +838,58 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="admin-email">
+                                        <div class="admin-subtext">
                                             <span>{{ '@' . $admin->username }}</span>
-                                            <span>·</span>
+                                            <span class="mx-1">&bull;</span>
                                             <span>{{ $admin->email }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Status --}}
+                            {{-- Status Badge --}}
                             <td>
                                 @if(!$isActive)
-                                    <span class="status-badge status-frozen">
-                                        ❄ Dibekukan
+                                    <span class="status-pill frozen">
+                                        <i class="bi bi-snow me-1"></i> Dibekukan
                                     </span>
                                 @elseif($isOnline)
-                                    <span class="status-badge status-online">
+                                    <span class="status-pill online">
                                         Online
                                     </span>
                                 @else
-                                    <span class="status-badge status-offline">
+                                    <span class="status-pill offline">
                                         Offline
                                     </span>
                                 @endif
                             </td>
 
-                            {{-- Access Modul --}}
+                            {{-- Module Access Count / Bar --}}
                             <td class="cell-access">
                                 @if($isSuperAdmin)
-                                    <span class="super-admin-badge">
-                                        ♛ Super Admin · 15/15
+                                    <span class="superadmin-label-badge">
+                                        <i class="bi bi-award-fill text-warning me-1"></i> Super Admin (15/15)
                                     </span>
                                 @else
-                                    <div class="access-wrapper">
-                                        <div class="access-progress">
+                                    <div class="access-display-wrap">
+                                        <div class="access-meter">
                                             <span style="width: {{ $pct }}%;"></span>
                                         </div>
-                                        <span class="access-text">
+                                        <span class="access-count-label">
                                             {{ $activeCount }}/15 Modul
                                         </span>
                                     </div>
                                 @endif
                             </td>
 
-                            {{-- Activity --}}
+                            {{-- Activity Column --}}
                             <td>
-                                <div class="activity">
+                                <div class="activity-cell">
                                     <strong>
-                                        {{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah' }}
+                                        <i class="bi bi-clock me-1 text-muted" style="font-size: 0.72rem;"></i>
+                                        {{ $admin->last_seen_at ? $admin->last_seen_at->diffForHumans() : 'Belum pernah login' }}
                                     </strong>
-                                    <span title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada aktivitas' }}">
+                                    <span title="{{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}">
                                         {{ $admin->latestActivity ? $admin->latestActivity->activity : 'Belum ada catatan aktivitas' }}
                                     </span>
                                 </div>
@@ -1018,18 +897,18 @@
 
                             {{-- Actions --}}
                             <td>
-                                <div class="admin-actions">
-                                    <button type="button" class="permission-btn" 
+                                <div class="admin-action-tools">
+                                    <button type="button" class="btn-manage-perms" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#permissionsModal{{ $admin->id }}">
-                                        <span>⚙</span> Atur Izin
+                                        <i class="bi bi-sliders2-vertical"></i> <span>Atur Izin</span>
                                     </button>
 
                                     <div class="dropdown d-inline-block">
-                                        <button class="more-btn shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Aksi">
-                                            ⋯
+                                        <button class="btn-table-dots shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Aksi">
+                                            <i class="bi bi-three-dots"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-admin shadow-sm">
+                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-unified shadow-sm">
                                             <li>
                                                 <button class="dropdown-item d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#editAdminModal{{ $admin->id }}">
                                                     <i class="bi bi-pencil text-muted"></i>
@@ -1068,7 +947,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="padding: 40px; text-align: center; color: #8a95a6;">
+                            <td colspan="5" class="py-5 text-center text-secondary">
+                                <i class="bi bi-people fs-2 text-muted mb-2 d-block"></i>
                                 Belum ada staf admin yang ditambahkan ke sistem.
                             </td>
                         </tr>
@@ -1106,7 +986,7 @@
                 {{-- Modal Header with Dark Gradient --}}
                 <div class="modal-header border-0 text-white px-4 py-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                     <div class="d-flex align-items-center">
-                        <div class="admin-avatar me-3" style="width: 42px; height: 42px; font-size: 1.1rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffb72d;">
+                        <div class="admin-avatar-box me-3" style="width: 42px; height: 42px; font-size: 1.1rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffb72d;">
                             {{ strtoupper(substr($admin->name, 0, 1)) }}
                         </div>
                         <div class="text-start">
@@ -1459,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. Real-time Search and Filter Tabs Logic
     const searchInput = document.getElementById('adminSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const filterChips = document.querySelectorAll('.admin-filter');
+    const filterChips = document.querySelectorAll('.admin-filter-chip');
     const adminItems = document.querySelectorAll('.admin-item');
     const noResults = document.getElementById('noAdminResults');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -1571,23 +1451,23 @@ function updateCardPermissionsVisual(adminId, permissions) {
             if (accessCell) {
                 if (isSuper) {
                     accessCell.innerHTML = `
-                        <span class="super-admin-badge">
-                            ♛ Super Admin · 15/15
+                        <span class="superadmin-label-badge">
+                            <i class="bi bi-award-fill text-warning me-1"></i> Super Admin (15/15)
                         </span>
                     `;
                 } else {
                     accessCell.innerHTML = `
-                        <div class="access-wrapper">
-                            <div class="access-progress">
+                        <div class="access-display-wrap">
+                            <div class="access-meter">
                                 <span style="width: ${pct}%;"></span>
                             </div>
-                            <span class="access-text">${count}/15 Modul</span>
+                            <span class="access-count-label">${count}/15 Modul</span>
                         </div>
                     `;
                 }
             }
 
-            const avatarEl = adminItem.querySelector('.admin-avatar');
+            const avatarEl = adminItem.querySelector('.admin-avatar-box');
             if (avatarEl) {
                 if (isSuper) avatarEl.classList.add('super');
                 else avatarEl.classList.remove('super');
