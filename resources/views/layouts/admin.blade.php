@@ -35,25 +35,32 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Desktop Sidebar Stylings */
+        /* Sidebar default hidden on mobile */
         .sidebar {
-            width: 260px;
-            height: 100vh !important;
-            height: 100dvh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            bottom: 0 !important;
-            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
-            color: #ffffff;
-            z-index: 1000;
-            padding: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            overflow: visible !important;
-            box-sizing: border-box !important;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            display: none !important;
+        }
+
+        /* Desktop Sidebar Stylings */
+        @media (min-width: 992px) {
+            .sidebar {
+                width: 260px;
+                height: 100vh !important;
+                height: 100dvh !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+                color: #ffffff;
+                z-index: 1000;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: visible !important;
+                box-sizing: border-box !important;
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-right: 1px solid rgba(255, 255, 255, 0.06);
+            }
         }
 
         .sidebar-header {
@@ -321,10 +328,10 @@
         /* Mobile & small tablets: hide sidebar, show offcanvas */
         @media (max-width: 991.98px) {
             .sidebar {
-                display: none;
+                display: none !important;
             }
             .main-content {
-                margin-left: 0;
+                margin-left: 0 !important;
                 padding: 20px 16px;
             }
         }
