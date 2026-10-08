@@ -413,7 +413,7 @@
             </a>
 
             @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-            <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard*') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}" title="Daftar Season">
+            <a href="{{ route('admin.seasons') }}" class="nav-link {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}" title="Daftar Season">
                 <i class="bi bi-trophy"></i> <span>Daftar Season</span>
             </a>
             @endif
@@ -542,7 +542,7 @@
                 </a>
 
                 @if(Auth::check() && Auth::user()->hasPermission('seasons'))
-                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard*') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.seasons') }}" class="nav-link text-white mb-2 {{ request()->routeIs('admin.seasons*') || request()->routeIs('admin.dashboard') || request()->routeIs('admin.season.*') || request()->routeIs('admin.solo.*') ? 'active' : '' }}">
                     <i class="bi bi-trophy me-2"></i> <span>Daftar Season</span>
                 </a>
                 @endif
