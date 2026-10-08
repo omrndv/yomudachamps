@@ -975,10 +975,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             this.disabled = true;
             
-            fetch("{{ route('admin.manage.toggle-permission') }}", {
+            fetch('/admin/manage-admins/toggle-permission', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
@@ -987,7 +988,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     status: status
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().catch(() => ({ message: 'Gagal memperbarui izin (Status ' + res.status + ')' })).then(d => Promise.reject(d));
+                }
+                return res.json();
+            })
             .then(data => {
                 this.disabled = false;
                 if (data.success) {
@@ -1001,7 +1007,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(err => {
                 this.disabled = false;
                 this.checked = !this.checked;
-                showToast('Gagal', 'Terjadi kesalahan jaringan', 'danger');
+                const msg = (err && err.message) ? err.message : 'Terjadi kesalahan jaringan saat mengubah izin';
+                showToast('Gagal', msg, 'danger');
             });
         });
     });
@@ -1162,10 +1169,11 @@ function applyPreset(adminId, presetKey, presetName) {
     const switches = modalEl.querySelectorAll('.permission-switch');
     switches.forEach(sw => sw.disabled = true);
 
-    fetch("{{ route('admin.manage.sync-permissions') }}", {
+    fetch('/admin/manage-admins/sync-permissions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({
@@ -1174,7 +1182,12 @@ function applyPreset(adminId, presetKey, presetName) {
             preset_name: presetName
         })
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            return res.json().catch(() => ({ message: 'Gagal menerapkan preset (Status ' + res.status + ')' })).then(d => Promise.reject(d));
+        }
+        return res.json();
+    })
     .then(data => {
         switches.forEach(sw => sw.disabled = false);
         if (data.success) {
@@ -1191,7 +1204,8 @@ function applyPreset(adminId, presetKey, presetName) {
     })
     .catch(err => {
         switches.forEach(sw => sw.disabled = false);
-        showToast('Gagal', 'Terjadi kesalahan jaringan saat menerapkan preset', 'danger');
+        const msg = (err && err.message) ? err.message : 'Terjadi kesalahan jaringan saat menerapkan preset';
+        showToast('Gagal', msg, 'danger');
     });
 }
 
@@ -1241,6 +1255,7 @@ function toggleAdminStatus(adminId, adminName, isCurrentlyActive) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 }
             })
@@ -1292,6 +1307,7 @@ function forceLogoutAdmin(adminId, adminName) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 }
             })
