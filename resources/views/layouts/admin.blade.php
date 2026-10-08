@@ -40,33 +40,30 @@
             width: 260px;
             height: 100vh !important;
             height: 100dvh !important;
-            max-height: 100vh !important;
-            max-height: 100dvh !important;
             position: fixed !important;
             top: 0 !important;
-            bottom: 0 !important;
             left: 0 !important;
+            bottom: 0 !important;
             background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
             color: #ffffff;
             z-index: 1000;
             padding: 0 !important;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
             display: flex !important;
             flex-direction: column !important;
-            justify-content: space-between !important;
-            overflow: visible; /* Tetap visible untuk tombol toggle bulat */
+            overflow: visible !important;
             box-sizing: border-box !important;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .sidebar-header {
-            padding: 20px 14px 16px 14px;
-            text-align: center;
-            transition: all 0.3s ease;
             flex: 0 0 auto !important;
             flex-shrink: 0 !important;
+            padding: 20px 14px 16px 14px;
+            text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             box-sizing: border-box !important;
+            transition: all 0.3s ease;
         }
 
         .sidebar-brand {
@@ -81,6 +78,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: #0f172a;
             border-radius: 8px;
@@ -90,14 +88,16 @@
         }
 
         .sidebar-nav {
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
+            height: auto !important;
+            max-height: none !important;
             display: flex !important;
             flex-direction: column !important;
             flex-wrap: nowrap !important;
-            flex: 1 1 auto !important;
-            min-height: 0 !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            padding: 14px 12px 14px 12px !important;
+            padding: 14px 12px !important;
             box-sizing: border-box !important;
             scrollbar-width: thin;
             scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
@@ -106,14 +106,14 @@
         .sidebar-footer {
             flex: 0 0 auto !important;
             flex-shrink: 0 !important;
-            margin-top: auto !important;
             width: 100% !important;
+            margin: 0 !important;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, #020617 100%);
             padding: 12px 12px 14px 12px !important;
             z-index: 10;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
-            transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box !important;
+            transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-nav::-webkit-scrollbar {
@@ -124,13 +124,14 @@
         }
         .sidebar-nav::-webkit-scrollbar-thumb {
             background: rgba(245, 158, 11, 0.4);
-            border-radius: 10px;
+            border-radius: 20px;
         }
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
             background: rgba(245, 158, 11, 0.7);
         }
 
         .nav-pills .nav-link {
+            flex: 0 0 auto;
             color: #94a3b8;
             padding: 12px 16px;
             margin-bottom: 6px;
@@ -148,6 +149,7 @@
         .nav-pills .nav-link i {
             font-size: 1.15rem;
             margin-right: 12px;
+            flex-shrink: 0;
             transition: margin 0.2s ease, font-size 0.2s ease;
         }
 
@@ -164,6 +166,22 @@
             font-weight: 600;
         }
 
+        /* Backup link special styling */
+        .nav-pills .nav-link.backup-link {
+            color: #f87171;
+        }
+
+        .nav-pills .nav-link.backup-link:hover {
+            color: #ffffff;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: transparent;
+        }
+
+        /* User Card */
+        .sidebar-user-card {
+            min-width: 0;
+        }
+
         /* Logout Pill Button Styling */
         .sidebar-footer .nav-link-logout {
             color: #f87171 !important;
@@ -178,6 +196,7 @@
             align-items: center;
             text-decoration: none;
             width: 100%;
+            box-sizing: border-box;
         }
 
         .sidebar-footer .nav-link-logout i {
@@ -234,7 +253,7 @@
             body.sidebar-collapsed .sidebar-header {
                 padding-bottom: 20px;
             }
-            body.sidebar-collapsed .sidebar-brand span:not(.brand-icon) {
+            body.sidebar-collapsed .sidebar-brand > span:last-child {
                 display: none !important;
             }
             body.sidebar-collapsed .sidebar .nav-link {
