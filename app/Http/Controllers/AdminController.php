@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Google\Client as GoogleClient;
+use Google\Service\Drive as GoogleDriveService;
 
 class AdminController extends Controller
 {
@@ -81,8 +82,10 @@ class AdminController extends Controller
             $client->setRedirectUri(route('admin.certificate.google-callback'));
             $client->addScope('email');
             $client->addScope('profile');
+            $client->addScope(GoogleDriveService::DRIVE);
+            $client->setAccessType('offline');
+            $client->setPrompt('select_account consent');
             $client->setState('admin_login');
-            $client->setPrompt('select_account');
 
             Session::put('google_auth_purpose', 'admin_login');
             return redirect()->away($client->createAuthUrl());
@@ -110,6 +113,10 @@ class AdminController extends Controller
             if (isset($token['error'])) {
                 return redirect()->route('admin.login')->with('error', 'Gagal terhubung dengan Google: ' . ($token['error_description'] ?? $token['error']));
             }
+
+            // Simpan token Google Drive ke session dan database secara persisten
+            Session::put('google_oauth_token', $token);
+            \App\Models\Setting::setVal('google_oauth_token', json_encode($token));
 
             $client->setAccessToken($token);
             $oauth2 = new \Google\Service\Oauth2($client);
