@@ -136,16 +136,14 @@ class BracketController extends Controller
                 ->pluck('total', 'wa_number')
                 ->toArray();
 
-            // Categorize teams: YMD (Buyslot), Solo, Loyalty (Tiered: >=11, 9-10, 6-8, 3-5, 1-2), Regular (Member Baru)
+            // Categorize teams: YMD (Buyslot), Solo, Loyalty (Tier 3: >6 / 7+, Tier 2: 4-6, Tier 1: 1-3), Regular (Member Baru)
             $ymdList = [];
             $soloList = [];
             $regularList = [];
             $loyaltyTiers = [
-                5 => [], // >= 11
-                4 => [], // 9 - 10
-                3 => [], // 6 - 8
-                2 => [], // 3 - 5
-                1 => [], // 1 - 2
+                3 => [], // > 6 (7 keatas)
+                2 => [], // 4 - 6
+                1 => [], // 1 - 3
             ];
 
             foreach ($teams->shuffle() as $team) {
@@ -155,13 +153,9 @@ class BracketController extends Controller
                     $soloList[] = $team;
                 } elseif (isset($loyalWaCounts[$team->wa_number]) && $loyalWaCounts[$team->wa_number] > 0) {
                     $cnt = $loyalWaCounts[$team->wa_number];
-                    if ($cnt >= 11) {
-                        $loyaltyTiers[5][] = $team;
-                    } elseif ($cnt >= 9) {
-                        $loyaltyTiers[4][] = $team;
-                    } elseif ($cnt >= 6) {
+                    if ($cnt > 6) {
                         $loyaltyTiers[3][] = $team;
-                    } elseif ($cnt >= 3) {
+                    } elseif ($cnt >= 4) {
                         $loyaltyTiers[2][] = $team;
                     } else {
                         $loyaltyTiers[1][] = $team;
@@ -227,7 +221,7 @@ class BracketController extends Controller
                 while (count($regularList) > 0 && count($byeTeamsPool) < $byeCount) {
                     $byeTeamsPool[] = array_shift($regularList);
                 }
-                foreach ([1, 2, 3, 4, 5] as $t) {
+                foreach ([1, 2, 3] as $t) {
                     while (count($loyaltyTiers[$t]) > 0 && count($byeTeamsPool) < $byeCount) {
                         $byeTeamsPool[] = array_shift($loyaltyTiers[$t]);
                     }
@@ -270,7 +264,7 @@ class BracketController extends Controller
             $loyaltyPairs = [];
             $loyaltyLeftovers = [];
 
-            foreach ([5, 4, 3, 2, 1] as $tier) {
+            foreach ([3, 2, 1] as $tier) {
                 shuffle($loyaltyTiers[$tier]);
                 while (count($loyaltyTiers[$tier]) >= 2) {
                     $loyaltyPairs[] = [array_shift($loyaltyTiers[$tier]), array_shift($loyaltyTiers[$tier])];
@@ -280,7 +274,7 @@ class BracketController extends Controller
                 }
             }
 
-            // Pasangkan sisa-sisa tim antar-tier loyalty yang terdekat (misal sisa Tier 5 vs sisa Tier 4)
+            // Pasangkan sisa-sisa tim antar-tier loyalty yang terdekat (misal sisa Tier 3 vs sisa Tier 2)
             while (count($loyaltyLeftovers) >= 2) {
                 $loyaltyPairs[] = [array_shift($loyaltyLeftovers), array_shift($loyaltyLeftovers)];
             }
