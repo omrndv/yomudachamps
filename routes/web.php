@@ -215,6 +215,11 @@ Route::middleware('admin.auth')->group(function () {
             Route::post('/dashboard/{season_id}/certificate/stop-generate', [\App\Http\Controllers\CertificateController::class, 'stopGenerate'])->name('admin.season.certificate.stop-generate');
             Route::get('/dashboard/{season_id}/certificate/logs', [\App\Http\Controllers\CertificateController::class, 'getLogs'])->name('admin.season.certificate.logs');
             Route::get('/certificate/download-single', [\App\Http\Controllers\CertificateController::class, 'downloadSingle'])->name('admin.certificate.download-single');
+            Route::get('/dashboard/{season_id}/certificate/drive-folders', [\App\Http\Controllers\CertificateController::class, 'getDriveFolders'])->name('admin.season.certificate.drive-folders');
+            Route::post('/dashboard/{season_id}/certificate/drive-create-folder', [\App\Http\Controllers\CertificateController::class, 'createDriveFolder'])->name('admin.season.certificate.drive-create-folder');
+            Route::post('/dashboard/{season_id}/certificate/drive-rename-folder', [\App\Http\Controllers\CertificateController::class, 'renameDriveFolder'])->name('admin.season.certificate.drive-rename-folder');
+            Route::post('/dashboard/{season_id}/certificate/set-drive-folder', [\App\Http\Controllers\CertificateController::class, 'setTargetDriveFolder'])->name('admin.season.certificate.set-drive-folder');
+            Route::get('/dashboard/{season_id}/certificate/drive-files', [\App\Http\Controllers\CertificateController::class, 'getDriveFiles'])->name('admin.season.certificate.drive-files');
         });
 
         // Finance

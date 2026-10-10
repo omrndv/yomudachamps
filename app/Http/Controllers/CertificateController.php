@@ -53,6 +53,47 @@ class CertificateController extends Controller
     }
 
     /**
+     * Dapatkan Google Client yang sudah terautentikasi (atau null jika belum)
+     */
+    private function getAuthenticatedClient()
+    {
+        $token = Session::get('google_oauth_token');
+        if (!$token) {
+            $savedSetting = \App\Models\Setting::getVal('google_oauth_token');
+            if ($savedSetting) {
+                $token = json_decode($savedSetting, true);
+            }
+        }
+
+        if (!$token) {
+            return null;
+        }
+
+        try {
+            $client = $this->getGoogleClient();
+            $client->setAccessToken($token);
+
+            if ($client->isAccessTokenExpired()) {
+                if ($client->getRefreshToken()) {
+                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+                    $newToken = $client->getAccessToken();
+                    Session::put('google_oauth_token', $newToken);
+                    \App\Models\Setting::setVal('google_oauth_token', json_encode($newToken));
+                    return $client;
+                } else {
+                    Session::forget('google_oauth_token');
+                    \App\Models\Setting::where('key', 'google_oauth_token')->delete();
+                    return null;
+                }
+            }
+
+            return $client;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Tampilkan Halaman Editor & Pengaturan Sertifikat
      */
     public function index($season_id)
@@ -74,36 +115,48 @@ class CertificateController extends Controller
             ->count();
 
         // Cek apakah Google Drive terhubung
-        $googleConnected = false;
+        $client = $this->getAuthenticatedClient();
+        $googleConnected = ($client !== null);
         $googleUserEmail = null;
-        if (Session::has('google_oauth_token')) {
-            $client = $this->getGoogleClient();
-            $client->setAccessToken(Session::get('google_oauth_token'));
-            
-            if ($client->isAccessTokenExpired()) {
-                if ($client->getRefreshToken()) {
-                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-                    Session::put('google_oauth_token', $client->getAccessToken());
-                    $googleConnected = true;
-                } else {
-                    Session::forget('google_oauth_token');
-                }
-            } else {
-                $googleConnected = true;
+        $activeFolder = null;
+
+        if ($googleConnected) {
+            try {
+                $oauth2 = new \Google\Service\Oauth2($client);
+                $userInfo = $oauth2->userinfo->get();
+                $googleUserEmail = $userInfo->getEmail();
+            } catch (\Exception $e) {
+                try {
+                    $drive = new GoogleDriveService($client);
+                    $about = $drive->about->get(['fields' => 'user(emailAddress)']);
+                    $googleUserEmail = $about->getUser()->getEmailAddress();
+                } catch (\Exception $ex) {}
             }
 
-            if ($googleConnected) {
-                try {
-                    $oauth2 = new \Google\Service\Oauth2($client);
-                    $userInfo = $oauth2->userinfo->get();
-                    $googleUserEmail = $userInfo->getEmail();
-                } catch (\Exception $e) {
-                    // Scope oauth2 might not be authorized, which is fine
+            // Dapatkan informasi folder target aktif jika sudah ada
+            if ($layout->google_drive_link) {
+                $fId = $this->extractFolderId($layout->google_drive_link);
+                if ($fId) {
+                    try {
+                        $drive = new GoogleDriveService($client);
+                        $fileObj = $drive->files->get($fId, ['fields' => 'id, name, webViewLink']);
+                        $activeFolder = [
+                            'id' => $fileObj->getId(),
+                            'name' => $fileObj->getName(),
+                            'webViewLink' => $fileObj->getWebViewLink()
+                        ];
+                    } catch (\Exception $e) {
+                        $activeFolder = [
+                            'id' => $fId,
+                            'name' => 'Folder Google Drive',
+                            'webViewLink' => $layout->google_drive_link
+                        ];
+                    }
                 }
             }
         }
 
-        return view('admin.certificate', compact('season', 'layout', 'paidTeamsCount', 'googleConnected', 'googleUserEmail'));
+        return view('admin.certificate', compact('season', 'layout', 'paidTeamsCount', 'googleConnected', 'googleUserEmail', 'activeFolder'));
     }
 
     /**
@@ -302,6 +355,7 @@ class CertificateController extends Controller
             }
 
             Session::put('google_oauth_token', $token);
+            \App\Models\Setting::setVal('google_oauth_token', json_encode($token));
             
             // Redirect back to the previous certificate editor page
             $seasonId = session('current_cert_season_id', 1);
@@ -317,7 +371,247 @@ class CertificateController extends Controller
     public function googleDisconnect()
     {
         Session::forget('google_oauth_token');
+        \App\Models\Setting::where('key', 'google_oauth_token')->delete();
         return redirect()->back()->with('success', 'Berhasil memutuskan sambungan akun Google.');
+    }
+
+    /**
+     * Ambil daftar folder di Google Drive (untuk file explorer)
+     */
+    public function getDriveFolders(Request $request, $season_id)
+    {
+        $client = $this->getAuthenticatedClient();
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Akun Google Drive belum terhubung.'], 401);
+        }
+
+        try {
+            $parentId = $request->input('parent_id') ?: 'root';
+            $driveService = new GoogleDriveService($client);
+
+            $query = "'{$parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            $optParams = [
+                'q' => $query,
+                'fields' => 'files(id, name, webViewLink, createdTime, modifiedTime)',
+                'orderBy' => 'folder, name_natural asc',
+                'pageSize' => 100
+            ];
+            $results = $driveService->files->listFiles($optParams);
+
+            $folders = [];
+            foreach ($results->getFiles() as $file) {
+                $folders[] = [
+                    'id' => $file->getId(),
+                    'name' => $file->getName(),
+                    'webViewLink' => $file->getWebViewLink(),
+                    'createdTime' => $file->getCreatedTime()
+                ];
+            }
+
+            $currentFolder = null;
+            $parentOfCurrent = 'root';
+            if ($parentId !== 'root') {
+                try {
+                    $curr = $driveService->files->get($parentId, ['fields' => 'id, name, parents']);
+                    $currentFolder = [
+                        'id' => $curr->getId(),
+                        'name' => $curr->getName()
+                    ];
+                    $parents = $curr->getParents();
+                    if (!empty($parents)) {
+                        $parentOfCurrent = $parents[0];
+                    }
+                } catch (\Exception $e) {}
+            }
+
+            return response()->json([
+                'success' => true,
+                'folders' => $folders,
+                'parent_id' => $parentId,
+                'current_folder' => $currentFolder,
+                'parent_of_current' => $parentOfCurrent
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal memuat folder: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Buat folder baru di Google Drive
+     */
+    public function createDriveFolder(Request $request, $season_id)
+    {
+        $client = $this->getAuthenticatedClient();
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Akun Google Drive belum terhubung.'], 401);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:150',
+            'parent_id' => 'nullable|string',
+        ]);
+
+        try {
+            $parentId = $request->input('parent_id') ?: 'root';
+            $driveService = new GoogleDriveService($client);
+
+            $fileMetadata = new DriveFile([
+                'name' => trim($request->input('name')),
+                'mimeType' => 'application/vnd.google-apps.folder',
+                'parents' => [$parentId]
+            ]);
+
+            $folder = $driveService->files->create($fileMetadata, ['fields' => 'id, name, webViewLink']);
+
+            // Buat folder publik (anyone with link reader) agar sertifikat bisa diakses peserta
+            try {
+                $permission = new \Google\Service\Drive\Permission([
+                    'type' => 'anyone',
+                    'role' => 'reader'
+                ]);
+                $driveService->permissions->create($folder->id, $permission);
+            } catch (\Exception $e) {}
+
+            return response()->json([
+                'success' => true,
+                'folder' => [
+                    'id' => $folder->getId(),
+                    'name' => $folder->getName(),
+                    'webViewLink' => $folder->getWebViewLink()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal membuat folder: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Ubah nama folder di Google Drive
+     */
+    public function renameDriveFolder(Request $request, $season_id)
+    {
+        $client = $this->getAuthenticatedClient();
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Akun Google Drive belum terhubung.'], 401);
+        }
+
+        $request->validate([
+            'folder_id' => 'required|string',
+            'name' => 'required|string|max:150',
+        ]);
+
+        try {
+            $driveService = new GoogleDriveService($client);
+            $fileMetadata = new DriveFile([
+                'name' => trim($request->input('name'))
+            ]);
+
+            $updated = $driveService->files->update($request->input('folder_id'), $fileMetadata, ['fields' => 'id, name, webViewLink']);
+
+            return response()->json([
+                'success' => true,
+                'folder' => [
+                    'id' => $updated->getId(),
+                    'name' => $updated->getName(),
+                    'webViewLink' => $updated->getWebViewLink()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mengubah nama folder: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Kunci folder sebagai target penyimpanan sertifikat season ini
+     */
+    public function setTargetDriveFolder(Request $request, $season_id)
+    {
+        $request->validate([
+            'folder_id' => 'required|string',
+        ]);
+
+        $folderId = trim($request->input('folder_id'));
+        $driveLink = 'https://drive.google.com/drive/folders/' . $folderId;
+
+        $layout = CertificateLayout::firstOrCreate(['season_id' => $season_id]);
+        $layout->google_drive_link = $driveLink;
+        $layout->save();
+
+        $folderName = $request->input('folder_name');
+        if (!$folderName) {
+            $client = $this->getAuthenticatedClient();
+            if ($client) {
+                try {
+                    $driveService = new GoogleDriveService($client);
+                    $f = $driveService->files->get($folderId, ['fields' => 'id, name']);
+                    $folderName = $f->getName();
+                } catch (\Exception $e) {}
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'folder_id' => $folderId,
+            'folder_name' => $folderName ?: 'Folder Terpilih',
+            'google_drive_link' => $driveLink
+        ]);
+    }
+
+    /**
+     * Ambil berkas-berkas sertifikat yang ada di folder target Google Drive
+     */
+    public function getDriveFiles(Request $request, $season_id)
+    {
+        $client = $this->getAuthenticatedClient();
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Akun Google Drive belum terhubung.'], 401);
+        }
+
+        $folderId = $request->input('folder_id');
+        if (!$folderId) {
+            $layout = CertificateLayout::where('season_id', $season_id)->first();
+            if ($layout && $layout->google_drive_link) {
+                $folderId = $this->extractFolderId($layout->google_drive_link);
+            }
+        }
+
+        if (!$folderId) {
+            return response()->json(['success' => true, 'files' => [], 'folder_id' => null]);
+        }
+
+        try {
+            $driveService = new GoogleDriveService($client);
+            $query = "'{$folderId}' in parents and trashed = false and mimeType != 'application/vnd.google-apps.folder'";
+            $optParams = [
+                'q' => $query,
+                'fields' => 'files(id, name, size, mimeType, webViewLink, webContentLink, createdTime, thumbnailLink)',
+                'orderBy' => 'name_natural asc',
+                'pageSize' => 500
+            ];
+            $results = $driveService->files->listFiles($optParams);
+
+            $files = [];
+            foreach ($results->getFiles() as $file) {
+                $files[] = [
+                    'id' => $file->getId(),
+                    'name' => $file->getName(),
+                    'size' => $file->getSize() ? (int) $file->getSize() : 0,
+                    'mimeType' => $file->getMimeType(),
+                    'webViewLink' => $file->getWebViewLink(),
+                    'webContentLink' => $file->getWebContentLink(),
+                    'createdTime' => $file->getCreatedTime(),
+                    'previewUrl' => 'https://drive.google.com/file/d/' . $file->getId() . '/preview'
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'files' => $files,
+                'folder_id' => $folderId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal memuat berkas: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -333,21 +627,26 @@ class CertificateController extends Controller
             $layout = CertificateLayout::where('season_id', $season_id)->first();
 
             if (!$layout || !$layout->template_path) {
-                return response()->json(['success' => false, 'message' => 'Harap unggah gambar template sertifikat terlebih dahulu.'], 400);
+                return response()->json(['success' => false, 'message' => 'Harap unggah gambar template sertifikat terlebih dahulu di Langkah 2.'], 400);
             }
 
-            if (!Session::has('google_oauth_token')) {
-                return response()->json(['success' => false, 'message' => 'Silakan hubungkan akun Google Anda terlebih dahulu.'], 401);
+            $client = $this->getAuthenticatedClient();
+            if (!$client) {
+                return response()->json(['success' => false, 'message' => 'Silakan hubungkan akun Google Anda terlebih dahulu di Langkah 1.'], 401);
             }
 
-            $request->validate([
-                'drive_link' => 'required|string',
-            ]);
-
-            // Extract Google Drive Folder ID from URL
-            $folderId = $this->extractFolderId($request->drive_link);
+            // Extract Google Drive Folder ID from URL or input
+            $driveLinkInput = $request->input('drive_link') ?: $layout->google_drive_link;
+            $folderId = $this->extractFolderId($driveLinkInput);
             if (!$folderId) {
-                return response()->json(['success' => false, 'message' => 'Format link Google Drive Folder tidak valid.'], 400);
+                return response()->json(['success' => false, 'message' => 'Silakan pilih atau buat folder tujuan di Google Drive terlebih dahulu di Langkah 1.'], 400);
+            }
+
+            // Update google_drive_link if changed
+            $driveLink = 'https://drive.google.com/drive/folders/' . $folderId;
+            if ($layout->google_drive_link !== $driveLink) {
+                $layout->google_drive_link = $driveLink;
+                $layout->save();
             }
 
             // Check if generation is already running
@@ -355,17 +654,15 @@ class CertificateController extends Controller
                 return response()->json(['success' => true, 'message' => 'Proses sinkronisasi sedang berjalan di latar belakang.']);
             }
 
-            // Initialize Google Service
-            $client = $this->getGoogleClient();
-            $client->setAccessToken(Session::get('google_oauth_token'));
-            if ($client->isAccessTokenExpired()) {
-                if ($client->getRefreshToken()) {
-                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-                    Session::put('google_oauth_token', $client->getAccessToken());
-                } else {
-                    return response()->json(['success' => false, 'message' => 'Sesi Google Drive telah habis. Hubungkan ulang akun Anda.'], 401);
-                }
-            }
+            // Pastikan folder ini publik agar peserta bisa mengunduh tanpa error izin
+            $driveService = new GoogleDriveService($client);
+            try {
+                $permission = new \Google\Service\Drive\Permission([
+                    'type' => 'anyone',
+                    'role' => 'reader'
+                ]);
+                $driveService->permissions->create($folderId, $permission);
+            } catch (\Exception $e) {}
 
             // Fetch paid teams/members
             $teams = Team::where('season_id', $season_id)
