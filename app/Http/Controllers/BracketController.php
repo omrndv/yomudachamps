@@ -282,7 +282,7 @@ class BracketController extends Controller
             // Jika total tim loyalty ganjil, maka hanya ada 1 tim loyalty paling akhir yang tersisa
             $loyaltyList = $loyaltyLeftovers; // Maksimal 1 tim (atau 0 jika total tim loyalty genap)
 
-            // Kocok urutan pasangan loyalty agar Tier 3, Tier 2, dan Tier 1 tersebar acak
+            // Kocok HANYA urutan pasangan tier loyalty (Tier 3, Tier 2, Tier 1) agar posisinya tersebar acak merata di antara slot loyalty
             shuffle($loyaltyPairs);
 
             // - Reguler Baru vs Reguler Baru
@@ -290,8 +290,6 @@ class BracketController extends Controller
             while (count($regularList) >= 2) {
                 $regularPairs[] = [array_shift($regularList), array_shift($regularList)];
             }
-            shuffle($regularPairs);
-            shuffle($soloPairs);
 
             // 5. Cross-match sisa ganjil (Spillover)
             $crossPairs = [];
@@ -312,9 +310,8 @@ class BracketController extends Controller
             while (count($remainingSpillover) >= 2) {
                 $crossPairs[] = [array_shift($remainingSpillover), array_shift($remainingSpillover)];
             }
-            shuffle($crossPairs);
 
-            // Interleave semua pasangan agar tersebar acak merata di bagan
+            // Interleave semua pasangan agar tersebar berirama di bagan (YMD -> Solo -> Loyalty -> Reguler -> Cross)
             $remainingActivePairs = [];
             while (count($ymdPairs) > 0 || count($soloPairs) > 0 || count($loyaltyPairs) > 0 || count($regularPairs) > 0 || count($crossPairs) > 0) {
                 if (count($ymdPairs) > 0) $remainingActivePairs[] = array_shift($ymdPairs);
@@ -323,9 +320,6 @@ class BracketController extends Controller
                 if (count($regularPairs) > 0) $remainingActivePairs[] = array_shift($regularPairs);
                 if (count($crossPairs) > 0) $remainingActivePairs[] = array_shift($crossPairs);
             }
-
-            // Kocok total penempatan pasangan pertandingan di bagan agar tersebar acak & adil di seluruh slot
-            shuffle($remainingActivePairs);
 
             // Fill the remaining active (non-BYE) slots in unassigned blocks
             foreach ($unassignedSlots as $s) {
