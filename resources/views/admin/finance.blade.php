@@ -238,7 +238,7 @@
             <table class="table table-hover align-middle mb-0 season-table">
                 <thead>
                     <tr>
-                        <th style="width: 140px;">Tanggal</th>
+                        <th style="width: 175px;">Tanggal & Waktu</th>
                         <th>Keterangan / Transaksi</th>
                         <th class="text-center" style="width: 150px;">Tipe</th>
                         <th class="text-end" style="width: 180px;">Jumlah</th>
@@ -249,7 +249,7 @@
                     {{-- Baris otomatis untuk Registrasi Tim & Solo --}}
                     @if($total_income > 0)
                     <tr style="border-bottom: 1px solid #f8fafc; background-color: rgba(25, 135, 84, 0.02);">
-                        <td><span class="text-muted">-</span></td>
+                        <td><span class="badge bg-light text-secondary border px-2 py-1 rounded-pill small" style="font-size: 0.7rem;"><i class="bi bi-cpu me-1"></i>Otomatis</span></td>
                         <td><span class="fw-bold text-dark">Total Pemasukan Registrasi (Otomatis)</span></td>
                         <td class="text-center">
                             <span class="badge-soft badge-soft-success">PEMASUKAN</span>
@@ -266,9 +266,18 @@
                     @forelse($finances as $finance)
                     <tr style="border-bottom: 1px solid #f1f5f9;">
                         <td>
-                            <span class="text-dark small fw-semibold">
-                                {{ $finance->date ? date('d M Y', strtotime($finance->date)) : date('d M Y', strtotime($finance->created_at)) }}
-                            </span>
+                            @php
+                                $displayDate = $finance->date ? date('d M Y', strtotime($finance->date)) : ($finance->created_at ? $finance->created_at->timezone('Asia/Jakarta')->format('d M Y') : '-');
+                                $displayTime = $finance->created_at ? $finance->created_at->timezone('Asia/Jakarta')->format('H:i:s') : ($finance->date ? date('H:i:s', strtotime($finance->date)) : '00:00:00');
+                            @endphp
+                            <div class="d-flex flex-column">
+                                <span class="text-dark small fw-bold">
+                                    {{ $displayDate }}
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.72rem;">
+                                    <i class="bi bi-clock me-1 text-muted"></i>{{ $displayTime }} WIB
+                                </span>
+                            </div>
                         </td>
                         <td>
                             <span class="text-dark fw-bold">{{ $finance->title }}</span>
@@ -341,8 +350,9 @@
                         </div>
                     </div>
                     <div class="mb-0">
-                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Tanggal</label>
-                        <input type="date" name="date" class="form-control rounded-3 shadow-none border-light-subtle py-2" value="{{ date('Y-m-d') }}" style="font-size: 0.85rem;">
+                        <label class="small fw-bold text-secondary mb-1 text-uppercase" style="font-size: 0.7rem;">Tanggal & Waktu</label>
+                        <input type="datetime-local" name="date" class="form-control rounded-3 shadow-none border-light-subtle py-2" value="{{ now()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i:s') }}" step="1" style="font-size: 0.85rem;">
+                        <div class="form-text text-muted" style="font-size: 0.68rem;">Sertakan tanggal, jam, menit, dan detik transaksi.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-light px-4 py-3">

@@ -666,16 +666,20 @@ class AdminController extends Controller
             'type' => 'required|in:INCOME,EXPENSE',
             'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'date' => 'nullable|date'
+            'date' => 'nullable'
         ]);
 
-        \App\Models\SeasonFinance::create([
-            'season_id' => $season_id,
-            'type' => $request->type,
-            'title' => $request->title,
-            'amount' => $request->amount,
-            'date' => $request->date ?? now()->toDateString()
-        ]);
+        $datetime = $request->date ? \Carbon\Carbon::parse($request->date) : now();
+
+        $finance = new \App\Models\SeasonFinance();
+        $finance->season_id = $season_id;
+        $finance->type = $request->type;
+        $finance->title = $request->title;
+        $finance->amount = $request->amount;
+        $finance->date = $datetime->toDateString();
+        $finance->created_at = $datetime;
+        $finance->updated_at = $datetime;
+        $finance->save();
 
         $typeLabel = $request->type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran';
         $season = Season::find($season_id);
